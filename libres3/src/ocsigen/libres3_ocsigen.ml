@@ -273,6 +273,7 @@ let run () =
     at_exit (fun () ->
       if not !ok then begin
         Printf.eprintf "Killing all children\n%!";
+        ok := true;
         (* kill self&all children *)
         Unix.kill 0 15
       end

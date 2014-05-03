@@ -1393,7 +1393,7 @@ module Make
       let base, _ = url_of_volpath_user ~user:"admin" "" "" in
       U.check base >>= function
         | None ->
-          if !Config.buckets_dir <> "" then
+          if !Config.buckets_dir <> "" && !Config.buckets_dir <> "/" then
             mkdir_maybe !Config.buckets_dir >>= fun () ->
             mkdir_maybe (Filename.concat !Config.buckets_dir "tmp")
             (*      >>= fun () ->  mkdir_maybe (!Config.buckets_dir ^ "-meta")*)
