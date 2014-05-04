@@ -134,6 +134,7 @@ Executable libres3_ocsigen
     ../files/conf/libres3.sample.s3cfg ($sysconfdir/libres3/),
     ../files/conf/libres3-insecure.sample.s3cfg ($sysconfdir/libres3/),
     ../files/conf/logrotate.d/libres3 ($docdir/logrotate.d/),
+    ../files/conf/mime.types ($sysconfdir/libres3/),
     ../files/sbin/libres3_env.sh ($sbindir/),
     ../files/sbin/libres3 ($sbindir/),
     ../../README ($docdir/),

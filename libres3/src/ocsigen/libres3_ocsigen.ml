@@ -89,7 +89,7 @@ let build_config conf =
       Xml.tag "maxrequestbodysize" [
         Xml.d (Printf.sprintf "%dMiB" !(conf.maxrequestbodysize_mb))
       ];
-      str_entry "mimefile" (ref "/etc/mime.types");
+      str_entry "mimefile" (ref (Filename.concat Configure.sysconfdir "libres3/mime.types"));
       int_entry "maxconnected" Config.max_connected;
       int_entry "clienttimeout" conf.timeout;
       int_entry "servertimeout" conf.keepalivetimeout;
