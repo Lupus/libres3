@@ -21,7 +21,7 @@ myocamlbuild.ml:
 	@false
 
 all.target test.target install.target reinstall.target uninstall.target clean.target:
-	ocamlbuild $@ -j 0
+	ocamlbuild $@ -j 0 -use-ocamlfind
 
 README.html: README
 	pandoc --toc -s --smart -t html5 --data-dir=`pwd` -H foghorn.css -f markdown $< -o $@
