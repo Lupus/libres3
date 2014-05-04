@@ -6,6 +6,7 @@
 "pkg-debian": not_hygienic
 "pkg-lsb": not_hygienic
 "pkg-lsb": -traverse
+"libres3": -traverse
 ".bzr": -traverse
 ".bzr": not_hygienic
 ".hg": -traverse
