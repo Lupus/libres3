@@ -244,6 +244,14 @@ module Make
     return_xml ?log ~id:canon.CanonRequest.id ~id2:(CanonRequest.gen_debug ~canon)
       ~req ~status ~reply_headers xml;;
 
+  let str_of_method = function
+    | `DELETE -> "DELETE"
+    | `GET -> "GET"
+    | `HEAD -> "HEAD"
+    | `POST _ -> "POST"
+    | `PUT _ -> "PUT"
+    | _ -> "N/A"
+
   let return_error_xml ~id ~id2 ~req ~path ~headers code detail =
     let code_str, code_msg, status = Error.info code in
     let rid = RequestId.to_string id in
@@ -265,7 +273,8 @@ module Make
           Xml.tag "Resource" [Xml.d path];(* TODO: should this just be
           the path without query args? *)
           Xml.tag "RequestId" [Xml.d rid];
-          Xml.tag "Code" [Xml.d code_str]
+          Xml.tag "Code" [Xml.d code_str];
+          Xml.tag "Method" [Xml.d (str_of_method req.meth)]
         ]
         and detail_tags = List.map (fun (tag,contents) ->
           Xml.tag tag [Xml.d contents]
