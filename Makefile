@@ -1,3 +1,4 @@
+everything: all
 all test install uninstall clean: myocamlbuild.ml
 	@export \
 	    OCAMLFIND_DESTDIR=`pwd`/_build/lib/ocaml/site-lib \
