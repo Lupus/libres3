@@ -1215,10 +1215,24 @@ module Make
           ("Params", String.concat "||" (List.map (fun (n,v) -> n^"="^v) params))
     ];;
 
-  let validate_authorization ~canon =
+  let is_root_get canon =
+    match
+      canon.CanonRequest.req_method, canon.CanonRequest.bucket,
+      canon.CanonRequest.path, CanonRequest.actual_query_params canon
+    with
+    | `GET, Bucket "", "/",[] -> true
+    | _ -> false
+
+  let validate_authorization ~request ~canon f =
     match CanonRequest.parse_authorization canon with
     | CanonRequest.AuthNone ->
-      return_error Error.AccessDenied ["MissingHeader", "Authorization"]
+      if is_root_get canon then
+        return_string ~req:request
+          ~id:canon.CanonRequest.id ~id2:(CanonRequest.gen_debug ~canon)
+          ~status:`Ok ~reply_headers:[] ~content_type:"text/html"
+          Homepage.root
+      else
+        return_error Error.AccessDenied ["MissingHeader", "Authorization"]
     | CanonRequest.AuthMalformed s ->
       return_error Error.InvalidSecurity ["BadAuthorization", s]
     | CanonRequest.AuthDuplicate ->
@@ -1241,13 +1255,13 @@ module Make
               ("Hint", "Your S3 secret key should be set to the SX auth token and your S3 access key should be set to your SX username")
             ]
           else
-            return user
+            f user
         | None ->
             return_error Error.InvalidAccessKeyId [
               "Hint","Your S3 access key must be set to your SX user name"
             ]
         end
-      | None -> return ""
+      | None -> f ""
 
   let handle_request_real request =
     let id = RequestId.generate () in
@@ -1261,8 +1275,9 @@ module Make
           "/" ^ (Bucket.to_string  canon.CanonRequest.bucket) ^
           canon.CanonRequest.path in
       IO.try_catch (fun () ->
-        validate_authorization ~canon >>= fun user ->
-        dispatch_request ~request ~canon:{ canon with CanonRequest.user = user }
+        validate_authorization ~request ~canon (fun user ->
+          dispatch_request ~request ~canon:{ canon with CanonRequest.user = user }
+        )
       )
       (function
       | Error.ErrorReply (code, details, headers) ->
