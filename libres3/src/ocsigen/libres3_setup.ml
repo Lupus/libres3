@@ -163,7 +163,7 @@ let update_s3cfg is_https host port key name =
   Printf.printf "Updating '%s'\n" name;
   let lst = load_config name in
   let f = open_out (name ^ ".tmp") in
-  (* restrict access to the file because it contains auth tokens *)
+  (* restrict access to the file because it contains keys *)
   Unix.fchmod (Unix.descr_of_out_channel f) 0o600;
   let hostport = host ^ ":" ^ (string_of_int port) in
   let lst = replace true lst "access_key" "admin" [] in
@@ -191,7 +191,7 @@ let () =
   try
     let config = load_config !sxsetup_conf in
     let load = find config in
-    let admin_key = fallback_read "Admin auth token" load "SX_ADMIN_KEY" in
+    let admin_key = fallback_read "Admin key" load "SX_ADMIN_KEY" in
     let this_ip = fallback_read "SX server IP/DNS name" load "SX_NODE_IP"
     and rundir = Filename.concat Configure.localstatedir "run"
     and webuser = fallback_read "Run as user" load "SX_SERVER_USER"
@@ -205,7 +205,7 @@ let () =
     let name = libres3_conf () in
     Printf.printf "\nGenerating '%s'\n" name;
     let outfile = open_out_ask name in
-    (* restrict access to the file because it contains auth tokens *)
+    (* restrict access to the file because it contains keys *)
     Unix.fchmod (Unix.descr_of_out_channel outfile) 0o600;
     Printf.fprintf outfile "# LibreS3 configuration file\n";
     Printf.fprintf outfile "secret_key=%S\n" admin_key;

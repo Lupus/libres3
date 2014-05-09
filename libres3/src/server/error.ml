@@ -183,7 +183,7 @@ let info = function
       `Internal_server_error
   | InvalidAccessKeyId ->
       "InvalidAccessKeyId",
-      "The SX Access Key Id you provided doesn't exist, make sure access_key is set to your SX username and secret_key to your SX auth token",
+      "The SX Access Key Id you provided doesn't exist, make sure access_key is set to your SX username and secret_key to your SX key",
       `Forbidden
   | InvalidArgument ->
       "InvalidArgument",
@@ -367,7 +367,7 @@ let info = function
       `Bad_request
   | SignatureDoesNotMatch ->
       "SignatureDoesNotMatch",
-      "The request's signature doesn't match what we calculated. Please check that your S3 secret key matches your SX auth token and the signing method.", `Forbidden
+      "The request's signature doesn't match what we calculated. Please check that your S3 secret key matches your SX key and the signing method.", `Forbidden
   | ServiceUnavailable ->
       "ServiceUnavailable",
       "Please reduce your request rate.",

@@ -1252,7 +1252,7 @@ module Make
               ("Host", canon.CanonRequest.host);
               ("UndecodedPath", canon.CanonRequest.undecoded_uri_path);
               ("Bucket", Bucket.to_string canon.CanonRequest.bucket);
-              ("Hint", "Your S3 secret key should be set to the SX auth token and your S3 access key should be set to your SX username")
+              ("Hint", "Your S3 secret key should be set to your SX key and your S3 access key should be set to your SX username")
             ]
           else
             f user
