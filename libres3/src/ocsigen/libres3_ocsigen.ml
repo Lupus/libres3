@@ -278,6 +278,7 @@ let run () =
         Unix.kill 0 15
       end
     );
+    Gc.compact ();
     if !Config.daemonize then begin
       Unix.chdir "/";
       ignore (Unix.setsid ());
@@ -286,6 +287,7 @@ let run () =
         Lwt_sequence.iter_node_l Lwt_sequence.remove Lwt_main.exit_hooks;
       end else begin
         ignore (Unix.setsid ());
+        Lwt_unix.set_pool_size 64;
         Ocsigen_server.start_server ();
         exit 0;
       end
