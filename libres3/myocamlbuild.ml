@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 5ce729ab61635b8615f7b01404e6a015) *)
+(* DO NOT EDIT (digest: 39912155e6725cd49ccb42019742dc06) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -597,6 +597,8 @@ let package_default =
   {
      MyOCamlbuildBase.lib_ocaml =
        [
+          ("anycache", ["src/anycache"], []);
+          ("anycache.test", ["src/anycache"], []);
           ("sxclient", ["src/sxclient"], []);
           ("sxclient.lwt", ["src/sxclient/lwt"], []);
           ("sxclient.thread", ["src/sxclient/thread"], []);
@@ -607,9 +609,16 @@ let package_default =
      flags = [];
      includes =
        [
-          ("test", ["src/server"; "src/sxclient/lwt"; "src/sxclient/thread"]);
+          ("test",
+            [
+               "src/anycache";
+               "src/server";
+               "src/sxclient/lwt";
+               "src/sxclient/thread"
+            ]);
           ("src/sxclient/thread", ["src/sxclient"]);
           ("src/sxclient/lwt", ["src/sxclient"]);
+          ("src/sxclient", ["src/anycache"]);
           ("src/server", ["src/sxclient"; "src/sxclient/lwt"]);
           ("src/ocsigen", ["src/server"; "src/sxclient/lwt"]);
           ("src/fcgi", ["src"; "src/server"; "src/sxclient/thread"]);
@@ -620,7 +629,7 @@ let package_default =
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default package_default;;
 
-# 624 "myocamlbuild.ml"
+# 633 "myocamlbuild.ml"
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch dispatch_default;;
 let default_version =

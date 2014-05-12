@@ -35,13 +35,14 @@
 module Monad = struct
   type 'a t = unit -> 'a
   let return value = fun () -> value
-  let (>>=) v f = f (v ())
+  let (>>=) v f = fun () -> f (v ()) ()
   let fail e = raise e
   let try_catch f g v = fun () ->
     try
       (f v) ()
     with e ->
       (g e) ();;
+
   let run x = x ()
 
   type 'a result = Result of 'a | Error of exn
@@ -55,6 +56,11 @@ module Monad = struct
     with e ->
       Error e
   ;;
+
+  let try_bind m f g = fun () ->
+    match try Result (m () ()) with e -> Error e with
+    | Result v -> (f v) ()
+    | Error e -> (g e) ()
 
   let wait_result (cond,res) () =
     Mutex.lock masterlock;
@@ -107,15 +113,14 @@ module OS = struct
   let unlink = restart_eintr Unix.unlink
   let access name perms = restart_eintr (Unix.access name) perms
 
-  let sleep t =
+  let sleep t () =
     let finish = Unix.gettimeofday () +. t in
     let rec loop t =
       begin try ignore (Unix.select [] [] [] t) with _ -> () end;
       let now = Unix.gettimeofday () in
       if now < finish then
         loop (finish -. now)
-      else
-        Monad.return () in
+    in
     loop t
   ;;
 

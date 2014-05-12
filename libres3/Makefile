@@ -40,8 +40,9 @@ configure:
 
 # OASIS_STOP
 headache:
-	git ls-files -- src/ test/ | grep -Fv src/sxclient | grep -Fv .mldylib | grep -v ml.ab | grep -Fv netcgi_fcgip.ml | grep -Fv src/files | grep -Fv .mllib | grep -Fv .odocl | grep -Fv META | xargs headache -h _header.server 
+	git ls-files -- src/ test/ | grep -Fv src/sxclient | grep -Fv src/anycache/ | grep -Fv .mldylib | grep -v ml.ab | grep -Fv netcgi_fcgip.ml | grep -Fv src/files | grep -Fv .mllib | grep -Fv .odocl | grep -Fv META | xargs headache -h _header.server 
 	git ls-files -- src/sxclient | grep -Fv .mllib | grep -Fv .mldylib | grep -Fv .odocl | grep -Fv https_clientp.ml | grep -Fv META | xargs headache -h _header.client
+	git ls-files -- src/anycache | grep -Fv .mllib | grep -Fv .mldylib | grep -Fv .odocl | grep -Fv https_clientp.ml | grep -Fv META | xargs headache -h _header.small
 
 metrics.html: build
 	find _build -name '*.ml' -print0 | grep -ZzFv myocamlbuild.ml | xargs -0 mascot -config mascot.conf -html metrics.html 

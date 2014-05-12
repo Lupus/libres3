@@ -496,19 +496,15 @@ struct
           failwith "string field expected";;
 
   module AJson = AsyncJson(IO.Op)
-  module UserCache = Cache.Make(M)(struct
-    type t = string
-    let compare a b = String.compare a b
-    type data = string option
-    let cache_size = 10
-  end)
+  module UserCache = LRUCacheMonad.Make(M)
+  let usercache = UserCache.create 10
 
   let token_of_user url =
     let user = Neturl.url_user url in
     let url = Neturl.remove_from_url ~query:true (Neturl.modify_url
       ~path:["";".users";user] url ~scheme:"http") in
     try_catch (fun () ->
-        UserCache.bind (M.return user) (fun _ ->
+        UserCache.lookup_exn usercache user (fun _ ->
             if user = !Config.key_id then
               M.return (Some !Config.secret_access_key)
             else
@@ -832,28 +828,17 @@ struct
 
     (* SX is too slow when listing directories on large volumes,
      * cache the data until bug #415 is fixed *)
-    module ListCache = Cache.Make(M)(struct
-        type t = string * string * float
-
-        let compare (user1, url1, expires1) (user2, url2, expires2) =
-          if user1 = user2 then begin
-            if url1 = url2  then begin
-              (* if within the expiration time consider them equal *)
-              if abs_float (expires1 -. expires2) < !Config.list_cache_expires then 0
-              else Pervasives.compare expires1 expires2
-            end
-            else String.compare url1 url2
-          end else
-            String.compare user1 user2
-
-        type data = entry list
-        let cache_size = 100
-      end)
+    (* TODO: pendinglist *)
+    module ListCache = Pendinglimit.Make(M)(struct
+        type t = string * string
+        let compare = Pervasives.compare
+    end)
+    let listcache = ListCache.create ()
 
     let listit url =
       let user = Neturl.url_user url in
-      let req = user, string_of_url url, Unix.gettimeofday () in
-      ListCache.bind (M.return req) (fun _ ->
+      let req = user, string_of_url url in
+      ListCache.bind listcache req (fun _ ->
           get_vol_nodelist url >>= fun (nodes, _) ->
           make_request `GET nodes url >>=  fun reply ->
           begin

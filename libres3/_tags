@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: e115b89d29175937dd15460c783ea1f7)
+# DO NOT EDIT (digest: 741db4e5be88c82fef1cd87dc3114fc2)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -13,6 +13,12 @@
 ".git": not_hygienic
 "_darcs": -traverse
 "_darcs": not_hygienic
+# Library anycache
+"src/anycache/anycache.cmxs": use_anycache
+# Library anycache.test
+"src/anycache/anycache.test.cmxs": use_anycache.test
+<src/anycache/*.ml{,i}>: package(oUnit)
+<src/anycache/*.ml{,i}>: use_anycache
 # Library sxclient
 "src/sxclient/sxclient.cmxs": use_sxclient
 <src/sxclient/*.ml{,i}>: package(cryptokit)
@@ -22,6 +28,7 @@
 <src/sxclient/*.ml{,i}>: package(netstring)
 <src/sxclient/*.ml{,i}>: package(ssl)
 <src/sxclient/*.ml{,i}>: package(threads)
+<src/sxclient/*.ml{,i}>: use_anycache
 # Library sxclient.lwt
 "src/sxclient/lwt/sxclient.lwt.cmxs": use_sxclient.lwt
 <src/sxclient/lwt/*.ml{,i}>: package(cryptokit)
@@ -32,6 +39,7 @@
 <src/sxclient/lwt/*.ml{,i}>: package(netstring)
 <src/sxclient/lwt/*.ml{,i}>: package(ssl)
 <src/sxclient/lwt/*.ml{,i}>: package(threads)
+<src/sxclient/lwt/*.ml{,i}>: use_anycache
 <src/sxclient/lwt/*.ml{,i}>: use_sxclient
 # Library sxclient.thread
 "src/sxclient/thread/sxclient.thread.cmxs": use_sxclient.thread
@@ -42,6 +50,7 @@
 <src/sxclient/thread/*.ml{,i}>: package(netstring)
 <src/sxclient/thread/*.ml{,i}>: package(ssl)
 <src/sxclient/thread/*.ml{,i}>: package(threads)
+<src/sxclient/thread/*.ml{,i}>: use_anycache
 <src/sxclient/thread/*.ml{,i}>: use_sxclient
 # Executable sxuls
 <test/sxuls.{native,byte}>: package(cryptokit)
@@ -51,6 +60,7 @@
 <test/sxuls.{native,byte}>: package(netstring)
 <test/sxuls.{native,byte}>: package(ssl)
 <test/sxuls.{native,byte}>: package(threads)
+<test/sxuls.{native,byte}>: use_anycache
 <test/sxuls.{native,byte}>: use_sxclient
 <test/sxuls.{native,byte}>: use_sxclient.thread
 # Executable sxucp
@@ -61,6 +71,7 @@
 <test/sxucp.{native,byte}>: package(netstring)
 <test/sxucp.{native,byte}>: package(ssl)
 <test/sxucp.{native,byte}>: package(threads)
+<test/sxucp.{native,byte}>: use_anycache
 <test/sxucp.{native,byte}>: use_sxclient
 <test/sxucp.{native,byte}>: use_sxclient.thread
 # Library server
@@ -85,6 +96,7 @@
 <src/fcgi/libres3_fcgi.{native,byte}>: package(str)
 <src/fcgi/libres3_fcgi.{native,byte}>: package(threads)
 <src/fcgi/libres3_fcgi.{native,byte}>: package(xmlm)
+<src/fcgi/libres3_fcgi.{native,byte}>: use_anycache
 <src/fcgi/libres3_fcgi.{native,byte}>: use_server
 <src/fcgi/libres3_fcgi.{native,byte}>: use_sxclient
 <src/fcgi/libres3_fcgi.{native,byte}>: use_sxclient.thread
@@ -102,6 +114,7 @@
 <src/*.ml{,i}>: package(str)
 <src/*.ml{,i}>: package(threads)
 <src/*.ml{,i}>: package(xmlm)
+<src/*.ml{,i}>: use_anycache
 <src/*.ml{,i}>: use_server
 <src/*.ml{,i}>: use_sxclient
 <src/*.ml{,i}>: use_sxclient.thread
@@ -119,6 +132,7 @@
 <src/fcgi/*.ml{,i}>: package(str)
 <src/fcgi/*.ml{,i}>: package(threads)
 <src/fcgi/*.ml{,i}>: package(xmlm)
+<src/fcgi/*.ml{,i}>: use_anycache
 <src/fcgi/*.ml{,i}>: use_server
 <src/fcgi/*.ml{,i}>: use_sxclient
 <src/fcgi/*.ml{,i}>: use_sxclient.thread
@@ -141,6 +155,7 @@
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(str)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(threads)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(xmlm)
+<src/ocsigen/libres3_ocsigen.{native,byte}>: use_anycache
 <src/ocsigen/libres3_ocsigen.{native,byte}>: use_libres3_site
 <src/ocsigen/libres3_ocsigen.{native,byte}>: use_server
 <src/ocsigen/libres3_ocsigen.{native,byte}>: use_sxclient
@@ -161,6 +176,7 @@
 <src/ocsigen/*.ml{,i}>: package(str)
 <src/ocsigen/*.ml{,i}>: package(threads)
 <src/ocsigen/*.ml{,i}>: package(xmlm)
+<src/ocsigen/*.ml{,i}>: use_anycache
 <src/ocsigen/*.ml{,i}>: use_libres3_site
 <src/ocsigen/*.ml{,i}>: use_server
 <src/ocsigen/*.ml{,i}>: use_sxclient
@@ -181,6 +197,7 @@
 <src/server/libres3_report.{native,byte}>: package(ssl)
 <src/server/libres3_report.{native,byte}>: package(threads)
 <src/server/libres3_report.{native,byte}>: package(unix)
+<src/server/libres3_report.{native,byte}>: use_anycache
 <src/server/libres3_report.{native,byte}>: use_sxclient
 <src/server/libres3_report.{native,byte}>: use_sxclient.lwt
 <src/server/*.ml{,i}>: package(cryptokit)
@@ -194,6 +211,7 @@
 <src/server/*.ml{,i}>: package(ssl)
 <src/server/*.ml{,i}>: package(threads)
 <src/server/*.ml{,i}>: package(unix)
+<src/server/*.ml{,i}>: use_anycache
 <src/server/*.ml{,i}>: use_sxclient
 <src/server/*.ml{,i}>: use_sxclient.lwt
 # Executable server_test
@@ -211,6 +229,7 @@
 <test/test_server.{native,byte}>: package(str)
 <test/test_server.{native,byte}>: package(threads)
 <test/test_server.{native,byte}>: package(xmlm)
+<test/test_server.{native,byte}>: use_anycache
 <test/test_server.{native,byte}>: use_server
 <test/test_server.{native,byte}>: use_sxclient
 <test/test_server.{native,byte}>: use_sxclient.thread
@@ -229,6 +248,8 @@
 <test/test_directio.{native,byte}>: package(str)
 <test/test_directio.{native,byte}>: package(threads)
 <test/test_directio.{native,byte}>: package(xmlm)
+<test/test_directio.{native,byte}>: use_anycache
+<test/test_directio.{native,byte}>: use_anycache.test
 <test/test_directio.{native,byte}>: use_server
 <test/test_directio.{native,byte}>: use_sxclient
 <test/test_directio.{native,byte}>: use_sxclient.thread
@@ -249,10 +270,13 @@
 <test/test_lwtio.{native,byte}>: package(str)
 <test/test_lwtio.{native,byte}>: package(threads)
 <test/test_lwtio.{native,byte}>: package(xmlm)
+<test/test_lwtio.{native,byte}>: use_anycache
+<test/test_lwtio.{native,byte}>: use_anycache.test
 <test/test_lwtio.{native,byte}>: use_server
 <test/test_lwtio.{native,byte}>: use_sxclient
 <test/test_lwtio.{native,byte}>: use_sxclient.lwt
 <test/*.ml{,i}>: package(lwt.unix)
+<test/*.ml{,i}>: use_anycache.test
 <test/*.ml{,i}>: use_sxclient.lwt
 # Executable misc_test
 <test/test_misc.{native,byte}>: package(cryptokit)
@@ -269,6 +293,7 @@
 <test/test_misc.{native,byte}>: package(str)
 <test/test_misc.{native,byte}>: package(threads)
 <test/test_misc.{native,byte}>: package(xmlm)
+<test/test_misc.{native,byte}>: use_anycache
 <test/test_misc.{native,byte}>: use_server
 <test/test_misc.{native,byte}>: use_sxclient
 # Executable net_test
@@ -286,6 +311,7 @@
 <test/netTest.{native,byte}>: package(str)
 <test/netTest.{native,byte}>: package(threads)
 <test/netTest.{native,byte}>: package(xmlm)
+<test/netTest.{native,byte}>: use_anycache
 <test/netTest.{native,byte}>: use_server
 <test/netTest.{native,byte}>: use_sxclient
 <test/*.ml{,i}>: package(cryptokit)
@@ -302,6 +328,7 @@
 <test/*.ml{,i}>: package(str)
 <test/*.ml{,i}>: package(threads)
 <test/*.ml{,i}>: package(xmlm)
+<test/*.ml{,i}>: use_anycache
 <test/*.ml{,i}>: use_server
 <test/*.ml{,i}>: use_sxclient
 # OASIS_STOP

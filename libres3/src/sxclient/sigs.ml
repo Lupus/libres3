@@ -34,7 +34,7 @@
 
 module type Monad = sig
   (* monad operations *)
-  type 'a t
+  type +'a t
   val return: 'a -> 'a t
   val (>>=): 'a t -> ('a -> 'b t) -> 'b t
   val run : 'a t -> 'a
@@ -42,6 +42,7 @@ module type Monad = sig
   (* exception handling inside the monads *)
   val fail: exn -> 'a t
   val try_catch: ('a -> 'b t) -> (exn -> 'b t) -> 'a -> 'b t
+  val try_bind : (unit -> 'a t) -> ('a -> 'b t) -> (exn -> 'b t) -> 'b t
 end
 
 module type ThreadMonad = sig
@@ -152,7 +153,7 @@ type entry = {
 }
 
 module type EventIOSig = sig
-  type 'a t
+  type +'a t
   module Op : sig
     include Monad with type 'a t = 'a t
     val ( >|= ) : 'a t -> ('a -> 'b) -> 'b t
@@ -228,6 +229,7 @@ module type EventIOSig = sig
   exception InputTooLarge of int
   val read_all : input:'a Stream.t -> max:int -> string t
   val string_of_file : string -> string t
+  val sleep : float -> unit t
 end
 
 module type SXClientMonad = sig

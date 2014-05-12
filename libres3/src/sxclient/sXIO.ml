@@ -1,3 +1,5 @@
+(**************************************************************************)
+(*  SX client                                                             *)
 (*  Copyright (C) 2012-2014 Skylable Ltd. <info-copyright@skylable.com>   *)
 (*                                                                        *)
 (*  This library is free software; you can redistribute it and/or         *)

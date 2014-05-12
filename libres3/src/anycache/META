@@ -1,0 +1,22 @@
+# OASIS_START
+# DO NOT EDIT (digest: 7563a5289febc3453931ea9e6eef36ea)
+version = "0.1"
+description = "any-cache"
+requires = "threads"
+archive(byte) = "anycache.cma"
+archive(byte, plugin) = "anycache.cma"
+archive(native) = "anycache.cmxa"
+archive(native, plugin) = "anycache.cmxs"
+exists_if = "anycache.cma"
+package "test" (
+ version = "0.1"
+ description = "any-cache"
+ requires = "anycache oUnit"
+ archive(byte) = "anycache.test.cma"
+ archive(byte, plugin) = "anycache.test.cma"
+ archive(native) = "anycache.test.cmxa"
+ archive(native, plugin) = "anycache.test.cmxs"
+ exists_if = "anycache.test.cma"
+)
+# OASIS_STOP
+

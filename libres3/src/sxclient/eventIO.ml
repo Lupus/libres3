@@ -257,6 +257,8 @@ module Make (M: Sigs.Monad) (OS: OSMonad with type 'a t = 'a M.t)
     return (Buffer.contents buf)
   ;;
 
+  let sleep = OS.sleep
+
   let mkdir = OS.mkdir
   let rmdir = OS.rmdir
   let lstat = OS.LargeFile.lstat

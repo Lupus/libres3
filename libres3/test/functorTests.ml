@@ -44,9 +44,15 @@ end = struct
     Default.register ();
   module SXIO =  Default.IO
   module ServerTest = ServerTest.Make(SXIO)(IO)
+  module AnycacheTest = AnycacheTest.Make(struct
+      include M
+      let delay = OS.sleep
+      let name = "cache"
+  end)
 
   let tests name =
     name>:::[
+      AnycacheTest.tests;
       MonadTest.tests;
       OSTest.tests;
       IOTest.tests;

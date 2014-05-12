@@ -196,14 +196,8 @@ module MakePipeline (M:Sigs.Monad)(W:Sigs.ThreadMonad with type 'a t = 'a M.t)
   let return_http_error status =
     raise (Sigs.HttpCode status)
 
-  module MCache = Cache.Make(M)(struct
-    type t = string
-    let compare a b = String.compare a b
-    type data = string
-    (* TODO: cache needs to be aware of data size,
-     * and count in units of bytes instead of cached elements *)
-    let cache_size = 1000
-  end)
+  module MCache = LRUCacheMonad.Make(M)
+  let cache = MCache.create 1000
 
   let perform_cached_request esys request =
     let call, _ = call_of_request request in
@@ -225,7 +219,7 @@ module MakePipeline (M:Sigs.Monad)(W:Sigs.ThreadMonad with type 'a t = 'a M.t)
   ;;
 
   let make_cached_request (esys,_,_) ~key request =
-    MCache.bind (M.return key) (fun _ ->
+    MCache.lookup_exn cache key (fun _ ->
       perform_cached_request esys request
      )
   ;;

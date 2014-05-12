@@ -48,12 +48,24 @@ Flag internaldocs
   Description: build internal docs
   Default: false
 
+Library anycache
+  Path: src/anycache
+  Install: false
+  Modules: LRUCache, LRUCacheResult, LRUCacheMonad, LRUCacheTypes, Pendinglimit
+  InternalModules: LRU, DLinkedList, WeakBuffer
+
+Library "anycache.test"
+  Path: src/anycache
+  Install: false
+  Modules: AnycacheTest
+  BuildDepends: anycache, oUnit
+
 Library sxclient
   Path: src/sxclient
   Install: false
   Modules: Sigs, EventIO, SXIO, SXFile, SXC, SXDefaultIO, Config
-  InternalModules: Cache, Http, DLinkedList, Lru, SharedData, WeakBuffer
-  BuildDepends: netclient (>= 3.7.4), netstring, threads, jsonm, cryptokit (>= 1.3), ssl (>= 0.4.4), equeue-ssl
+  InternalModules: Http
+  BuildDepends: netclient (>= 3.7.4), netstring, threads, jsonm, cryptokit (>= 1.3), ssl (>= 0.4.4), equeue-ssl, anycache
   CompiledObject: Best
 
 Library "sxclient.lwt"
@@ -173,7 +185,7 @@ Executable directio_test
   Build$: flag(tests)
   MainIs: test_directio.ml
   CompiledObject: Best
-  BuildDepends: cryptokit, oUnit, sxclient.thread, server
+  BuildDepends: cryptokit, oUnit, sxclient.thread, server, anycache.test
 
 Executable lwtio_test
   Install: false
@@ -181,7 +193,7 @@ Executable lwtio_test
   Build$: flag(tests) && flag(ocsigen)
   MainIs: test_lwtio.ml
   CompiledObject: Best
-  BuildDepends: cryptokit, oUnit, sxclient.lwt,  server
+  BuildDepends: cryptokit, oUnit, sxclient.lwt,  server, anycache.test
 
 Executable misc_test
   Install: false

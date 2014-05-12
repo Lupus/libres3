@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 95398f759660ebeb75ad48657f1c0d3c) *)
+(* DO NOT EDIT (digest: 4323073def62a5055015164135146856) *)
 
 This is the INSTALL file for the libres3 distribution.
 
@@ -14,6 +14,9 @@ In order to compile this package, you will need:
 * ocaml (>= 3.12.1) for all, test directio, test lwtio, test misc,
   test server, doc api-client, doc api-server
 * findlib (>= 1.2.8)
+* oUnit for library anycache.test, executable directio_test,
+  executable lwtio_test, executable misc_test, executable net_test,
+  executable server_test
 * netclient (>= 3.7.4) for library sxclient, executable net_test
 * netstring for library server, library sxclient, executable libres3_report,
   executable libres3_setup
@@ -33,8 +36,6 @@ In order to compile this package, you will need:
 * netcgi2 for executable libres3_fcgi
 * dns for library libres3_site
 * re for library libres3_site, executable libres3_report
-* oUnit for executable directio_test, executable lwtio_test,
-  executable misc_test, executable net_test, executable server_test
 
 Installing
 ==========
