@@ -5,7 +5,7 @@ license: "GPL-2.0 with OpenSSL exception"
 homepage: "http://www.skylable.com/products/libres3"
 build: [
   ["sh" "-c" "cd libres3 && ocaml setup.ml -distclean"]
-  ["sh" "-c" "cd libres3 && ocaml setup.ml -configure --prefix %{prefix}%"]
+  ["sh" "-c" "cd libres3 && ocaml setup.ml -configure --prefix %{prefix}% --%{ounit:enable}%-tests --disable-docs"]
   ["sh" "-c" "cd libres3 && ocaml setup.ml -build"]
 ]
 depends: [
@@ -22,5 +22,9 @@ depends: [
   "ocsigenserver" {>= "2.4.0"}
 # for ocsigenserver, choose sqlite3 as dbm doesn't build
   "sqlite3-ocaml"
+]
+depopts:["ounit"]
+build-test: [
+    ["sh" "-c" "cd libres3 && ocaml setup.ml -test"]
 ]
 ocaml-version: [ >= "3.12.1" ]
