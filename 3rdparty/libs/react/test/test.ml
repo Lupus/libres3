@@ -1,5 +1,5 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2009-2012 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2009 Daniel C. Bünzli. All rights reserved.
    Distributed under a BSD3 license, see license at the end of the file.
   ---------------------------------------------------------------------------*)
 
@@ -15,7 +15,7 @@ let pp_list ppv pp l =
   Format.fprintf pp "@[["; 
   List.iter (fun v -> Format.fprintf pp "%a;@ " ppv v) l;
   Format.fprintf pp "]@]"
-
+    
 let pr_value pp name v = Format.printf "@[<hov 2>%s =@ %a@]@." name pp v  
 let e_pr ?iff pp name e = E.trace ?iff (pr_value pp name) e
 let s_pr ?iff pp name s = S.trace ?iff (pr_value pp name) s
@@ -181,18 +181,18 @@ let test_dismiss () =
   List.iter empty [assert_z; !assert_dz];
   keep_eref create_dyn
 
-let test_when () = 
+let test_on () = 
   let e, send_e = E.create () in 
   let s = S.hold 0 e in 
   let c = S.map (fun x -> x mod 2 = 0) s in
-  let w = E.when_ c e in 
+  let w = E.on c e in 
   let ovals = [2; 4; 4; 6; 4] in
   let assert_w = occs w ovals in
   let assert_dw = assert_e_stub () in
   let assert_dhw = assert_e_stub () in
   let dyn () = 
-    let dw = E.when_ c e in 
-    let dhw = E.when_ (high_s c) (high_e e) in
+    let dw = E.on c e in 
+    let dhw = E.on (high_s c) (high_e e) in
     assert_dw := occs dw ovals;
     assert_dhw := occs dhw ovals
   in
@@ -295,7 +295,7 @@ let test_merge () =
   List.iter empty [assert_z; !assert_dz];
   keep_eref create_dyn
 
-let test_switch () = 
+let test_switch () =
   let x, send_x = E.create () in
   let switch e = 
     E.fmap (fun v -> if v mod 3 = 0 then Some (E.map (( * ) v) e) else None) x
@@ -340,13 +340,70 @@ let test_fix () =
   List.iter empty [assert_l; !assert_dl];
   keep_eref create_dyn
 
+let test_lifts () = 
+  let x1, send_x1 = E.create () in 
+  let x2, send_x2 = E.create () in 
+  let x3, send_x3 = E.create () in 
+  let x4, send_x4 = E.create () in 
+  let x5, send_x5 = E.create () in 
+  let x6, send_x6 = E.create () in 
+  let f1 a = 1 + a in
+  let f2 a0 a1 = a0 + a1 in 
+  let f3 a0 a1 a2 = a0 + a1 + a2 in 
+  let f4 a0 a1 a2 a3 = a0 + a1 + a2 + a3 in 
+  let f5 a0 a1 a2 a3 a4 = a0 + a1 + a2 + a3 + a4 in 
+  let f6 a0 a1 a2 a3 a4 a5 = a0 + a1 + a2 + a3 + a4 + a5 in 
+  let v1 = E.l1 f1 x1 in
+  let v2 = E.l2 f2 x1 x2 in
+  let v3 = E.l3 f3 x1 x2 x3 in
+  let v4 = E.l4 f4 x1 x2 x3 x4 in
+  let v5 = E.l5 f5 x1 x2 x3 x4 x5 in
+  let v6 = E.l6 f6 x1 x2 x3 x4 x5 x6 in
+  let a_v1 = occs v1 [2; 2; 2; 2; 2; 2;] in 
+  let a_v2 = occs v2 [   3; 3; 3; 3; 3;] in 
+  let a_v3 = occs v3 [      6; 6; 6; 6;] in   
+  let a_v4 = occs v4 [        10;10;10;] in 
+  let a_v5 = occs v5 [           15;15;] in 
+  let a_v6 = occs v6 [              21;] in 
+  let with_step f = 
+    let s = Step.create () in
+    f s; Step.execute s 
+  in
+  let s1 s = send_x1 ~step:s 1 in 
+  let s2 s = s1 s; send_x2 ~step:s 2 in 
+  let s3 s = s2 s; send_x3 ~step:s 3 in
+  let s4 s = s3 s; send_x4 ~step:s 4 in
+  let s5 s = s4 s; send_x5 ~step:s 5 in
+  let s6 s = s5 s; send_x6 ~step:s 6 in
+  with_step s1; with_step s2; with_step s3; 
+  with_step s4; with_step s5; with_step s6; 
+  List.iter empty [ a_v1; a_v2; a_v3; a_v4; a_v5; a_v6;]; 
+  ()
+  
+let test_option () = 
+  let x, send_x = E.create () in 
+  let s, set_s = S.create 4 in 
+  let some = E.Option.some (S.changes s) in 
+  let e0 = E.Option.value x in 
+  let e1 = E.Option.value ~default:(S.const 2) x in 
+  let e2 = E.Option.value ~default:s x in 
+  let assert_some = occs some [ Some 42;] in 
+  let assert_e0 = occs e0 [1; 5; ] in 
+  let assert_e1 = occs e1 [1; 2; 5; 2] in 
+  let assert_e2 = occs e2 [1; 4; 5; 42] in 
+  send_x (Some 1); send_x None; set_s 42; 
+  send_x (Some 5); send_x None; 
+  empty assert_some;
+  List.iter empty [ assert_e0; assert_e1; assert_e2];
+  ()
+
 let test_events () = 
   test_no_leak ();
   test_once_drop_once ();
   test_app ();
   test_map_stamp_filter_fmap ();
   test_diff_changes ();
-  test_when ();
+  test_on ();
   test_dismiss ();
   test_until ();
   test_accum ();
@@ -354,7 +411,10 @@ let test_events () =
   test_select ();
   test_merge ();
   test_switch ();
-  test_fix ()
+  test_fix (); 
+  test_lifts (); 
+  test_option ();
+  ()
 
 (* Signal tests *)
 
@@ -473,9 +533,9 @@ let test_map_filter_fmap () =
   Gc.full_major ();
   List.iter set_x [ 1; 2; 3; 4; 4; 5; 5]; 
   List.iter empty [assert_x2; assert_fe; assert_fo; assert_fme;
-		   assert_fmo; !assert_dx2; !assert_dhx2; !assert_dfe; 
-		   !assert_dhfe; !assert_dfo ; !assert_dhfo; !assert_dfme ; 
-		   !assert_dhfme ; !assert_dfmo ; !assert_dhfmo ];
+                   assert_fmo; !assert_dx2; !assert_dhx2; !assert_dfe; 
+                   !assert_dhfe; !assert_dfo ; !assert_dhfo; !assert_dfme ; 
+                   !assert_dhfme ; !assert_dfmo ; !assert_dhfmo ];
   keep_sref create_dyn
 
 
@@ -504,7 +564,7 @@ let test_diff_changes () =
   Gc.full_major ();
   List.iter send_e [1; 1; 3; 3; 4; 4]; 
   List.iter empty [assert_d; assert_c; !assert_dd; !assert_dhd; !assert_dc;
-		   !assert_dhc];
+                   !assert_dhc];
   keep_sref create_dyn
 
 let test_sample () = 
@@ -529,12 +589,12 @@ let test_sample () =
   List.iter empty [assert_sam; !assert_dsam; !assert_dhsam];
   keep_sref create_dyn
 
-let test_when () =
+let test_on () =
   let s, set_s = S.create 0 in 
   let ce = S.map (fun x -> x mod 2 = 0) s in  
   let co = S.map (fun x -> x mod 2 <> 0) s in
-  let se = S.when_ ce 42 s in 
-  let so = S.when_ co 56 s in 
+  let se = S.on ce 42 s in 
+  let so = S.on co 56 s in 
   let assert_se = vals se [ 0; 2; 4; 6; 4 ] in
   let assert_so = vals so [ 56; 1; 3; 1; 3 ] in
   let assert_dse = assert_s_stub 0 in
@@ -542,10 +602,10 @@ let test_when () =
   let assert_dso = assert_s_stub 0 in
   let assert_dhso = assert_s_stub 0 in
   let dyn () = 
-    let dse = S.when_ ce 42 s in
-    let dhse = S.when_ ce 42 (high_s s) in
-    let dso = S.when_ co 56 s in
-    let dhso = S.when_ co 56 (high_s s) in
+    let dse = S.on ce 42 s in
+    let dhse = S.on ce 42 (high_s s) in
+    let dso = S.on co 56 s in
+    let dhso = S.on co 56 (high_s s) in
     assert_dse := vals dse [6; 4];
     assert_dhse := vals dhse [6; 4];
     assert_dso := vals dso [56; 1; 3];
@@ -555,7 +615,7 @@ let test_when () =
   Gc.full_major ();
   List.iter set_s [ 1; 3; 1; 2; 4; 4; 6; 1; 3; 4 ];
   List.iter empty [assert_se; assert_so; !assert_dse; !assert_dhse;
-		   !assert_dso; !assert_dhso];
+                   !assert_dso; !assert_dhso];
   keep_sref create_dyn
 
 let test_dismiss () = 
@@ -634,38 +694,83 @@ let test_merge () =
   List.iter empty [assert_z; !assert_dz; !assert_dhz];
   keep_sref create_dyn
 
+let esswitch s es = (* Pre 1.0.0 S.switch *)
+  S.switch (S.hold ~eq:( == ) s es) 
+  
 let test_switch () =
-  let x, send_x = E.create () in 
-  let s = S.hold 0 x in
+  let s, set_s = S.create 0 in
   let switch s = 
-    E.fmap (fun v -> if v mod 3 = 0 then Some (S.map (( * ) v) s) else None) x
+    let map v = 
+      if v mod 3 = 0 && v <> 0 then Some (S.map (( * ) v) s) else None 
+    in
+    S.fmap ~eq:( == ) map s s
   in
-  let sw = S.switch s (switch s) in
-  let hsw = S.switch s (switch (high_s s)) in
+  let sw = S.switch (switch s) in 
+  let hsw = S.switch (switch (high_s s)) in 
   let assert_sw = vals sw [0; 1; 2; 9; 12; 15; 36; 42; 48; 81] in
   let assert_hsw = vals hsw [0; 1; 2; 9; 12; 15; 36; 42; 48; 81] in
   let assert_dsw = assert_s_stub 0 in
   let assert_dhsw = assert_s_stub 0 in
   let dyn () = 
-    let dsw = S.switch s (switch s) in 
-    let dhsw = S.switch s (switch (high_s s)) in
+    let dsw = S.switch (switch s) in 
+    let dhsw = S.switch (switch (high_s s)) in
+    assert_dsw := vals dsw [9; 12; 15; 36; 42; 48; 81];
+    assert_dhsw := vals dhsw [9; 12; 15; 36; 42; 48; 81];
+  in
+  let create_dyn = S.map (fun v -> if v = 3 then dyn ()) s in 
+  Gc.full_major (); 
+  List.iter set_s [1; 1; 2; 2; 3; 4; 4; 5; 5; 6; 6; 7; 7; 8; 8; 9; 9];
+  List.iter empty [assert_sw; assert_hsw; !assert_dsw; !assert_dhsw ]; 
+  keep_sref create_dyn
+
+let test_esswitch () =
+  let x, send_x = E.create () in 
+  let s = S.hold 0 x in
+  let switch s = 
+    E.fmap (fun v -> if v mod 3 = 0 then Some (S.map (( * ) v) s) else None) x
+  in
+  let sw = esswitch s (switch s) in
+  let hsw = esswitch s (switch (high_s s)) in
+  let assert_sw = vals sw [0; 1; 2; 9; 12; 15; 36; 42; 48; 81] in
+  let assert_hsw = vals hsw [0; 1; 2; 9; 12; 15; 36; 42; 48; 81] in
+  let assert_dsw = assert_s_stub 0 in
+  let assert_dhsw = assert_s_stub 0 in
+  let dyn () = 
+    let dsw = esswitch s (switch s) in 
+    let dhsw = esswitch s (switch (high_s s)) in
     assert_dsw := vals dsw [9; 12; 15; 36; 42; 48; 81];
     assert_dhsw := vals dhsw [9; 12; 15; 36; 42; 48; 81];
   in
   let create_dyn = E.map (fun v -> if v = 3 then dyn ()) x in 
   Gc.full_major ();
   List.iter send_x [1; 1; 2; 2; 3; 4; 4; 5; 5; 6; 6; 7; 7; 8; 8; 9; 9];
-  List.iter empty [assert_sw; assert_hsw; !assert_dsw; !assert_dhsw];
+  List.iter empty [assert_sw; assert_hsw; !assert_dsw; !assert_dhsw ];
   keep_eref create_dyn
 
-let test_switch_const () = 
-  let x, send_x = E.create () in 
-  let switch = E.map (fun x -> S.const x) x in
-  let sw = S.switch (S.const 0) switch in
+let test_switch_const () =
+  let s, set_s = S.create 0 in 
+  let switch = S.map (fun x -> S.const x) s in
+  let sw = S.switch switch in
   let assert_sw = vals sw [0; 1; 2; 3] in
   let assert_dsw = assert_s_stub 0 in 
   let dyn () = 
-    let dsw = S.switch (S.const 0) switch in 
+    let dsw = S.switch switch in 
+    assert_dsw := vals dsw [2; 3];
+  in
+  let create_dyn = S.map (fun v -> if v = 2 then dyn ()) s in 
+  Gc.full_major ();
+  List.iter set_s [0; 1; 2; 3];
+  List.iter empty [assert_sw; !assert_dsw ];
+  keep_sref create_dyn
+
+let test_esswitch_const () = 
+  let x, send_x = E.create () in 
+  let switch = E.map (fun x -> S.const x) x in
+  let sw = esswitch (S.const 0) switch in
+  let assert_sw = vals sw [0; 1; 2; 3] in
+  let assert_dsw = assert_s_stub 0 in 
+  let dyn () = 
+    let dsw = esswitch (S.const 0) switch in 
     assert_dsw := vals dsw [2; 3];
   in
   let create_dyn = E.map (fun v -> if v = 2 then dyn ()) x in 
@@ -673,8 +778,32 @@ let test_switch_const () =
   List.iter send_x [0; 1; 2; 3];
   List.iter empty [assert_sw; !assert_dsw ];
   keep_eref create_dyn
+
+let test_switch1 () = (* dynamic creation depends on triggering prim. *)
+  let x, set_x = S.create 0 in
+  let dcount = ref 0 in 
+  let assert_d1 = assert_s_stub 0 in 
+  let assert_d2 = assert_s_stub 0 in 
+  let assert_d3 = assert_s_stub 0 in 
+  let dyn v = 
+    let d = S.map (fun x -> v * x) x in
+    begin match !dcount with 
+    | 0 -> assert_d1 := vals d [9; 12; 15; 18; 21; 24; 27]
+    | 1 -> assert_d2 := vals d [36; 42; 48; 54]
+    | 2 -> assert_d3 := vals d [81]
+    | _ -> assert false 
+    end;
+    incr dcount;
+    d
+  in
+  let change x = if x mod 3 = 0 && x <> 0 then Some (dyn x) else None in 
+  let s = S.switch (S.fmap change x x) in 
+  let assert_s = vals s [0; 1; 2; 9; 12; 15; 36; 42; 48; 81 ] in
+  Gc.full_major ();
+  List.iter set_x [1; 1; 2; 3; 3; 4; 5; 6; 6; 7; 8; 9; 9 ];
+  List.iter empty [assert_s; !assert_d1; !assert_d2; !assert_d3]
       
-let test_switch1 () =         (* dynamic creation depends on triggering prim. *)
+let test_esswitch1 () =     
   let ex, send_x = E.create () in
   let x = S.hold 0 ex in
   let dcount = ref 0 in 
@@ -693,13 +822,38 @@ let test_switch1 () =         (* dynamic creation depends on triggering prim. *)
     d
   in
   let change x = if x mod 3 = 0 then Some (dyn x) else None in 
-  let s = S.switch x (E.fmap change (S.changes x)) in 
+  let s = esswitch x (E.fmap change (S.changes x)) in 
   let assert_s = vals s [0; 1; 2; 9; 12; 15; 36; 42; 48; 81 ] in
   Gc.full_major ();
   List.iter send_x [1; 1; 2; 3; 3; 4; 5; 6; 6; 7; 8; 9; 9 ];
   List.iter empty [assert_s; !assert_d1; !assert_d2; !assert_d3]
 
 let test_switch2 () =                           (* test_switch1 + high rank. *)
+  let x, set_x = S.create 0 in
+  let high_x = high_s x in
+  let dcount = ref 0 in 
+  let assert_d1 = assert_s_stub 0 in 
+  let assert_d2 = assert_s_stub 0 in 
+  let assert_d3 = assert_s_stub 0 in 
+  let dyn v = 
+    let d = S.map (fun x -> v * x) high_x in
+    begin match !dcount with 
+    | 0 -> assert_d1 := vals d [9; 12; 15; 18; 21; 24; 27]
+    | 1 -> assert_d2 := vals d [36; 42; 48; 54]
+    | 2 -> assert_d3 := vals d [81]
+    | _ -> assert false 
+    end;
+    incr dcount;
+    d
+  in
+  let change x = if x mod 3 = 0 && x <> 0 then Some (dyn x) else None in 
+  let s = S.switch (S.fmap change x x) in 
+  let assert_s = vals s [0; 1; 2; 9; 12; 15; 36; 42; 48; 81 ] in
+  Gc.full_major ();
+  List.iter set_x [1; 1; 2; 3; 3; 4; 5; 6; 6; 7; 8; 9; 9 ];
+  List.iter empty [assert_s; !assert_d1; !assert_d2; !assert_d3]
+
+let test_esswitch2 () =                       (* test_esswitch1 + high rank. *)
   let ex, send_x = E.create () in
   let x = S.hold 0 ex in 
   let high_x = high_s x in
@@ -719,13 +873,42 @@ let test_switch2 () =                           (* test_switch1 + high rank. *)
     d
   in
   let change x = if x mod 3 = 0 then Some (dyn x) else None in 
-  let s = S.switch x (E.fmap change (S.changes x)) in 
+  let s = esswitch x (E.fmap change (S.changes x)) in 
   let assert_s = vals s [0; 1; 2; 9; 12; 15; 36; 42; 48; 81 ] in
   Gc.full_major ();
   List.iter send_x [1; 1; 2; 2; 3; 3; 4; 4; 5; 5; 6; 6; 7; 7; 8; 8; 9; 9];
   List.iter empty [assert_s; !assert_d1; !assert_d2; !assert_d3]
 
-let test_switch3 () = (* dynamic creation does not depend on triggering prim. *)
+let test_switch3 () = (* dynamic creation does not depend on triggering 
+                           prim. *)
+  let x, set_x = S.create 0 in 
+  let y, set_y = S.create 0 in
+  let dcount = ref 0 in 
+  let assert_d1 = assert_s_stub 0 in 
+  let assert_d2 = assert_s_stub 0 in
+  let assert_d3 = assert_s_stub 0 in
+  let dyn v = 
+    let d = S.map (fun y -> v * y) y in
+    begin match !dcount with 
+    | 0 -> assert_d1 := vals d [6; 3; 6; 3; 6]
+    | 1 -> assert_d2 := vals d [12; 6; 12]
+    | 2 -> assert_d3 := vals d [18]
+    | _ -> assert false 
+    end;
+    incr dcount;
+    d
+  in
+  let change x = if x mod 3 = 0 && x <> 0 then Some (dyn x) else None in 
+  let s = S.switch (S.fmap change y x) in
+  let assert_s = vals s [0; 1; 2; 6; 3; 6; 12; 6; 12; 18] in
+  Gc.full_major ();
+  List.iter set_y [1; 1; 2; 2]; List.iter set_x [1; 1; 2; 2; 3; 3];
+  List.iter set_y [1; 1; 2; 2]; List.iter set_x [4; 4; 5; 5; 6; 6];
+  List.iter set_y [1; 1; 2; 2]; List.iter set_x [7; 7; 8; 8; 9; 9];
+  List.iter empty [assert_s; !assert_d1; !assert_d2; !assert_d3]
+
+let test_esswitch3 () = (* dynamic creation does not depend on triggering 
+                           prim. *)
   let ex, send_x = E.create () in 
   let ey, send_y = E.create () in
   let x = S.hold 0 ex in
@@ -746,7 +929,7 @@ let test_switch3 () = (* dynamic creation does not depend on triggering prim. *)
     d
   in
   let change x = if x mod 3 = 0 then Some (dyn x) else None in 
-  let s = S.switch y (E.fmap change (S.changes x)) in
+  let s = esswitch y (E.fmap change (S.changes x)) in
   let assert_s = vals s [0; 1; 2; 6; 3; 6; 12; 6; 12; 18] in
   Gc.full_major ();
   List.iter send_y [1; 1; 2; 2]; List.iter send_x [1; 1; 2; 2; 3; 3];
@@ -755,6 +938,33 @@ let test_switch3 () = (* dynamic creation does not depend on triggering prim. *)
   List.iter empty [assert_s; !assert_d1; !assert_d2; !assert_d3]
 
 let test_switch4 () =                          (* test_switch3 + high rank. *)
+  let x, set_x = S.create 0 in 
+  let y, set_y = S.create 0 in
+  let dcount = ref 0 in 
+  let assert_d1 = assert_s_stub 0 in 
+  let assert_d2 = assert_s_stub 0 in
+  let assert_d3 = assert_s_stub 0 in
+  let dyn v = 
+    let d = S.map (fun y -> v * y) (high_s y) in
+    begin match !dcount with 
+    | 0 -> assert_d1 := vals d [6; 3; 6; 3; 6]
+    | 1 -> assert_d2 := vals d [12; 6; 12]
+    | 2 -> assert_d3 := vals d [18]
+    | _ -> assert false 
+    end;
+    incr dcount;
+    d
+  in
+  let change x = if x mod 3 = 0 && x <> 0 then Some (dyn x) else None in 
+  let s = S.switch (S.fmap change y x) in
+  let assert_s = vals s [0; 1; 2; 6; 3; 6; 12; 6; 12; 18] in
+  Gc.full_major ();
+  List.iter set_y [1; 1; 2; 2]; List.iter set_x [1; 1; 2; 2; 3; 3];
+  List.iter set_y [1; 1; 2; 2]; List.iter set_x [4; 4; 5; 5; 6; 6];
+  List.iter set_y [1; 1; 2; 2]; List.iter set_x [7; 7; 8; 8; 9; 9];
+  List.iter empty [assert_s; !assert_d1; !assert_d2; !assert_d3]
+
+let test_esswitch4 () =                       (* test_esswitch3 + high rank. *)
   let ex, set_x = E.create () in 
   let ey, set_y = E.create () in
   let x = S.hold 0 ex in
@@ -775,7 +985,7 @@ let test_switch4 () =                          (* test_switch3 + high rank. *)
     d
   in
   let change x = if x mod 3 = 0 then Some (dyn x) else None in 
-  let s = S.switch y (E.fmap change (S.changes x)) in
+  let s = esswitch y (E.fmap change (S.changes x)) in
   let assert_s = vals s [0; 1; 2; 6; 3; 6; 12; 6; 12; 18] in
   Gc.full_major ();
   List.iter set_y [1; 1; 2; 2]; List.iter set_x [1; 1; 2; 2; 3; 3];
@@ -783,6 +993,22 @@ let test_switch4 () =                          (* test_switch3 + high rank. *)
   List.iter set_y [1; 1; 2; 2]; List.iter set_x [7; 7; 8; 8; 9; 9];
   List.iter empty [assert_s; !assert_d1; !assert_d2; !assert_d3]
 
+let test_bind () = 
+  let e, set_e = E.create () in
+  let a = S.hold 0 e in 
+  let b = S.hold 1 e in 
+  let s, set_s = S.create true in
+  let next = function 
+  | true -> b
+  | false -> a
+  in
+  let f = S.bind s next in
+  let assert_bind = vals f [1; 0; 3;] in
+  set_s false;
+  set_e 3;
+  set_s true;
+  List.iter empty [assert_bind]
+  
 let test_fix () =
   let s, set_s = S.create 0 in
   let history s = 
@@ -815,7 +1041,7 @@ let test_fix () =
   Gc.full_major ();
   List.iter set_s [0; 1; 1; 2; 3];
   List.iter empty [assert_h; assert_hm; !assert_dh; !assert_dhm; 
-		   !assert_dhh; !assert_dhhm];
+                   !assert_dhh; !assert_dhhm];
   keep_sref create_dyn
 
 let test_fix' () = 
@@ -859,7 +1085,7 @@ let test_fix' () =
   List.iter set_s [0; 1; 1; 2; 3];
   List.iter set_f [1];
   List.iter empty [!assert_cs; !assert_chs; !assert_cdhs;
-		   !assert_ss; !assert_shs; !assert_sdhs;
+                   !assert_ss; !assert_shs; !assert_sdhs;
                    !assert_fs; !assert_fhs; !assert_fdhs];
   keep_sref create_dyn
 
@@ -907,8 +1133,57 @@ let test_lifters () =
   Gc.full_major ();
   List.iter set_x [0; 1];
   List.iter empty [ a_x1; a_x2; a_x3; a_x4; a_x5; a_x6; !a_dx1; !a_dx2; !a_dx3; 
-		    !a_dx4; !a_dx5; !a_dx6 ];
+                    !a_dx4; !a_dx5; !a_dx6 ];
   keep_sref create_dyn
+
+let test_option () = 
+  let b0, set_b0 = S.create None in 
+  let b1, set_b1 = S.create (Some 1) in 
+  let b2 = S.const None in
+  let b3 = S.const (Some 3) in 
+  let d, set_d = S.create 512 in
+  let dsome = S.Option.some d in
+  let s00 = S.Option.value ~default:(`Init (S.const 255)) b0 in 
+  let s01 = S.Option.value ~default:(`Init (S.const 255)) b1 in 
+  let s02 = S.Option.value ~default:(`Init (S.const 255)) b2 in 
+  let s03 = S.Option.value ~default:(`Init (S.const 255)) b3 in 
+  let s10 = S.Option.value ~default:(`Always (S.const 255)) b0 in 
+  let s11 = S.Option.value ~default:(`Always (S.const 255)) b1 in 
+  let s12 = S.Option.value ~default:(`Always (S.const 255)) b2 in 
+  let s13 = S.Option.value ~default:(`Always (S.const 255)) b3 in 
+  let s20 = S.Option.value ~default:(`Init d) b0 in 
+  let s21 = S.Option.value ~default:(`Init d) b1 in 
+  let s22 = S.Option.value ~default:(`Init d) b2 in 
+  let s23 = S.Option.value ~default:(`Init d) b3 in 
+  let s30 = S.Option.value ~default:(`Always d) b0 in 
+  let s31 = S.Option.value ~default:(`Always d) b1 in 
+  let s32 = S.Option.value ~default:(`Always d) b2 in 
+  let s33 = S.Option.value ~default:(`Always d) b3 in 
+  let a_dsome = vals dsome [ Some 512; Some 1024; Some 2048;] in
+  let a_s00 = vals s00 [255;3] in
+  let a_s01 = vals s01 [1;] in
+  let a_s02 = vals s02 [255;] in
+  let a_s03 = vals s03 [3;] in
+  let a_s10 = vals s10 [255;3;255] in
+  let a_s11 = vals s11 [1;255;] in
+  let a_s12 = vals s12 [255] in
+  let a_s13 = vals s13 [3] in
+  let a_s20 = vals s20 [512;3] in
+  let a_s21 = vals s21 [1;] in
+  let a_s22 = vals s22 [512] in
+  let a_s23 = vals s23 [3] in
+  let a_s30 = vals s30 [512;3;1024;2048] in
+  let a_s31 = vals s31 [1;512;1024;2048] in
+  let a_s32 = vals s32 [512] in
+  let a_s33 = vals s33 [3] in
+  set_b0 (Some 3); set_b1 None; set_d 1024; set_b0 None; set_d 2048;
+  empty a_dsome;
+  List.iter empty [ a_s00; a_s01; a_s02; a_s03; 
+                    a_s10; a_s11; a_s12; a_s13; 
+                    a_s20; a_s21; a_s22; a_s23; 
+                    a_s30; a_s31; a_s32; a_s33; ];
+  ()
+
 
 let test_signals () =   
   test_no_leak ();
@@ -917,22 +1192,109 @@ let test_signals () =
   test_map_filter_fmap ();
   test_diff_changes ();
   test_sample ();
-  test_when ();
+  test_on ();
   test_dismiss ();
   test_accum ();
   test_fold ();
   test_merge ();
   test_switch ();
+  test_esswitch ();
+  test_switch_const ();
+  test_esswitch_const ();
   test_switch_const ();
   test_switch1 ();
+  test_esswitch1 ();
   test_switch2 ();
-  test_switch3 (); 
+  test_esswitch2 ();
+  test_switch3 ();
+  test_esswitch3 (); 
   test_switch4 ();
+  test_esswitch4 ();
+  test_bind ();
   test_fix ();
   test_fix' ();
   test_lifters ();
+  test_option ();
   ()
 
+(* Test steps *) 
+
+let test_executed_raise () = 
+  let e, send = E.create () in 
+  let s, set = S.create 4 in
+  let step = Step.create () in 
+  Step.execute step;
+  (try send ~step 3; assert false with Invalid_argument _ -> ());
+  (try set ~step 3; assert false with Invalid_argument _ -> ());
+  (try Step.execute step; assert false with Invalid_argument _ -> ());
+  ()
+
+let test_already_scheduled_raise () = 
+  let e, send = E.create () in 
+  let s, set = S.create 4 in
+  let step = Step.create () in 
+  let step2 = Step.create () in
+  send ~step 3; 
+  (try send ~step 3; assert false with Invalid_argument _ -> ());
+  (try send ~step:step2 4; assert false with Invalid_argument _ -> ());
+  set ~step 5;
+  set ~step 5; (* doesn't raise because sig value is eq. *)
+  (try set ~step 6; assert false with Invalid_argument _ -> ());
+  (try set ~step:step2 7; assert false with Invalid_argument _ -> ());
+  ()
+  
+let test_simultaneous () = 
+  let e1, send1 = E.create () in 
+  let e2, send2 = E.create () in 
+  let s1, set1 = S.create 99 in 
+  let s2, set2 = S.create 98 in 
+  let never = E.dismiss e1 e2 in 
+  let assert_never = occs never [] in
+  let merge = E.merge (fun acc o -> o :: acc) [] [e1; e2] in 
+  let assert_merge = occs merge [[2; 1]] in 
+  let s1_value = S.sample (fun _ sv -> sv) e1 s1 in
+  let assert_s1_value = occs s1_value [ 3 ] in
+  let dismiss = S.dismiss e1 1 s1 in
+  let assert_dismiss = vals dismiss [ 99 ] in
+  let on = S.on (S.map (( = ) 3) s1) 0 s2 in 
+  let assert_on_ = vals on [0; 4] in
+  let step = Step.create () in 
+  send1 ~step 1; 
+  send2 ~step 2; 
+  set1 ~step 3; 
+  set2 ~step 4; 
+  Step.execute step;
+  empty assert_never; 
+  empty assert_merge;
+  empty assert_s1_value;
+  empty assert_dismiss;
+  empty assert_on_;
+  ()
+
+let test_multistep () = 
+  let e, send = E.create () in 
+  let s, set = S.create 0 in 
+  let assert_e = occs e [1; 2] in 
+  let assert_s = vals s [0; 1; 2] in 
+  let step = Step.create () in 
+  send ~step 1; 
+  set ~step 1;
+  Step.execute step; 
+  let step = Step.create () in 
+  send ~step 2; 
+  set ~step 2;
+  Step.execute step;
+  empty assert_e; 
+  empty assert_s;
+  ()
+
+let test_steps () =
+  test_executed_raise ();
+  test_already_scheduled_raise ();
+  test_simultaneous ();
+  test_multistep ();
+  ()
+  
 (* bug fixes *)
 
 let test_jake_heap_bug () =
@@ -956,19 +1318,48 @@ let test_jake_heap_bug () =
   set_a 2;
   empty a_h
 
+let test_sswitch_init_rank_bug () = 
+  let enabled, set_enabled = S.create true in
+(* let enabled = S.const true *)
+  let pos, set_pos = S.create () in 
+  let down, send_down = E.create () in 
+  let up, send_up = E.create () in 
+  let hover enabled = match enabled with 
+  | true -> S.map (fun a -> true) pos 
+  | false -> S.Bool.zero
+  in
+  let used hover enabled = match enabled with 
+  | true -> 
+      let start = E.stamp (E.on hover down) true in 
+      let stop = E.stamp up false in 
+      let accum = E.select [ start; stop ] in
+      let s = S.hold false accum in 
+      s
+  | false -> S.Bool.zero
+  in
+  let hover = S.bind enabled hover in
+  let used = S.switch (S.map ~eq:( == ) (used hover) enabled) in
+  let activates = S.changes used in 
+  let activates' = (E.map (fun _ -> (fun _ -> ())) activates) in 
+  let actuate = (E.app activates' up) in
+  let actuate_assert = occs actuate [()] in
+  send_down (); send_up (); empty actuate_assert
 
-let test_misc () = test_jake_heap_bug ()
-  
+let test_misc () = 
+  test_jake_heap_bug (); 
+  test_sswitch_init_rank_bug ()
+      
 let main () = 
   test_events ();
   test_signals ();
+  test_steps ();
   test_misc ();
   print_endline "All tests succeeded."
 
 let () = main ()
 
 (*----------------------------------------------------------------------------
-  Copyright (c) 2009-2012 Daniel C. Bünzli
+  Copyright (c) 2009 Daniel C. Bünzli
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without

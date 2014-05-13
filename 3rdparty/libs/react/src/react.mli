@@ -1,22 +1,22 @@
 (*---------------------------------------------------------------------------
-   Copyright (c) 2009-2012 Daniel C. Bünzli. All rights reserved.
+   Copyright (c) 2009 Daniel C. Bünzli. All rights reserved.
    Distributed under a BSD3 license, see license at the end of the file.
-   react release 0.9.4
+   react release 1.1.0
   ---------------------------------------------------------------------------*)
 
 (** Declarative events and signals.
 
     React is a module for functional reactive programming (frp).  It
     provides support to program with time varying values : declarative
-    {{:React.E.html}events} and {{:React.S.html}signals}. React
+    {{!E}events} and {{!S}signals}. React
     doesn't define any primitive event or signal, this lets the client
     choose the concrete timeline.
 
-    Consult the {{:#sem}semantics}, the {{:#basics}basics} and
-    {{:#ex}examples}. Open the module to use it, this defines only two
+    Consult the {{!sem}semantics}, the {{!basics}basics} and
+    {{!ex}examples}. Open the module to use it, this defines only two
     types and modules in your scope.
 
-    {e Release 0.9.4 - Daniel Bünzli <daniel.buenzli at erratique.ch> } *)
+    {e Release 1.1.0 - Daniel Bünzli <daniel.buenzl i\@erratique.ch> } *)
     
 (**    {1 Interface} *)
 
@@ -26,9 +26,12 @@ type 'a event
 type 'a signal
 (** The type for signals of type ['a]. *)
 
+type step 
+(** The type for update steps. *) 
+
 (** Event combinators.  
 
-    Consult their {{:React.html#evsem}semantics.} *)
+    Consult their {{!evsem}semantics.} *)
 module E : sig
   (** {1:prim Primitive and basics} *)
 
@@ -38,12 +41,19 @@ module E : sig
   val never : 'a event
   (** A never occuring event. For all t, \[[never]\]{_t} [= None]. *)
 
-  val create : unit -> 'a event * ('a -> unit)
-  (** [create ()] is a primitive event [e] and a [send] function. 
-      [send v] generates an occurrence [v] of [e] at the time it is called 
-      and triggers an {{:React.html#update}update cycle}.
-
-      {b Warning.} [send] must not be executed inside an update cycle. *)
+  val create : unit -> 'a event * (?step:step -> 'a -> unit)
+  (** [create ()] is a primitive event [e] and a [send] function. The 
+      function [send] is such that:
+      {ul
+      {- [send v] generates an occurrence [v] of [e] at the time it is called 
+         and triggers an {{!steps}update step}.}
+      {- [send ~step v] generates an occurence [v] of [e] on the step [step] 
+         when [step] is {{!Step.execute}executed}.}
+      {- [send ~step v] raises [Invalid_argument] if it was previously 
+         called with a step and this step has not executed yet or if 
+         the given [step] was already executed.}}
+      
+      {b Warning.} [send] must not be executed inside an update step. *)
 
   val retain : 'a event -> (unit -> unit) -> [ `R of (unit -> unit) ]
   (** [retain e c] keeps a reference to the closure [c] in [e] and
@@ -52,13 +62,17 @@ module E : sig
 
       {b Raises.} [Invalid_argument] on {!E.never}. *)
 
-  val stop : 'a event -> unit
+  val stop : ?strong:bool -> 'a event -> unit
   (** [stop e] stops [e] from occuring. It conceptually becomes
       {!never} and cannot be restarted. Allows to 
-      disable {{:React.html#sideeffects}effectful} events. 
+      disable {{!sideeffects}effectful} events. 
 
-      {b Note.} If executed in an {{:React.html#update}update cycle}
-      the event may still occur in the cycle. *)
+      The [strong] argument should only be used on platforms
+      where weak arrays have a strong semantics (i.e. JavaScript). 
+      See {{!strongstop}details}. 
+
+      {b Note.} If executed in an {{!steps}update step}
+      the event may still occur in the step. *)
 
   val equal : 'a event -> 'a event -> bool
   (** [equal e e'] is [true] iff [e] and [e'] are equal. If both events are
@@ -88,7 +102,7 @@ module E : sig
 
   val app : ('a -> 'b) event -> 'a event -> 'b event
   (** [app ef e] occurs when both [ef] and [e] occur
-      {{:React.html#simultaneity}simultaneously}.
+      {{!simultaneity}simultaneously}.
       The value is [ef]'s occurence applied to [e]'s one.
       {ul 
       {- \[[app ef e]\]{_t} [= Some v'] if \[[ef]\]{_t} [= Some f] and 
@@ -108,7 +122,7 @@ module E : sig
   (** [filter p e] are [e]'s occurrences that satisfy [p]. 
       {ul
       {- \[[filter p e]\]{_t} [= Some v] if \[[e]\]{_t} [= Some v] and 
-	[p v = true]}
+      [p v = true]}
       {- \[[filter p e]\]{_t} [= None] otherwise.}} *)
 
   val fmap : ('a -> 'b option) -> 'a event -> 'b event
@@ -136,13 +150,15 @@ module E : sig
       [eq v v' = false].}
       {- \[[changes eq e]\]{_t} [= None] otherwise.}} *)
 
-  val when_ : bool signal -> 'a event -> 'a event
-  (** [when_ c e] is the occurrences of [e] when [c] is [true]. 
+  val on : bool signal -> 'a event -> 'a event
+  (** [on c e] is the occurrences of [e] when [c] is [true]. 
       {ul 
-      {- \[[when_ c e]\]{_t} [= Some v] 
+      {- \[[on c e]\]{_t} [= Some v] 
          if \[[c]\]{_t} [= true] and \[[e]\]{_t} [= Some v].}
-      {- \[[when_ c e]\]{_t} [= None] otherwise.}} *)
+      {- \[[on c e]\]{_t} [= None] otherwise.}} *)
 
+  val when_ : bool signal -> 'a event -> 'a event
+  (** @deprecated Use {!on}. *)
 
   val dismiss : 'b event -> 'a event -> 'a event 
   (** [dismiss c e] is the occurences of [e] except the ones when [c] occurs. 
@@ -184,7 +200,7 @@ module E : sig
 
   val select : 'a event list -> 'a event
   (** [select el] is the occurrences of every event in [el]. 
-      If more than one event occurs {{:React.html#simultaneity}simultaneously}
+      If more than one event occurs {{!simultaneity}simultaneously}
       the leftmost is taken and the others are lost.
       {ul
       {- \[[select el]\]{_ t} [=] \[[List.find (fun e -> ]\[[e]\]{_t} 
@@ -192,12 +208,12 @@ module E : sig
       {- \[[select el]\]{_ t} [= None] otherwise.}}  *)
 
   val merge : ('a -> 'b -> 'a) -> 'a -> 'b event list -> 'a event
-      (** [merge f a el] merges the {{:React.html#simultaneity}simultaneous}
-	  occurrences of every event in [el] using [f] and the accumulator [a].
-	  
-	  \[[merge f a el]\]{_ t} 
-	  [= List.fold_left f a (List.filter (fun o -> o <> None) 
-				   (List.map] \[\]{_t}[ el))]. *)
+      (** [merge f a el] merges the {{!simultaneity}simultaneous}
+    occurrences of every event in [el] using [f] and the accumulator [a].
+    
+    \[[merge f a el]\]{_ t} 
+    [= List.fold_left f a (List.filter (fun o -> o <> None) 
+           (List.map] \[\]{_t}[ el))]. *)
 
   val switch : 'a event -> 'a event event -> 'a event 
   (** [switch e ee] is [e]'s occurrences until there is an 
@@ -206,7 +222,7 @@ module E : sig
       {ul
       {- \[[switch e ee]\]{_ t} [=] \[[e]\]{_t} if \[[ee]\]{_<=t} [= None].}
       {- \[[switch e ee]\]{_ t} [=] \[[e']\]{_t} if \[[ee]\]{_<=t} 
-	  [= Some e'].}} *)
+    [= Some e'].}} *)
 
   val fix : ('a event -> 'a event * 'b) -> 'b
   (** [fix ef] allows to refer to the value an event had an
@@ -222,11 +238,48 @@ module E : sig
 
       {b Raises.} [Invalid_argument] if [e'] is directly a delayed event (i.e. 
       an event given to a fixing function). *)
+
+  (** {1 Lifting} 
+
+      Lifting combinators. For a given [n] the semantics is: 
+      {ul
+      {- \[[ln f e1 ... en]\]{_t} [= Some (f v1 ... vn)] if for all 
+         i : \[[ei]\]{_t} [= Some vi].}
+      {- \[[ln f e1 ... en]\]{_t} [= None] otherwise.}} *) 
+
+  val l1 : ('a -> 'b) -> 'a event -> 'b event 
+  val l2 : ('a -> 'b -> 'c) -> 'a event -> 'b event -> 'c event
+  val l3 : ('a -> 'b -> 'c -> 'd) -> 'a event -> 'b event -> 'c event -> 
+    'd event
+  val l4 : ('a -> 'b -> 'c -> 'd -> 'e) -> 'a event -> 'b event -> 'c event -> 
+    'd event -> 'e event 
+  val l5 : ('a -> 'b -> 'c -> 'd -> 'e -> 'f) -> 'a event -> 'b event -> 
+    'c event -> 'd event -> 'e event -> 'f event 
+  val l6 : ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g) -> 'a event -> 'b event -> 
+    'c event -> 'd event -> 'e event -> 'f event -> 'g event
+
+  (** {1 Pervasives support} *) 
+
+  (** Events with option occurences. *) 
+  module Option : sig
+    val some : 'a event -> 'a option event 
+    (** [some e] is [map (fun v -> Some v) e]. *) 
+
+    val value : ?default:'a signal -> 'a option event -> 'a event 
+    (** [value default e] either silences [None] occurences if [default] is
+        unspecified or replaces them by the value of [default] at the occurence
+        time.
+        {ul 
+        {- \[[value ~default e]\]{_t}[ = v] if \[[e]\]{_t} [= Some (Some v)].}
+        {- \[[value ?default:None e]\]{_t}[ = None] if \[[e]\]{_t} = [None].}
+        {- \[[value ?default:(Some s) e]\]{_t}[ = v] 
+           if \[[e]\]{_t} = [None] and \[[s]\]{_t} [= v].}} *)
+  end
 end
 
 (** Signal combinators. 
 
-    Consult their {{:React.html#sigsem}semantics.}  *)
+    Consult their {{!sigsem}semantics.}  *)
 module S : sig
   (** {1:prim Primitive and basics} *)
 
@@ -236,19 +289,26 @@ module S : sig
   val const : 'a -> 'a signal
   (** [const v] is always [v], \[[const v]\]{_t} [= v]. *)
 
-  val create : ?eq:('a -> 'a -> bool) -> 'a -> 'a signal * ('a -> unit)
+  val create : ?eq:('a -> 'a -> bool) -> 'a -> 
+    'a signal * (?step:step -> 'a -> unit)
   (** [create i] is a primitive signal [s] set to [i] and a
-      [set] function.  [set v] sets the signal's value to [v] at the
-      time it is called and triggers an {{:React.html#update}update
-      cycle}.
-
-      {b Warning.} [send] must not be executed inside an update cycle. *)
+      [set] function. The function [set] is such that:
+      {ul
+      {- [set v] sets the signal's value to [v] at the time it is called and 
+         triggers an {{!steps}update step}.}
+      {- [set ~step v] sets the signal's value to [v] at the time it is 
+         called and updates it dependencies when [step] is 
+         {{!Step.execute}executed}}
+      {- [set ~step v] raises [Invalid_argument] if it was previously 
+         called with a step and this step has not executed yet or if 
+         the given [step] was already executed.}}
+      {b Warning.} [set] must not be executed inside an update step. *)
 
   val value : 'a signal -> 'a
   (** [value s] is [s]'s current value. 
 
-      {b Warning.} If executed in an {{:React.html#update}update
-      cycle} may return a non up-to-date value or raise [Failure] if
+      {b Warning.} If executed in an {{!steps}update
+      step} may return a non up-to-date value or raise [Failure] if
       the signal is not yet initialized. *)
 
   val retain : 'a signal -> (unit -> unit) -> [ `R of (unit -> unit) ]
@@ -262,13 +322,17 @@ module S : sig
   val eq_fun : 'a signal -> ('a -> 'a -> bool) option
   (**/**)
 
-  val stop : 'a signal -> unit
+  val stop : ?strong:bool -> 'a signal -> unit
   (** [stop s], stops updating [s]. It conceptually becomes {!const}
       with the signal's last value and cannot be restarted. Allows to
-      disable {{:React.html#sideeffects}effectful} signals.
+      disable {{!sideeffects}effectful} signals.
 
-      {b Note.} If executed in an update cycle the signal may 
-      still update in the cycle. *)
+      The [strong] argument should only be used on platforms
+      where weak arrays have a strong semantics (i.e. JavaScript). 
+      See {{!strongstop}details}. 
+
+      {b Note.} If executed in an update step the signal may 
+      still update in the step. *)
 
   val equal : ?eq:('a -> 'a -> bool) -> 'a signal -> 'a signal -> bool
   (** [equal s s'] is [true] iff [s] and [s'] are equal. If both
@@ -291,7 +355,6 @@ module S : sig
       {ul 
       {- \[[hold i e]\]{_t} [= i] if \[[e]\]{_<=t} [= None]}
       {- \[[hold i e]\]{_t} [= v] if \[[e]\]{_<=t} [= Some v]}} *)
-
 
  (** {1:tr Transforming and filtering} *)
 
@@ -346,18 +409,21 @@ module S : sig
          and  \[[s]\]{_t} [= sv].}
       {- \[[sample e s]\]{_t} [= None] otherwise.}} *)      
 
-  val when_ : ?eq:('a -> 'a -> bool) -> bool signal -> 'a -> 'a signal -> 
+  val on : ?eq:('a -> 'a -> bool) -> bool signal -> 'a -> 'a signal -> 
     'a signal
-  (** [when_ c i s] is the signal [s] whenever [c] is [true].
+  (** [on c i s] is the signal [s] whenever [c] is [true].
       When [c] is [false] it holds the last value [s] had when
       [c] was the last time [true] or [i] if it never was.
       {ul
-      {- \[[when_ c i s]\]{_t} [=] \[[s]\]{_t} if \[[c]\]{_t} [= true]}
-      {- \[[when_ c i s]\]{_t} [=] \[[s]\]{_t'} if \[[c]\]{_t} [= false] 
+      {- \[[on c i s]\]{_t} [=] \[[s]\]{_t} if \[[c]\]{_t} [= true]}
+      {- \[[on c i s]\]{_t} [=] \[[s]\]{_t'} if \[[c]\]{_t} [= false] 
          where t' is the greatest t' < t with \[[c]\]{_t'} [= true].}
-      {- \[[when_ c i s]\]{_t} [=] [i] otherwise.}} *)
-      
+      {- \[[on c i s]\]{_t} [=] [i] otherwise.}} *)
 
+  val when_ : ?eq:('a -> 'a -> bool) -> bool signal -> 'a -> 'a signal -> 
+    'a signal
+  (** @deprecated Use {!on}. *)
+      
   val dismiss : ?eq:('a -> 'a -> bool) -> 'b event -> 'a -> 'a signal -> 
     'a signal 
   (** [dismiss c i s] is the signal [s] except changes when [c] occurs
@@ -367,7 +433,7 @@ module S : sig
          where t' is the greatest t' <= t with \[[c]\]{_t'} [= None] and
          \[[s]\]{_t'-dt} [<>] \[[s]\]{_t'}}
        {- \[[dismiss_ c i s]\]{_0} [=] [v] where [v = i] if
-	  \[[c]\]{_0} [= Some _] and [v =] \[[s]\]{_0} otherwise.}} *)
+    \[[c]\]{_0} [= Some _] and [v =] \[[s]\]{_0} otherwise.}} *)
 
   (** {1:acc Accumulating} *)
 
@@ -383,20 +449,19 @@ module S : sig
   val merge : ?eq:('a -> 'a -> bool) -> ('a -> 'b -> 'a) -> 'a ->
     'b signal list -> 'a signal
       (** [merge f a sl] merges the value of every signal in [sl]
-	  using [f] and the accumulator [a]. 
-	  
-	  \[[merge f a sl]\]{_ t} 
-	  [= List.fold_left f a (List.map] \[\]{_t}[ sl)]. *)
+    using [f] and the accumulator [a]. 
+    
+    \[[merge f a sl]\]{_ t} 
+    [= List.fold_left f a (List.map] \[\]{_t}[ sl)]. *)
 
-  val switch : ?eq:('a -> 'a -> bool) -> 'a signal -> 'a signal event -> 
-    'a signal
-  (** [switch s es] is [s] until there is an 
-      occurrence [s'] on [es], [s'] is then used 
-      until there is a new occurrence on [es], etc.. 
-      {ul
-      {- \[[switch s es]\]{_ t} [=] \[[s]\]{_t} if \[[es]\]{_<=t} [= None].}
-      {- \[[switch s es]\]{_ t} [=] \[[s']\]{_t} if \[[es]\]{_<=t} 
-	  [= Some s'].}} *)
+  val switch : ?eq:('a -> 'a -> bool) -> 'a signal signal -> 'a signal 
+  (** [switch ss] is the inner signal of [ss]. 
+      {ul 
+      {- \[[switch ss]\]{_ t} [=] \[\[[ss]\]{_t}\]{_t}.}} *)
+
+  val bind : ?eq:('b -> 'b -> bool) -> 'a signal -> ('a -> 'b signal) -> 
+    'b signal 
+  (** [bind s sf] is [switch (map ~eq:( == ) sf s)]. *)
 
   val fix : ?eq:('a -> 'a -> bool) -> 'a -> ('a signal -> 'a signal * 'b) -> 'b
   (** [fix i sf] allow to refer to the value a signal had an
@@ -419,17 +484,17 @@ module S : sig
       [s', r = sf s] the following two cases need to be distinguished :
       {ul
       {- After [sf s] is applied, [s'] does not depend on 
-         a value that is in a cycle and [s] has no dependents in a cycle (e.g
-         in the simple case where [fix] is applied outside a cycle). 
+         a value that is in a step and [s] has no dependents in a step (e.g
+         in the simple case where [fix] is applied outside a step). 
 
          In that case if the initial value of [s'] differs from [i],
          [s] and its dependents need to be updated and a special
-         update cycle will be triggered for this. Values
+         update step will be triggered for this. Values
          depending on the result [r] will be created only after this
-         special update cycle has finished (e.g. they won't see
+         special update step has finished (e.g. they won't see
          the [i] of [s] if [r = s]).}
       {- Otherwise, values depending on [r] will be created in the same
-         cycle as [s] and [s'] (e.g. they will see the [i] of [s] if [r = s]).}}
+         step as [s] and [s'] (e.g. they will see the [i] of [s] if [r = s]).}}
    *)
 
  (** {1:lifting Lifting} 
@@ -459,12 +524,17 @@ module S : sig
       operators. *)
 
   module Bool : sig
+    val zero : bool signal
+    val one : bool signal 
     val not : bool signal -> bool signal
     val ( && ) : bool signal -> bool signal -> bool signal
     val ( || ) : bool signal -> bool signal -> bool signal
   end
   
   module Int : sig
+    val zero : int signal
+    val one : int signal 
+    val minus_one : int signal
     val ( ~- ) : int signal -> int signal
     val succ : int signal -> int signal
     val pred : int signal -> int signal
@@ -485,6 +555,9 @@ module S : sig
   end
 
   module Float : sig
+    val zero : float signal
+    val one : float signal 
+    val minus_one : float signal
     val ( ~-. ) : float signal -> float signal
     val ( +. ) : float signal -> float signal -> float signal
     val ( -. ) : float signal -> float signal -> float signal
@@ -532,6 +605,35 @@ module S : sig
     val snd : ?eq:('a -> 'a -> bool) -> ('b * 'a) signal -> 'a signal
   end
 
+  module Option : sig
+    val none : 'a option signal
+    (** [none] is [S.const None]. *)
+
+    val some : 'a signal -> 'a option signal 
+    (** [some s] is [S.map ~eq (fun v -> Some v) None], where [eq] uses
+        [s]'s equality function to test the [Some v]'s equalities. *)
+
+    val value : ?eq:('a -> 'a -> bool) -> 
+      default:[`Init of 'a signal | `Always of 'a signal ] -> 
+      'a option signal -> 'a signal
+    (** [value default s] is [s] with only its [Some v] values. 
+        Whenever [s] is [None], if [default] is [`Always dv] then 
+        the current value of [dv] is used instead. If [default]
+        is [`Init dv] the current value of [dv] is only used
+        if there's no value at creation time, otherwise the last
+        [Some v] value of [s] is used.
+        {ul 
+        {- \[[value ~default s]\]{_t} [= v] if \[[s]\]{_t} [= Some v]}
+        {- \[[value ~default:(`Always d) s]\]{_t} [=] \[[d]\]{_t} 
+          if \[[s]\]{_t} [= None]}
+        {- \[[value ~default:(`Init d) s]\]{_0} [=] \[[d]\]{_0} 
+          if \[[s]\]{_0} [= None]}
+        {- \[[value ~default:(`Init d) s]\]{_t} [=]
+           \[[value ~default:(`Init d) s]\]{_t'}
+          if \[[s]\]{_t} [= None] and t' is the greatest t' < t
+          with \[[s]\]{_t'} [<> None] or 0 if there is no such [t'].}} *)
+  end
+
   module Compare : sig
     val ( = ) : 'a signal -> 'a signal -> bool signal
     val ( <> ) : 'a signal -> 'a signal -> bool signal
@@ -563,7 +665,7 @@ module S : sig
   (** Output signature of {!S.Make} *) 
   module type S = sig
     type 'a v 
-    val create : 'a v -> 'a v signal * ('a v -> unit)
+    val create : 'a v -> 'a v signal * (?step:step -> 'a v -> unit)
     val equal : 'a v signal -> 'a v signal -> bool
     val hold : 'a v -> 'a v event -> 'a v signal
     val app : ('a -> 'b v) signal -> 'a signal -> 'b v signal
@@ -575,7 +677,8 @@ module S : sig
     val accum : ('a v -> 'a v) event -> 'a v -> 'a v signal 
     val fold : ('a v -> 'b -> 'a v) -> 'a v -> 'b event -> 'a v signal
     val merge : ('a v -> 'b -> 'a v) -> 'a v -> 'b signal list -> 'a v signal
-    val switch : 'a v signal -> 'a v signal event -> 'a v signal
+    val switch : 'a v signal signal -> 'a v signal
+    val bind : 'b signal -> ('b -> 'a v signal) -> 'a v signal
     val fix : 'a v -> ('a v signal -> 'a v signal * 'b) -> 'b
     val l1 : ('a -> 'b v) -> ('a signal -> 'b v signal)
     val l2 : ('a -> 'b -> 'c v) -> ('a signal -> 'b signal -> 'c v signal) 
@@ -584,11 +687,11 @@ module S : sig
     val l4 : ('a -> 'b -> 'c -> 'd -> 'e v) -> 
       ('a signal -> 'b signal -> 'c signal -> 'd signal -> 'e v signal) 
     val l5 : ('a -> 'b -> 'c -> 'd -> 'e -> 'f v) -> 
-	('a signal -> 'b signal -> 'c signal -> 'd signal -> 'e signal -> 
-	  'f v signal) 
+  ('a signal -> 'b signal -> 'c signal -> 'd signal -> 'e signal -> 
+    'f v signal) 
     val l6 : ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g v) -> 
-	('a signal -> 'b signal -> 'c signal -> 'd signal -> 'e signal -> 
-	  'f signal -> 'g v signal) 
+  ('a signal -> 'b signal -> 'c signal -> 'd signal -> 'e signal -> 
+    'f signal -> 'g v signal) 
   end
 
   (** Functor specializing the combinators for the given signal value type *)
@@ -609,6 +712,33 @@ module S : sig
      (** Specialization for floats. *)
      module Sf : S with type 'a v = float
   end
+end
+
+(** Update steps. 
+
+    Update functions returned by {!S.create} and {!E.create}
+    implicitely create and execute update steps when used without
+    specifying their [step] argument. 
+
+    Using explicit {!step} values with these functions gives more control on 
+    the time when the update step is perfomed and allows to perform 
+    simultaneous {{!primitives}primitive} signal updates and event 
+    occurences. See also the documentation about {{!steps}update steps} and 
+    {{!simultaneity}simultaneous events}. *)
+module Step : sig
+
+  (** {1 Steps} *)
+  
+  type t = step
+  (** The type for update steps. *)
+
+  val create : unit -> step
+  (** [create ()] is a new update step. *)
+
+  val execute : step -> unit 
+  (** [execute step] executes the update step. 
+      
+      @raise Invalid_argument if [step] was already executed. *)
 end
 
 (** {1:sem Semantics} 
@@ -642,7 +772,7 @@ end
     {2:sigsem Signals} 
 
     A signal is a value that varies continuously over time. In
-    contrast to {{:#evsem}events} which occur at specific point
+    contrast to {{!evsem}events} which occur at specific point
     in time, a signal has a value at every point in time.
 
     The semantic function \[\] [: 'a signal -> time -> 'a] gives
@@ -656,14 +786,15 @@ end
     function used to detect changes in the value of the resulting
     signal. This function is needed for the efficient update of
     signals and to deal correctly with signals that perform
-    {{:#sideeffects}side effects}.  
+    {{!sideeffects}side effects}.  
 
     Given an equality function on a type the combinators can be automatically
-    {{:React.S.html#special}specialized} via a functor.
+    {{!S.special}specialized} via a functor.
+
     {3:sigcont Continuity}
 
     Ultimately signal updates depend on
-    {{:#primitives}primitive} updates. Thus a signal can
+    {{!primitives}primitives} updates. Thus a signal can
     only approximate a real continuous signal. The accuracy of the
     approximation depends on the variation rate of the real signal and
     the primitive's update frequency.
@@ -693,34 +824,77 @@ let () = List.iter send_x [1; 2; 3]]}
     effectful signal [pr_x]. Note that only updates that change
     the signal's value are printed, hence the program prints [123], not [1223].
     See the discussion on 
-    {{:#sideeffects}side effects} for more details.
+    {{!sideeffects}side effects} for more details.
+
 {[open React;;
 
 let x, set_x = S.create 1
 let pr_x = S.map print_int x
 let () = List.iter set_x [2; 2; 3]]}
-    The {{:#clock}clock} example shows how a realtime time 
+    The {{!clock}clock} example shows how a realtime time 
     flow can be defined.
 
-    {2:update The update cycle and thread safety}
+   {2:steps Update steps} 
 
-    {{:#primitives}Primitives} are the only mean to drive the reactive
+   The {!E.create} and {!S.create} functions return update functions
+   used to generate primitive event occurences and set the value of
+   primitive signals. Upon invocation as in the preceding section
+   these functions immediatly create and invoke an update step.
+   The {e update step} automatically updates events and signals that
+   transitively depend on the updated primitive. The dependents of a
+   signal are updated iff the signal's value changed according to its
+   {{!sigeq}equality function}.
+
+   The update functions have an optional [step] argument. If they are
+   given a concrete [step] value created with {!Step.create}, then it
+   updates the event or signal but doesn't update its dependencies. It
+   will only do so whenever [step] is executed with
+   {!Step.execute}. This allows to make primitive event occurences and
+   signal changes simultaneous. See next section for an example.
+
+    {2:simultaneity Simultaneous events}
+
+    {{!steps}Update steps} are made under a 
+    {{:http://dx.doi.org/10.1016/0167-6423(92)90005-V}synchrony hypothesis} :
+    the update step takes no time, it is instantenous. Two event occurrences 
+    are {e simultaneous} if they occur in the same update step. 
+
+    In the code below [w], [x] and [y] will always have simultaneous 
+    occurrences. They {e may} have simulatenous occurences with [z]
+    if [send_w] and [send_z] are used with the same update step. 
+
+{[let w, send_w = E.create ()
+let x = E.map succ w
+let y = E.map succ x
+let z, send_z = E.create ()
+
+let () = 
+  let () = send_w 3 (* w x y occur simultaneously, z doesn't occur *) in
+  let step = Step.create () in 
+  send_w ~step 3; 
+  send_z ~step 4; 
+  Step.execute step (* w x z y occur simultaneously *)
+]}    
+
+    {2:update The update step and thread safety}
+
+    {{!primitives}Primitives} are the only mean to drive the reactive
     system and they are entirely under the control of the client. When
-    the client invokes a primitive's update function, React performs
-    an update cycle. The update cycle automatically updates events and
-    signals that transitively depend on the updated primitive. The
-    dependents of a signal are updated iff the signal's value changed
-    according to its {{:#sigeq}equality function}.
+    the client invokes a primitive's update function without the
+    [step] argument or when it invokes {!Step.execute} on a [step]
+    value, React performs an update step.
 
-    To ensure correctness in the presence of threads, update cycles
+    To ensure correctness in the presence of threads, update steps
     must be executed in a critical section. Let uset([p]) be the set
     of events and signals that need to be updated whenever the
     primitive [p] is updated.  Updating two primitives [p] and [p']
     concurrently is only allowed if uset([p]) and uset([p']) are
     disjoint. Otherwise the updates must be properly serialized.
 
-    Below updates to [x] and [y] must be serialized, but z can
-    be updated concurently to both [x] and [y].
+    Below, concurrent, updates to [x] and [y] must be serialized (or
+    performed on the same step if it makes sense semantically), but z
+    can be updated concurently to both [x] and [y].
+
 {[open React;;
 
 let x, set_x = S.create 0
@@ -728,33 +902,15 @@ let y, send_y = E.create ()
 let z, set_z = S.create 0
 let max_xy = S.l2 (fun x y -> if x > y then x else y) x (S.hold 0 y)
 let succ_z = S.map succ z]}
-    {2:simultaneity Simultaneous events}
 
-    {{:#update}Update cycles} are made under a 
-    {{:http://dx.doi.org/10.1016/0167-6423(92)90005-V}synchrony hypothesis} :
-    the update cycle takes no time, it is instantenous. 
-
-    Two event occurrences are {e simultaneous} if they occur in the
-    same update cycle; in other words if there exists a primitive on
-    which they both depend. By definition a primitive doesn't depend
-    on any primitive it is therefore impossible for two primitive
-    events to occur simultaneously.
-
-
-    In the code below [w], [x] and [y] will have simultaneous occurrences while
-    [z] will never have simultaneous occurrences with them.
-{[let w, send_w = E.create ()
-let x = E.map succ w
-let y = E.map succ x
-let z, send_z = E.create ()]}    
     {2:sideeffects Side effects}
 
     Effectful events and signals perform their side effect
-    exactly {e once} in each {{:#update}update cycle} in which there
+    exactly {e once} in each {{!steps}update step} in which there
     is an update of at least one of the event or signal it depends on.
 
-    Remember that a signal updates in a cycle iff its 
-    {{:#sigeq}equality function} determined that the signal
+    Remember that a signal updates in a step iff its 
+    {{!sigeq}equality function} determined that the signal
     value changed. Signal initialization is unconditionally considered as 
     an update.    
 
@@ -770,7 +926,7 @@ let () = Gc.full_major (); List.iter set_x [2; 2; 3]]}
     The combinators
     {!S.const} and {!S.app} allow to lift functions of arbitrary arity n,
     but this involves the inefficient creation of n-1 intermediary
-    closure signals. The fixed arity {{:React.S.html#lifting}lifting
+    closure signals. The fixed arity {{!S.lifting}lifting
     functions} are more efficient. For example :
 {[let f x y = x mod y
 let fl x y = S.app (S.app ~eq:(==) (S.const f) x) y (* inefficient *)
@@ -823,14 +979,14 @@ let f t = sqrt t *. sin t in (* f is defined on float signals *)
   in
   S.fix [] define]}
   When a program has infinitesimally delayed values a
-  {{:#primitives}primitive} may trigger more than one update
-  cycle. For example if a signal [s] is infinitesimally delayed, then
-  its update in a cycle [c] will trigger a new cycle [c'] at the end
-  of the cycle in which the delayed signal of [s] will have the value
+  {{!primitives}primitive} may trigger more than one update
+  step. For example if a signal [s] is infinitesimally delayed, then
+  its update in a step [c] will trigger a new step [c'] at the end
+  of the step in which the delayed signal of [s] will have the value
   [s] had in [c]. This means that the recursion occuring between a
   signal (or event) and its infinitesimally delayed counterpart must
   be well-founded otherwise this may trigger an infinite number
-  of update cycles, like in the following examples.
+  of update steps, like in the following examples.
 {[let start, send_start = E.create ()
 let diverge = 
   let define e = 
@@ -852,6 +1008,46 @@ let diverge =                 (* diverges *)
   other. Fixed point combinators will raise [Invalid_argument] if
   such dependencies are created. This limitation can be
   circumvented by mapping these values with the identity. 
+
+  {2:strongstop Strong stops} 
+
+  Strong stops should only be used on platforms where weak arrays have
+  a strong semantics (i.e. JavaScript). You can safely ignore that
+  section and the [strong] argument of {!E.stop} and {!S.stop}
+  if that's not the case.
+
+  Whenever {!E.stop} and {!S.stop} is called with [~strong:true] on a
+  reactive value [v], it is first stopped and then it walks over the
+  list [prods] of events and signals that it depends on and
+  unregisters itself from these ones as a dependent (something that is
+  normally automatically done when [v] is garbage collected since
+  dependents are stored in a weak array). Then for each element of
+  [prod] that has no dependents anymore and is not a primitive it
+  stops them aswell and recursively.
+
+  A stop call with [~strong:true] is more involved. But it allows to
+  prevent memory leaks when used judiciously on the leaves of the
+  reactive system that are no longer used.
+
+  {b Warning.} It should be noted that if direct references are kept
+  on an intermediate event or signal of the reactive system it may
+  suddenly stop updating if all its dependents were strongly stopped. In
+  the example below, [e1] will {e never} occur:
+{[let e, e_send = E.create ()
+let e1 = E.map (fun x -> x + 1) e (* never occurs *)
+let () = 
+  let e2 = E.map (fun x -> x + 1) e1 in 
+  E.stop ~strong:true e2
+]}
+  This can be side stepped by making an artificial dependency to keep 
+  the reference:
+{[let e, e_send = E.create ()
+let e1 = E.map (fun x -> x + 1) e (* may still occur *)
+let e1_ref = E.map (fun x -> x) e1 
+let () = 
+  let e2 = E.map (fun x -> x + 1) e1 in
+  E.stop ~strong:true e2
+]}
 
   {1:ex Examples} 
 
@@ -883,7 +1079,7 @@ let () = run ()]}
 *)
 
 (*---------------------------------------------------------------------------
-  Copyright (c) 2009-2012 Daniel C. Bünzli
+  Copyright (c) 2009 Daniel C. Bünzli
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without

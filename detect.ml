@@ -601,6 +601,7 @@ open Packages;;
 module CommonRules : sig
   val build_oasis : string -> findlibnames:string list -> flags:string list -> build
   val build_pkgopkg : string -> findlibname:string -> flags:string list -> build
+  val build_pkgopkg2 : string -> findlibname:string -> flags:string list -> build
   val build_confgnumake : ?flags: string list -> findlibnames:string list -> string -> build
 
   val pkg_findlib: dep
@@ -653,6 +654,22 @@ end = struct
     findlibnames = [findlibname];
     configure = ["./pkg/pkg-git"];
     make = ["./pkg/build";"true"];
+    install = ["ocamlfind";"install";findlibname;"pkg/META";
+      "_build/src/" ^ findlibname ^ ".a";
+      "_build/src/" ^ findlibname ^ ".cmi";
+      "_build/src/" ^ findlibname ^ ".cma";
+      "_build/src/" ^ findlibname ^ ".cmx";
+      "_build/src/" ^ findlibname ^ ".cmxa"
+    ];
+    uninstall = ["ocamlfind";"remove";findlibname]
+  }
+  ;;
+
+  let build_pkgopkg2 source ~findlibname ~flags = {
+    source = source;
+    findlibnames = [findlibname];
+    configure = ["ocaml";"pkg/git.ml"];
+    make = ["ocaml";"pkg/build.ml";"native=true";"native-dynlink=false"];
     install = ["ocamlfind";"install";findlibname;"pkg/META";
       "_build/src/" ^ findlibname ^ ".a";
       "_build/src/" ^ findlibname ^ ".cmi";
@@ -817,8 +834,8 @@ let pkg_ounit = ocaml_dependency "oUnit" (Build (fun _ ->
 
 (* React *)
 let pkg_react = ocaml_dependency "react" (Build (fun _ ->
-  build_oasis "3rdparty/libs/react" ~flags:[] ~findlibnames:["react"]
-)) ~deps:[dep_ocamlbuild] ~version:(fun v -> v >=? "0.9.2");;
+  build_pkgopkg2 "3rdparty/libs/react" ~flags:[] ~findlibname:"react"
+)) ~deps:[dep_ocamlbuild] ~version:(fun v -> v >=? "1.1.0");;
 
 (* Lwt *)
 let pkg_lwt = ocaml_dependency "lwt" ~findlibnames:["lwt";"lwt.unix";"lwt.ssl"]
