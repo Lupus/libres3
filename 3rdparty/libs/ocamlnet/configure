@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# $Id: configure 1898 2013-08-30 18:36:51Z gerd $
+# $Id: configure 1958 2014-05-12 18:49:44Z gerd $
 
 #######################################################################
 # Helpers:
@@ -67,7 +67,7 @@ set_defaults () {
 ocamlc=`get_path ocamlc`
 set_defaults
 
-version="3.7.3"
+version="3.7.4"
 exec_suffix=""
 path_sep=":"
 
@@ -758,7 +758,7 @@ if [ $enable_ssl -gt 0 ]; then
 	esac
         echo "found"
 	with_equeue_ssl=1
-#	with_rpc_ssl=1
+	with_rpc_ssl=1
     else
         echo "not found"
 	echo "Required library ssl not found!"
@@ -913,12 +913,16 @@ echo "Effective options:"
 print_options
 echo
 
-pkglist="netsys netshm netstring equeue shell pop smtp netclient netcgi2"
+pkglist="netsys netshm netstring equeue shell netgssapi rpc-generator rpc rpc-auth-local pop smtp netclient netcgi2 netplex netcgi2-plex"
 
-full_pkglist="$pkglist netstring-pcre equeue-tcl equeue-gtk1 equeue-gtk2 equeue-ssl nethttpd nethttpd-for-netcgi2 netzip netcgi2-apache netmech-scram"
+full_pkglist="$pkglist netstring-pcre rpc-auth-local rpc-xti equeue-tcl equeue-gtk1 equeue-gtk2 equeue-ssl rpc-ssl rpc-auth-dh nethttpd nethttpd-for-netcgi2 netzip netcgi2-apache netmech-scram"
 
 if [ $enable_camlbox -gt 0 ]; then
     pkglist="$pkglist netcamlbox"
+fi
+
+if [ $enable_multicore -gt 0 ]; then
+    pkglist="$pkglist netmulticore"
 fi
 
 if [ $disable_core -gt 0 ]; then

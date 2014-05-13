@@ -200,7 +200,8 @@
 &nbsp;&nbsp;<span class="keyword">method</span>&nbsp;close_connection&nbsp;:&nbsp;<span class="constructor">Unix</span>.file_descr&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
 &nbsp;&nbsp;<span class="keyword">method</span>&nbsp;find_inactive_connection&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Http_client_conncache</span>.peer&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Http_client_conncache</span>.channel_binding_id&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Unix</span>.file_descr<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Http_client_conncache</span>.channel_binding_id&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Unix</span>.file_descr&nbsp;*&nbsp;<span class="constructor">Http_client_conncache</span>.private_data<br>
 &nbsp;&nbsp;<span class="keyword">method</span>&nbsp;find_my_connections&nbsp;:&nbsp;&lt;&nbsp;&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Unix</span>.file_descr&nbsp;list<br>
 &nbsp;&nbsp;<span class="keyword">method</span>&nbsp;get_connection_state&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Unix</span>.file_descr&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Http_client_conncache</span>.conn_state<br>

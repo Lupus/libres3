@@ -206,10 +206,11 @@
 </div>
 <h1>Class type <a href="type_Http_client.transport_channel_type.html">Http_client.transport_channel_type</a></h1>
 <pre><span id="TYPEtransport_channel_type"><span class="keyword">class type</span> transport_channel_type</span> = <code class="code">object</code> <a href="Http_client.transport_channel_type-c.html">..</a> <code class="code">end</code></pre><hr width="100%">
-<pre><span id="METHODsetup_e"><span class="keyword">method</span> setup_e</span> : <code class="type">Unix.file_descr -><br>       <a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a> -><br>       float -><br>       exn -><br>       string -><br>       int -><br>       <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -> <a href="Uq_engines.multiplex_controller-c.html">Uq_engines.multiplex_controller</a> <a href="Uq_engines.engine-c.html">Uq_engines.engine</a></code></pre><div class="info">
+<pre><span id="METHODsetup_e"><span class="keyword">method</span> setup_e</span> : <code class="type">Unix.file_descr -><br>       <a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a> -><br>       float -><br>       exn -><br>       string -><br>       int -><br>       <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -><br>       (<a href="Uq_engines.multiplex_controller-c.html">Uq_engines.multiplex_controller</a> * <a href="Http_client_conncache.html#TYPEprivate_data">Http_client_conncache.private_data</a>)<br>       <a href="Uq_engines.engine-c.html">Uq_engines.engine</a></code></pre><div class="info">
 <code class="code">setup fd cb tmo tmo_x host port esys</code>: Create or configure a communication
       circuit over the file descriptor <code class="code">fd</code> that can be driven by the
-      returned multiplex controller object.
+      returned multiplex controller object. Since OCamlnet-3.8, the method
+      can also return private data for the connection cache.
 <p>
 
       <code class="code">tmo</code> is the timeout. After inactivity the  exception <code class="code">tmo_x</code> must be
@@ -220,11 +221,14 @@
       number. The descriptor <code class="code">fd</code> is already connected to this port, directly
       or via a proxy.<br>
 </div>
-<pre><span id="METHODcontinue"><span class="keyword">method</span> continue</span> : <code class="type">Unix.file_descr -><br>       <a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a> -><br>       float -><br>       exn -><br>       string -> int -> <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -> <a href="Uq_engines.multiplex_controller-c.html">Uq_engines.multiplex_controller</a></code></pre><div class="info">
+<pre><span id="METHODcontinue"><span class="keyword">method</span> continue</span> : <code class="type">Unix.file_descr -><br>       <a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a> -><br>       float -><br>       exn -><br>       string -><br>       int -><br>       <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -><br>       <a href="Http_client_conncache.html#TYPEprivate_data">Http_client_conncache.private_data</a> -> <a href="Uq_engines.multiplex_controller-c.html">Uq_engines.multiplex_controller</a></code></pre><div class="info">
 <code class="code">continue</code> is called when an already established circuit needs to
       be continued.
 <p>
 
-      Note that the event system can be different now.<br>
+      Note that the event system can be different now.
+<p>
+
+      If it is not possible to continue, the method may raise <code class="code">Not_found</code>.<br>
 </div>
 </body></html>

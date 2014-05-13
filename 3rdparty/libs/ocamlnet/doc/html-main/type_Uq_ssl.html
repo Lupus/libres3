@@ -244,6 +244,7 @@
 &nbsp;&nbsp;&nbsp;&nbsp;?preclose:(unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit)&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;?initial_state:<span class="constructor">Uq_ssl</span>.ssl_socket_state&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;?timeout:float&nbsp;*&nbsp;exn&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?ssl_socket:<span class="constructor">Ssl</span>.socket&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Unix</span>.file_descr&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Ssl</span>.context&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Unixqueue</span>.event_system&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Uq_ssl</span>.ssl_multiplex_controller<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;ssl_connect_engine&nbsp;:<br>

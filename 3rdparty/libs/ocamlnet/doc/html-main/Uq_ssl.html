@@ -220,7 +220,7 @@ Used in <code class="code">when_done</code> callbacks to indicate an SSL-specifi
 The <code class="code">ssl_multiplex_controller</code> is an extended multiplex controller
  which can also control SSL handshakes.
 </div>
-<pre><span id="VALcreate_ssl_multiplex_controller"><span class="keyword">val</span> create_ssl_multiplex_controller</span> : <code class="type">?close_inactive_descr:bool -><br>       ?preclose:(unit -> unit) -><br>       ?initial_state:<a href="Uq_ssl.html#TYPEssl_socket_state">ssl_socket_state</a> -><br>       ?timeout:float * exn -><br>       Unix.file_descr -><br>       Ssl.context -> <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -> <a href="Uq_ssl.ssl_multiplex_controller-c.html">ssl_multiplex_controller</a></code></pre><div class="info">
+<pre><span id="VALcreate_ssl_multiplex_controller"><span class="keyword">val</span> create_ssl_multiplex_controller</span> : <code class="type">?close_inactive_descr:bool -><br>       ?preclose:(unit -> unit) -><br>       ?initial_state:<a href="Uq_ssl.html#TYPEssl_socket_state">ssl_socket_state</a> -><br>       ?timeout:float * exn -><br>       ?ssl_socket:Ssl.socket -><br>       Unix.file_descr -><br>       Ssl.context -> <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -> <a href="Uq_ssl.ssl_multiplex_controller-c.html">ssl_multiplex_controller</a></code></pre><div class="info">
 Creates a multiplex controller for an SSL socket. The descriptor must
  be a connected socket descriptor.
 <p>
@@ -239,7 +239,12 @@ Creates a multiplex controller for an SSL socket. The descriptor must
 
  <code class="code">timeout</code>: if set to <code class="code">(t, x)</code>, started operations time out after <code class="code">t</code>
  seconds and pass the exception <code class="code">x</code> back. A timeout is only indicated
- when all started operations are inactive for <code class="code">t</code> seconds.<br>
+ when all started operations are inactive for <code class="code">t</code> seconds.
+<p>
+
+ <code class="code">ssl_socket</code>: If passed, this socket is used instead of creating a
+ new one for the file descriptor. It is required that the descriptor
+ and the SSL context are connected with this SSL socket.<br>
 </div>
 <pre><span id="VALssl_connect_engine"><span class="keyword">val</span> ssl_connect_engine</span> : <code class="type"><a href="Uq_ssl.ssl_multiplex_controller-c.html">ssl_multiplex_controller</a> -> unit <a href="Uq_engines.engine-c.html">Uq_engines.engine</a></code></pre><div class="info">
 This engine performs the client handshake.<br>

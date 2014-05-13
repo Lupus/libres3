@@ -35,11 +35,6 @@
 /* Other architectures unsupported */
 #endif
 
-#ifdef __LSB_VERSION__
-/* LSB doesn't support syscall () */
-#undef ioprio_supported
-#endif
-
 #endif
 /* __linux__ */
 

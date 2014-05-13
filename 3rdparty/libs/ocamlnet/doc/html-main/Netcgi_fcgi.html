@@ -247,7 +247,9 @@ The usual <a href="Netcgi.cgi-c.html"><code class="code">Netcgi.cgi</code></a> c
       on a different machine), set <code class="code">sockaddr</code> to the address the web
       server needs to connect to to talk to the script (this address
       must also be specified in the wen server config file).</div>
-<div class="param_info"><code class="code">port</code> : alternative way to specify <code class="code">sockaddr</code> for localhost
+<div class="param_info"><code class="code">port</code> : alternative way to specify <code class="code">sockaddr</code> listening to
+      localhost <b>only</b>.  If you would like your FastCGI program to
+      be accessed from a different machine, use <code class="code">sockaddr</code> instead.
 <p>
 
       Your application should be ready handle SIGUSR1, used to

@@ -211,7 +211,7 @@ Sets the state of the file descriptor. It is allowed that
  also possible that this method raises <code class="code">Not_found</code>, leaving it
  to the caller to close the connection.<br>
 </div>
-<pre><span id="METHODfind_inactive_connection"><span class="keyword">method</span> find_inactive_connection</span> : <code class="type"><a href="Http_client_conncache.html#TYPEpeer">peer</a> -><br>       <a href="Http_client_conncache.html#TYPEchannel_binding_id">channel_binding_id</a> -> Unix.file_descr</code></pre><div class="info">
+<pre><span id="METHODfind_inactive_connection"><span class="keyword">method</span> find_inactive_connection</span> : <code class="type"><a href="Http_client_conncache.html#TYPEpeer">peer</a> -><br>       <a href="Http_client_conncache.html#TYPEchannel_binding_id">channel_binding_id</a> -><br>       Unix.file_descr * <a href="Http_client_conncache.html#TYPEprivate_data">private_data</a></code></pre><div class="info">
 Returns an inactive connection to the passed peer, or raise
  <code class="code">Not_found</code>. Since Ocamlnet-3.3, the required channel binding ID
  is also an argument of this method.<br>
