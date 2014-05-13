@@ -162,7 +162,7 @@ end = struct
       let result = check () in
       begin match result with
       | Yes -> printf "OK\n%!"
-      | MissingDev -> printf "No (-dev package missing\n)%!"
+      | MissingDev -> printf "No (-dev package missing)\n%!"
       | No -> printf "No\n%!"
       end;
       result
@@ -807,7 +807,7 @@ let pkg_ssl =
 let pkg_ocamlnet =
   ocaml_dependency "ocamlnet" ~findlibnames:[
     "netstring";"netstring-pcre";"netsys";"netcgi2";"netclient";"equeue-ssl"
-  ] ~version:(fun ver -> ver >? "3.7.3") ~cmi:("netstring","netstring_str.cmi","netstring_str.cmxa")
+  ] ~version:(fun ver -> ver >? "3.7.3") ~cmi:("netstring","netstring_str.cmi","netstring.cmxa")
   (Build (fun _ -> {
     source = "3rdparty/libs/ocamlnet";
     findlibnames = ["netstring";"netstring-pcre";"netsys";"netcgi2";"netclient"];
@@ -877,7 +877,7 @@ let pkg_lwt = ocaml_dependency "lwt" ~findlibnames:["lwt";"lwt.unix";"lwt.ssl"]
 ;;
 
 (* Tyxml *)
-let pkg_tyxml = ocaml_dependency "tyxml" ~cmi:("tyxml","html5.cmi","html5.cmxa") (Build (fun _ ->
+let pkg_tyxml = ocaml_dependency "tyxml" ~cmi:("tyxml","html5.cmi","tyxml.cmxa") (Build (fun _ ->
   build_oasis "3rdparty/libs/tyxml" ~findlibnames:["tyxml"] ~flags:[]))
     ~version:(fun v -> v >=? "2.0.1")
   ~deps:[pkg_ocamlnet; camlp4of_dep; camlp4rf_dep; camlp4_dep]
@@ -885,7 +885,7 @@ let pkg_tyxml = ocaml_dependency "tyxml" ~cmi:("tyxml","html5.cmi","html5.cmxa")
 
 (* Ocsigenserver *)
 let pkg_ocsigenserver = ocaml_dependency "ocsigenserver"
-  ~cmi:("ocsigenserver","ocsigen_server.cmi","ocsigen_server.cmxa") (Build (fun _ ->
+  ~cmi:("ocsigenserver","ocsigen_server.cmi","ocsigenserver.cmxa") (Build (fun _ ->
   build_confgnumake "3rdparty/libs/ocsigenserver" ~flags:[
     "--without-dbm";"--enable-debug";
     "--disable-natdynlink";
