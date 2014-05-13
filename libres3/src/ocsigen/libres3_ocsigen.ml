@@ -225,6 +225,13 @@ let reopen_logs _ =
     ()
 
 let run_server () =
+  if not (get_debugmode ()) || !Config.daemonize then begin
+    let dev_null = Unix.openfile "/dev/null" [Unix.O_RDWR] 0o666 in
+    Unix.dup2 dev_null Unix.stdin;
+    Unix.dup2 dev_null Unix.stdout;
+    Unix.dup2 dev_null Unix.stderr;
+    Unix.close dev_null
+  end;
   Ocsigen_server.start_server ();
   exit 0
 
