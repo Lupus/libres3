@@ -435,8 +435,15 @@ end = struct
     List.iter require deps;
     compute_rules deps;;
 
-  let print_install i =
-    printf "\t%s\n" (String.concat " or " i.os_pkg_names);;
+  let print_install_deb i =
+    match i.os_pkg_names with
+    | deb :: _ -> printf " %s" deb
+    | _ -> ()
+
+  let print_install_rpm i =
+    match i.os_pkg_names with
+    | _ :: rpm :: _ -> printf " %s" rpm
+    | _ -> ()
 
   let print_build (name,_,_) =
     printf " %s" name;;
@@ -445,7 +452,11 @@ end = struct
     printf "\n>>> Configure summary:\n";
     if not (Installs.is_empty installs) then begin
       printf "\n*** Please install the following packages:\n";
-      Installs.iter print_install installs;
+      printf "\tapt-get install";
+      Installs.iter print_install_deb installs;
+      printf "\n\tyum install";
+      Installs.iter print_install_rpm installs;
+      printf "\n";
       exit 1
     end;
     if not (Builds.is_empty builds) then begin
