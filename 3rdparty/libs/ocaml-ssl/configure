@@ -1697,6 +1697,52 @@ $as_echo "$ac_res" >&6; }
   eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
 
 } # ac_fn_c_check_header_compile
+
+# ac_fn_c_check_decl LINENO SYMBOL VAR INCLUDES
+# ---------------------------------------------
+# Tests whether SYMBOL is declared in INCLUDES, setting cache variable VAR
+# accordingly.
+ac_fn_c_check_decl ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  as_decl_name=`echo $2|sed 's/ *(.*//'`
+  as_decl_use=`echo $2|sed -e 's/(/((/' -e 's/)/) 0&/' -e 's/,/) 0& (/g'`
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $as_decl_name is declared" >&5
+$as_echo_n "checking whether $as_decl_name is declared... " >&6; }
+if eval \${$3+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$4
+int
+main ()
+{
+#ifndef $as_decl_name
+#ifdef __cplusplus
+  (void) $as_decl_use;
+#else
+  (void) $as_decl_name;
+#endif
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  eval "$3=yes"
+else
+  eval "$3=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+eval ac_res=\$$3
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+
+} # ac_fn_c_check_decl
 cat >config.log <<_ACEOF
 This file contains any messages produced by compilers while
 running configure, to aid debugging if configure makes a mistake.
@@ -4452,13 +4498,13 @@ if test "x$ac_cv_lib_ssl_TLSv1_2_method" = xyes; then :
   CFLAGS="$CFLAGS -DHAVE_TLS12"
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for EC_KEY_FREE in -lssl" >&5
-$as_echo_n "checking for EC_KEY_FREE in -lssl... " >&6; }
-if ${ac_cv_lib_ssl_EC_KEY_FREE+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for EC_KEY_free in -lcrypto" >&5
+$as_echo_n "checking for EC_KEY_free in -lcrypto... " >&6; }
+if ${ac_cv_lib_crypto_EC_KEY_free+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lssl $OTHER_LIBS $LIBS"
+LIBS="-lcrypto $OTHER_LIBS $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -4468,67 +4514,33 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char EC_KEY_FREE ();
+char EC_KEY_free ();
 int
 main ()
 {
-return EC_KEY_FREE ();
+return EC_KEY_free ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_ssl_EC_KEY_FREE=yes
+  ac_cv_lib_crypto_EC_KEY_free=yes
 else
-  ac_cv_lib_ssl_EC_KEY_FREE=no
+  ac_cv_lib_crypto_EC_KEY_free=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ssl_EC_KEY_FREE" >&5
-$as_echo "$ac_cv_lib_ssl_EC_KEY_FREE" >&6; }
-if test "x$ac_cv_lib_ssl_EC_KEY_FREE" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_crypto_EC_KEY_free" >&5
+$as_echo "$ac_cv_lib_crypto_EC_KEY_free" >&6; }
+if test "x$ac_cv_lib_crypto_EC_KEY_free" = xyes; then :
   CFLAGS="$CFLAGS -DHAVE_EC"
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SSL_set_tlsext_host_name in -lssl" >&5
-$as_echo_n "checking for SSL_set_tlsext_host_name in -lssl... " >&6; }
-if ${ac_cv_lib_ssl_SSL_set_tlsext_host_name+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lssl $OTHER_LIBS $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char SSL_set_tlsext_host_name ();
-int
-main ()
-{
-return SSL_set_tlsext_host_name ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_ssl_SSL_set_tlsext_host_name=yes
-else
-  ac_cv_lib_ssl_SSL_set_tlsext_host_name=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ssl_SSL_set_tlsext_host_name" >&5
-$as_echo "$ac_cv_lib_ssl_SSL_set_tlsext_host_name" >&6; }
-if test "x$ac_cv_lib_ssl_SSL_set_tlsext_host_name" = xyes; then :
+ac_fn_c_check_decl "$LINENO" "SSL_set_tlsext_host_name" "ac_cv_have_decl_SSL_set_tlsext_host_name" "#include <openssl/ssl.h>
+"
+if test "x$ac_cv_have_decl_SSL_set_tlsext_host_name" = xyes; then :
   CFLAGS="$CFLAGS -DHAVE_SNI"
 fi
 
