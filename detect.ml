@@ -822,6 +822,11 @@ let pkg_jsonm = ocaml_dependency "jsonm" (Build (fun _ ->
   build_oasis "3rdparty/libs/jsonm" ~findlibnames:["jsonm"] ~flags:[]))
   ~deps:[dep_ocamlbuild; pkg_uutf];;
 
+(* jsonm *)
+let pkg_ipaddr = ocaml_dependency "ipaddr" (Build (fun _ ->
+  build_oasis "3rdparty/libs/ipaddr" ~findlibnames:["ipaddr"] ~flags:[]))
+  ~deps:[dep_ocamlbuild];;
+
 (* cryptokit *)
 let pkg_cryptokit = ocaml_dependency "cryptokit" (Build (fun _ ->
   build_oasis "3rdparty/libs/cryptokit" ~flags:[] ~findlibnames:["cryptokit"]
@@ -875,7 +880,7 @@ let pkg_ocsigenserver = ocaml_dependency "ocsigenserver"
   ] ~findlibnames:["ocsigenserver"]
 )) ~version:(fun v -> v >=? "2.4.0") (* always build *)
   ~deps:[
-  gnu_make_dep; camlp4_dep; pkg_findlib; pkg_pcre; pkg_ocamlnet; pkg_react; pkg_ssl; pkg_lwt; pkg_cryptokit; pkg_tyxml
+  gnu_make_dep; camlp4_dep; pkg_findlib; pkg_pcre; pkg_ocamlnet; pkg_react; pkg_ssl; pkg_lwt; pkg_cryptokit; pkg_tyxml; pkg_ipaddr
 ]
 
 (* Main dependencies of libres3 *)
