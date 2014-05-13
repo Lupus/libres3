@@ -134,7 +134,7 @@ module Packages : sig
   val check_tool : string -> commands:string list -> string -> (string -> bool) -> have * string
   val check_findlib_package : (ver -> bool) -> string -> have
   val check_ocaml :
-    name:string -> findlibnames:string list -> cmi:string*string -> version:(ver -> bool) -> have
+    name:string -> findlibnames:string list -> cmi:string*string*string -> version:(ver -> bool) -> have
 
   val dependency :
     string -> ?deps_opt:dep list -> ?deps:dep list ->
@@ -321,11 +321,16 @@ end = struct
     ) No
   ;;
 
-  let check_findlib_cmi (pkg,cmi) =
-    checking cmi (fun () ->
+  let check_findlib_cm (pkg,cmi,cmxa) =
+    let has_cmi = checking cmi (fun () ->
       let cmi = Filename.concat (query_findlib "%d" pkg) cmi in
       if Sys.file_exists cmi then Yes else No
     ) No
+    and has_cmxa = checking cmxa (fun () ->
+      let cmxa = Filename.concat (query_findlib "%d" pkg) cmi in
+      if Sys.file_exists cmxa then Yes else No
+    ) No in
+    if has_cmi = Yes && has_cmxa = Yes then Yes else No
   ;;
 
   let id x = x = Yes;;
@@ -336,7 +341,8 @@ end = struct
       let have = List.rev_map (fun pkg ->
         printf "\t";
         (check_findlib_package version pkg),
-        (check_findlib_cmi cmi)
+        (printf "\t";
+         check_findlib_cm cmi)
       ) findlibnames in
       let have_pkgs, have_cmis = List.split have in
       match (List.for_all id have_pkgs), (List.for_all id have_cmis) with
@@ -606,7 +612,7 @@ module CommonRules : sig
 
   val pkg_findlib: dep
   val ocaml_dependency :
-    string -> ?cmi:string*string -> ?deps_opt:dep list -> ?deps:dep list ->
+    string -> ?cmi:string*string*string -> ?deps_opt:dep list -> ?deps:dep list ->
       ?findlibnames:string list -> ?version:(ver->bool) -> action -> dep
   val clib_dependency :
     string -> header:string -> lib:string list -> fn:string -> install -> dep
@@ -711,7 +717,7 @@ end = struct
   let any _ = true
 
   let ocaml_dependency
-    name ?(cmi=(name,name^".cmi")) ?deps_opt ?(deps=[]) ?(findlibnames = [name]) ?(version=any) action =
+    name ?(cmi=(name,name^".cmi",name^".cmxa")) ?deps_opt ?(deps=[]) ?(findlibnames = [name]) ?(version=any) action =
       let have = check_ocaml ~name ~findlibnames ~cmi ~version in
       (* if user has installed the correct runtime package,
        * but not the dev package tell him to install the dev package,
@@ -788,7 +794,7 @@ let pkg_ssl =
 let pkg_ocamlnet =
   ocaml_dependency "ocamlnet" ~findlibnames:[
     "netstring";"netstring-pcre";"netsys";"netcgi2";"netclient";"equeue-ssl"
-  ] ~version:(fun ver -> ver >? "3.7.3") ~cmi:("netstring","netstring_str.cmi")
+  ] ~version:(fun ver -> ver >? "3.7.3") ~cmi:("netstring","netstring_str.cmi","netstring_str.cmxa")
   (Build (fun _ -> {
     source = "3rdparty/libs/ocamlnet";
     findlibnames = ["netstring";"netstring-pcre";"netsys";"netcgi2";"netclient"];
@@ -858,7 +864,7 @@ let pkg_lwt = ocaml_dependency "lwt" ~findlibnames:["lwt";"lwt.unix";"lwt.ssl"]
 ;;
 
 (* Tyxml *)
-let pkg_tyxml = ocaml_dependency "tyxml" ~cmi:("tyxml","html5.cmi") (Build (fun _ ->
+let pkg_tyxml = ocaml_dependency "tyxml" ~cmi:("tyxml","html5.cmi","html5.cmxa") (Build (fun _ ->
   build_oasis "3rdparty/libs/tyxml" ~findlibnames:["tyxml"] ~flags:[]))
     ~version:(fun v -> v >=? "2.0.1")
   ~deps:[pkg_ocamlnet; camlp4of_dep; camlp4rf_dep; camlp4_dep]
@@ -866,7 +872,7 @@ let pkg_tyxml = ocaml_dependency "tyxml" ~cmi:("tyxml","html5.cmi") (Build (fun 
 
 (* Ocsigenserver *)
 let pkg_ocsigenserver = ocaml_dependency "ocsigenserver"
-  ~cmi:("ocsigenserver","ocsigen_server.cmi") (Build (fun _ ->
+  ~cmi:("ocsigenserver","ocsigen_server.cmi","ocsigen_server.cmxa") (Build (fun _ ->
   build_confgnumake "3rdparty/libs/ocsigenserver" ~flags:[
     "--without-dbm";"--enable-debug";
     "--disable-natdynlink";
