@@ -725,7 +725,9 @@ end = struct
       let a =
         match have with
         | MissingDev ->
-          Install { os_pkg_names = ["lib"^name^"-ocaml-dev"] }
+            Install {
+              os_pkg_names = ["lib"^name^"-ocaml-dev";"ocaml-"^name^"-devel"]
+            }
         | Yes | No ->
           action in
       dependency name ?deps_opt ~deps:(dep_ocamlfind :: deps) have a
