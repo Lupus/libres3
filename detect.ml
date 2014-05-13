@@ -327,7 +327,7 @@ end = struct
       if Sys.file_exists cmi then Yes else No
     ) No
     and has_cmxa = checking cmxa (fun () ->
-      let cmxa = Filename.concat (query_findlib "%d" pkg) cmi in
+      let cmxa = Filename.concat (query_findlib "%d" pkg) cmxa in
       if Sys.file_exists cmxa then Yes else No
     ) No in
     if has_cmi = Yes && has_cmxa = Yes then Yes else No
