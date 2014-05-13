@@ -626,7 +626,7 @@ Ocamlbuild_plugin.dispatch dispatch_default;;
 let default_version =
   BaseEnvLight.var_get "pkg_version" (
     BaseEnvLight.load ~allow_empty:true ()
-  ) ^ "-8801829";;
+  ) ^ "-$Format:%h$";;
 let version () =
         Ocamlbuild_pack.My_unix.run_and_open (
           "(git describe --always --dirty 2>/dev/null|| echo '" ^ default_version ^ "')"
