@@ -226,7 +226,7 @@ let () =
       Printf.fprintf outfile "s3_ssl_certificate_file=%S\n" ssl_cert;
       Printf.fprintf outfile "s3_ssl_privatekey_file=%S\n" ssl_key;
     end;
-    Printf.fprintf outfile "allow_volume_create_any_user=true";
+    Printf.fprintf outfile "allow_volume_create_any_user=true\n";
     close_out outfile;
     update_s3cfg false !s3_host 8008 admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
     update_s3cfg true !s3_host 8443 admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.s3cfg");
