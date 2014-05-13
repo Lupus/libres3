@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 37adb2f91905000274a455d54443caa9) *)
+(* DO NOT EDIT (digest: a2aa665cfa61bb969439c23b27e7a462) *)
 
 This is the INSTALL file for the libres3 distribution.
 
@@ -25,9 +25,9 @@ In order to compile this package, you will need:
 * lwt (>= 2.4.2) for library sxclient.lwt
 * xmlm for library server
 * netsys for library server, executable libres3_ocsigen
+* ocsigenserver for library server, executable libres3_ocsigen
 * netcgi2 for library libres3_site, executable libres3_fcgi,
   executable server_test
-* ocsigenserver for executable libres3_ocsigen
 * oUnit for executable directio_test, executable lwtio_test,
   executable misc_test, executable net_test, executable server_test
 

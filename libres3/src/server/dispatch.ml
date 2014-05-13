@@ -1330,6 +1330,9 @@ module Make
             Error.ServiceUnavailable [
               "OutOfSpace",fn
             ]
+      | Ocsigen_stream.Interrupted (Ocsigen_http_com.Lost_connection _) ->
+          (* do not send anything back to client, it has already disconnected *)
+          fail Ocsigen_http_com.Aborted
       | e ->
         let bt = if Printexc.backtrace_status () then
           ["Backtrace", Printexc.get_backtrace ()]
@@ -1342,7 +1345,10 @@ module Make
             ~id:canon.CanonRequest.id ~path ~headers:[]
             Error.InternalError (("Exception", str) :: bt)
       ) ()
-    ) (fun e ->
+    ) (function
+    | Ocsigen_http_com.Aborted ->
+        fail Ocsigen_http_com.Aborted
+    | e ->
       let bt = if Printexc.backtrace_status () then
         ["Backtrace", Printexc.get_backtrace ()]
       else [] in
