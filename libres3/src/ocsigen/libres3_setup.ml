@@ -34,9 +34,13 @@ let print_version () =
 let sxsetup_conf = ref ""
 let open_errmsg = ref false
 let s3_host = ref ""
+let default_replica = ref ""
 let spec = Arg.align [
   "--s3-host", Arg.Set_string s3_host,
     " Base hostname to use (equivalent to; s3.amazonaws.com, host_base in .s3cfg)";
+  "--default-replica", Arg.Set_string default_replica,
+    " Default volume replica count"
+  ;
   "--sxsetup-conf", Arg.Set_string sxsetup_conf, " Path to sxsetup.conf";
   "--version", Arg.Unit print_version, " Print version";
   "-V", Arg.Unit print_version, " Print version";
@@ -198,10 +202,12 @@ let () =
     and webgroup = fallback_read "Run as group" load "SX_SERVER_GROUP"
     and ssl_key = fallback_read "SSL key file" load "SX_SSL_KEY_FILE"
     and ssl_cert = fallback_read "SSL certificate file" load "SX_SSL_CERT_FILE"
-    and replica_count = fallback_read "Default volume replica count" load "LIBRES3_REPLICA"
     and volume_size = "10G"
     in
-    s3_host := fallback_read "S3 (DNS) name" load "LIBRES3_HOST";
+    if !s3_host = "" then
+      s3_host := fallback_read "S3 (DNS) name" load "LIBRES3_HOST";
+    if !default_replica = "" then
+      default_replica := fallback_read "Default volume replica count" load "LIBRES3_REPLICA";
     let name = libres3_conf () in
     Printf.printf "\nGenerating '%s'\n" name;
     let outfile = open_out_ask name in
@@ -214,7 +220,7 @@ let () =
     Printf.fprintf outfile "pid_file=%S\n" (Filename.concat rundir "libres3/libres3.pid");
     Printf.fprintf outfile "user=%S\n" webuser;
     Printf.fprintf outfile "group=%S\n" webgroup;
-    Printf.fprintf outfile "replica_count=%s\n" replica_count;
+    Printf.fprintf outfile "replica_count=%s\n" !default_replica;
     Printf.fprintf outfile "volume_size=%s\n" volume_size;
     if Sys.file_exists ssl_cert && Sys.file_exists ssl_key then begin
       Printf.fprintf outfile "s3_ssl_certificate_file=%S\n" ssl_cert;
