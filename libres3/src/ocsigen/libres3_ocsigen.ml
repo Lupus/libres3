@@ -224,6 +224,10 @@ let reopen_logs _ =
   with _ ->
     ()
 
+let run_server () =
+  Ocsigen_server.start_server ();
+  exit 0
+
 let run () =
   Config.max_connected := 350;
   handle_signal Sys.sigint "Exiting due to user interrupt";
@@ -272,12 +276,13 @@ let run () =
     let ok = ref false in
     at_exit (fun () ->
       if not !ok then begin
-        Printf.eprintf "Killing all children\n%!";
         ok := true;
+        Printf.eprintf "Killing all children\n%!";
         (* kill self&all children *)
         Unix.kill 0 15
       end
     );
+    Lwt_unix.set_pool_size 64;
     Gc.compact ();
     if !Config.daemonize then begin
       Unix.chdir "/";
@@ -287,10 +292,10 @@ let run () =
         Lwt_sequence.iter_node_l Lwt_sequence.remove Lwt_main.exit_hooks;
       end else begin
         ignore (Unix.setsid ());
-        Lwt_unix.set_pool_size 64;
-        Ocsigen_server.start_server ();
-        exit 0;
+        run_server ()
       end
+    end else begin
+      run_server ()
     end;
     Printf.printf "Waiting for server to start (5s) ... %!";
     if wait_pipe !(config.commandpipe) 5. then begin
