@@ -1446,9 +1446,7 @@ struct
     ;;
 
     (* TODO: create a temporary dir, and create all tmpfiles there *)
-    let rng =
-      Random.pseudo_rng (Printf.sprintf "%g%04d%04d"
-        (Unix.gettimeofday ()) (Unix.getpid ()) (Unix.getppid ()))
+    let rng = Random.device_rng "/dev/urandom"
 
     let tempfilename () =
       let rand = Random.string rng 16 in
