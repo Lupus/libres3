@@ -1233,10 +1233,14 @@ module Make
           Homepage.root
       else
         return_error Error.AccessDenied ["MissingHeader", "Authorization"]
+    | CanonRequest.AuthEmpty ->
+        return_error Error.AccessDenied ["MissingHeader", "Authorization"]
     | CanonRequest.AuthMalformed s ->
       return_error Error.InvalidSecurity ["BadAuthorization", s]
     | CanonRequest.AuthDuplicate ->
       return_error Error.InvalidSecurity ["BadAuthorization", "Multiple occurences of Authorization header"]
+    | CanonRequest.AuthExpired ->
+      return_error Error.ExpiredToken []
     | CanonRequest.Authorization (user, signature) ->
       match !sx_host with
       | Some host ->

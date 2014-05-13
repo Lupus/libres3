@@ -205,7 +205,14 @@ let string_to_sign canon_req =
   Buffer.contents b;;
 
 type auth_header =
-  | AuthNone | AuthMalformed of string | AuthDuplicate | Authorization of string * string
+  | AuthEmpty | AuthNone | AuthMalformed of string | AuthDuplicate | AuthExpired | Authorization of string * string
+
+let did_expire expires =
+  if expires = "" then false
+  else
+    try float (int_of_string expires) < Unix.gettimeofday ()
+    with _ -> true (* consider expired if malformed *)
+;;
 
 let parse_authorization req =
   match Headers.field_values req.headers "authorization" with
@@ -213,9 +220,12 @@ let parse_authorization req =
       let keyid = get_query_param_opt req.query_params "AWSAccessKeyId"
       and signature = get_query_param_opt req.query_params "Signature"
       and expires = req.expires in
-      (* TODO: check Expires and raise ExpiredToken *)
-      if keyid = "" || signature = "" || expires = "" then
+      if keyid = "" && signature = "" && expires = "" then
         AuthNone
+      else if keyid = "" || signature = "" || expires = "" then
+        AuthEmpty
+      else if did_expire expires then
+        AuthExpired
       else
         Authorization (keyid, signature)
   | auth :: [] ->
@@ -235,13 +245,15 @@ let parse_authorization req =
  * access key id here *)
 let validate_authorization req string_to_sign expected_signature =
   match parse_authorization req with
-  | AuthNone ->
+  | AuthEmpty | AuthNone ->
       Error.AccessDenied, ["MissingHeader", "Authorization"]
   | AuthMalformed s ->
       Error.InvalidSecurity, ["BadAuthorization", s]
   | AuthDuplicate ->
       Error.InvalidSecurity,
       ["BadAuthorization", "Multiple occurences of Authorization header"]
+  | AuthExpired ->
+      Error.ExpiredToken, []
   | Authorization (key, signature) ->
       if key <> !Config.key_id then
         Error.InvalidAccessKeyId, [
