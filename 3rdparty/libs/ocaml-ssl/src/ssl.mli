@@ -201,6 +201,8 @@ type protocol =
   | SSLv23 (** SSL v3 protocol but can rollback to v2 *)
   | SSLv3 (** SSL v3 protocol *)
   | TLSv1 (** TLS v1 protocol *)
+  | TLSv1_1 (** TLS v1.1 protocol *)
+  | TLSv1_2 (** TLS v1.2 protocol *)
 
 (** An SSL abstract socket. *)
 type socket
@@ -273,6 +275,12 @@ type cipher
 (** Set the list of available ciphers for a context. See man ciphers(1) for the format of the string. *)
 val set_cipher_list : context -> string -> unit
 
+(** Init DH parameters from file *)
+val init_dh_from_file : context -> string -> unit
+
+(** Init EC curve from curve name *)
+val init_ec_from_named_curve : context -> string -> unit
+
 (** Get the cipher used by a socket. *)
 val get_cipher : socket -> cipher
 
@@ -333,6 +341,10 @@ val open_connection_with_context : context -> Unix.sockaddr -> socket
 
 (** Close an SSL connection opened with [open_connection]. *)
 val shutdown_connection : socket -> unit
+
+(** Set the hostname the client is attempting to connect to using the Server
+  * Name Indication (SNI) TLS extension. *)
+val set_client_SNI_hostname : socket -> string -> unit
 
 (** Connect an SSL socket. *)
 val connect : socket -> unit

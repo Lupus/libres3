@@ -48,6 +48,7 @@
 #include <openssl/pem.h>
 #include <openssl/err.h>
 #include <openssl/crypto.h>
+#include <openssl/tls1.h>
 
 #ifdef WIN32
 #include <windows.h>
@@ -56,6 +57,7 @@
 #endif
 
 static int client_verify_callback(int, X509_STORE_CTX *);
+static DH *load_dh_param(const char *dhfile);
 
 /*******************
  * Data structures *
@@ -301,6 +303,44 @@ static const SSL_METHOD *get_method(int protocol, int type)
           method = TLSv1_method();
           break;
       }
+      break;
+
+    case 3:
+#ifdef HAVE_TLS11
+      switch (type)
+      {
+        case 0:
+          method = TLSv1_1_client_method();
+          break;
+
+        case 1:
+          method = TLSv1_1_server_method();
+          break;
+
+        case 2:
+          method = TLSv1_1_method();
+          break;
+      }
+#endif
+      break;
+
+    case 4:
+#ifdef HAVE_TLS12
+      switch (type)
+      {
+        case 0:
+          method = TLSv1_2_client_method();
+          break;
+
+        case 1:
+          method = TLSv1_2_server_method();
+          break;
+
+        case 2:
+          method = TLSv1_2_method();
+          break;
+      }
+#endif
       break;
 
     default:
@@ -574,6 +614,68 @@ CAMLprim value ocaml_ssl_get_cipher_version(value vcipher)
   return caml_copy_string(version);
 }
 
+CAMLprim value ocaml_ssl_ctx_init_dh_from_file(value context, value dh_file_path)
+{
+  CAMLparam2(context, dh_file_path);
+  DH *dh = NULL;
+  SSL_CTX *ctx = Ctx_val(context);
+  char *dh_cfile_path = String_val(dh_file_path);
+
+  if(*dh_cfile_path == 0)
+    caml_raise_constant(*caml_named_value("ssl_exn_diffie_hellman_error"));
+
+  dh = load_dh_param(dh_cfile_path);
+  caml_enter_blocking_section();
+  if (dh != NULL){
+    if(SSL_CTX_set_tmp_dh(ctx,dh) != 1){
+      caml_leave_blocking_section();
+      caml_raise_constant(*caml_named_value("ssl_exn_diffie_hellman_error"));
+    }
+    SSL_CTX_set_options(ctx, SSL_OP_SINGLE_DH_USE);
+    caml_leave_blocking_section();
+    DH_free(dh);
+  }
+  else{
+      caml_leave_blocking_section();
+      caml_raise_constant(*caml_named_value("ssl_exn_diffie_hellman_error"));
+  }
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_ssl_ctx_init_ec_from_named_curve(value context, value curve_name)
+{
+  CAMLparam2(context, curve_name);
+  EC_KEY *ecdh = NULL;
+  int nid = 0;
+  SSL_CTX *ctx = Ctx_val(context);
+  char *ec_curve_name = String_val(curve_name);
+
+  if(*ec_curve_name == 0)
+    caml_raise_constant(*caml_named_value("ssl_exn_ec_curve_error"));
+
+  nid = OBJ_sn2nid(ec_curve_name);
+  if(nid == 0){
+    caml_raise_constant(*caml_named_value("ssl_exn_ec_curve_error"));
+  }
+
+  caml_enter_blocking_section();
+  ecdh = EC_KEY_new_by_curve_name(nid);
+  if(ecdh != NULL){
+    if(SSL_CTX_set_tmp_ecdh(ctx,ecdh) != 1){
+      caml_leave_blocking_section();
+      caml_raise_constant(*caml_named_value("ssl_exn_ec_curve_error"));
+    }
+    SSL_CTX_set_options(ctx, SSL_OP_SINGLE_ECDH_USE);
+    caml_leave_blocking_section();
+    EC_KEY_free(ecdh);
+  }
+  else{
+    caml_leave_blocking_section();
+    caml_raise_constant(*caml_named_value("ssl_exn_ec_curve_error"));
+  }
+  CAMLreturn(Val_unit);
+}
+
 /*********************************
  * Certificate-related functions *
  *********************************/
@@ -758,24 +860,32 @@ CAMLprim value ocaml_ssl_embed_socket(value socket_, value context)
   CAMLreturn(block);
 }
 
+CAMLprim value ocaml_ssl_set_client_SNI_hostname(value socket, value vhostname)
+{
+  CAMLparam2(socket, vhostname);
+  SSL *ssl       = SSL_val(socket);
+  char *hostname = String_val(vhostname);
+
+  caml_enter_blocking_section();
+  SSL_set_tlsext_host_name(ssl, hostname);
+  caml_leave_blocking_section();
+
+  CAMLreturn(Val_unit);
+}
+
+
 CAMLprim value ocaml_ssl_connect(value socket)
 {
   CAMLparam1(socket);
-  int ret;
+  int ret, err;
   SSL *ssl = SSL_val(socket);
 
   caml_enter_blocking_section();
   ret = SSL_connect(ssl);
+  err = SSL_get_error(ssl, ret);
   caml_leave_blocking_section();
-  if (ret < 0)
-  {
-    int err;
-
-    caml_enter_blocking_section();
-    err = SSL_get_error(ssl, ret);
-    caml_leave_blocking_section();
+  if (err != SSL_ERROR_NONE)
     caml_raise_with_arg(*caml_named_value("ssl_exn_connection_error"), Val_int(err));
-  }
 
   CAMLreturn(Val_unit);
 }
@@ -814,6 +924,7 @@ CAMLprim value ocaml_ssl_write(value socket, value buffer, value start, value le
 
   memmove(buf, (char*)String_val(buffer) + Int_val(start), buflen);
   caml_enter_blocking_section();
+  ERR_clear_error();
   ret = SSL_write(ssl, buf, buflen);
   err = SSL_get_error(ssl, ret);
   caml_leave_blocking_section();
@@ -837,10 +948,9 @@ CAMLprim value ocaml_ssl_read(value socket, value buffer, value start, value len
     caml_invalid_argument("Buffer too short.");
 
   caml_enter_blocking_section();
+  ERR_clear_error();
   ret = SSL_read(ssl, buf, buflen);
   err = SSL_get_error(ssl, ret);
-  if (err != SSL_ERROR_NONE)
-    err = SSL_get_error(ssl, ret);
   caml_leave_blocking_section();
   memmove(((char*)String_val(buffer)) + Int_val(start), buf, buflen);
   free(buf);
@@ -858,14 +968,12 @@ CAMLprim value ocaml_ssl_accept(value socket)
 
   int ret, err;
   caml_enter_blocking_section();
+  ERR_clear_error();
   ret = SSL_accept(ssl);
-  if (ret <= 0)
-  {
-    err = SSL_get_error(ssl, ret);
-    caml_leave_blocking_section();
-    caml_raise_with_arg(*caml_named_value("ssl_exn_accept_error"), Val_int(err));
-  }
+  err = SSL_get_error(ssl, ret);
   caml_leave_blocking_section();
+  if (err != SSL_ERROR_NONE)
+    caml_raise_with_arg(*caml_named_value("ssl_exn_accept_error"), Val_int(err));
 
   CAMLreturn(Val_unit);
 }
@@ -1056,4 +1164,16 @@ return_time:
     free(issuer);
 
   return ok;
+}
+static DH *load_dh_param(const char *dhfile)
+{
+  DH *ret=NULL;
+  BIO *bio;
+  
+  if ((bio=BIO_new_file(dhfile,"r")) == NULL)
+  	goto err;
+  ret=PEM_read_bio_DHparams(bio,NULL,NULL,NULL);
+err:
+  if (bio != NULL) BIO_free(bio);
+  return(ret);
 }
