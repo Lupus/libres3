@@ -988,26 +988,52 @@ struct
         failwith "bad filelist format"
     ;;
 
+    (* SX is too slow when listing directories on large volumes,
+     * cache the data until bug #415 is fixed *)
+    module ListCache = Cache.Make(M)(struct
+        type t = string * string * float
+
+        let cache_expires = 30. (* 30s *)
+
+        let compare (user1, url1, expires1) (user2, url2, expires2) =
+          if user1 = user2 then begin
+            if url1 = url2  then begin
+              (* if within the expiration time consider them equal *)
+              if abs_float (expires1 -. expires2) < cache_expires then 0
+              else Pervasives.compare expires1 expires2
+            end
+            else String.compare url1 url2
+          end else
+            String.compare user1 user2
+
+        type data = entry list
+        let cache_size = 100
+      end)
+
     let listit url =
-      get_nodelist url >>= fun nodes ->
-      make_request `GET nodes url >>=  fun reply ->
-      begin
-       expect_content_type reply "application/json" >>= fun () ->
-       let input = P.input_of_async_channel reply.body in
-       json_parse_tree input >>= function
-       | [`O obj] ->
-          (* TODO: stream parse instead *)
-          begin match filter_field_one "fileList" obj with
-          | `O files ->
-            return (List.rev_map parse_file files)
-          | p ->
-            pp_json p;
-            fail (Failure "bad volume list format")
+      let user = Neturl.url_user url in
+      let req = user, string_of_url url, Unix.gettimeofday () in
+      ListCache.bind (M.return req) (fun _ ->
+          get_nodelist url >>= fun nodes ->
+          make_request `GET nodes url >>=  fun reply ->
+          begin
+            expect_content_type reply "application/json" >>= fun () ->
+            let input = P.input_of_async_channel reply.body in
+            json_parse_tree input >>= function
+            | [`O obj] ->
+              (* TODO: stream parse instead *)
+              begin match filter_field_one "fileList" obj with
+                | `O files ->
+                  return (List.rev_map parse_file files)
+                | p ->
+                  pp_json p;
+                  fail (Failure "bad volume list format")
+              end
+            | p ->
+              List.iter pp_json p;
+              fail (Failure "bad volume list format2")
           end
-       | p ->
-           List.iter pp_json p;
-           fail (Failure "bad volume list format2")
-     end
+        )
 
     let parse_volume = function
     | `F (name,[`O _meta]) ->
