@@ -65,9 +65,9 @@ configuration, and inspect the log files at `/opt/libres3/var/log/libres3/`.
 Known limitations
 -----------------
 
-This is the first beta of LibreS3, and comes with some limitations
+This is the second beta of LibreS3, and comes with some limitations
 but it has been reliably running on our internal production cluster
-for the past 3 months without any major issues:
+for the past few months without any major issues:
 
   * changing bucket ACLs is not supported
   * only 90% of the S3 REST API is supported ;-)

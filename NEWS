@@ -1,0 +1,14 @@
+0.2 (Second Beta)
+-----------------
+
+Changes in this release include:
+ * Fix daemonization at startup, and exit code on shutdown
+ * Portability/packaging fixes for FreeBSD/Debian/CentOS
+ * Fix pre-signed URL expiration handling
+ * Reduce resource usage (number of threads)
+ * Other bugfixes and improvements
+
+0.1 (First Beta)
+----------------
+
+Initial public release of LibreS3.
