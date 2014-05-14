@@ -156,13 +156,17 @@ let handle_error f () =
     f ()
   with
   | Unix_error (err, fn, param) ->
-      Printf.eprintf "Error in %s(%s): %s\n%!" fn param (error_message err)
+      Printf.eprintf "Error in %s(%s): %s\n%!" fn param (error_message err);
+      exit 2
   | Sys_error msg ->
-      Printf.eprintf "Error: %s\n%!" msg
+      Printf.eprintf "Error: %s\n%!" msg;
+      exit 3
   | Failure msg ->
-      Printf.eprintf "Error: %s\n%!" msg
+      Printf.eprintf "Error: %s\n%!" msg;
+      exit 4
   | e ->
-      Printf.eprintf "Unexpected error: %s\n%!" (Printexc.to_string e)
+      Printf.eprintf "Unexpected error: %s\n%!" (Printexc.to_string e);
+      exit 5
 ;;
 
 let handle_signal s msg =
