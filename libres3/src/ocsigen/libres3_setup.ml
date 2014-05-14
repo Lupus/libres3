@@ -191,6 +191,31 @@ let update_s3cfg is_https host port key name =
   close_out f;
   Sys.rename (name ^ ".tmp") name
 
+let ask_start () =
+  let init_d_script = "/etc/init.d/libres3" in
+  let sbin_script = Filename.concat Configure.sbindir "libres3" in
+  let has_init_d_script = Sys.file_exists init_d_script
+  and has_sbin_script = Sys.file_exists sbin_script in
+
+  if has_init_d_script || has_sbin_script then
+    Printf.printf "\n%!";
+    if read_yes_no true "Do you want to start LibreS3 now?" then begin
+      let exec = if has_init_d_script then init_d_script else sbin_script in
+      let cmd = exec ^ " start" in
+      match Unix.system cmd with
+      | Unix.WEXITED 0 -> ()
+      | Unix.WEXITED n ->
+          Printf.eprintf "Script exited with code %d\n%!" n;
+          exit 1
+      | Unix.WSIGNALED n ->
+          (* signal number aren't OS signal numbers *)
+          Printf.eprintf "Script exited due to signal -%d\n%!" n;
+          exit 1
+      | Unix.WSTOPPED n ->
+          Printf.eprintf "Script stopped due to signal -%d\n%!" n;
+          exit 1
+  end
+
 let () =
   try
     let config = load_config !sxsetup_conf in
@@ -230,6 +255,7 @@ let () =
     close_out outfile;
     update_s3cfg false !s3_host 8008 admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
     update_s3cfg true !s3_host 8443 admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.s3cfg");
+    ask_start ();
   with Sys_error msg ->
     Printf.eprintf "Error: %s\n" msg;
     exit 1
