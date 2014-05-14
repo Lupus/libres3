@@ -295,6 +295,7 @@ let run () =
     );
     Lwt_unix.set_pool_size 64;
     Gc.compact ();
+    begin try unlink !(config.commandpipe) with _ -> () end;
     if !Config.daemonize then begin
       Unix.chdir "/";
       ignore (Unix.setsid ());
