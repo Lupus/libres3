@@ -2,7 +2,7 @@
 \pagestyle{empty}
 
 \begin{center}
-    \includegraphics[width=120mm]{logo.eps}\\
+    \includegraphics[width=119mm]{logo.eps}\\
     \vspace{4cm}
     \rule{\textwidth}{1.6pt}\vspace*{-\baselineskip}\vspace*{2pt}
     \rule{\textwidth}{0.4pt}\\[\baselineskip]
@@ -26,10 +26,9 @@
 \indent LibreS3 is a robust Open Source implementation of the Amazon S3 service,
 supporting a subset of the S3 REST API.
 
-Standard S3 client libraries and tools (for example python-boto, s3cmd, DragonDisk, etc.) can
-be used to access it.
+Standard S3 client libraries and tools can be used to access it (for example s3cmd, python-boto, DragonDisk, etc.) .
 
-LibreS3 uses Skylable \SX as the storage backend, which automatically provides data
+LibreS3 uses Skylable \SX as the storage backend, which provides data
 deduplication and replication.\\
 
 \section*{Useful links}
@@ -37,6 +36,7 @@ deduplication and replication.\\
     \item \url{http://lists.skylable.com}
     \item \url{https://bugzilla.skylable.com}
     \item \url{http://wiki.skylable.com}
+    \item \url{http://www.skylable.com/products/libres3}
 \end{itemize}
 
 \chapter{Installation}
@@ -112,8 +112,8 @@ bucket2.libres3.example.com 1.2.3.4
 
 \section*{Setting up a LibreS3 node}
 
-Setting up LibreS3 is as simple as running the \verb+libres3_setup+ interactive
-tool. If you provide the path to an existing \SX cluster configuration file created
+Setting up LibreS3 is as simple as running the interactive tool \verb+libres3_setup+.
+If you provide the path to an existing \SX cluster configuration file created
 by \verb+sxsetup+, most of the settings will be done automatically.
 
 Please make sure the default volume replica count setting is less or equal
@@ -135,15 +135,19 @@ Successfully obtained run as group
 Successfully obtained ssl key file
 Successfully obtained ssl certificate file
 
-Default volume replica count: 2
+S3 (DNS) name: libres3.skylable.com
 
-S3 (DNS) name: libres3.example.com
+Default volume replica count: 1
 
 Generating '/opt/libres3/etc/libres3/libres3.conf'
 Updating '/opt/libres3/etc/libres3/libres3-insecure.sample.s3cfg'
 Successfully loaded SX configuration from '/opt/libres3/etc/libres3/libres3-insecure.sample.s3cfg'
 Updating '/opt/libres3/etc/libres3/libres3.sample.s3cfg'
 Successfully loaded SX configuration from '/opt/libres3/etc/libres3/libres3.sample.s3cfg'
+
+Do you want to start LibreS3 now? [Y/n] Y
+Starting LibreS3
+LibreS3 started successfully
 \end{lstlisting}
 \LARGE
 
@@ -152,22 +156,22 @@ Example without sxsetup.conf:
 \small
 \begin{lstlisting}
 # /opt/libres3/sbin/libres3_setup
-Admin key:
-0DPiKuNIrrVmD8IUCuw1hQxNqZeKUL6IZ26Lro8FqwNmCJa9pH5XkgAA
 
-SX server IP/DNS name: sx.example.com
+Admin key: 0DPiKuNIrrVmD8IUCuw1hQxNqZeKUL6IZ26Lro8FqwNmCJa9pH5XkgAA
+
+SX server IP/DNS name: 127.0.1.1
 
 Run as user: nobody
 
-Run as group: nobody
+Run as group: nogroup
 
 SSL key file: /opt/sx/etc/ssl/private/sxkey.pem
 
 SSL certificate file: /opt/sx/etc/ssl/certs/sxcert.pem
 
-Default volume replica count: 2
+S3 (DNS) name: libres3.skylable.com
 
-S3 (DNS) name: libres3.example.com
+Default volume replica count: 1
 
 Generating '/opt/libres3/etc/libres3/libres3.conf'
 File '/opt/libres3/etc/libres3/libres3.conf' already exists, overwriting
@@ -175,6 +179,10 @@ Updating '/opt/libres3/etc/libres3/libres3-insecure.sample.s3cfg'
 Successfully loaded SX configuration from '/opt/libres3/etc/libres3/libres3-insecure.sample.s3cfg'
 Updating '/opt/libres3/etc/libres3/libres3.sample.s3cfg'
 Successfully loaded SX configuration from '/opt/libres3/etc/libres3/libres3.sample.s3cfg'
+
+Do you want to start LibreS3 now? [Y/n] Y
+Starting LibreS3
+LibreS3 started successfully
 \end{lstlisting}
 \LARGE
 
@@ -207,9 +215,10 @@ You can now connect to it with your favourite S3 client.
 \chapter{Client configuration}
 \section*{s3cmd}
 
-You can use the generated s3cfg config file from\\
-\verb|"/opt/libres3/etc/libres3/libres3.sample.s3cfg"| or
-configure s3cmd from scratch. Below we assume your LibreS3's
+You can use the generated s3cfg config file
+\footnote{\verb|/opt/libres3/etc/libres3/libres3.sample.s3cfg|}
+ or configure s3cmd from scratch. 
+Below we assume that your LibreS3's
 is running on \verb|"libres3.example.com"| and it supports SSL.
 The important s3cmd configuration settings are:
 
@@ -241,7 +250,7 @@ Supported s3cmd commands:
 
 \section*{Python-boto}
 
-S3 clients using Python boto are configured with the \verb|~/.boto| file.
+S3 clients using Python boto are configured in \verb|~/.boto|.
 A typical configuration looks as follows:
 \small
 \begin{lstlisting}
@@ -249,6 +258,7 @@ A typical configuration looks as follows:
 aws_access_key_id=<your-sx-username>
 aws_secret_access_key=<your-sx-key>
 s3_host=libres3.example.com:8443
+s3_port=8443
 [Boto]
 is_secure = True
 \end{lstlisting}
@@ -273,6 +283,7 @@ You can also enable logging of full HTTP requests with:
 \end{lstlisting}
 \LARGE
 For more information and FAQ please visit \url{http://wiki.skylable.com}.
+
 If you can't find your solution there, please subscribe to our mailing list
 at \url{http://lists.skylable.com} and post about your issues.
 
