@@ -588,7 +588,7 @@ struct
     let url_port_opt url =
       try url_port url
       with Not_found ->
-        if !Config.sx_ssl then 443 else 80
+        !Config.sx_port
 
     let delay ms =
       OS.sleep (ms /. 1000.)

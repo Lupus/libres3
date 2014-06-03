@@ -46,6 +46,7 @@ let base_port = ref 8008
 let base_ssl_port = ref 8443
 let secret_access_key = ref ""
 let sx_host : string option ref = ref None
+let sx_port : int ref = ref 443
 let sx_ssl : bool ref = ref true
 let replica_count = ref 0
 let volume_size = ref 0.

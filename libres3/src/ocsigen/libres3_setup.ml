@@ -222,6 +222,7 @@ let () =
     let load = find config in
     let admin_key = fallback_read "Admin key" load "SX_ADMIN_KEY" in
     let this_ip = fallback_read "SX server IP/DNS name" load "SX_NODE_IP"
+    and this_port = fallback_read "SX server port" load "SX_PORT"
     and rundir = Filename.concat Configure.localstatedir "run"
     and webuser = fallback_read "Run as user" load "SX_SERVER_USER"
     and webgroup = fallback_read "Run as group" load "SX_SERVER_GROUP"
@@ -241,6 +242,7 @@ let () =
     Printf.fprintf outfile "# LibreS3 configuration file\n";
     Printf.fprintf outfile "secret_key=%S\n" admin_key;
     Printf.fprintf outfile "sx_host=%S\n" this_ip;
+    Printf.fprintf outfile "sx_port=%s\n" this_port;
     Printf.fprintf outfile "s3_host=%S\n" !s3_host;
     Printf.fprintf outfile "pid_file=%S\n" (Filename.concat rundir "libres3/libres3.pid");
     Printf.fprintf outfile "user=%S\n" webuser;

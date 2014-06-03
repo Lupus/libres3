@@ -171,6 +171,8 @@ let parse_cmdline additional_args =
       " The path to the SSL certificate's private key";
     "sx_host", set_string_opt Config.sx_host,
       " Hostname of an SX cluster node";
+    "sx_port", set_int Config.sx_port,
+      " Port of an SX cluster node";
     "replica_count", set_int Config.replica_count,
       " Default volume replica count";
     "volume_size", set_size Config.volume_size,
