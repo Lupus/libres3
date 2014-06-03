@@ -110,6 +110,12 @@ type headers = (string * string) list
 
 exception ErrorReply of t * details * headers
 
+let sig_error () =
+  "The request's signature doesn't match what we calculated. \
+   Please check that your S3 secret key matches your SX key, \
+   your S3 access key matches your SX username, \
+   and that the S3 base hostname is set to " ^ !Config.base_hostname ^ "."
+
 let info = function
   | NoError ->
       "", "", `Ok
@@ -366,8 +372,7 @@ let info = function
       "Requesting the torrent file of a bucket is not permitted.",
       `Bad_request
   | SignatureDoesNotMatch ->
-      "SignatureDoesNotMatch",
-      "The request's signature doesn't match what we calculated. Please check that your S3 secret key matches your SX key and the signing method.", `Forbidden
+      "SignatureDoesNotMatch", sig_error (), `Forbidden
   | ServiceUnavailable ->
       "ServiceUnavailable",
       "Please reduce your request rate.",
