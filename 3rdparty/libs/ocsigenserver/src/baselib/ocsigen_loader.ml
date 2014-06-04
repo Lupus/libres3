@@ -139,15 +139,18 @@ let init_module pre post force name =
 (************************************************************************)
 (* Manipulating Findlib's search path *)
 
-let () = Findlib.init ()
+let lazy_findlib_init = lazy (Findlib.init ())
 let ocsigen_search_path = ref []
 
 let update_search_path () =
+  Lazy.force lazy_findlib_init;
   match !ocsigen_search_path with
   | [] -> Findlib.init ()
   | x -> Findlib.init ~env_ocamlpath:(String.concat ":" x) ()
 
-let get_ocamlpath = Findlib.search_path
+let get_ocamlpath () =
+  Lazy.force lazy_findlib_init;
+  Findlib.search_path ()
 
 let set_ocamlpath lp =
   ocsigen_search_path := lp;
@@ -164,6 +167,7 @@ let add_ocamlpath p =
 let findfiles =
   let cmx = Netstring_pcre.regexp_case_fold "\\.cmx($| |a)" in
   fun package ->
+    Lazy.force lazy_findlib_init;
     try
       let preds = [(if Ocsigen_config.is_native then "native" else "byte"); "plugin"; "mt"] in
       let deps = Findlib.package_deep_ancestors preds [package] in
