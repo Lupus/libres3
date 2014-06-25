@@ -232,6 +232,8 @@ let () =
     in
     if !s3_host = "" then
       s3_host := fallback_read "S3 (DNS) name" load "LIBRES3_HOST";
+    let s3_port = 8008 in (* TODO: when --no-ssl is added ask for this too *)
+    let s3_ssl_port = fallback_read "S3 SSL port" load "LIBRES3_PORT" in
     if !default_replica = "" then
       default_replica := fallback_read "Default volume replica count" load "LIBRES3_REPLICA";
     let name = libres3_conf () in
@@ -244,6 +246,7 @@ let () =
     Printf.fprintf outfile "sx_host=%S\n" this_ip;
     Printf.fprintf outfile "sx_port=%s\n" this_port;
     Printf.fprintf outfile "s3_host=%S\n" !s3_host;
+    Printf.fprintf outfile "s3_ssl_port=%S\n" s3_ssl_port;
     Printf.fprintf outfile "pid_file=%S\n" (Filename.concat rundir "libres3/libres3.pid");
     Printf.fprintf outfile "user=%S\n" webuser;
     Printf.fprintf outfile "group=%S\n" webgroup;
@@ -255,8 +258,8 @@ let () =
     end;
     Printf.fprintf outfile "allow_volume_create_any_user=true\n";
     close_out outfile;
-    update_s3cfg false !s3_host 8008 admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
-    update_s3cfg true !s3_host 8443 admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.s3cfg");
+    update_s3cfg false !s3_host s3_port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
+    update_s3cfg true !s3_host (int_of_string s3_ssl_port) admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.s3cfg");
     ask_start ();
   with Sys_error msg ->
     Printf.eprintf "Error: %s\n" msg;
