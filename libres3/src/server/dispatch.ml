@@ -1426,15 +1426,11 @@ module Make
     else begin
       Gc.compact ();
       let base, _ = url_of_volpath_user ~user:"admin" "" "" in
-      U.check base >>= function
-        | None ->
-          if !Configfile.buckets_dir <> "" && !Configfile.buckets_dir <> "/" then
-            mkdir_maybe !Configfile.buckets_dir >>= fun () ->
-            mkdir_maybe (Filename.concat !Configfile.buckets_dir "tmp")
-            (*      >>= fun () ->  mkdir_maybe (!Configfile.buckets_dir ^ "-meta")*)
-          else return ()
-        | Some s ->
-          IO.fail (Failure s)
+      if !Configfile.buckets_dir <> "" && !Configfile.buckets_dir <> "/" then
+        mkdir_maybe !Configfile.buckets_dir >>= fun () ->
+        mkdir_maybe (Filename.concat !Configfile.buckets_dir "tmp")
+        (*      >>= fun () ->  mkdir_maybe (!Configfile.buckets_dir ^ "-meta")*)
+      else return ()
     end
   ;;
 

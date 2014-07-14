@@ -192,11 +192,14 @@ let handle_error f () =
       exit 5
 ;;
 
+let unlink_pid = ref false
+
 let handle_signal s msg =
   ignore (
     Sys.signal s (Sys.Signal_handle (fun _ ->
       print_endline msg;
-      begin try unlink !Configfile.pidfile with _ -> () end;
+      if !unlink_pid then
+        begin try unlink !Configfile.pidfile with _ -> () end;
       exit 3;
     ))
   );;
@@ -257,6 +260,7 @@ let reopen_logs _ =
 let run_server pidfile commandpipe =
   begin try unlink commandpipe with _ -> () end;
   Pid.write_pid pidfile;
+  unlink_pid := true;
   if not (get_debugmode ()) || !Configfile.daemonize then begin
     let dev_null = Unix.openfile "/dev/null" [Unix.O_RDWR] 0o666 in
     Unix.dup2 dev_null Unix.stdin;
