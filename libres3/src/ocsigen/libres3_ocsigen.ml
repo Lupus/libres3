@@ -195,7 +195,8 @@ let handle_error f () =
 let handle_signal s msg =
   ignore (
     Sys.signal s (Sys.Signal_handle (fun _ ->
-      prerr_endline msg;
+      print_endline msg;
+      begin try unlink !Configfile.pidfile with _ -> () end;
       exit 3;
     ))
   );;
@@ -216,11 +217,6 @@ let list_of_opt ptr = match !ptr with
 let initialize config extra_spec =
   Cmdline.parse_cmdline extra_spec;
 
-  let program = Sys.argv.(0) in
-  let bindir = if Filename.is_relative program then
-    Filename.dirname (Filename.concat Filename.current_dir_name program)
-  else
-    Filename.dirname program in
   config.logdir :=
     if !Configfile.syslog_facility = None then Some !Paths.log_dir else None;
   let dir = match !Configfile.tmpdir with
@@ -238,9 +234,6 @@ let initialize config extra_spec =
   set_respect_pipeline ();
   set_filebuffersize Config.buffer_size;
   set_netbuffersize Config.buffer_size;
-  set_pidfile !Configfile.pidfile;
-  (* remove stale PIDfile *)
-  begin try unlink !Configfile.pidfile with _ -> () end;
   List.iter (fun d -> mkdir_p ~perm:0o770 !d)
     (config.datadir :: config.uploaddir :: list_of_opt config.logdir);
   let configfile = Paths.generated_config_file in
@@ -261,7 +254,9 @@ let reopen_logs _ =
   with _ ->
     ()
 
-let run_server () =
+let run_server pidfile commandpipe =
+  begin try unlink commandpipe with _ -> () end;
+  Pid.write_pid pidfile;
   if not (get_debugmode ()) || !Configfile.daemonize then begin
     let dev_null = Unix.openfile "/dev/null" [Unix.O_RDWR] 0o666 in
     Unix.dup2 dev_null Unix.stdin;
@@ -315,14 +310,21 @@ let run () =
     at_exit (fun () ->
       if not !ok then begin
         ok := true;
-        Printf.eprintf "Killing all children\n%!";
+        Printf.printf "Killing all children\n%!";
         (* kill self&all children *)
         Unix.kill 0 15
       end
     );
     Lwt_unix.set_pool_size !Configfile.max_pool_threads;
+    let pidfile = openfile ~mode:[O_RDWR;O_CREAT] ~perm:0o750 !Configfile.pidfile in
+    begin try
+      UnixLabels.lockf pidfile ~mode:Unix.F_TLOCK ~len:0;
+    with Unix_error(EACCES|EAGAIN as e ,_,_) ->
+      failwith (Printf.sprintf "Another instance is running already, cannot lock pidfile '%s': %s"
+        !Configfile.pidfile (error_message e)
+      )
+    end;
     Gc.compact ();
-    begin try unlink !(config.commandpipe) with _ -> () end;
     if !Configfile.daemonize then begin
       Unix.chdir "/";
       ignore (Unix.setsid ());
@@ -331,11 +333,12 @@ let run () =
         Lwt_sequence.iter_node_l Lwt_sequence.remove Lwt_main.exit_hooks;
       end else begin
         ignore (Unix.setsid ());
-        run_server ()
+        run_server pidfile !(config.commandpipe)
       end
     end else begin
-      run_server ()
+      run_server pidfile !(config.commandpipe)
     end;
+    close pidfile;
     Printf.printf "Waiting for server to start (5s) ... %!";
     if wait_pipe !(config.commandpipe) 5. then begin
       Printf.printf "OK\n%!";

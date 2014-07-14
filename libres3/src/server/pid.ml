@@ -27,15 +27,16 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
-let write_pid name =
+let write_pid pidfile =
   let pid = Unix.getpid () in
   try
-    let pidfile = open_out name in
-    Printf.fprintf pidfile "%d\n" pid;
-    close_out pidfile
+    UnixLabels.LargeFile.ftruncate pidfile ~len:0L;
+    let str = Printf.sprintf "%d\n" pid in
+    let _ = UnixLabels.write pidfile str 0 (String.length str) in
+    UnixLabels.lockf pidfile ~mode:Unix.F_TRLOCK ~len:0
   with Sys_error e ->
-      Printf.eprintf "Failed to create PIDfile %s: %s\n%!" name e;
-      raise Exit;;
+    Printf.eprintf "Failed to write to PID: %s\n%!" e;
+    raise Exit;;
 
 let kill_pid name =
   begin try

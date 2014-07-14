@@ -27,5 +27,5 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
-val write_pid: string -> unit
+val write_pid: UnixLabels.file_descr -> unit
 val kill_pid: string -> unit
