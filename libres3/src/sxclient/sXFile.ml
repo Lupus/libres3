@@ -259,8 +259,8 @@ module Make(M:Sigs.Monad)(OS:EventIO.OSMonad with type 'a t = 'a M.t) = struct
     end;
     maybe_mkdirs
       (fun dst ->
-        return (Filename.temp_file
-          ~temp_dir:(Filename.dirname dst) (Filename.basename dst) ".tmp")
+        return (Filename.temp_file ~temp_dir:(Filename.dirname dst)
+         (Filename.basename dst) ".tmp")
       )
       dst >>= fun tmpname ->
     with_tmpfile tmpname dst (fun fd ->

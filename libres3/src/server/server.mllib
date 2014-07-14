@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 15e02a7e750db21198b05dc663593b3c)
+# DO NOT EDIT (digest: 97eb04542d4b87605c2e022102dd2630)
 Paths
 Cmdline
 Dispatch
@@ -12,4 +12,5 @@ CodedIO
 CanonRequest
 Cryptoutil
 Util
+Configfile
 # OASIS_STOP

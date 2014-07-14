@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 8411523f00899578b10df054832151fb)
+# DO NOT EDIT (digest: e5fd3de56a5cab2baff179058d0369f1)
 server/Paths
 server/Cmdline
 server/Dispatch
@@ -12,4 +12,5 @@ server/CodedIO
 server/CanonRequest
 server/Cryptoutil
 server/Util
+server/Configfile
 # OASIS_STOP

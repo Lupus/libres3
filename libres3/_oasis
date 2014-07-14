@@ -92,9 +92,9 @@ Document "api-client"
 
 Library server
   Path: src/server
-  Modules: Paths, Cmdline, Dispatch, Bucket, ServiceOps, BucketOps, ObjectOps, Error, CodedIO, CanonRequest, Cryptoutil, Util
+  Modules: Paths, Cmdline, Dispatch, Bucket, ServiceOps, BucketOps, ObjectOps, Error, CodedIO, CanonRequest, Cryptoutil, Util, Configfile
   CompiledObject: Best
-  BuildDepends: xmlm, netstring, netsys, str, cryptokit, sxclient, threads, ocsigenserver
+  BuildDepends: xmlm, netstring, netsys, str, cryptokit, sxclient, threads, ocsigenserver, ipaddr
   Install: false
 
 Document "api-server"

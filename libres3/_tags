@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 768434fc51ad29aa28505d843f6bf822)
+# DO NOT EDIT (digest: 9ca7b3debdd46a737c8ec11a4a89d8bb)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -67,6 +67,7 @@
 "src/server/server.cmxs": use_server
 <src/server/*.ml{,i}>: package(cryptokit)
 <src/server/*.ml{,i}>: package(equeue-ssl)
+<src/server/*.ml{,i}>: package(ipaddr)
 <src/server/*.ml{,i}>: package(jsonm)
 <src/server/*.ml{,i}>: package(netclient)
 <src/server/*.ml{,i}>: package(netstring)
@@ -80,6 +81,7 @@
 # Executable libres3_fcgi
 <src/fcgi/libres3_fcgi.{native,byte}>: package(cryptokit)
 <src/fcgi/libres3_fcgi.{native,byte}>: package(equeue-ssl)
+<src/fcgi/libres3_fcgi.{native,byte}>: package(ipaddr)
 <src/fcgi/libres3_fcgi.{native,byte}>: package(jsonm)
 <src/fcgi/libres3_fcgi.{native,byte}>: package(netcgi2)
 <src/fcgi/libres3_fcgi.{native,byte}>: package(netclient)
@@ -95,6 +97,7 @@
 <src/fcgi/libres3_fcgi.{native,byte}>: use_sxclient.thread
 <src/*.ml{,i}>: package(cryptokit)
 <src/*.ml{,i}>: package(equeue-ssl)
+<src/*.ml{,i}>: package(ipaddr)
 <src/*.ml{,i}>: package(jsonm)
 <src/*.ml{,i}>: package(netcgi2)
 <src/*.ml{,i}>: package(netclient)
@@ -110,6 +113,7 @@
 <src/*.ml{,i}>: use_sxclient.thread
 <src/fcgi/*.ml{,i}>: package(cryptokit)
 <src/fcgi/*.ml{,i}>: package(equeue-ssl)
+<src/fcgi/*.ml{,i}>: package(ipaddr)
 <src/fcgi/*.ml{,i}>: package(jsonm)
 <src/fcgi/*.ml{,i}>: package(netcgi2)
 <src/fcgi/*.ml{,i}>: package(netclient)
@@ -128,6 +132,7 @@
 # Executable libres3_ocsigen
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(cryptokit)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(equeue-ssl)
+<src/ocsigen/libres3_ocsigen.{native,byte}>: package(ipaddr)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(jsonm)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(lwt.unix)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(netcgi2)
@@ -145,6 +150,7 @@
 <src/ocsigen/libres3_ocsigen.{native,byte}>: use_sxclient.lwt
 <src/ocsigen/*.ml{,i}>: package(cryptokit)
 <src/ocsigen/*.ml{,i}>: package(equeue-ssl)
+<src/ocsigen/*.ml{,i}>: package(ipaddr)
 <src/ocsigen/*.ml{,i}>: package(jsonm)
 <src/ocsigen/*.ml{,i}>: package(lwt.unix)
 <src/ocsigen/*.ml{,i}>: package(netcgi2)
@@ -166,6 +172,7 @@
 # Executable server_test
 <test/test_server.{native,byte}>: package(cryptokit)
 <test/test_server.{native,byte}>: package(equeue-ssl)
+<test/test_server.{native,byte}>: package(ipaddr)
 <test/test_server.{native,byte}>: package(jsonm)
 <test/test_server.{native,byte}>: package(netcgi2)
 <test/test_server.{native,byte}>: package(netclient)
@@ -184,6 +191,7 @@
 # Executable directio_test
 <test/test_directio.{native,byte}>: package(cryptokit)
 <test/test_directio.{native,byte}>: package(equeue-ssl)
+<test/test_directio.{native,byte}>: package(ipaddr)
 <test/test_directio.{native,byte}>: package(jsonm)
 <test/test_directio.{native,byte}>: package(netclient)
 <test/test_directio.{native,byte}>: package(netstring)
@@ -201,6 +209,7 @@
 # Executable lwtio_test
 <test/test_lwtio.{native,byte}>: package(cryptokit)
 <test/test_lwtio.{native,byte}>: package(equeue-ssl)
+<test/test_lwtio.{native,byte}>: package(ipaddr)
 <test/test_lwtio.{native,byte}>: package(jsonm)
 <test/test_lwtio.{native,byte}>: package(lwt.unix)
 <test/test_lwtio.{native,byte}>: package(netclient)
@@ -220,6 +229,7 @@
 # Executable misc_test
 <test/test_misc.{native,byte}>: package(cryptokit)
 <test/test_misc.{native,byte}>: package(equeue-ssl)
+<test/test_misc.{native,byte}>: package(ipaddr)
 <test/test_misc.{native,byte}>: package(jsonm)
 <test/test_misc.{native,byte}>: package(netclient)
 <test/test_misc.{native,byte}>: package(netstring)
@@ -235,6 +245,7 @@
 # Executable net_test
 <test/netTest.{native,byte}>: package(cryptokit)
 <test/netTest.{native,byte}>: package(equeue-ssl)
+<test/netTest.{native,byte}>: package(ipaddr)
 <test/netTest.{native,byte}>: package(jsonm)
 <test/netTest.{native,byte}>: package(netclient)
 <test/netTest.{native,byte}>: package(netstring)
@@ -249,6 +260,7 @@
 <test/netTest.{native,byte}>: use_sxclient
 <test/*.ml{,i}>: package(cryptokit)
 <test/*.ml{,i}>: package(equeue-ssl)
+<test/*.ml{,i}>: package(ipaddr)
 <test/*.ml{,i}>: package(jsonm)
 <test/*.ml{,i}>: package(netclient)
 <test/*.ml{,i}>: package(netstring)

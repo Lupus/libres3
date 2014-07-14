@@ -61,7 +61,7 @@ module Xml = struct
   let conv_id (x:t) = x
 
   let to_string tree =
-    let buf = Buffer.create Config.small_buffer_size in
+    let buf = Buffer.create Configfile.small_buffer_size in
     let out = Xmlm.make_output (`Buffer buf) in
     Xmlm.output_doc_tree conv_id out (None, tree);
     Buffer.contents buf

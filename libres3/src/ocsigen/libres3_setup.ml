@@ -247,9 +247,8 @@ let () =
     Printf.fprintf outfile "sx_port=%s\n" this_port;
     Printf.fprintf outfile "s3_host=%S\n" !s3_host;
     Printf.fprintf outfile "s3_ssl_port=%S\n" s3_ssl_port;
-    Printf.fprintf outfile "pid_file=%S\n" (Filename.concat rundir "libres3/libres3.pid");
-    Printf.fprintf outfile "user=%S\n" webuser;
-    Printf.fprintf outfile "group=%S\n" webgroup;
+    Printf.fprintf outfile "pidfile=%S\n" (Filename.concat rundir "libres3/libres3.pid");
+    Printf.fprintf outfile "run-as=%S\n" (webuser ^ ":" ^ webgroup);
     Printf.fprintf outfile "replica_count=%s\n" !default_replica;
     Printf.fprintf outfile "volume_size=%s\n" volume_size;
     if Sys.file_exists ssl_cert && Sys.file_exists ssl_key then begin

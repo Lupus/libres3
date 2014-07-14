@@ -149,7 +149,7 @@ let header_overrides = ["x-amz-date","Date"]
 let canonicalize_request ~id req_method
   {req_headers=req_headers; undecoded_url=undecoded_url} =
   let headers = Headers.build header_overrides req_headers in
-  let host = Headers.field_single_value headers "host" !Config.base_hostname in
+  let host = Headers.field_single_value headers "host" !Configfile.base_hostname in
   let hurl = Neturl.parse_url ~base_syntax (
     "http://" ^ host) in
   (* client may not encode some characters that OCamlnet would reject as unsafe,
@@ -189,7 +189,7 @@ let canonicalize_request ~id req_method
   };;
 
 let string_to_sign canon_req =
-  let b = Buffer.create Config.small_buffer_size in
+  let b = Buffer.create Configfile.small_buffer_size in
   let add s =
     Buffer.add_string b s;
     Buffer.add_char b '\n' in
@@ -255,9 +255,9 @@ let validate_authorization req string_to_sign expected_signature =
   | AuthExpired ->
       Error.ExpiredToken, []
   | Authorization (key, signature) ->
-      if key <> !Config.key_id then
+      if key <> !Configfile.key_id then
         Error.InvalidAccessKeyId, [
-          "Hint","For libres3 the key id must always be:" ^ !Config.key_id]
+          "Hint","For libres3 the key id must always be:" ^ !Configfile.key_id]
       else if signature <> expected_signature then
         Error.SignatureDoesNotMatch, [
           ("StringToSign", string_to_sign);

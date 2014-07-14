@@ -32,10 +32,10 @@ type 'a configuration = 'a Map.Make(String).t
 val process_configuration :
   string ->
     parse:(in_channel -> 'a configuration -> 'a configuration) ->
-    print:(out_channel -> 'a configuration -> unit) ->
     'a configuration
 
-val log_dir : string
+val log_dir : string ref
 val generated_config_file : string
 val config_file : string
 val var_lib_dir : string
+val with_file : in_channel -> (in_channel -> 'a) -> close:(in_channel->unit) -> 'a

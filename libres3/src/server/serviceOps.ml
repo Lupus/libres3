@@ -32,10 +32,10 @@ open Unix.LargeFile
 
 let list_all_buckets all =
   (* TODO: exceptions somehow escape our try/with *)
-  Xml.tag ~attrs:[Xml.attr "xmlns" Config.reply_ns] "ListAllMyBucketsResult" [
+  Xml.tag ~attrs:[Xml.attr "xmlns" Configfile.reply_ns] "ListAllMyBucketsResult" [
     Xml.tag "Owner" [
-      Xml.tag "ID" [Xml.d Config.owner_id];
-          Xml.tag "DisplayName" [Xml.d Config.owner_name]
+      Xml.tag "ID" [Xml.d Configfile.owner_id];
+          Xml.tag "DisplayName" [Xml.d Configfile.owner_name]
     ];
     Xml.tag "Buckets" (
       List.rev_map (fun name ->

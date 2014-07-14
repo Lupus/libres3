@@ -33,38 +33,12 @@
 (**************************************************************************)
 
 (* cmdline configurable *)
-let buckets_dir = ref "/"
-let cache_dir = ref ""
-let syslog_facility = ref "local7"
-let user : string option ref = ref None
-let group : string option ref = ref None
-let pidfile = ref ""
-let ssl_certificate_file : string option ref = ref None
-let ssl_privatekey_file : string option ref = ref None
-let base_hostname : string ref = ref ""
-let base_port = ref 8008
-let base_ssl_port = ref 8443
 let secret_access_key = ref ""
-let sx_host : string option ref = ref None
 let sx_port : int ref = ref 443
 let sx_ssl : bool ref = ref true
 let replica_count = ref 0
 let volume_size = ref 0.
-let max_connected = ref 0 (* each server sets this *)
-let daemonize = ref true
-
-(* must match the value in _oasis *)
-let config_file = "libres3/libres3.conf";;
 
 let buffer_size = 131072
-let small_buffer_size = 4096
 
-let min_multipart = 5242880L
-let reply_ns = "http://s3.amazonaws.com/doc/2006-03-01/"
-let key_id = ref "admin"
-let max_keys = 1000
-let owner_id = "da39a3ee5e6b4b0d3255bfef95601890afd80709"
-let owner_name = "libres3"
-
-let verbose = ref false
 let volume_create_elevate_to_admin = ref true

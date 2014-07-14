@@ -112,11 +112,11 @@ let parse_s3cfg s3cfg =
           | "host_base" ->
               begin try
                 Scanf.sscanf value "%s@:%d" (fun host port ->
-                  Config.base_hostname := host;
-                  Config.base_port := port)
+                  Configfile.base_hostname := host;
+                  Configfile.base_port := port)
               with Scanf.Scan_failure _ | End_of_file ->
-                Config.base_hostname := value;
-                Config.base_port := 80
+                Configfile.base_hostname := value;
+                Configfile.base_port := 80
               end
           | "secret_key" ->
             S3Test.secret_access_key := value
@@ -127,7 +127,7 @@ let parse_s3cfg s3cfg =
     with End_of_file -> ();
     end;
     Printf.printf "Host: %s:%d\nAccess key id: %s\n"
-      !Config.base_hostname !Config.base_port !S3Test.key_id;
+      !Configfile.base_hostname !Configfile.base_port !S3Test.key_id;
     close_in f
   with
   | Sys_error e ->

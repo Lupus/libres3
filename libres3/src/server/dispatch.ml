@@ -31,6 +31,7 @@ open CodedIO
 open Unix
 open Unix.LargeFile
 open Config
+open Configfile
 module StringMap = Map.Make(String)
 
 let server_name = "libres3"
@@ -293,7 +294,7 @@ module Make
   let max_input_xml = 65536
 
   let read_all ~input ~max =
-    let buf = Buffer.create Config.small_buffer_size in
+    let buf = Buffer.create Configfile.small_buffer_size in
     U.copy (`Source input) ~srcpos:0L (U.of_sink (fun _ ->
       return (fun (str,pos,len) ->
         if (Buffer.length buf) + len > max then
@@ -370,7 +371,7 @@ module Make
     (* TODO return error by raise *)
     if err <> Error.NoError then
       invalid_arg "bucket name";
-    Filename.concat !Config.buckets_dir (
+    Filename.concat !Configfile.buckets_dir (
       Filename.concat bucket (Util.sanitize_path path)
     );;
   
@@ -378,7 +379,7 @@ module Make
    * but do the string list to URL conversion internally! *)
   let url_of_volpath_user ~user bucket path =
     let to_url bucket path =
-      match !sx_host with
+      match !Configfile.sx_host with
       | Some host ->
           if bucket <> "" then begin
             let err, details = validate_bucketname bucket (Some "us-standard") in
@@ -400,7 +401,7 @@ module Make
           url
       | None ->
           let p =
-            if bucket = "" then Filename.concat !Config.buckets_dir ""
+            if bucket = "" then Filename.concat !Configfile.buckets_dir ""
             else get_path bucket path in
           Neturl.file_url_of_local_path p in
     U.of_neturl (to_url bucket ""),
@@ -488,8 +489,8 @@ module Make
         Xml.tag "StorageClass" [Xml.d "STANDARD"];
         Xml.tag "Owner" [
           (* TODO: use real uid once SX supports it *)
-          Xml.tag "ID" [Xml.d Config.owner_id];
-          Xml.tag "DisplayName" [ Xml.d Config.owner_name]
+          Xml.tag "ID" [Xml.d Configfile.owner_id];
+          Xml.tag "DisplayName" [ Xml.d Configfile.owner_name]
         ]
       ]) :: accum
     ) l [] in
@@ -508,7 +509,7 @@ module Make
 
   let metadata_cache_set2 category f create_fn =
     let h = Digest.to_hex (Digest.string (category ^ "_" ^ f)) in
-    let file = Filename.concat (!Config.buckets_dir ^ "-meta") h in
+    let file = Filename.concat (!Configfile.buckets_dir ^ "-meta") h in
     create_fn f >>= fun res ->
     (* TODO: log failures *)
     IO.with_file_write file 0o600 (fun out ->
@@ -517,7 +518,7 @@ module Make
 
   let metadata_cache_get category f create_fn =
     let h = Digest.to_hex (Digest.string (category ^ "_" ^ f)) in
-    let file = Filename.concat (!Config.buckets_dir ^ "-meta") h in
+    let file = Filename.concat (!Configfile.buckets_dir ^ "-meta") h in
     IO.try_catch IO.string_of_file (fun _ ->
       metadata_cache_set file f create_fn
     ) file;;
@@ -543,7 +544,7 @@ module Make
 
   (* returns tmpfile, digest *)
   let copy_stream ~canon source =
-    let tmp = Filename.concat !Config.buckets_dir "tmp" in
+    let tmp = Filename.concat !Configfile.buckets_dir "tmp" in
     let tmpfile = Filename.concat tmp (RequestId.to_string
     canon.CanonRequest.id) in
     let url = Neturl.file_url_of_local_path tmpfile in
@@ -737,8 +738,8 @@ module Make
     return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
       Xml.tag "AccessControlPolicy" [
         Xml.tag "Owner" [
-          Xml.tag "ID" [Xml.d Config.owner_id];
-          Xml.tag "DisplayName" [Xml.d Config.owner_name]
+          Xml.tag "ID" [Xml.d Configfile.owner_id];
+          Xml.tag "DisplayName" [Xml.d Configfile.owner_name]
         ];
         Xml.tag "AccessControlList" [
           Xml.tag "Grant" [
@@ -746,8 +747,8 @@ module Make
               Xml.attr "xmlns:xsi" "http://www.w3.org/2001/XMLSchema-instance";
               Xml.attr "xsi:type" "CanonicalUser"
             ] "Grantee" [
-              Xml.tag "ID" [Xml.d Config.owner_id];
-              Xml.tag "DisplayName" [Xml.d Config.owner_name];
+              Xml.tag "ID" [Xml.d Configfile.owner_id];
+              Xml.tag "DisplayName" [Xml.d Configfile.owner_name];
             ];
           ]
         ]
@@ -890,7 +891,7 @@ module Make
             Xml.tag "Name" [Xml.d bucket];
             Xml.tag "Prefix" [Xml.d prefix];(* TODO: impl these *)
             Xml.tag "Marker" [];
-            Xml.tag "MaxKeys" [Xml.d (string_of_int Config.max_keys)];
+            Xml.tag "MaxKeys" [Xml.d (string_of_int Configfile.max_keys)];
             Xml.tag "IsTruncated" [Xml.d "false"];
           ] xml)
     );;
@@ -1004,8 +1005,8 @@ module Make
     (* TODO: use same scheme as the requests, i.e https on https *)
     Neturl.string_of_url (
       Neturl.make_url ~scheme:"http"
-      ~host:(!Config.base_hostname)
-      ~port:(!Config.base_port)
+      ~host:(!Configfile.base_hostname)
+      ~port:(!Configfile.base_port)
       ~path:("" :: bucket :: (List.tl (Neturl.split_path path)))
       CanonRequest.base_syntax
     );;
@@ -1242,7 +1243,7 @@ module Make
     | CanonRequest.AuthExpired ->
       return_error Error.ExpiredToken []
     | CanonRequest.Authorization (user, signature) ->
-      match !sx_host with
+      match !Configfile.sx_host with
       | Some host ->
         let url = Neturl.make_url ~encoded:false ~scheme:"sx" ~host ~path:[""]
           ~user SXC.syntax in
@@ -1393,7 +1394,7 @@ module Make
   let print_info _ =
     Gc.full_major ();
     let s = Gc.stat () in
-    let log = Filename.concat Paths.log_dir "warnings.log" in
+    let log = Filename.concat !Paths.log_dir "warnings.log" in
     let f = open_out_gen [Open_append] 0o600 log in
     let pid = Unix.getpid () in
     Printf.fprintf f
@@ -1420,17 +1421,17 @@ module Make
   let init () =
     Printexc.record_backtrace true;
     Sys.set_signal Sys.sigusr2 (Sys.Signal_handle print_info);
-    if !Config.secret_access_key = "" && !Config.sx_host <> None then
+    if !Config.secret_access_key = "" && !Configfile.sx_host <> None then
       fail (Failure "SX secret access key must be set!")
     else begin
       Gc.compact ();
       let base, _ = url_of_volpath_user ~user:"admin" "" "" in
       U.check base >>= function
         | None ->
-          if !Config.buckets_dir <> "" && !Config.buckets_dir <> "/" then
-            mkdir_maybe !Config.buckets_dir >>= fun () ->
-            mkdir_maybe (Filename.concat !Config.buckets_dir "tmp")
-            (*      >>= fun () ->  mkdir_maybe (!Config.buckets_dir ^ "-meta")*)
+          if !Configfile.buckets_dir <> "" && !Configfile.buckets_dir <> "/" then
+            mkdir_maybe !Configfile.buckets_dir >>= fun () ->
+            mkdir_maybe (Filename.concat !Configfile.buckets_dir "tmp")
+            (*      >>= fun () ->  mkdir_maybe (!Configfile.buckets_dir ^ "-meta")*)
           else return ()
         | Some s ->
           IO.fail (Failure s)

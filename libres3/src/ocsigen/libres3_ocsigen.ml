@@ -34,11 +34,10 @@ open UnixLabels
 
 let name = "libres3"
 type config = {
-  logdir: string ref;
+  logdir: string option ref;
   datadir: string ref;
   uploaddir: string ref;
   commandpipe: string ref;
-  maxrequestbodysize_mb: int ref;
   timeout: int ref;
   keepalivetimeout: int ref;
 }
@@ -58,15 +57,31 @@ let str_entry_opt ?ns name ?attrs value =
 let int_entry ?ns name ?attrs value =
   Xml.tag ?ns name ?attrs [Xml.d (string_of_int !value)];;
 
+let int_entry_opt ?ns name ?attrs value =
+  match !value with
+  | Some v ->
+    Xml.tag ?ns name ?attrs [Xml.d (string_of_int v)]
+  | None ->
+      Xml.d ""
+
 let set_default stref default =
   if !stref = "" then
     stref := default;;
 
+let build_port port =
+  ref (match !Configfile.base_listen_ip with
+  | None -> string_of_int !port
+  | Some (Ipaddr.V4 v4) ->
+      Printf.sprintf "%s:%d" (Ipaddr.V4.to_string v4) !port
+  | Some (Ipaddr.V6 v6) ->
+      Printf.sprintf "[%s]:%d" (Ipaddr.V6.to_string v6) !port)
+
 let build_ssl_config () =
-  match !Config.ssl_certificate_file, !Config.ssl_privatekey_file with
+  match !Configfile.ssl_certificate_file, !Configfile.ssl_privatekey_file with
   | Some cert, Some key ->
     [
-      int_entry "port" ~attrs:[Xml.attr "protocol" "HTTPS"] Config.base_ssl_port;
+      str_entry "port" ~attrs:[Xml.attr "protocol" "HTTPS"]
+        (build_port Configfile.base_ssl_port);
       Xml.tag "ssl" [
         str_entry "certificate" (ref cert);
         str_entry "privatekey" (ref key)
@@ -77,24 +92,32 @@ let build_ssl_config () =
 let build_config conf =
   Xml.tag "ocsigen" [
     Xml.tag "server" (List.rev_append (build_ssl_config ()) [
-      int_entry "port" Config.base_port;
-(*      str_entry "syslog" Config.syslog_facility;*)
-      str_entry "logdir" conf.logdir;
+      str_entry "port" (build_port Configfile.base_port);
+      str_entry_opt "syslog" Configfile.syslog_facility;
+      str_entry_opt "logdir" conf.logdir;
       str_entry "datadir" conf.datadir;
       str_entry "uploaddir" conf.uploaddir;
-      str_entry_opt "user" Config.user;
-      str_entry_opt "group" Config.group;
+      str_entry_opt "user" Configfile.user;
+      str_entry_opt "group" Configfile.group;
       str_entry "commandpipe" conf.commandpipe;
       str_entry "charset" (ref "utf-8");
       Xml.tag "maxrequestbodysize" [
-        Xml.d (Printf.sprintf "%dMiB" !(conf.maxrequestbodysize_mb))
+        Xml.d (Printf.sprintf "%dMiB" !Configfile.maxrequestbodysize)
       ];
-      str_entry "mimefile" (ref (Filename.concat Configure.sysconfdir "libres3/mime.types"));
-      int_entry "maxconnected" Config.max_connected;
-      int_entry "clienttimeout" conf.timeout;
-      int_entry "servertimeout" conf.keepalivetimeout;
+      str_entry "mimefile" Configfile.mimefile;
+      int_entry "maxconnected" Configfile.max_connected;
+      int_entry "servertimeout" Configfile.timeout;
+      int_entry "clienttimeout" Configfile.keepalivetimeout;
+      int_entry "shutdowntimeout" Configfile.shutdowntimeout;
+      int_entry "netbuffersize" Configfile.netbuffersize;
+      int_entry "filebuffersize" Configfile.filebuffersize;
+      int_entry_opt "minthreads" Configfile.min_threads;
+      int_entry_opt "maxthreads" Configfile.max_threads;
+      int_entry_opt "maxdetachedcomputationsqueued" Configfile.maxdetachedcomputationsqueued;
+      int_entry "maxretries" Configfile.maxretries;
       Xml.tag "extension" ~attrs:[Xml.attr "name" "libres3"] [];
-      Xml.tag "host" ~attrs:[Xml.attr "defaulthostname" !(Config.base_hostname)] [
+      Xml.tag "usedefaulthostname" [];
+      Xml.tag "host" ~attrs:[Xml.attr "defaulthostname" !(Configfile.base_hostname)] [
         Xml.tag "libres3" [];
       ];
     ])
@@ -105,11 +128,11 @@ let write_config filech xml =
   Xmlm.output_doc_tree (fun (x:Xml.t) -> x) output (None,xml);;
 
 let try_chown dirname =
-  match !Config.user with
+  match !Configfile.user with
   | Some u ->
     begin try
       let pw = getpwnam u in
-      chown dirname pw.pw_uid pw.pw_gid
+      chown dirname ~uid:pw.pw_uid ~gid:pw.pw_gid
     with
     | Not_found | Unix_error(EPERM,_,_) -> ()
     end
@@ -186,6 +209,10 @@ let rec wait_pipe file delay =
     Netsys.sleep 0.1;
     wait_pipe file (delay -. 1.);;
 
+let list_of_opt ptr = match !ptr with
+  | Some v -> [ref v]
+  | None -> []
+
 let initialize config extra_spec =
   Cmdline.parse_cmdline extra_spec;
 
@@ -194,8 +221,15 @@ let initialize config extra_spec =
     Filename.dirname (Filename.concat Filename.current_dir_name program)
   else
     Filename.dirname program in
-  set_default config.logdir Paths.log_dir;
-  let dir = Paths.var_lib_dir in
+  config.logdir :=
+    if !Configfile.syslog_facility = None then Some !Paths.log_dir else None;
+  let dir = match !Configfile.tmpdir with
+  | Some tmpdir ->
+    let d = Filename.concat tmpdir "libres3" in
+    mkdir_p ~perm:0o750 d;
+    Netsys_tmp.set_tmp_directory d;
+    d
+  | None -> Paths.var_lib_dir in
   set_default config.datadir (Filename.concat dir "datadir");
   set_default config.uploaddir (Filename.concat dir "uploaddir");
   set_default config.commandpipe (Filename.concat dir "command.pipe");
@@ -204,12 +238,11 @@ let initialize config extra_spec =
   set_respect_pipeline ();
   set_filebuffersize Config.buffer_size;
   set_netbuffersize Config.buffer_size;
-  set_pidfile !Config.pidfile;
+  set_pidfile !Configfile.pidfile;
   (* remove stale PIDfile *)
-  begin try unlink !Config.pidfile with _ -> () end;
-  List.iter (fun d -> mkdir_p ~perm:0o770 !d) [
-    config.logdir; config.datadir; config.uploaddir
-  ];
+  begin try unlink !Configfile.pidfile with _ -> () end;
+  List.iter (fun d -> mkdir_p ~perm:0o770 !d)
+    (config.datadir :: config.uploaddir :: list_of_opt config.logdir);
   let configfile = Paths.generated_config_file in
   let ch = open_out configfile in
   write_config ch (build_config config);
@@ -229,7 +262,7 @@ let reopen_logs _ =
     ()
 
 let run_server () =
-  if not (get_debugmode ()) || !Config.daemonize then begin
+  if not (get_debugmode ()) || !Configfile.daemonize then begin
     let dev_null = Unix.openfile "/dev/null" [Unix.O_RDWR] 0o666 in
     Unix.dup2 dev_null Unix.stdin;
     Unix.dup2 dev_null Unix.stdout;
@@ -240,7 +273,7 @@ let run_server () =
   exit 0
 
 let run () =
-  Config.max_connected := 350;
+  Configfile.max_connected := 350;
   handle_signal Sys.sigint "Exiting due to user interrupt";
   handle_signal Sys.sigterm "Exiting due to TERM signal";
   ignore (Sys.signal Sys.sighup Sys.Signal_ignore);
@@ -249,24 +282,18 @@ let run () =
   (* FIXME: these two should be separate executables *)
   let run_sxreport = ref false in
   let config = {
-    logdir = ref "";
+    logdir = ref (Some "");
     datadir = ref "";
     uploaddir = ref "";
     commandpipe = ref "";
-    maxrequestbodysize_mb = ref 5120;
     timeout = ref 30;
     keepalivetimeout = ref 30;
   } in
   let extra_spec = [
-    "--uploaddir", Arg.Set_string config.uploaddir, " Upload temporary directory";
-   (* Hidden options *)
-    "--minthreads", Arg.Int set_minthreads, "";
-    "--maxthreads", Arg.Int set_maxthreads, "";
-    "--verbose", Arg.Unit set_verbose, "";
-    "--veryverbose", Arg.Unit set_veryverbose, "";
-    "--debug", Arg.Unit (fun () -> set_debugmode true), "";
-    "--sxreport", Arg.Set run_sxreport, "";
-    "--no-ssl", Arg.Clear Config.sx_ssl, "Disable SSL connection to SX nodes"
+    "--debug", Arg.Unit (fun () ->
+      set_veryverbose ();
+      set_debugmode true), "";
+    "--no-ssl", Arg.Clear Config.sx_ssl, ""
   ] in
 
   let result =
@@ -280,7 +307,7 @@ let run () =
   | Sxreport.OK () ->
     flush_all ();
     Sys.set_signal Sys.sigchld (Sys.Signal_handle (fun _ ->
-        Printf.eprintf "Failed to start server (check logfile: %s/errors.log)\n%!" (Paths.log_dir);
+        Printf.eprintf "Failed to start server (check logfile: %s/errors.log)\n%!" (!Paths.log_dir);
         exit 1
     ));
     ignore (Lwt_unix.on_signal Sys.sigusr1 reopen_logs);
@@ -293,10 +320,10 @@ let run () =
         Unix.kill 0 15
       end
     );
-    Lwt_unix.set_pool_size 64;
+    Lwt_unix.set_pool_size !Configfile.max_pool_threads;
     Gc.compact ();
     begin try unlink !(config.commandpipe) with _ -> () end;
-    if !Config.daemonize then begin
+    if !Configfile.daemonize then begin
       Unix.chdir "/";
       ignore (Unix.setsid ());
       if Lwt_unix.fork () > 0 then begin

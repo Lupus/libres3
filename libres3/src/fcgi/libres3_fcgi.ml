@@ -188,7 +188,7 @@ let daemon () =
 
   match Unix.fork () with
   | 0 ->
-      Pid.write_pid !Config.pidfile;
+      Pid.write_pid !Configfile.pidfile;
       let _ = Unix.setsid () in
       Unix.dup2 (Unix.openfile "/dev/null" [ Unix.O_RDONLY ] 0) Unix.stdin;
       Unix.dup2 (Unix.openfile "/dev/null" [ Unix.O_WRONLY ] 0) Unix.stdout;
@@ -204,7 +204,7 @@ let variables dir sock = function
   | "host" -> !Config.base_hostname
   | "port" -> string_of_int !Config.base_port
   | "ssl_listen_directives" ->
-      begin match !Config.ssl_certificate_file, !Config.ssl_privatekey_file with
+      begin match !Configfile.ssl_certificate_file, !Configfile.ssl_privatekey_file with
       | Some cert, Some keyfile ->
         Printf.sprintf "listen %s:%d default_server ssl;\n\
           ssl_certificate %s;\n\
@@ -360,7 +360,7 @@ let run () =
   Sys.set_signal Sys.sighup Sys.Signal_ignore;
   Sys.set_signal Sys.sigusr1 (Sys.Signal_handle (fun _ -> raise Exit));
   ignore (Unix.umask 0o027); (* make sure sockets are not writable by other *)
-  Config.max_connected := 2;
+  Configfile.max_connected := 2;
   let fcgi_sock = ref "" in
   Cmdline.parse_cmdline [];
 
@@ -389,7 +389,7 @@ let run () =
 
   write_nginx dir !fcgi_sock;
   flush_all ();
-  if !Config.daemonize then
+  if !Configfile.daemonize then
     daemon () (* must do it before spawning threads *)
   else
     Printf.printf "Running in the foreground\n";
@@ -406,7 +406,7 @@ let run () =
 
   Default.register ();
   Unix.dup2 sock Unix.stdin;
-  let threads = Array.init !Config.max_connected (fun _ ->
+  let threads = Array.init !Configfile.max_connected (fun _ ->
     Thread.create run_handler (dispatcher, config)) in
   Array.iter Thread.join threads
 ;;

@@ -130,23 +130,22 @@ let run out config result =
   dump_command out "free 2>/dev/null";
 
   print_section out "Runtime configuration";
-  fprintf out "Buckets dir: %s\n" !Config.buckets_dir;
-  fprintf out "Cache dir: %s\n" !Config.cache_dir;
-  fprintf out "Syslog_facility: %s\n" !Config.syslog_facility;
+  fprintf out "Buckets dir: %s\n" !Configfile.buckets_dir;
+  fprintf out "Syslog_facility: %a\n" print_str_opt !Configfile.syslog_facility;
   fprintf out "Run as: %a:%a\n"
-    print_str_opt !Config.user print_str_opt !Config.group;
-  fprintf out "Pid file: %s\n" !Config.pidfile;
-  fprintf out "SSL certificate file: %a\n" print_str_opt !Config.ssl_certificate_file;
-  fprintf out "SSL private key file: %a\n" print_str_opt !Config.ssl_privatekey_file;
+    print_str_opt !Configfile.user print_str_opt !Configfile.group;
+  fprintf out "Pid file: %s\n" !Configfile.pidfile;
+  fprintf out "SSL certificate file: %a\n" print_str_opt !Configfile.ssl_certificate_file;
+  fprintf out "SSL private key file: %a\n" print_str_opt !Configfile.ssl_privatekey_file;
   fprintf out "Base host: %s, port: %d, SSL port: %d\n"
-    !Config.base_hostname !Config.base_port !Config.base_ssl_port;
-  fprintf out "Access key id: %s\n" !Config.key_id;
+    !Configfile.base_hostname !Configfile.base_port !Configfile.base_ssl_port;
+  fprintf out "Access key id: %s\n" !Configfile.key_id;
   fprintf out "Secret access key present: %d bytes\n"
     (String.length !Config.secret_access_key);
-  fprintf out "SX host: %a\n" print_str_opt !Config.sx_host;
-  fprintf out "Max connected: %d\n" !Config.max_connected;
-  fprintf out "Daemonize: %b\n" !Config.daemonize;
-  fprintf out "Verbose: %b\n" !Config.verbose;
+  fprintf out "SX host: %a\n" print_str_opt !Configfile.sx_host;
+  fprintf out "Max connected: %d\n" !Configfile.max_connected;
+  fprintf out "Daemonize: %b\n" !Configfile.daemonize;
+  fprintf out "Verbose: %b\n" !Configfile.verbose;
   fprintf out "Initialization: ";
   begin match result with
   | OK _ -> fprintf out "OK\n";
@@ -154,7 +153,7 @@ let run out config result =
   end;
   dump_cfg_file out (Filename.concat Configure.sysconfdir "libres3/libres3.conf");
   dump_file out (Ocsigen_config.get_config_file ());
-  let dir = Paths.log_dir in
+  let dir = !Paths.log_dir in
   dump_file out (Filename.concat dir "errors.log");
   dump_file out (Filename.concat dir "warnings.log");
   dump_file out (Filename.concat dir "info.log");

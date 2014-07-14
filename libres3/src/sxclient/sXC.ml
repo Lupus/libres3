@@ -1477,7 +1477,7 @@ struct
     let tempfilename () =
       let rand = Random.string rng 16 in
       let hex = transform_string (Hexa.encode ()) rand in
-      Filename.concat Filename.temp_dir_name
+      Filename.concat (Netsys_tmp.tmp_directory ())
         (Printf.sprintf "libres3_upload_%s.tmp" hex)
 
     let put ?metafn src srcpos url =

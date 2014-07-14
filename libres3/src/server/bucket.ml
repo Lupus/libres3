@@ -39,14 +39,14 @@ let from_url url orig_full_path =
       String.sub orig_full_path 0 qpos
     with Not_found ->
       orig_full_path in
-  if url_host = !Config.base_hostname then
+  if url_host = !Configfile.base_hostname then
     (* "legacy" style URL: /bucket/path, extract bucket from the URL: *)
     let bucket, path = Util.url_split_first_component
       (Neturl.split_path opath) in
     Bucket bucket, path
   else
     (* virtual hosting style URL: Host: bucket.<base_hostname>; URL: /path *)
-    let base_hostname_suffix = "." ^ !Config.base_hostname in
+    let base_hostname_suffix = "." ^ !Configfile.base_hostname in
     (* extract bucket from Host *)
     let bucket = Util.string_before_suffix url_host base_hostname_suffix in
     Bucket bucket, opath

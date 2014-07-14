@@ -70,9 +70,9 @@ let parse_configuration path parse default =
         raise Exit;;
 
 let config_file = Filename.concat Configure.sysconfdir "libres3/libres3.conf"
-let process_configuration name ~parse ~print =
+let process_configuration name ~parse =
   parse_configuration config_file parse StringMap.empty
 
-let log_dir = Filename.concat Configure.localstatedir "log/libres3"
+let log_dir = ref (Filename.concat Configure.localstatedir "log/libres3")
 let var_lib_dir = Filename.concat Configure.localstatedir "lib/libres3"
 let generated_config_file = Filename.concat var_lib_dir "libres3_ocsigen.xml"

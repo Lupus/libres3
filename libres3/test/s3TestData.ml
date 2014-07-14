@@ -53,7 +53,7 @@ let bucketname2 = Printf.sprintf "vtest_enoent%f" (Unix.gettimeofday ())
 let filename2 = Filename.concat (Filename.concat "/" bucketname) "testfile2"
 let file_name_3 = "test file 3 "
 let filename3 = Filename.concat (Filename.concat "/" bucketname) file_name_3
-let reply_ns = Config.reply_ns
+let reply_ns = Configfile.reply_ns
 
 let parse_mpart reply =
   try
@@ -76,8 +76,8 @@ let generate_part fname id i part =
     name = Printf.sprintf "part %d" i;
     req = sign_request {
       meth = `PUT;
-      host = !Config.base_hostname;
-      port = !Config.base_port;
+      host = !Configfile.base_hostname;
+      port = !Configfile.base_port;
       relative_url =
         Printf.sprintf "%s?partNumber=%d&uploadId=%s"
         (encode fname) (i+1) id;
@@ -104,16 +104,16 @@ let gen_complete_multipart fname uploadId _ replies =
     ]
   ) (Array.of_list replies)) in
   let xml = Xml.to_string (Xml.tag "CompleteMultipartUpload" parts) in
-  let port_opt = if !Config.base_port = 80 then "" else
-    (Printf.sprintf ":%d" !Config.base_port) in
+  let port_opt = if !Configfile.base_port = 80 then "" else
+    (Printf.sprintf ":%d" !Configfile.base_port) in
   let url = Printf.sprintf "http://%s%s%s"
-      !Config.base_hostname port_opt (encode fname) in
+      !Configfile.base_hostname port_opt (encode fname) in
   {
     name = "complete multipart";
     req = sign_request {
       meth = `POST;
-      host = !Config.base_hostname;
-      port = !Config.base_port;
+      host = !Configfile.base_hostname;
+      port = !Configfile.base_port;
       relative_url =
         Printf.sprintf "%s?uploadId=%s" (encode fname) uploadId;
       req_headers = [];
@@ -139,8 +139,8 @@ Chain {
   chain_name = name ^ " multipart upload/download";
   first = sign_request {
     meth = `GET;
-    host = !Config.base_hostname;
-    port = !Config.base_port;
+    host = !Configfile.base_hostname;
+    port = !Configfile.base_port;
     relative_url = encode fname;
     req_headers = [];
     req_body = "";
@@ -150,8 +150,8 @@ Chain {
       chain_name = name ^ " multipart upload";
       first = sign_request {
         meth = `POST;
-        host = !Config.base_hostname;
-        port = !Config.base_port;
+        host = !Configfile.base_hostname;
+        port = !Configfile.base_port;
         relative_url = (encode fname) ^ "?uploads";
         req_headers = [];
         req_body = "";
@@ -162,8 +162,8 @@ Chain {
           chain_name = "upload";
           first = sign_request {
             meth = `GET;
-            host = !Config.base_hostname;
-            port = !Config.base_port;
+            host = !Configfile.base_hostname;
+            port = !Configfile.base_port;
             relative_url = encode fname;
             req_headers = [];
             req_body = "";
@@ -180,8 +180,8 @@ Chain {
           name = "check uploaded file";
           req = sign_request {
             meth = `GET;
-            host = !Config.base_hostname;
-            port = !Config.base_port;
+            host = !Configfile.base_hostname;
+            port = !Configfile.base_port;
             relative_url = encode fname;
             req_headers = [];
             req_body = "";
@@ -213,8 +213,8 @@ Chain {
     name = "delete multipart uploaded file";
     req = sign_request {
       meth = `DELETE;
-      host = !Config.base_hostname;
-      port = !Config.base_port;
+      host = !Configfile.base_hostname;
+      port = !Configfile.base_port;
       relative_url = (encode fname);
       req_headers = [];
       req_body = "";
@@ -240,8 +240,8 @@ let test_file_upload ?(enc=true) filename =
     chain_name = "file";
     first = sign_request {
       meth = `PUT;
-      host = !Config.base_hostname;
-      port = !Config.base_port;
+      host = !Configfile.base_hostname;
+      port = !Configfile.base_port;
       relative_url = relative_url;
       req_headers = ["Content-Type","application/blah"];(* test that it is
       not validated *)
@@ -255,8 +255,8 @@ let test_file_upload ?(enc=true) filename =
         req = sign_request {
           meth = `DELETE;
           (* TODO: use a default_request *)
-          host = !Config.base_hostname;
-          port = !Config.base_port;
+          host = !Configfile.base_hostname;
+          port = !Configfile.base_port;
           relative_url = "/"^bucketname;
           req_headers = [];
           req_body = "";
@@ -267,8 +267,8 @@ let test_file_upload ?(enc=true) filename =
         name = "newly created file is listable";
         req = sign_request {
           meth = `GET;
-          host = !Config.base_hostname;
-          port = !Config.base_port;
+          host = !Configfile.base_hostname;
+          port = !Configfile.base_port;
           relative_url = "/" ^ bucketname;
           req_headers = [];
           req_body = "";
@@ -282,8 +282,8 @@ let test_file_upload ?(enc=true) filename =
         name = "newly created file is downloadable";
         req = sign_request {
           meth = `GET;
-          host = !Config.base_hostname;
-          port = !Config.base_port;
+          host = !Configfile.base_hostname;
+          port = !Configfile.base_port;
           relative_url = relative_url;
           req_headers = [];
           req_body = "";
@@ -301,8 +301,8 @@ let test_file_upload ?(enc=true) filename =
         name = "newly created file is HEADable";
         req = sign_request {
           meth = `HEAD;
-          host = !Config.base_hostname;
-          port = !Config.base_port;
+          host = !Configfile.base_hostname;
+          port = !Configfile.base_port;
           relative_url = relative_url;
           req_headers = [];
           req_body = "";
@@ -321,8 +321,8 @@ let test_file_upload ?(enc=true) filename =
         name = "newly created file is copyable " ^ etag;
         req = sign_request {
           meth = `PUT;
-          host = !Config.base_hostname;
-          port = !Config.base_port;
+          host = !Configfile.base_hostname;
+          port = !Configfile.base_port;
           relative_url = copy_url;
           req_headers = ["x-amz-copy-source",relative_url];
           req_body = "";
@@ -337,8 +337,8 @@ let test_file_upload ?(enc=true) filename =
         name = "copy is deletable";
         req = sign_request {
           meth = `DELETE;
-          host = !Config.base_hostname;
-          port = !Config.base_port;
+          host = !Configfile.base_hostname;
+          port = !Configfile.base_port;
           relative_url = copy_url;
           req_headers = [];
           req_body = "";
@@ -357,8 +357,8 @@ let test_file_upload ?(enc=true) filename =
       name = "delete file";
       req = sign_request {
         meth = `DELETE;
-        host = !Config.base_hostname;
-        port = !Config.base_port;
+        host = !Configfile.base_hostname;
+        port = !Configfile.base_port;
         relative_url = relative_url;
         req_headers = [];
         req_body = "";
@@ -379,8 +379,8 @@ let test_head_no file =
     name = "head nonexistent object";
     req = sign_request {
       meth = `HEAD;
-      host = !Config.base_hostname;
-      port = !Config.base_port;
+      host = !Configfile.base_hostname;
+      port = !Configfile.base_port;
       relative_url = Filename.concat ("/" ^ bucketname) (encode file);
       req_headers = [];
       req_body = ""
@@ -393,8 +393,8 @@ let suite real = [
   name = "test no auth";
   req = {
     meth = `GET;
-    host = "foo." ^ (!Config.base_hostname);
-    port = !Config.base_port;
+    host = "foo." ^ (!Configfile.base_hostname);
+    port = !Configfile.base_port;
     relative_url = "/";
     req_headers = [];
     req_body = "";
@@ -405,8 +405,8 @@ let suite real = [
     name = "test auth";
     req = sign_request {
       meth = `GET;
-      host = !Config.base_hostname;
-      port = !Config.base_port;
+      host = !Configfile.base_hostname;
+      port = !Configfile.base_port;
       relative_url = "/";
       req_headers = [];
       req_body = "";
@@ -417,8 +417,8 @@ let suite real = [
     name = "test bucket creation";
     req = sign_request {
       meth = `PUT;
-      host = !Config.base_hostname;
-      port = !Config.base_port;
+      host = !Configfile.base_hostname;
+      port = !Configfile.base_port;
       relative_url = "/" ^ bucketname ^ "/";
       req_headers = [];
       req_body = "";
@@ -436,8 +436,8 @@ let suite real = [
     name = "test bucket creation";
     req = sign_request {
       meth = `PUT;
-      host = !Config.base_hostname;
-      port = !Config.base_port;
+      host = !Configfile.base_hostname;
+      port = !Configfile.base_port;
       relative_url = "/" ^ bucketname;
       req_headers = [];
       req_body = "";
@@ -455,8 +455,8 @@ let suite real = [
     name = "404 on nonexistent bucket";
     req = sign_request {
       meth = `GET;
-      host = !Config.base_hostname;
-      port = !Config.base_port;
+      host = !Configfile.base_hostname;
+      port = !Configfile.base_port;
       relative_url = "/" ^ bucketname2;
       req_headers = [];
       req_body = "";
@@ -467,8 +467,8 @@ let suite real = [
     name = "404 on nonexitent bucket HEAD";
     req = sign_request {
       meth = `HEAD;
-      host = !Config.base_hostname;
-      port = !Config.base_port;
+      host = !Configfile.base_hostname;
+      port = !Configfile.base_port;
       relative_url = "/" ^ bucketname2;
       req_headers = [];
       req_body = "";
@@ -487,8 +487,8 @@ let suite real = [
     name = "404 on delete of nonexistent bucket";
     req = sign_request {
       meth = `DELETE;
-      host = !Config.base_hostname;
-      port = !Config.base_port;
+      host = !Configfile.base_hostname;
+      port = !Configfile.base_port;
       relative_url = "/" ^ bucketname2;
       req_headers = [];
       req_body = "";
@@ -500,8 +500,8 @@ let suite real = [
     chain_name = "create/delete bucket";
     first = sign_request {
       meth = `PUT;
-      host = !Config.base_hostname;
-      port = !Config.base_port;
+      host = !Configfile.base_hostname;
+      port = !Configfile.base_port;
       relative_url = "/" ^ bucketname;
       req_headers = [];
       req_body = "";
@@ -511,8 +511,8 @@ let suite real = [
         name = "newly created bucket exists in listing";
         req = sign_request {
           meth = `GET;
-          host = !Config.base_hostname;
-          port = !Config.base_port;
+          host = !Configfile.base_hostname;
+          port = !Configfile.base_port;
           relative_url = "/";
           req_headers = [];
           req_body = "";
@@ -526,8 +526,8 @@ let suite real = [
         name = "newly created bucket is HEADable";
         req = sign_request {
           meth = `HEAD;
-          host = !Config.base_hostname;
-          port = !Config.base_port;
+          host = !Configfile.base_hostname;
+          port = !Configfile.base_port;
           relative_url = "/" ^ bucketname;
           req_headers = [];
           req_body = "";
@@ -545,8 +545,8 @@ let suite real = [
         name = "no 404 on empty prefix search by dir";
         req = sign_request {
           meth = `GET;
-          host = !Config.base_hostname;
-          port = !Config.base_port;
+          host = !Configfile.base_hostname;
+          port = !Configfile.base_port;
           relative_url = "/" ^ bucketname ^ "/?prefix=test/";
           req_headers = [];
           req_body = "";
@@ -559,8 +559,8 @@ let suite real = [
         name = "newly created bucket is listable and empty";
         req = sign_request {
           meth = `GET;
-          host = !Config.base_hostname;
-          port = !Config.base_port;
+          host = !Configfile.base_hostname;
+          port = !Configfile.base_port;
           relative_url = "/" ^ bucketname;
           req_headers = [];
           req_body = "";
@@ -575,8 +575,8 @@ let suite real = [
         (* TODO: test that it really returns 0 keys after uploading a file! *)
         req = sign_request {
           meth = `GET;
-          host = !Config.base_hostname;
-          port = !Config.base_port;
+          host = !Configfile.base_hostname;
+          port = !Configfile.base_port;
           (* python-boto uses ?& *)
           relative_url = Printf.sprintf "/%s?&max-keys=0" bucketname;
           req_headers = [];
@@ -600,8 +600,8 @@ let suite real = [
         name = "404 on nonexistent file";
         req = sign_request {
           meth = `GET;
-          host = !Config.base_hostname;
-          port = !Config.base_port;
+          host = !Configfile.base_hostname;
+          port = !Configfile.base_port;
           relative_url = encode filename2;
           req_headers = [];
           req_body = "";
@@ -612,8 +612,8 @@ let suite real = [
         name = "204 on delete of nonexistent file";
         req = sign_request {
           meth = `DELETE;
-          host = !Config.base_hostname;
-          port = !Config.base_port;
+          host = !Configfile.base_hostname;
+          port = !Configfile.base_port;
           relative_url = encode filename2;
           req_headers = [];
           req_body = "";
@@ -628,16 +628,16 @@ let suite real = [
         }
       };
       generate_multipart_test filename3 "one" [
-        generate_block Config.min_multipart
+        generate_block Configfile.min_multipart
       ];
       generate_multipart_test filename3 "two" [
-        generate_block Config.min_multipart;
-        generate_block Config.min_multipart
+        generate_block Configfile.min_multipart;
+        generate_block Configfile.min_multipart
       ];
       generate_multipart_test filename3 "three" [
-        generate_block (Int64.add Config.min_multipart 1L);
-        generate_block (Int64.add Config.min_multipart 2L);
-        generate_block (Int64.add Config.min_multipart 3L)
+        generate_block (Int64.add Configfile.min_multipart 1L);
+        generate_block (Int64.add Configfile.min_multipart 2L);
+        generate_block (Int64.add Configfile.min_multipart 3L)
       ];
       (* TODO: generate multiple parts of blocksize, and then blocksize+1,+2,
        * etc. *)
@@ -649,8 +649,8 @@ let suite real = [
       req = sign_request {
 (*        meth = `DELETE;*)
         meth = `HEAD;
-        host = !Config.base_hostname;
-        port = !Config.base_port;
+        host = !Configfile.base_hostname;
+        port = !Configfile.base_port;
         relative_url = "/" ^ bucketname;
         req_headers = [];
         req_body = "";

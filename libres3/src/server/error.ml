@@ -114,7 +114,7 @@ let sig_error () =
   "The request's signature doesn't match what we calculated. \
    Please check that your S3 secret key matches your SX key, \
    your S3 access key matches your SX username, \
-   and that the S3 base hostname is set to " ^ !Config.base_hostname ^ "."
+   and that the S3 base hostname is set to " ^ !Configfile.base_hostname ^ "."
 
 let info = function
   | NoError ->

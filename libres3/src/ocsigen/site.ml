@@ -177,9 +177,9 @@ let process_request dispatcher ri () =
       };;
 
 let fun_site _ config_info _ _ _ _ =
-  Config.base_hostname := config_info.default_hostname;
+  Configfile.base_hostname := config_info.default_hostname;
   Ocsigen_messages.console2 (
-    Printf.sprintf "LibreS3 default hostname: %s"  !Config.base_hostname
+    Printf.sprintf "LibreS3 default hostname: %s"  !Configfile.base_hostname
   );
   begin try
     Ssl.set_cipher_list !Ocsigen_http_client.sslcontext
