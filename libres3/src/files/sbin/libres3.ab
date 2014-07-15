@@ -4,6 +4,7 @@
 
 ETCDIR="$(sysconfdir)"
 CONFIG="\$ETCDIR/libres3/libres3.conf"
+LOGDIR="$(localstatedir)/log/libres3"
 if [ ! -f "\$CONFIG" ]; then
     echo "Not configured. You have to run $(sbindir)/libres3_setup first."
     exit 1
@@ -26,7 +27,7 @@ case "\$1" in
         ;;
 
     stop)
-        $(sbindir)/libres3_ocsigen --stop >/dev/null
+        $(sbindir)/libres3_ocsigen --stop
         ;;
 
     restart)
