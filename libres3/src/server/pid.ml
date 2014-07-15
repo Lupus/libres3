@@ -27,33 +27,91 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
+open UnixLabels
+open UnixLabels.LargeFile
+
 let write_pid pidfile =
-  let pid = Unix.getpid () in
+  let fd = openfile ~mode:[O_RDWR;O_CREAT] ~perm:0o750 pidfile in
+  let pid = getpid () in
   try
-    UnixLabels.LargeFile.ftruncate pidfile ~len:0L;
+    lockf fd ~mode:F_TLOCK ~len:0;
+    ftruncate fd ~len:0L;
     let str = Printf.sprintf "%d\n" pid in
-    let _ = UnixLabels.write pidfile str 0 (String.length str) in
-    UnixLabels.lockf pidfile ~mode:Unix.F_TRLOCK ~len:0
-  with Sys_error e ->
-    Printf.eprintf "Failed to write to PID: %s\n%!" e;
+    let _ = write fd str 0 (String.length str) in
+    ignore (lseek fd 0L ~mode:SEEK_SET);
+    lockf fd ~mode:F_TRLOCK ~len:0;
+    (*at_exit (fun () -> try unlink pidfile with _ -> ());*)
+  with
+  | Unix_error(EACCES|EAGAIN as e ,_,_) ->
+    failwith (Printf.sprintf "Another instance is running already, cannot lock pidfile '%s': %s"
+                pidfile (error_message e))
+  | Unix_error(e,_,_) ->
+    Printf.eprintf "Failed to write pidfile '%s': %s\n%!" pidfile (error_message e);
     raise Exit;;
 
-let kill_pid name =
-  begin try
-    let f = open_in name in
-    let pid = int_of_string (input_line f) in
-    Printf.printf "Sending TERM to PID %d ... %!" pid;
-    begin try
-      Unix.kill (-pid) 15;
-      Printf.printf "\n%!";
-    with Unix.Unix_error(e,_,_) ->
-      Printf.eprintf "Kill failed: %s!\n%!" (Unix.error_message e);
-    end;
-    close_in f
+let is_running pid =
+  try kill pid 0; true
+  with Unix_error(ESRCH,_,_) -> false
+
+let rec wait_pid pid =
+  if is_running pid then begin
+    sleep 1;
+    wait_pid pid
+  end
+
+let with_pidfile_read name f =
+  try
+    let ch = open_in name in
+    Paths.readlocked (fun ch ->
+        let pid = int_of_string (input_line ch) in
+        f pid;
+        close_in ch
+    ) ch;
+    None
   with
   | Sys_error e | Failure e ->
-    Printf.printf "PIDfile %s cannot be opened: %s\n%!" name e
-  | End_of_file -> ();
+      Some (Printf.sprintf "PIDfile %s cannot be opened: %s\n%!" name e)
+  | End_of_file -> Some ""
+
+let kill_pid name =
+  begin match with_pidfile_read name (fun pid ->
+      Printf.printf "Sending TERM to PID %d ... %!" pid;
+      begin try
+          kill (-pid) 15;
+          Printf.printf "\n%!";
+        with Unix_error(e,_,_) ->
+          Printf.eprintf "Kill failed: %s!\n%!" (error_message e);
+      end;
+      Printf.printf "Waiting for PID %d ... %!" pid;
+      wait_pid pid;
+      Printf.printf "\n%!";
+  ) with
+  | Some str -> print_endline str
+  | None -> ()
   end;
   try Sys.remove name with Sys_error _ -> ();;
 
+let print_status name =
+  print_endline "--- LibreS3 STATUS ---";
+  Printf.printf "LibreS3 is ";
+  begin match with_pidfile_read name (fun pid ->
+      if is_running pid then
+        Printf.printf "running (PID %d)" pid
+      else
+        Printf.printf "NOT running";
+    ) with
+  | Some _ -> Printf.printf "NOT running"
+  | None -> ();
+  end;
+  print_endline "\n\n--- LibreS3 INFO ---";
+  begin match !Configfile.ssl_privatekey_file with
+    | Some f -> Printf.printf "SSL private key: %s" f
+    | None -> ()
+  end;
+  Printf.printf "LibreS3 logs: ";
+  begin match !Configfile.syslog_facility with
+    | Some facility ->
+      Printf.printf "syslog facility %s\n" facility
+    | None->
+      Printf.printf "directory %s\n" !Paths.log_dir
+  end

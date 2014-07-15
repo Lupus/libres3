@@ -192,14 +192,10 @@ let handle_error f () =
       exit 5
 ;;
 
-let unlink_pid = ref false
-
 let handle_signal s msg =
   ignore (
     Sys.signal s (Sys.Signal_handle (fun _ ->
       print_endline msg;
-      if !unlink_pid then
-        begin try unlink !Configfile.pidfile with _ -> () end;
       exit 3;
     ))
   );;
@@ -257,10 +253,9 @@ let reopen_logs _ =
   with _ ->
     ()
 
-let run_server pidfile commandpipe =
+let run_server commandpipe =
+  Pid.write_pid !Configfile.pidfile;
   begin try unlink commandpipe with _ -> () end;
-  Pid.write_pid pidfile;
-  unlink_pid := true;
   if not (get_debugmode ()) || !Configfile.daemonize then begin
     let dev_null = Unix.openfile "/dev/null" [Unix.O_RDWR] 0o666 in
     Unix.dup2 dev_null Unix.stdin;
@@ -320,14 +315,6 @@ let run () =
       end
     );
     Lwt_unix.set_pool_size !Configfile.max_pool_threads;
-    let pidfile = openfile ~mode:[O_RDWR;O_CREAT] ~perm:0o750 !Configfile.pidfile in
-    begin try
-      UnixLabels.lockf pidfile ~mode:Unix.F_TLOCK ~len:0;
-    with Unix_error(EACCES|EAGAIN as e ,_,_) ->
-      failwith (Printf.sprintf "Another instance is running already, cannot lock pidfile '%s': %s"
-        !Configfile.pidfile (error_message e)
-      )
-    end;
     Gc.compact ();
     if !Configfile.daemonize then begin
       Unix.chdir "/";
@@ -337,12 +324,11 @@ let run () =
         Lwt_sequence.iter_node_l Lwt_sequence.remove Lwt_main.exit_hooks;
       end else begin
         ignore (Unix.setsid ());
-        run_server pidfile !(config.commandpipe)
+        run_server !(config.commandpipe)
       end
     end else begin
-      run_server pidfile !(config.commandpipe)
+      run_server !(config.commandpipe)
     end;
-    close pidfile;
     Printf.printf "Waiting for server to start (5s) ... %!";
     if wait_pipe !(config.commandpipe) 5. then begin
       Printf.printf "OK\n%!";

@@ -39,3 +39,4 @@ val generated_config_file : string
 val config_file : string ref
 val var_lib_dir : string
 val with_file : in_channel -> (in_channel -> 'a) -> close:(in_channel->unit) -> 'a
+val readlocked : (in_channel -> 'a) -> in_channel -> 'a

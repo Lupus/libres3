@@ -72,8 +72,6 @@ let load_configuration spec =
         raise (Failure (Printf.sprintf "Failed to parse configuration key '%s': %s"
           key msg))
   ) spec;
-  Printf.printf "Configuration:\n";
-  StringMap.iter print_config config;
   config;;
 
 let print_version () =
@@ -94,14 +92,16 @@ let print_help spec usage () =
 
 let parse_cmdline additional_args =
   let stop = ref false in
+  let status = ref false in
   let usage = (Printf.sprintf "Usage: %s [options]\n" Sys.argv.(0)) in
   let spec = ref [] in
   spec := Arg.align [
-    "--stop", Arg.Set stop, " Stop running process (based on PIDfile)";
-    "--foreground", Arg.Clear Configfile.daemonize, " Run in foreground mode (default: \
-      daemonize)";
     "--config-file", Arg.Set_string Paths.config_file,
       " Path to configuration file (default: " ^ !Paths.config_file ^ ")";
+    "--foreground", Arg.Clear Configfile.daemonize, " Run in foreground mode (default: \
+      daemonize)";
+    "--stop", Arg.Set stop, " Stop running process (based on PIDfile)";
+    "--status", Arg.Set status, " Print running process status (based on PIDfile)";
     "--version", Arg.Unit print_version, " Print version";
     "-V", Arg.Unit print_version, " Print version";
     "-help",Arg.Unit (fun () -> raise (Arg.Bad "use --help or -h")),"";
@@ -111,15 +111,21 @@ let parse_cmdline additional_args =
   Arg.parse !spec (fun anon ->
     raise (Arg.Bad ("invalid option " ^ anon))
   ) usage;
-  ignore (load_configuration Configfile.entries);
+  let config = load_configuration Configfile.entries in
   if !Configfile.pidfile = "" then begin
-    Printf.eprintf "pid_file is not set!\n";
+    Printf.eprintf "pidfile is not set!\n";
     raise Exit
   end;
   if !stop then begin
     Pid.kill_pid !Configfile.pidfile;
     exit 0
   end;
+  if !status then begin
+    Pid.print_status !Configfile.pidfile;
+    exit 0
+  end
+  Printf.printf "Configuration:\n";
+  StringMap.iter print_config config;
   try
     if !Configfile.base_hostname = "" then
       raise (Arg.Bad "s3_host must be set");
