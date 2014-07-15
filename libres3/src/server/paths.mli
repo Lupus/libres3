@@ -36,6 +36,6 @@ val process_configuration :
 
 val log_dir : string ref
 val generated_config_file : string
-val config_file : string
+val config_file : string ref
 val var_lib_dir : string
 val with_file : in_channel -> (in_channel -> 'a) -> close:(in_channel->unit) -> 'a

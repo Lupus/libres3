@@ -100,6 +100,8 @@ let parse_cmdline additional_args =
     "--stop", Arg.Set stop, " Stop running process (based on PIDfile)";
     "--foreground", Arg.Clear Configfile.daemonize, " Run in foreground mode (default: \
       daemonize)";
+    "--config-file", Arg.Set_string Paths.config_file,
+      " Path to configuration file (default: " ^ !Paths.config_file ^ ")";
     "--version", Arg.Unit print_version, " Print version";
     "-V", Arg.Unit print_version, " Print version";
     "-help",Arg.Unit (fun () -> raise (Arg.Bad "use --help or -h")),"";

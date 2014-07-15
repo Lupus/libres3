@@ -69,9 +69,9 @@ let parse_configuration path parse default =
           (Printexc.to_string e);
         raise Exit;;
 
-let config_file = Filename.concat Configure.sysconfdir "libres3/libres3.conf"
+let config_file = ref (Filename.concat Configure.sysconfdir "libres3/libres3.conf")
 let process_configuration name ~parse =
-  parse_configuration config_file parse StringMap.empty
+  parse_configuration !config_file parse StringMap.empty
 
 let log_dir = ref (Filename.concat Configure.localstatedir "log/libres3")
 let var_lib_dir = Filename.concat Configure.localstatedir "lib/libres3"
