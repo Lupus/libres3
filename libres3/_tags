@@ -275,4 +275,4 @@
 <test/*.ml{,i}>: use_sxclient
 # OASIS_STOP
 <src/ocsigen/libres3_ocsigen.{native,byte}>: link_ocsigen
-<**/*.ml{,i}>: warn_A, warn_error_S,warn_error_U, annot
+<**/*.ml{,i}>: warn_A, warn_error_S,warn_error_U, annot, strict_sequence

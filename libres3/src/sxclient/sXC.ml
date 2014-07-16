@@ -1217,7 +1217,7 @@ struct
 (*          Printf.printf "Uploading hash %s from offset %Ld\n" hash seekpos;*)
           let offset = Int64.sub seekpos offset in
           OS.LargeFile.lseek tmpfd offset Unix.SEEK_SET >>= fun _ ->
-          String.fill buf.buf 0 (String.length buf.buf);
+          String.fill buf.buf 0 (String.length buf.buf) '\x00';
           really_read tmpfd buf.buf pos blocksize >>= function
           | 0 -> fail (Failure "eof when trying to read hash")
           | _ ->
