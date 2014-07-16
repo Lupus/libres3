@@ -240,40 +240,6 @@ let parse_authorization req =
       AuthDuplicate
 ;;
 
-(* TODO: remove this *)
-(* TODO: we should call the sign method from here, as we only know
- * access key id here *)
-let validate_authorization req string_to_sign expected_signature =
-  match parse_authorization req with
-  | AuthEmpty | AuthNone ->
-      Error.AccessDenied, ["MissingHeader", "Authorization"]
-  | AuthMalformed s ->
-      Error.InvalidSecurity, ["BadAuthorization", s]
-  | AuthDuplicate ->
-      Error.InvalidSecurity,
-      ["BadAuthorization", "Multiple occurences of Authorization header"]
-  | AuthExpired ->
-      Error.ExpiredToken, []
-  | Authorization (key, signature) ->
-      if key <> !Configfile.key_id then
-        Error.InvalidAccessKeyId, [
-          "Hint","For libres3 the key id must always be:" ^ !Configfile.key_id]
-      else if signature <> expected_signature then
-        Error.SignatureDoesNotMatch, [
-          ("StringToSign", string_to_sign);
-          ("Host", req.host);
-          ("UndecodedPath", req.undecoded_uri_path);
-          ("Bucket", Bucket.to_string req.bucket);
-          ("Hint", "Your S3 secret key should be set to the SX access key")
-        ]
-      else
-        Error.NoError, []
-  ;;
-
-let validate req tosign =
-  let signature = Cryptoutil.sign_str !Config.secret_access_key tosign in
-  validate_authorization req tosign signature;;
-
 let buf = Buffer.create 128
 let gen_debug ~canon =
   Buffer.reset buf;
