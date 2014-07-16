@@ -15,8 +15,7 @@ website_endpoint = https://libres3.skylable.com/
 # You can turn on HTTPS communication, but remember to update the ports too
 # above, or just use the supplied libres3-https.sample.s3cfg
 use_https = True
-# Disabled for now
-enable_multipart = False
+enable_multipart = True
 # You shouldn't need to change anything below
 bucket_location = US
 default_mime_type = binary/octet-stream

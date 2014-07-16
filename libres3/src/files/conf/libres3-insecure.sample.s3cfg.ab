@@ -16,7 +16,7 @@ website_endpoint = http://libres3.skylable.com/
 # above, or just use the supplied libres3.sample.s3cfg
 use_https = False
 # Disabled for now
-enable_multipart = False
+enable_multipart = True
 # You shouldn't need to change anything below
 bucket_location = US
 default_mime_type = binary/octet-stream
