@@ -176,6 +176,106 @@ let process_request dispatcher ri () =
           res_etag = h.D.etag
       };;
 
+open Dns.Packet
+
+let resolver = Dns_resolver_unix.create ()
+
+let rec get_txt = function
+  | [] -> []
+  | { Dns.Packet.rdata = TXT txt_list; _ } :: _ -> txt_list
+  | _ :: tl -> get_txt tl
+
+let query_txt name =
+  resolver >>= fun r ->
+  Dns_resolver_unix.resolve r Q_IN Q_TXT
+    (Dns.Name.string_to_domain_name name)
+  >>= fun packet ->
+  return (get_txt packet.answers)
+
+type version_status =
+  | SecurityUpdate
+  | Update
+  | Noop
+
+let check_version (vmaj,vmin,sec) (srcmaj,srcmin) =
+  if vmaj > srcmaj then
+    SecurityUpdate
+  else if vmaj = srcmaj && vmin > srcmin then
+    if sec || vmin > srcmin + 1 then SecurityUpdate
+    else Update
+  else
+    Noop
+
+let upgrade_msg security (maj,min) (srcmaj,srcmin) =
+  Ocsigen_messages.warning (
+    Printf.sprintf "%sLibreS3 %d.%d is available "
+      (if security then "CRITICAL update found!" else "")
+      maj min ^
+    Printf.sprintf "(this node is running version %d.%d). " srcmaj srcmin ^
+    Printf.sprintf
+      "See http://www.skylable.com/products/libres3/release/%d.%d for upgrade instructions"
+      maj min
+  )
+
+let dns_check dns =
+  query_txt dns >>= function
+  | [] ->
+      Ocsigen_messages.console2 (Printf.sprintf "Cannot check version: no TXT record for '%s'" dns);
+      return ()
+  | ver :: [] ->
+      begin try
+        Scanf.sscanf ver "%d.%d.%d" (fun maj min sec ->
+          Scanf.sscanf Version.version "%d.%d.%s" (fun srcmaj srcmin _ ->
+            match check_version (maj,min,sec > 0) (srcmaj, srcmin) with
+            | SecurityUpdate -> upgrade_msg true (maj,min) (srcmaj,srcmin)
+            | Update -> upgrade_msg false (maj,min) (srcmaj,srcmin)
+            | Noop -> ()
+          )
+        );
+        return ()
+      with _ ->
+        Ocsigen_messages.console2 "Cannot check version: bad version received";
+        return ()
+      end
+  | _ ->
+      Ocsigen_messages.console2 (
+        Printf.sprintf "Cannot check version: too many TXT records for '%s'" dns);
+      return ()
+
+let check_url url =
+  SXIO.check url >>= function
+  | Some uuid ->
+    dns_check (Printf.sprintf "%d.%s.s3ver.skylable.com" (Random.bits ()) uuid)
+  | None ->
+    return ()
+
+let noop e =
+  Printf.eprintf "check error: %s\n%!" (Printexc.to_string e);
+  return ()
+
+let check_interval = float_of_int (24*60*60 + Random.int 3600 - 30*60)
+let initial_interval = float_of_int (Random.int 10800)
+
+(*
+let initial_interval = 5.
+let check_interval = 1.
+*)
+
+let rec dns_check_loop url =
+  try_catch check_url noop url >>= fun () ->
+  OS.sleep check_interval >>= fun () ->
+  dns_check_loop url
+
+let periodic_check () =
+  match !Configfile.sx_host with
+  | None -> return ()
+  | Some host ->
+    let url = SXIO.of_neturl (Neturl.make_url ~encoded:false
+      ~scheme:"sx" ~user:!Config.key_id ~port:!Config.sx_port
+      ~host ~path:[""] SXC.syntax) in
+    OS.sleep initial_interval >>= fun () ->
+    dns_check_loop url
+
 let fun_site _ config_info _ _ _ _ =
   Configfile.base_hostname := config_info.default_hostname;
   Ocsigen_messages.console2 (
@@ -188,12 +288,14 @@ let fun_site _ config_info _ _ _ _ =
   Default.register ();
   let dispatcher = Lwt_main.run (OcsigenServer.init ()) in
   Ocsigen_messages.console2 "Startup complete";
+  let _ = periodic_check () in
   function
     | Req_not_found (_, request) ->
       Lwt.return (Ext_found (process_request dispatcher request.request_info))
     | Req_found _ ->
       Lwt.return Ext_do_nothing
   ;;
+
 
 let register_all () =
   Ocsigen_extensions.register_extension ~fun_site ~name:"libres3" ()

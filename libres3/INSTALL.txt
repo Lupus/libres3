@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: b72008c8702eb962c14d201c0a606c2c) *)
+(* DO NOT EDIT (digest: 7fc4b4910253fecb97b142d829a3ae6c) *)
 
 This is the INSTALL file for the libres3 distribution.
 
@@ -29,6 +29,7 @@ In order to compile this package, you will need:
 * ipaddr for library server, executable libres3_report
 * netcgi2 for library libres3_site, executable libres3_fcgi,
   executable server_test
+* dns for executable libres3_ocsigen
 * oUnit for executable directio_test, executable lwtio_test,
   executable misc_test, executable net_test, executable server_test
 

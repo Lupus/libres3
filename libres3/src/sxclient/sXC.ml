@@ -1594,12 +1594,15 @@ struct
 
   let check url =
     try_catch (fun () ->
-      make_request `GET (initial_nodelist url) (fetch_nodes url) >>= fun _ ->
-      return None
+      make_request `GET (initial_nodelist url) (fetch_nodes url) >>= fun reply ->
+      let uuid =
+        try parse_sx_cluster (reply.headers#field "SX-Cluster")
+        with Not_found -> parse_server (reply.headers#field "Server") in
+      return (Some uuid)
     ) (function
       | SXIO.Detail(e, details) ->
         let msg = try List.assoc "SXErrorMessage" details with Not_found -> "" in
-        return (Some (Printf.sprintf
+        fail (Failure (Printf.sprintf
           "Remote SX server reports: %s (%s)" msg (Printexc.to_string e))
         )
       | e -> fail e) ()

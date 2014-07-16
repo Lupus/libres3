@@ -113,8 +113,11 @@ let check_host host =
       ~scheme:"sx" ~user:!Config.key_id ~port:!Config.sx_port ~host ~path:[""] SXC.syntax in
   let urlstr = Neturl.string_of_url url in
   try_catch (fun () ->
-      SXIO.check (SXIO.of_neturl url) >>= fun result ->
-      return (Some (urlstr, result))
+      SXIO.check (SXIO.of_neturl url) >>= function
+      | Some uuid ->
+        return (Some (urlstr, None))
+      | None ->
+        return (Some (urlstr, Some "no uuid"))
   ) (fun e -> return (Some (urlstr, Some (Printexc.to_string e)))) ()
 
 let resolve_host out ~kind host =

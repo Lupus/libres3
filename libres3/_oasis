@@ -120,7 +120,7 @@ Library libres3_site
   Build$: flag(ocsigen)
   Modules: Site
   CompiledObject: Best
-  BuildDepends: server, netcgi2, threads, sxclient.lwt
+  BuildDepends: server, netcgi2, threads, sxclient.lwt, dns.lwt
   Install: false
 
 Executable libres3_ocsigen
