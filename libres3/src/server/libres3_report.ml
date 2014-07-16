@@ -130,7 +130,7 @@ let resolve_host out ~kind host =
           match ai.Unix.ai_addr with
           | Unix.ADDR_INET (inet, _) ->
             let addr = Unix.string_of_inet_addr inet in
-            fprintf out "\t%s (%s)\n" addr ai.ai_canonname;
+            fprintf out "\t%s (%s)\n" addr ai.Unix.ai_canonname;
             Some addr
           | _ -> None
         ) result

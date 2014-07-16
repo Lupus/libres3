@@ -54,6 +54,13 @@ let map_method = function
   | `PUT ->
       `PUT ()
 
+let validate canon tosign =
+  let expected_signature = Cryptoutil.sign_str !Config.secret_access_key tosign in
+  match CanonRequest.parse_authorization canon with
+  | Authorization (_, signature) ->
+      signature = expected_signature
+  | _ -> false
+
 let test_request_parse_sign data =
   data.name>::(fun () ->
     let meth = map_method data.req_method in
@@ -65,7 +72,7 @@ let test_request_parse_sign data =
     assert_str_equal ~msg:"bucket" data.expected_bucket (Bucket.to_string canon_req.bucket);
     let tosign = string_to_sign canon_req in
     assert_str_equal ~msg:"string-to-sign" data.expected_tosign tosign;
-    let valid = validate canon_req tosign = (Error.NoError, []) in
+    let valid = validate canon_req tosign in
     assert_equal ~msg:"signature" data.expected_valid valid;
     assert_str_equal ~msg:"path" data.expected_path canon_req.path;
   );;
