@@ -27,8 +27,14 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
-(* Sxreport *)
-open Printf
+let anonymize = ref false
+
+let filter out str =
+  let str = if !anonymize then Anonymize.filter str else str in
+  output_string out str
+
+let fprintf out fmt = Printf.kprintf (filter out) fmt
+let eprintf = Printf.printf
 
 let print_wrap out name f =
   fprintf out "--- %s: ---\n" name;
@@ -55,8 +61,8 @@ let dump_file out name =
   )
 
 let print_section out name =
-  Printf.fprintf out "\n%s" name;
-    Printf.fprintf out "\n%s\n" (String.make (String.length name) '-')
+  fprintf out "\n%s" name;
+  fprintf out "\n%s\n" (String.make (String.length name) '-')
 
 let dump_command out cmd =
   print_wrap out cmd (fun () ->
@@ -75,22 +81,21 @@ let dump_command out cmd =
 
 type 'a result = OK of 'a | Error of exn
 
-let print_str_opt fmt = function
-  | Some s -> Printf.fprintf fmt "%s" s
-  | None -> Printf.fprintf fmt "N/A"
+let print_str_opt () = function
+  | Some s -> Printf.sprintf "%s" s
+  | None -> Printf.sprintf "N/A"
 
-let print_str_list fmt lst =
-  Printf.fprintf fmt "%s"
-    (String.concat ":" (List.map Filename.quote lst))
+let print_str_list lst () =
+  (String.concat ":" (List.map Filename.quote lst))
 
 let secret_re = Netstring_str.regexp ".*secret_key.*"
 let rec dump_cfg out ch =
   let line = input_line ch in
   begin match Netstring_str.string_match secret_re line 0 with
   | None ->
-    Printf.fprintf out "%s\n" line
+    fprintf out "%s\n" line
   | Some _ ->
-    Printf.fprintf out "<secret_key not printed>\n"
+    fprintf out "<secret_key not printed>\n"
   end;
   dump_cfg out ch
 
@@ -143,7 +148,7 @@ let resolve_host out ~kind host =
 let check_sx_hosts out sxhost =
   let addrs = resolve_host out "SX" sxhost in
   Default.register ();
-  eprintf " checking connection ... %!";
+  eprintf "Checking connection ... %!";
   (* check all hosts in parallel *)
   let check_results = List.rev_map (function
       | Some host -> check_host host
@@ -157,7 +162,8 @@ let check_sx_hosts out sxhost =
       fprintf out "\t %s: %s\n" host (match result with
           | None -> "OK"
           | Some err -> err)
-    ) results
+  ) results;
+  eprintf "done\n%!"
 
 let check_s3_hosts out s3host =
   ignore (resolve_host out "S3" s3host)
@@ -224,11 +230,26 @@ let run out result =
 ;;
 
 let () =
+  let now = int_of_float (Unix.gettimeofday ()) in
+  let output_file = ref (Printf.sprintf "libres3-report-%d.log" now) in
   Cmdline.parse_cmdline ~print_conf_help:false [
-    "--no-ssl", Arg.Clear Config.sx_ssl, ""
+    "--output", Arg.Set_string output_file,
+      Printf.sprintf " Save output to given file (default: %s)" !output_file;
+    "--anonymize", Arg.Set anonymize, " Anonymize IP addresses, URLs, and hostnames";
+    "--no-ssl", Arg.Clear Config.sx_ssl, "";
   ];
   let result =
     try OK (Cmdline.load_and_validate_configuration ())
     with e -> Error e in
-  run stdout result
+  let output =
+    if !output_file = "-" then stdout
+    else open_out_bin !output_file in
+
+  run output result;
+
+  if output <> stdout then begin
+    eprintf "Report stored in %s\nYou can attach it to a bugreport at https://bugzilla.skylable.com\n%!" !output_file;
+    close_out output
+  end
+
 
