@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 9fc51b709ad2e454524830cbc7b2cb8c)
+# DO NOT EDIT (digest: 345bfeac33fd2e7f8b8d0ec94b390cb4)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -168,6 +168,7 @@
 <src/server/libres3_report.{native,byte}>: package(lwt.unix)
 <src/server/libres3_report.{native,byte}>: package(netclient)
 <src/server/libres3_report.{native,byte}>: package(netstring)
+<src/server/libres3_report.{native,byte}>: package(re.posix)
 <src/server/libres3_report.{native,byte}>: package(ssl)
 <src/server/libres3_report.{native,byte}>: package(threads)
 <src/server/libres3_report.{native,byte}>: package(unix)
@@ -180,6 +181,7 @@
 <src/server/*.ml{,i}>: package(lwt.unix)
 <src/server/*.ml{,i}>: package(netclient)
 <src/server/*.ml{,i}>: package(netstring)
+<src/server/*.ml{,i}>: package(re.posix)
 <src/server/*.ml{,i}>: package(ssl)
 <src/server/*.ml{,i}>: package(threads)
 <src/server/*.ml{,i}>: package(unix)
