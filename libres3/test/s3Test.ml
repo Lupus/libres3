@@ -108,7 +108,7 @@ let expect_error ?(head=false) errcode path =
   is_head = head
 }
 
-let key_id = Configfile.key_id
+let key_id = Config.key_id
 let secret_access_key = Config.secret_access_key
 
 let map_method = function

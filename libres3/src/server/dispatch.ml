@@ -1425,7 +1425,7 @@ module Make
       fail (Failure "SX secret access key must be set!")
     else begin
       Gc.compact ();
-      let base, _ = url_of_volpath_user ~user:"admin" "" "" in
+      let base, _ = url_of_volpath_user ~user:!Config.key_id "" "" in
       if !Configfile.buckets_dir <> "" && !Configfile.buckets_dir <> "/" then
         mkdir_maybe !Configfile.buckets_dir >>= fun () ->
         mkdir_maybe (Filename.concat !Configfile.buckets_dir "tmp")

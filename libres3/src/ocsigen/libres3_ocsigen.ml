@@ -213,8 +213,29 @@ let list_of_opt ptr = match !ptr with
   | Some v -> [ref v]
   | None -> []
 
-let initialize config extra_spec =
+let initialize config =
+  let stop = ref false and status = ref false in
+  let extra_spec = [
+    "--foreground", Arg.Clear Configfile.daemonize, " Run in foreground mode (default: \
+      daemonize)";
+    "--stop", Arg.Set stop, " Stop running process (based on PIDfile)";
+    "--status", Arg.Set status, " Print running process status (based on PIDfile)";
+    "--debug", Arg.Unit (fun () ->
+      set_veryverbose ();
+      set_debugmode true), "";
+    "--no-ssl", Arg.Clear Config.sx_ssl, ""
+  ] in
+
   Cmdline.parse_cmdline extra_spec;
+  if !stop then begin
+    Pid.kill_pid !Configfile.pidfile;
+    exit 0
+  end;
+  if !status then begin
+    Pid.print_status !Configfile.pidfile;
+    exit 0
+  end;
+  Cmdline.load_and_validate_configuration ();
 
   config.logdir :=
     if !Configfile.syslog_facility = None then Some !Paths.log_dir else None;
@@ -273,8 +294,6 @@ let run () =
   ignore (Sys.signal Sys.sighup Sys.Signal_ignore);
 
   Arg.current := 0;
-  (* FIXME: these two should be separate executables *)
-  let run_sxreport = ref false in
   let config = {
     logdir = ref (Some "");
     datadir = ref "";
@@ -283,22 +302,8 @@ let run () =
     timeout = ref 30;
     keepalivetimeout = ref 30;
   } in
-  let extra_spec = [
-    "--debug", Arg.Unit (fun () ->
-      set_veryverbose ();
-      set_debugmode true), "";
-    "--no-ssl", Arg.Clear Config.sx_ssl, ""
-  ] in
 
-  let result =
-    try Sxreport.OK (initialize config extra_spec)
-    with e -> Sxreport.Error e in
-
-  if run_sxreport.contents then
-    Sxreport.run Pervasives.stdout config result
-  else match result with
-  | Sxreport.Error e -> raise e
-  | Sxreport.OK () ->
+    initialize config;
     flush_all ();
     Sys.set_signal Sys.sigchld (Sys.Signal_handle (fun _ ->
         Printf.eprintf "Failed to start server (check logfile: %s/errors.log)\n%!" (!Paths.log_dir);

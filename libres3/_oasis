@@ -147,6 +147,13 @@ Executable libres3_setup
   BuildDepends: unix
   CompiledObject: Best
 
+Executable libres3_report
+  Path: src/server
+  Install: true
+  MainIs: libres3_report.ml
+  BuildDepends: unix, netstring, ipaddr, sxclient.lwt
+  CompiledObject: Best
+
 Executable server_test
   Install:  false
   Path: test

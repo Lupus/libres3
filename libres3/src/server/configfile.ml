@@ -200,7 +200,6 @@ let syslog_facility = ref None (* local7 *)
 let small_buffer_size = 4096
 let min_multipart = 5242880L
 let reply_ns = "http://s3.amazonaws.com/doc/2006-03-01/"
-let key_id = ref "admin"
 let max_keys = 1000
 let owner_id = "da39a3ee5e6b4b0d3255bfef95601890afd80709"
 let owner_name = "libres3"
@@ -270,6 +269,7 @@ let entries : (string * (string -> unit) * string) list = [
     "netbuffersize", expect parse_positive_int netbuffersize, "";
     "filebuffersize", expect parse_positive_int filebuffersize, "";
     "maxretries", expect parse_positive_int maxretries, "";
+    "keyid", expect (fun s -> s) Config.key_id, "";
     (* for backwards compatibility *)
     deprecated ~old:"user" ~use:"run-as" expect_opt validate_username user;
     deprecated ~old:"group" ~use:"run-as" expect_opt validate_username group;

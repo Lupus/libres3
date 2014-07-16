@@ -94,8 +94,7 @@ let rec dump_cfg out ch =
   end;
   dump_cfg out ch
 
-let dump_cfg_file out name dir =
-  let path = Filename.concat dir name in
+let dump_cfg_file out path =
   try
     let ch = open_in path in
     print_wrap out path (fun () ->
@@ -106,10 +105,69 @@ let dump_cfg_file out name dir =
     )
   with _ -> ()
 
-let run out config result =
+open SXLwt
+open IO.Op
+
+let check_host host =
+  let url = Neturl.make_url ~encoded:false
+      ~scheme:"sx" ~user:!Config.key_id ~port:!Config.sx_port ~host ~path:[""] SXC.syntax in
+  let urlstr = Neturl.string_of_url url in
+  try_catch (fun () ->
+      SXIO.check (SXIO.of_neturl url) >>= fun result ->
+      return (Some (urlstr, result))
+  ) (fun e -> return (Some (urlstr, Some (Printexc.to_string e)))) ()
+
+let resolve_host out ~kind host =
+  eprintf "Looking up %s host '%s' ... %!" kind host;
+  fprintf out "%s host '%s' " kind host;
+  let results = try
+    match Unix.getaddrinfo host "" [Unix.AI_SOCKTYPE Unix.SOCK_STREAM; Unix.AI_CANONNAME] with
+    | [] ->
+        fprintf out "cannot be resolved\n"; []
+    | result ->
+      fprintf out "resolves to:\n";
+      List.rev_map (fun ai ->
+          match ai.Unix.ai_addr with
+          | Unix.ADDR_INET (inet, _) ->
+            let addr = Unix.string_of_inet_addr inet in
+            fprintf out "\t%s (%s)\n" addr ai.ai_canonname;
+            Some addr
+          | _ -> None
+        ) result
+    with e ->
+      fprintf out "failed to resolve: %s\n" (Printexc.to_string e); []
+  in
+  eprintf "done\n%!";
+  results
+
+let check_sx_hosts out sxhost =
+  let addrs = resolve_host out "SX" sxhost in
+  Default.register ();
+  eprintf " checking connection ... %!";
+  (* check all hosts in parallel *)
+  let check_results = List.rev_map (function
+      | Some host -> check_host host
+      | None -> return None) addrs in
+  (* wait for all results *)
+  let results = Lwt_main.run (List.fold_left (fun accum res ->
+      accum >>= fun a -> res >>= function
+    | Some r -> return (r :: a)
+    | None -> return a) (return []) check_results) in
+  List.iter (fun (host, result) ->
+      fprintf out "\t %s: %s\n" host (match result with
+          | None -> "OK"
+          | Some err -> err)
+    ) results
+
+let check_s3_hosts out s3host =
+  ignore (resolve_host out "S3" s3host)
+
+let run out result =
   print_section out "Build configuration";
   fprintf out "Source code version: %s\n" Version.version;
   fprintf out "sysconfdir: %s\n" Configure.sysconfdir;
+  fprintf out "localstatedir: %s\n" Configure.localstatedir;
+  fprintf out "sbindir: %s\n" Configure.sbindir;
   print_wrap out "Package versions" (fun () ->
       output_string out Version.package_info
   );
@@ -139,7 +197,7 @@ let run out config result =
   fprintf out "SSL private key file: %a\n" print_str_opt !Configfile.ssl_privatekey_file;
   fprintf out "Base host: %s, port: %d, SSL port: %d\n"
     !Configfile.base_hostname !Configfile.base_port !Configfile.base_ssl_port;
-  fprintf out "Access key id: %s\n" !Configfile.key_id;
+  fprintf out "Access key id: %s\n" !Config.key_id;
   fprintf out "Secret access key present: %d bytes\n"
     (String.length !Config.secret_access_key);
   fprintf out "SX host: %a\n" print_str_opt !Configfile.sx_host;
@@ -151,11 +209,26 @@ let run out config result =
   | OK _ -> fprintf out "OK\n";
   | Error e -> fprintf out "Error: %s\n" (Printexc.to_string e)
   end;
-  dump_cfg_file out (Filename.concat Configure.sysconfdir "libres3/libres3.conf");
-  dump_file out (Ocsigen_config.get_config_file ());
+  dump_cfg_file out (!Paths.config_file);
+  dump_file out (Paths.generated_config_file);
   let dir = !Paths.log_dir in
   dump_file out (Filename.concat dir "errors.log");
   dump_file out (Filename.concat dir "warnings.log");
   dump_file out (Filename.concat dir "info.log");
+  check_s3_hosts out !Configfile.base_hostname;
+  check_s3_hosts out ("test." ^ !Configfile.base_hostname);
+  match !Configfile.sx_host with
+  | Some host ->
+      check_sx_hosts out host
+  | None -> ()
 ;;
+
+let () =
+  Cmdline.parse_cmdline ~print_conf_help:false [
+    "--no-ssl", Arg.Clear Config.sx_ssl, ""
+  ];
+  let result =
+    try OK (Cmdline.load_and_validate_configuration ())
+    with e -> Error e in
+  run stdout result
 

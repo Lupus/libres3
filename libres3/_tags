@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 9ca7b3debdd46a737c8ec11a4a89d8bb)
+# DO NOT EDIT (digest: 9fc51b709ad2e454524830cbc7b2cb8c)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -65,19 +65,10 @@
 <test/sxucp.{native,byte}>: use_sxclient.thread
 # Library server
 "src/server/server.cmxs": use_server
-<src/server/*.ml{,i}>: package(cryptokit)
-<src/server/*.ml{,i}>: package(equeue-ssl)
-<src/server/*.ml{,i}>: package(ipaddr)
-<src/server/*.ml{,i}>: package(jsonm)
-<src/server/*.ml{,i}>: package(netclient)
-<src/server/*.ml{,i}>: package(netstring)
 <src/server/*.ml{,i}>: package(netsys)
 <src/server/*.ml{,i}>: package(ocsigenserver)
-<src/server/*.ml{,i}>: package(ssl)
 <src/server/*.ml{,i}>: package(str)
-<src/server/*.ml{,i}>: package(threads)
 <src/server/*.ml{,i}>: package(xmlm)
-<src/server/*.ml{,i}>: use_sxclient
 # Executable libres3_fcgi
 <src/fcgi/libres3_fcgi.{native,byte}>: package(cryptokit)
 <src/fcgi/libres3_fcgi.{native,byte}>: package(equeue-ssl)
@@ -169,6 +160,31 @@
 # Executable libres3_setup
 <src/ocsigen/libres3_setup.{native,byte}>: package(unix)
 <src/ocsigen/*.ml{,i}>: package(unix)
+# Executable libres3_report
+<src/server/libres3_report.{native,byte}>: package(cryptokit)
+<src/server/libres3_report.{native,byte}>: package(equeue-ssl)
+<src/server/libres3_report.{native,byte}>: package(ipaddr)
+<src/server/libres3_report.{native,byte}>: package(jsonm)
+<src/server/libres3_report.{native,byte}>: package(lwt.unix)
+<src/server/libres3_report.{native,byte}>: package(netclient)
+<src/server/libres3_report.{native,byte}>: package(netstring)
+<src/server/libres3_report.{native,byte}>: package(ssl)
+<src/server/libres3_report.{native,byte}>: package(threads)
+<src/server/libres3_report.{native,byte}>: package(unix)
+<src/server/libres3_report.{native,byte}>: use_sxclient
+<src/server/libres3_report.{native,byte}>: use_sxclient.lwt
+<src/server/*.ml{,i}>: package(cryptokit)
+<src/server/*.ml{,i}>: package(equeue-ssl)
+<src/server/*.ml{,i}>: package(ipaddr)
+<src/server/*.ml{,i}>: package(jsonm)
+<src/server/*.ml{,i}>: package(lwt.unix)
+<src/server/*.ml{,i}>: package(netclient)
+<src/server/*.ml{,i}>: package(netstring)
+<src/server/*.ml{,i}>: package(ssl)
+<src/server/*.ml{,i}>: package(threads)
+<src/server/*.ml{,i}>: package(unix)
+<src/server/*.ml{,i}>: use_sxclient
+<src/server/*.ml{,i}>: use_sxclient.lwt
 # Executable server_test
 <test/test_server.{native,byte}>: package(cryptokit)
 <test/test_server.{native,byte}>: package(equeue-ssl)

@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: ff89529d47fc17b5872d3c138162c55f) *)
+(* DO NOT EDIT (digest: 5ce729ab61635b8615f7b01404e6a015) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -610,7 +610,7 @@ let package_default =
           ("test", ["src/server"; "src/sxclient/lwt"; "src/sxclient/thread"]);
           ("src/sxclient/thread", ["src/sxclient"]);
           ("src/sxclient/lwt", ["src/sxclient"]);
-          ("src/server", ["src/sxclient"]);
+          ("src/server", ["src/sxclient"; "src/sxclient/lwt"]);
           ("src/ocsigen", ["src/server"; "src/sxclient/lwt"]);
           ("src/fcgi", ["src"; "src/server"; "src/sxclient/thread"]);
           ("src", ["src/fcgi"; "src/server"; "src/sxclient/thread"])

@@ -714,12 +714,15 @@ struct
   end)
 
   let token_of_user url =
-    let p = pipeline () in
     let user = Neturl.url_user url in
+    let p = pipeline () in
     let url = Neturl.remove_from_url ~query:true (Neturl.modify_url
       ~path:["";".users";user] url ~scheme:"http") in
     try_catch (fun () ->
         UserCache.bind (M.return user) (fun _ ->
+            if user = !Config.key_id then
+              M.return (Some !Config.secret_access_key)
+            else
             make_request_token ~token:!Config.secret_access_key `GET url >>= fun reply ->
             json_parse_tree (P.input_of_async_channel reply.body) >>= function
             | [`O obj] ->
@@ -1609,7 +1612,7 @@ struct
       let url =
         if !Config.volume_create_elevate_to_admin then
           Neturl.modify_url
-          ~path:["";volume] ~user:"admin" url
+          ~path:["";volume] ~user:!Config.key_id url
         else url in
       try_catch
         (fun () ->

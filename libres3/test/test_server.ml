@@ -211,7 +211,7 @@ let suite =
 ;;
 
 let _ =
-  Configfile.key_id := "AKIAIOSFODNN7EXAMPLE";
+  Config.key_id := "AKIAIOSFODNN7EXAMPLE";
   Config.secret_access_key := "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY";
   Configfile.base_hostname := "s3.amazonaws.com";
   run_test_tt_main suite

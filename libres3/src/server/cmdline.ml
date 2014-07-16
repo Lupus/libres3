@@ -81,16 +81,18 @@ let print_version () =
 
 let noop () = ()
 
-let print_help spec usage () =
+let print_help print_conf_help spec usage () =
   Arg.usage !spec usage;
-  let confspec = List.append (List.map (fun (key, _, desc) ->
-    (key, Arg.Unit noop, desc)) Configfile.entries)
-      ["-help",Arg.Unit noop,"";
-      "--help",Arg.Unit noop,""] in
-  Arg.usage (Arg.align confspec) "\nlibres3.conf entries:";
+  if print_conf_help then begin
+    let confspec = List.append (List.map (fun (key, _, desc) ->
+        (key, Arg.Unit noop, desc)) Configfile.entries)
+        ["-help",Arg.Unit noop,"";
+         "--help",Arg.Unit noop,""] in
+    Arg.usage (Arg.align confspec) "\nlibres3.conf entries:";
+  end;
   exit 0
 
-let parse_cmdline additional_args =
+let parse_cmdline ?(print_conf_help=true) additional_args =
   let stop = ref false in
   let status = ref false in
   let usage = (Printf.sprintf "Usage: %s [options]\n" Sys.argv.(0)) in
@@ -98,32 +100,22 @@ let parse_cmdline additional_args =
   spec := Arg.align [
     "--config-file", Arg.Set_string Paths.config_file,
       " Path to configuration file (default: " ^ !Paths.config_file ^ ")";
-    "--foreground", Arg.Clear Configfile.daemonize, " Run in foreground mode (default: \
-      daemonize)";
-    "--stop", Arg.Set stop, " Stop running process (based on PIDfile)";
-    "--status", Arg.Set status, " Print running process status (based on PIDfile)";
     "--version", Arg.Unit print_version, " Print version";
     "-V", Arg.Unit print_version, " Print version";
     "-help",Arg.Unit (fun () -> raise (Arg.Bad "use --help or -h")),"";
-    "-h",Arg.Unit (print_help spec usage), " Display this list of options";
-    "--help",Arg.Unit (print_help spec usage), " Display this list of options"
+    "-h",Arg.Unit (print_help print_conf_help spec usage), " Display this list of options";
+    "--help",Arg.Unit (print_help print_conf_help spec usage), " Display this list of options"
   ] @ additional_args;
   Arg.parse !spec (fun anon ->
     raise (Arg.Bad ("invalid option " ^ anon))
-  ) usage;
+  ) usage
+
+let load_and_validate_configuration () =
   let config = load_configuration Configfile.entries in
   if !Configfile.pidfile = "" then begin
     Printf.eprintf "pidfile is not set!\n";
     raise Exit
   end;
-  if !stop then begin
-    Pid.kill_pid !Configfile.pidfile;
-    exit 0
-  end;
-  if !status then begin
-    Pid.print_status !Configfile.pidfile;
-    exit 0
-  end
   Printf.printf "Configuration:\n";
   StringMap.iter print_config config;
   try
@@ -180,6 +172,5 @@ let parse_cmdline additional_args =
         !Configfile.buckets_dir
   with Arg.Bad msg ->
     Printf.eprintf "Command-line error: %s!\n" msg;
-    Arg.usage !spec usage;
-    raise Exit;;
+    raise Exit
 

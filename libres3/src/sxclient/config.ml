@@ -38,6 +38,7 @@ let sx_port : int ref = ref 443
 let sx_ssl : bool ref = ref true
 let replica_count = ref 0
 let volume_size = ref 0.
+let key_id = ref "admin"
 
 let buffer_size = 131072
 

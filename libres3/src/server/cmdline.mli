@@ -27,5 +27,5 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
-val parse_cmdline : (Arg.key * Arg.spec * Arg.doc) list -> unit
-
+val parse_cmdline : ?print_conf_help:bool -> (Arg.key * Arg.spec * Arg.doc) list -> unit
+val load_and_validate_configuration : unit -> unit
