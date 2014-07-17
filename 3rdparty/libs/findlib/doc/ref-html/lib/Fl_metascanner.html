@@ -22,50 +22,54 @@
 &nbsp;<a class="post" href="Topfind.html" title="Topfind">Next</a>
 </div>
 <h1>Module <a href="type_Fl_metascanner.html">Fl_metascanner</a></h1>
-<pre><span class="keyword">module</span> Fl_metascanner: <code class="code">sig</code> <a href="Fl_metascanner.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Fl_metascanner: <code class="code">sig</code> <a href="Fl_metascanner.html">..</a> <code class="code">end</code></pre><div class="info module top">
 Parses META files<br>
 </div>
 <hr width="100%">
+
 <pre><span id="TYPEformal_pred"><span class="keyword">type</span> <code class="type"></code>formal_pred</span> = <code class="type">[ `NegPred of string | `Pred of string ]</code> </pre>
 
+
 <pre><span id="TYPEflavour"><span class="keyword">type</span> <code class="type"></code>flavour</span> = <code class="type">[ `Appendix | `BaseDef ]</code> </pre>
-<div class="info">
+<div class="info ">
 <code class="code">`BaseDef</code> refers to META definitions using the "=" operator,
  and <code class="code">`Appendix</code> refers to definitions using the "+=" operator.<br>
 </div>
+
 
 <pre><code><span id="TYPEpkg_definition"><span class="keyword">type</span> <code class="type"></code>pkg_definition</span> = {</code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTpkg_definition.def_var">def_var</span>&nbsp;:<code class="type">string</code>;</code></td>
+<code><span id="TYPEELTpkg_definition.def_var">def_var</span>&nbsp;: <code class="type">string</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >The name of the defined variable</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTpkg_definition.def_flav">def_flav</span>&nbsp;:<code class="type"><a href="Fl_metascanner.html#TYPEflavour">flavour</a></code>;</code></td>
+<code><span id="TYPEELTpkg_definition.def_flav">def_flav</span>&nbsp;: <code class="type"><a href="Fl_metascanner.html#TYPEflavour">flavour</a></code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >The flavour of the definition</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTpkg_definition.def_preds">def_preds</span>&nbsp;:<code class="type"><a href="Fl_metascanner.html#TYPEformal_pred">formal_pred</a> list</code>;</code></td>
+<code><span id="TYPEELTpkg_definition.def_preds">def_preds</span>&nbsp;: <code class="type"><a href="Fl_metascanner.html#TYPEformal_pred">formal_pred</a> list</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >The formal predicates of the def</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTpkg_definition.def_value">def_value</span>&nbsp;:<code class="type">string</code>;</code></td>
+<code><span id="TYPEELTpkg_definition.def_value">def_value</span>&nbsp;: <code class="type">string</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >The value assigned to the variable</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr></table>
 }
 
-<div class="info">
+<div class="info ">
 A <code class="code">pkg_definition</code> is expressed by the syntax
   <pre class="codepre"><code class="code"> var(p1,p2,...) = "value" </code></pre> (flavour `BaseDef), 
   or the syntax
@@ -74,31 +78,33 @@ A <code class="code">pkg_definition</code> is expressed by the syntax
   may be negated by using "-", e.g. "-x".<br>
 </div>
 
+
 <pre><code><span id="TYPEpkg_expr"><span class="keyword">type</span> <code class="type"></code>pkg_expr</span> = {</code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTpkg_expr.pkg_defs">pkg_defs</span>&nbsp;:<code class="type"><a href="Fl_metascanner.html#TYPEpkg_definition">pkg_definition</a> list</code>;</code></td>
+<code><span id="TYPEELTpkg_expr.pkg_defs">pkg_defs</span>&nbsp;: <code class="type"><a href="Fl_metascanner.html#TYPEpkg_definition">pkg_definition</a> list</code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTpkg_expr.pkg_children">pkg_children</span>&nbsp;:<code class="type">(string * <a href="Fl_metascanner.html#TYPEpkg_expr">pkg_expr</a>) list</code>;</code></td>
+<code><span id="TYPEELTpkg_expr.pkg_children">pkg_children</span>&nbsp;: <code class="type">(string * <a href="Fl_metascanner.html#TYPEpkg_expr">pkg_expr</a>) list</code>;</code></td>
 
 </tr></table>
 }
 
-<div class="info">
+<div class="info ">
 A value of type <code class="code">pkg_expr</code> denotes the contents of a META file.
   The component <code class="code">pkg_defs</code> are the variable definitions.
   The component <code class="code">pkg_children</code> contains
   the definitions of the subpackages.<br>
 </div>
 
-<pre><span id="VALparse"><span class="keyword">val</span> parse</span> : <code class="type">Pervasives.in_channel -> <a href="Fl_metascanner.html#TYPEpkg_expr">pkg_expr</a></code></pre><div class="info">
+
+<pre><span id="VALparse"><span class="keyword">val</span> parse</span> : <code class="type">Pervasives.in_channel -> <a href="Fl_metascanner.html#TYPEpkg_expr">pkg_expr</a></code></pre><div class="info ">
 <code class="code">parse ch:</code> 
  scans and parses the file connected with channel <code class="code">ch</code>. The file must
  have a syntax compatible with the META format. The return value
@@ -108,11 +114,16 @@ A value of type <code class="code">pkg_expr</code> denotes the contents of a MET
  <code class="code">exception Stream.Error of string:</code> is
  raised on syntax errors. The string explains the error.<br>
 </div>
-<pre><span id="VALparse2"><span class="keyword">val</span> parse2</span> : <code class="type">Pervasives.in_channel -> <a href="Fl_metascanner.html#TYPEpkg_expr">pkg_expr</a></code></pre><pre><span id="VALparse2_lexing"><span class="keyword">val</span> parse2_lexing</span> : <code class="type">Lexing.lexbuf -> <a href="Fl_metascanner.html#TYPEpkg_expr">pkg_expr</a></code></pre><pre><span id="VALparse_lexing"><span class="keyword">val</span> parse_lexing</span> : <code class="type">Lexing.lexbuf -> <a href="Fl_metascanner.html#TYPEpkg_expr">pkg_expr</a></code></pre><pre><span id="VALprint"><span class="keyword">val</span> print</span> : <code class="type">Pervasives.out_channel -> <a href="Fl_metascanner.html#TYPEpkg_expr">pkg_expr</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALparse2"><span class="keyword">val</span> parse2</span> : <code class="type">Pervasives.in_channel -> <a href="Fl_metascanner.html#TYPEpkg_expr">pkg_expr</a></code></pre>
+<pre><span id="VALparse2_lexing"><span class="keyword">val</span> parse2_lexing</span> : <code class="type">Lexing.lexbuf -> <a href="Fl_metascanner.html#TYPEpkg_expr">pkg_expr</a></code></pre>
+<pre><span id="VALparse_lexing"><span class="keyword">val</span> parse_lexing</span> : <code class="type">Lexing.lexbuf -> <a href="Fl_metascanner.html#TYPEpkg_expr">pkg_expr</a></code></pre>
+<pre><span id="VALprint"><span class="keyword">val</span> print</span> : <code class="type">Pervasives.out_channel -> <a href="Fl_metascanner.html#TYPEpkg_expr">pkg_expr</a> -> unit</code></pre><div class="info ">
 <code class="code">print ch expr</code>:
  Outputs the package expression to a channel.<br>
 </div>
-<pre><span id="VALlookup"><span class="keyword">val</span> lookup</span> : <code class="type">string -> string list -> <a href="Fl_metascanner.html#TYPEpkg_definition">pkg_definition</a> list -> string</code></pre><div class="info">
+
+<pre><span id="VALlookup"><span class="keyword">val</span> lookup</span> : <code class="type">string -> string list -> <a href="Fl_metascanner.html#TYPEpkg_definition">pkg_definition</a> list -> string</code></pre><div class="info ">
 <code class="code">lookup variable_name predicate_list def</code>:
 <p>
 
@@ -133,7 +144,8 @@ A value of type <code class="code">pkg_expr</code> denotes the contents of a MET
  When step (A) does not find any matching definition, the exception
  <code class="code">Not_found</code> is raised.<br>
 </div>
-<pre><span id="VALpredicate_exists"><span class="keyword">val</span> predicate_exists</span> : <code class="type">string -> <a href="Fl_metascanner.html#TYPEpkg_definition">pkg_definition</a> list -> bool</code></pre><div class="info">
+
+<pre><span id="VALpredicate_exists"><span class="keyword">val</span> predicate_exists</span> : <code class="type">string -> <a href="Fl_metascanner.html#TYPEpkg_definition">pkg_definition</a> list -> bool</code></pre><div class="info ">
 <code class="code">predicate_exists variable_name def</code>:
 <p>
 

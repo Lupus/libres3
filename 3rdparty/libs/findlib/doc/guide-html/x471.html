@@ -2,8 +2,7 @@
 <HTML
 ><HEAD
 ><TITLE
->	  Does Findlib support ppx-style preprocessors?
-        </TITLE
+>Why do some people install the .cmx files?</TITLE
 ><META
 NAME="GENERATOR"
 CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
@@ -14,12 +13,12 @@ REL="UP"
 TITLE="FAQs"
 HREF="c380.html"><LINK
 REL="PREVIOUS"
-TITLE="	  Does Findlib support camlp4?
+TITLE="	  Does Findlib support ppx-style preprocessors?
         "
-HREF="x412.html"><LINK
+HREF="x464.html"><LINK
 REL="NEXT"
-TITLE="Why do some people install the .cmx files?"
-HREF="x471.html"></HEAD
+TITLE="How do I express conflicts?"
+HREF="x475.html"></HEAD
 ><BODY
 CLASS="SECT1"
 BGCOLOR="#FFFFFF"
@@ -47,7 +46,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="bottom"
 ><A
-HREF="x412.html"
+HREF="x464.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -61,7 +60,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="bottom"
 ><A
-HREF="x471.html"
+HREF="x475.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -75,35 +74,26 @@ CLASS="SECT1"
 ><H1
 CLASS="SECT1"
 ><A
-NAME="AEN464"
->Does Findlib support ppx-style preprocessors?</A
+NAME="AEN471"
+>Why do some people install the .cmx files?</A
 ></H1
 ><P
->	<SPAN
-CLASS="emphasis"
-><I
-CLASS="EMPHASIS"
->Short answer:</I
-></SPAN
-> Yes, but there is only little
-	documentation.</P
+>In principle, it is not necessary to install the .cmx
+files created by the ocamlopt compiler, as the .a and .cmxa files
+already contain the assembly code and all needed auxiliary information.
+However, it may be sensible to install the .cmx files, too. They
+contain the intermediate code of small functions that are candidates
+for inlining, and installing them allows the compiler to do inlining
+even across library boundaries. Note that only very small functions
+can be inlined at all, and that there are language elements that
+prevent inlining (e.g. raising an exception with an argument), so
+it makes only sense when the library actually has such functions
+and really profits from inlining.</P
 ><P
->Since findlib-1.5, ppx-style preprocessors are supported
-to some extent. A package can now define a "ppx" property which is simply
-a command to run as preprocessor (the command gets the marshalled AST
-as input, and must generate the transformed AST in its output; see the
--ppx option of ocamlc/ocamlopt). A META file can simply look like:
-
-<PRE
-CLASS="PROGRAMLISTING"
->ppx = "./command"</PRE
->
-
-when "command" is installed in the package directory (but you can also
-omit "./" to search it, and you can prefix it with "@name/" if the command
-is taken from another package "name").</P
-><P
->This feature is still a bit experimental.</P
+>Inlining has also disadvantages: The library can no 
+longer be replaced by a different version even if the interface
+remains exactly the same, because code using the library may have
+inlined code of the old version.</P
 ></DIV
 ><DIV
 CLASS="NAVFOOTER"
@@ -121,7 +111,7 @@ WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="x412.html"
+HREF="x464.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -139,7 +129,7 @@ WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="x471.html"
+HREF="x475.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -149,7 +139,7 @@ ACCESSKEY="N"
 WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
->Does Findlib support camlp4?</TD
+>Does Findlib support ppx-style preprocessors?</TD
 ><TD
 WIDTH="34%"
 ALIGN="center"
@@ -163,7 +153,7 @@ ACCESSKEY="U"
 WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
->Why do some people install the .cmx files?</TD
+>How do I express conflicts?</TD
 ></TR
 ></TABLE
 ></DIV

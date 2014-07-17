@@ -646,6 +646,17 @@ camlp4-arg\c
 \&\ |\c
 \&
 .br
+\&\ \ \ \ \ \ \ \ \ \ \ \ -ppxopt\ \c
+.ft I
+package\c
+.ft B
+,\c
+.ft I
+arg\c
+.ft B
+\&\ |\c
+\&
+.br
 \&\ \ \ \ \ \ \ \ \ \ \ \ -dllpath-pkg\ \c
 .ft I
 package-name-list\c
@@ -668,6 +679,9 @@ arg\c
 arg...\c
 .ft B
 \&\ |\c
+\&
+.br
+\&\ \ \ \ \ \ \ \ \ \ \ \ -only-show\ |\c
 \&
 .br
 \&\ \ \ \ \ \ \ \ \ \ \ \ \c
@@ -946,6 +960,23 @@ arg...\c
 \& passed directly to the underlying compiler. This is needed to\c
 \&  
 \& specify undocumented compiler options.\c
+.RE
+.ft R
+.sp
+.RS "2m"
+.ft R
+-only-show\c
+.RE
+.ft R
+.sp
+.RS "7m"
+.ft R
+.ft R
+Only prints the constructed command (ocamlc/ocamlopt) to\c
+\&  
+\& stdout, but does not execute the command. (This is for the unlikely event\c
+\&  
+\& that you need a wrapper around ocamlfind.)\c
 .RE
 .ft R
 .sp

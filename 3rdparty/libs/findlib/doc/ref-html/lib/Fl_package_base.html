@@ -24,16 +24,18 @@
 &nbsp;<a class="post" href="Fl_metascanner.html" title="Fl_metascanner">Next</a>
 </div>
 <h1>Module <a href="type_Fl_package_base.html">Fl_package_base</a></h1>
-<pre><span class="keyword">module</span> Fl_package_base: <code class="code">sig</code> <a href="Fl_package_base.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Fl_package_base: <code class="code">sig</code> <a href="Fl_package_base.html">..</a> <code class="code">end</code></pre><div class="info module top">
 Direct access to the package graph and package files<br>
 </div>
 <hr width="100%">
+
 <pre><code><span id="TYPEpackage"><span class="keyword">type</span> <code class="type"></code>package</span> = {</code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTpackage.package_name">package_name</span>&nbsp;:<code class="type">string</code>;</code></td>
+<code><span id="TYPEELTpackage.package_name">package_name</span>&nbsp;: <code class="type">string</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >The fully qualified package name, i.e. for subpackages the
  names of the containing packages are prepended and the name
  components are separated by '.'</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
@@ -42,32 +44,34 @@ Direct access to the package graph and package files<br>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTpackage.package_dir">package_dir</span>&nbsp;:<code class="type">string</code>;</code></td>
+<code><span id="TYPEELTpackage.package_dir">package_dir</span>&nbsp;: <code class="type">string</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >The directory where to lookup package files</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTpackage.package_defs">package_defs</span>&nbsp;:<code class="type"><a href="Fl_metascanner.html#TYPEpkg_definition">Fl_metascanner.pkg_definition</a> list</code>;</code></td>
+<code><span id="TYPEELTpackage.package_defs">package_defs</span>&nbsp;: <code class="type"><a href="Fl_metascanner.html#TYPEpkg_definition">Fl_metascanner.pkg_definition</a> list</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >The definitions in the META file</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTpackage.package_priv">package_priv</span>&nbsp;:<code class="type"><a href="Fl_package_base.html#TYPEpackage_priv">package_priv</a></code>;</code></td>
+<code><span id="TYPEELTpackage.package_priv">package_priv</span>&nbsp;: <code class="type"><a href="Fl_package_base.html#TYPEpackage_priv">package_priv</a></code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >Private part of the definition</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr></table>
 }
 
-<div class="info">
+<div class="info ">
 The definition of a package<br>
 </div>
 
+
 <pre><span id="TYPEpackage_priv"><span class="keyword">type</span> <code class="type"></code>package_priv</span> </pre>
 
-<pre><span id="VALinit"><span class="keyword">val</span> init</span> : <code class="type">string list -> string -> string option -> unit</code></pre><div class="info">
+
+<pre><span id="VALinit"><span class="keyword">val</span> init</span> : <code class="type">string list -> string -> string option -> unit</code></pre><div class="info ">
 This function must be called before <code class="code">Fl_package_base</code> can be used.
  The first string corresponds to the <code class="code">OCAMLPATH</code> setting, the second
  string is the location of the standard library.
@@ -82,24 +86,28 @@ This function must be called before <code class="code">Fl_package_base</code> ca
 The functions in this section operate on a representation of the
  package graph in memory. The graph is usually only partially available,
  as only packages are loaded that are queried for.<br>
+
 <pre><span id="EXCEPTIONNo_such_package"><span class="keyword">exception</span> No_such_package</span> <span class="keyword">of</span> <code class="type">string * string</code></pre>
-<div class="info">
+<div class="info ">
 First arg is the package name not found, second arg contains additional
  info for the user. - This is the same exception as in <code class="code">Findlib</code>.<br>
 </div>
+
 <pre><span id="EXCEPTIONPackage_loop"><span class="keyword">exception</span> Package_loop</span> <span class="keyword">of</span> <code class="type">string</code></pre>
-<div class="info">
+<div class="info ">
 A package is required by itself. The arg is the name of the 
  package. - This is the same exception as in <code class="code">Findlib</code>.<br>
 </div>
-<pre><span id="VALquery"><span class="keyword">val</span> query</span> : <code class="type">string -> <a href="Fl_package_base.html#TYPEpackage">package</a></code></pre><div class="info">
+
+<pre><span id="VALquery"><span class="keyword">val</span> query</span> : <code class="type">string -> <a href="Fl_package_base.html#TYPEpackage">package</a></code></pre><div class="info ">
 Returns the <code class="code">package</code> definition for the fully-qualified package name,
  or raises <code class="code">No_such_package</code>. It is allowed to query for subpackages.
 <p>
 
  This function loads package definitions into the graph kept in memory.<br>
 </div>
-<pre><span id="VALrequires"><span class="keyword">val</span> requires</span> : <code class="type">preds:string list -> string -> string list</code></pre><div class="info">
+
+<pre><span id="VALrequires"><span class="keyword">val</span> requires</span> : <code class="type">preds:string list -> string -> string list</code></pre><div class="info ">
 Analyzes the direct requirements of the package whose name is passed as
  second argument under the assumption that the predicates <code class="code">preds</code>
  hold. The function returns the names of the required packages.
@@ -115,7 +123,8 @@ Analyzes the direct requirements of the package whose name is passed as
 
  This function loads package definitions into the graph kept in memory.<br>
 </div>
-<pre><span id="VALrequires_deeply"><span class="keyword">val</span> requires_deeply</span> : <code class="type">preds:string list -> string list -> string list</code></pre><div class="info">
+
+<pre><span id="VALrequires_deeply"><span class="keyword">val</span> requires_deeply</span> : <code class="type">preds:string list -> string list -> string list</code></pre><div class="info ">
 Analyzes the direct or indirect requirements of the packages whose names
  are passed as second argument under the assumption that the predicates
  <code class="code">preds</code> hold. The function returns the names of the required packages.
@@ -131,7 +140,8 @@ Analyzes the direct or indirect requirements of the packages whose names
 
  This function loads package definitions into the graph kept in memory.<br>
 </div>
-<pre><span id="VALpackage_conflict_report"><span class="keyword">val</span> package_conflict_report</span> : <code class="type">?identify_dir:(string -> 'a) -> unit -> unit</code></pre><div class="info">
+
+<pre><span id="VALpackage_conflict_report"><span class="keyword">val</span> package_conflict_report</span> : <code class="type">?identify_dir:(string -> 'a) -> unit -> unit</code></pre><div class="info ">
 Checks whether there are several META files for the same main
  packages. Complaints are printed to stderr.
 <p>
@@ -151,7 +161,8 @@ Checks whether there are several META files for the same main
  the identity (and not this nice implementation to avoid dependencies
  on the Unix module).<br>
 </div>
-<pre><span id="VALmodule_conflict_report"><span class="keyword">val</span> module_conflict_report</span> : <code class="type">?identify_dir:(string -> 'a) -> string list -> unit</code></pre><div class="info">
+
+<pre><span id="VALmodule_conflict_report"><span class="keyword">val</span> module_conflict_report</span> : <code class="type">?identify_dir:(string -> 'a) -> string list -> unit</code></pre><div class="info ">
 Checks whether there are cmi files for the same modules. The
  directories passed as first argument are checked. (Note:
  Neither the '+' nor the '@' notation are recognized.)
@@ -161,17 +172,20 @@ Checks whether there are cmi files for the same modules. The
 <br>
 </div>
 <div class="param_info"><code class="code">identify_dir</code> : See <code class="code">package_conflict_report</code>.</div>
-<pre><span id="VALload_base"><span class="keyword">val</span> load_base</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="VALload_base"><span class="keyword">val</span> load_base</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Ensures that the complete package graph is loaded into memory.
  This is a time-consuming operation. Warnings may be printed to
  stderr.<br>
 </div>
-<pre><span id="VALlist_packages"><span class="keyword">val</span> list_packages</span> : <code class="type">unit -> string list</code></pre><div class="info">
+
+<pre><span id="VALlist_packages"><span class="keyword">val</span> list_packages</span> : <code class="type">unit -> string list</code></pre><div class="info ">
 Ensures that the complete package graph is loaded into memory
  (like <code class="code">load_base</code>), and returns the (unsorted) list of all
  packages.<br>
 </div>
-<pre><span id="VALpackage_users"><span class="keyword">val</span> package_users</span> : <code class="type">preds:string list -> string list -> string list</code></pre><div class="info">
+
+<pre><span id="VALpackage_users"><span class="keyword">val</span> package_users</span> : <code class="type">preds:string list -> string list -> string list</code></pre><div class="info ">
 Ensures that the complete package graph is loaded into memory
  (like <code class="code">load_base</code>), and determines the packages using one of
  the packages passed as second argument. The <code class="code">preds</code> are assumed
@@ -191,7 +205,8 @@ Ensures that the complete package graph is loaded into memory
 <br>
 The functions in this section access directly files and directories.
  The package graph is unknown.<br>
-<pre><span id="VALpackages_in_meta_file"><span class="keyword">val</span> packages_in_meta_file</span> : <code class="type">?directory_required:bool -><br>       name:string -><br>       dir:string -> meta_file:string -> unit -> <a href="Fl_package_base.html#TYPEpackage">package</a> list</code></pre><div class="info">
+
+<pre><span id="VALpackages_in_meta_file"><span class="keyword">val</span> packages_in_meta_file</span> : <code class="type">?directory_required:bool -><br>       name:string -><br>       dir:string -> meta_file:string -> unit -> <a href="Fl_package_base.html#TYPEpackage">package</a> list</code></pre><div class="info ">
 Parses the META file whose name is <code class="code">meta_file</code>. In <code class="code">name</code>, the
  name of the main package must be passed. <code class="code">dir</code> is the
  directory associated with the package by default (i.e. before
@@ -207,7 +222,8 @@ Parses the META file whose name is <code class="code">meta_file</code>. In <code
 <div class="param_info"><code class="code">directory_required</code> : If true, it is checked whether there is a
  "directory" directive in the main package. If this directive is missing,
  the function will fail.</div>
-<pre><span id="VALpackage_definitions"><span class="keyword">val</span> package_definitions</span> : <code class="type">search_path:string list -> string -> string list</code></pre><div class="info">
+
+<pre><span id="VALpackage_definitions"><span class="keyword">val</span> package_definitions</span> : <code class="type">search_path:string list -> string -> string list</code></pre><div class="info ">
 Return all META files defining this package that occur in the 
  directories mentioned in <code class="code">search_path</code>. The package name must be
  fully-qualified. For simplicity, however, only the name of the main

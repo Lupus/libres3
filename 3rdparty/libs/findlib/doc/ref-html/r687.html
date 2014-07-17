@@ -11,13 +11,13 @@ TITLE="The findlib Reference Manual"
 HREF="index.html"><LINK
 REL="UP"
 TITLE="Files"
-HREF="p679.html"><LINK
+HREF="p685.html"><LINK
 REL="PREVIOUS"
 TITLE="Files"
-HREF="p679.html"><LINK
+HREF="p685.html"><LINK
 REL="NEXT"
 TITLE="findlib.conf"
-HREF="r775.html"></HEAD
+HREF="r783.html"></HEAD
 ><BODY
 CLASS="REFENTRY"
 BGCOLOR="#FFFFFF"
@@ -45,7 +45,7 @@ WIDTH="10%"
 ALIGN="left"
 VALIGN="bottom"
 ><A
-HREF="p679.html"
+HREF="p685.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -59,7 +59,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="bottom"
 ><A
-HREF="r775.html"
+HREF="r783.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -70,7 +70,7 @@ ALIGN="LEFT"
 WIDTH="100%"></DIV
 ><H1
 ><A
-NAME="AEN681"
+NAME="AEN687"
 ></A
 >META</H1
 ><DIV
@@ -84,7 +84,7 @@ NAME="META"
 ><DIV
 CLASS="REFSYNOPSISDIV"
 ><A
-NAME="AEN689"
+NAME="AEN695"
 ></A
 ><H2
 >GRAMMAR</H2
@@ -105,7 +105,7 @@ formal_predicates ::= '(' formal_predicate { ',' formal_predicate } ')'
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN692"
+NAME="AEN698"
 ></A
 ><H2
 >DESCRIPTION</H2
@@ -127,7 +127,7 @@ profiling. </P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN696"
+NAME="AEN702"
 ></A
 ><H2
 >DETAILS OF THE FILE FORMAT</H2
@@ -152,7 +152,7 @@ as delimiter of compound names.</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN702"
+NAME="AEN708"
 ></A
 ><H2
 >MAIN PACKAGES AND SUBPACKAGES</H2
@@ -189,7 +189,7 @@ is inherited from the containing package).</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN710"
+NAME="AEN716"
 ></A
 ><H2
 >SEMANTICS OF VARIABLE DEFINITIONS</H2
@@ -255,7 +255,7 @@ implicit white space as separator.</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN724"
+NAME="AEN730"
 ></A
 ><H2
 >VARIABLES</H2
@@ -281,7 +281,7 @@ name (without special syntax). In the latter case, the interpretation
 depends on whether it is contained in a main or sub package, and
 whether the standard repository layout or the alternate layout is in
 effect (see <A
-HREF="r964.html#SITE-LIB"
+HREF="r972.html#SITE-LIB"
 >site-lib</A
 > for these terms).
 For a main package in standard layout the base directory is the
@@ -361,6 +361,16 @@ value of "exists_if" is a file; the subpackage is hidden if this
 file does not exist. You can also enumerate several files, and the
 subpackage is hidden if none of the files exist.</P
 ></LI
+><LI
+STYLE="list-style-type: disc"
+><P
+>The variable "ppx" is a command that is added to the compiler invocation
+via the -ppx option (available since OCaml-4.01). If the command is
+relative to the current directory (e.g. ./cmd), the command is expected
+in the package directory. The special forms as defined for "archive"
+are also available (e.g. @otherpkg/cmd). Additional arguments can be
+specified on the ocamlfind command line with the -ppxopt option.</P
+></LI
 ></UL
 ><P
 >It is possible to define additional variables but there is currently
@@ -369,7 +379,7 @@ no software interpreting them.</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN748"
+NAME="AEN756"
 ></A
 ><H2
 >PREDICATES</H2
@@ -467,7 +477,7 @@ WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
 ><A
-HREF="p679.html"
+HREF="p685.html"
 ACCESSKEY="P"
 >Prev</A
 ></TD
@@ -485,7 +495,7 @@ WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="r775.html"
+HREF="r783.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -501,7 +511,7 @@ WIDTH="34%"
 ALIGN="center"
 VALIGN="top"
 ><A
-HREF="p679.html"
+HREF="p685.html"
 ACCESSKEY="U"
 >Up</A
 ></TD

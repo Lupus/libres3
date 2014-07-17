@@ -85,6 +85,16 @@ of questions.
 List of Changes
 ==============================================================================
 
+-  1.5.1: includes a file that was missing in 1.5
+   
+-  1.5: Including the "bytes" package that is either a compat package for ocaml 
+   < 4.02 or a fake package for ocaml >= 4.02. The package aims at helping to 
+   support the transition to the new "bytes" type for mutable strings.
+   Also installing findlib.cmxs if OCaml supports it.
+   Allowing to disable camlp4 (in prep for OCaml-4.02).
+   The "ppx" package property can be specified for constructing ppx-type 
+   preprocessors (patches from Peter Zotov).
+   
 -  1.4.1:ocamldoc: The order of -ppopt arguments was changed by ocamlfind, 
    which is not correct. (Sylvain Le Gall and Jérémie Dimino.)
    

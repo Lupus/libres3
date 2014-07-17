@@ -394,6 +394,24 @@ file does not exist. You can also enumerate several files, and the\c
 subpackage is hidden if none of the files exist.\c
 .RE
 .ft R
+.sp
+.RS "7m"
+.ft R
+\&\h'-3m'\z\(bu\h'3m'\c
+.ft R
+The variable "ppx" is a command that is added to the compiler invocation\c
+\&  
+via the -ppx option (available since OCaml-4.01). If the command is\c
+\&  
+relative to the current directory (e.g. ./cmd), the command is expected\c
+\&  
+in the package directory. The special forms as defined for "archive"\c
+\&  
+are also available (e.g. @otherpkg/cmd). Additional arguments can be\c
+\&  
+specified on the ocamlfind command line with the -ppxopt option.\c
+.RE
+.ft R
 .PP
 .ft R
 .ft R

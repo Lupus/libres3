@@ -20,7 +20,8 @@
 &nbsp;<a class="post" href="Fl_package_base.html" title="Fl_package_base">Next</a>
 </div>
 <h1>Module <a href="type_Findlib.html">Findlib</a></h1>
-<pre><span class="keyword">module</span> Findlib: <code class="code">sig</code> <a href="Findlib.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Findlib: <code class="code">sig</code> <a href="Findlib.html">..</a> <code class="code">end</code></pre><div class="info module top">
 The primary findlib interface
 <p>
 
@@ -33,17 +34,20 @@ The primary findlib interface
  <code class="code">init</code> or <code class="code">init_manually</code> for this.<br>
 </div>
 <hr width="100%">
+
 <pre><span id="EXCEPTIONNo_such_package"><span class="keyword">exception</span> No_such_package</span> <span class="keyword">of</span> <code class="type">string * string</code></pre>
-<div class="info">
+<div class="info ">
 First arg is the package name not found, second arg contains additional
  info for the user<br>
 </div>
+
 <pre><span id="EXCEPTIONPackage_loop"><span class="keyword">exception</span> Package_loop</span> <span class="keyword">of</span> <code class="type">string</code></pre>
-<div class="info">
+<div class="info ">
 A package is required by itself. The arg is the name of the 
  package<br>
 </div>
-<pre><span id="VALinit"><span class="keyword">val</span> init</span> : <code class="type">?env_ocamlpath:string -><br>       ?env_ocamlfind_destdir:string -><br>       ?env_ocamlfind_metadir:string -><br>       ?env_ocamlfind_commands:string -><br>       ?env_ocamlfind_ignore_dups_in:string -><br>       ?env_camllib:string -><br>       ?env_ldconf:string -> ?config:string -> ?toolchain:string -> unit -> unit</code></pre><div class="info">
+
+<pre><span id="VALinit"><span class="keyword">val</span> init</span> : <code class="type">?env_ocamlpath:string -><br>       ?env_ocamlfind_destdir:string -><br>       ?env_ocamlfind_metadir:string -><br>       ?env_ocamlfind_commands:string -><br>       ?env_ocamlfind_ignore_dups_in:string -><br>       ?env_camllib:string -><br>       ?env_ldconf:string -> ?config:string -> ?toolchain:string -> unit -> unit</code></pre><div class="info ">
 Initializes the library from the configuration file and the environment. 
  By default the
  function reads the file specified at compile time, but you can also
@@ -81,41 +85,51 @@ Initializes the library from the configuration file and the environment.
 </ul>
 <br>
 </div>
-<pre><span id="VALinit_manually"><span class="keyword">val</span> init_manually</span> : <code class="type">?ocamlc_command:string -><br>       ?ocamlopt_command:string -><br>       ?ocamlcp_command:string -><br>       ?ocamloptp_command:string -><br>       ?ocamlmklib_command:string -><br>       ?ocamlmktop_command:string -><br>       ?ocamldep_command:string -><br>       ?ocamlbrowser_command:string -><br>       ?ocamldoc_command:string -><br>       ?ignore_dups_in:string -><br>       ?stdlib:string -><br>       ?ldconf:string -><br>       install_dir:string -><br>       meta_dir:string -> search_path:string list -> unit -> unit</code></pre><div class="info">
+
+<pre><span id="VALinit_manually"><span class="keyword">val</span> init_manually</span> : <code class="type">?ocamlc_command:string -><br>       ?ocamlopt_command:string -><br>       ?ocamlcp_command:string -><br>       ?ocamloptp_command:string -><br>       ?ocamlmklib_command:string -><br>       ?ocamlmktop_command:string -><br>       ?ocamldep_command:string -><br>       ?ocamlbrowser_command:string -><br>       ?ocamldoc_command:string -><br>       ?ignore_dups_in:string -><br>       ?stdlib:string -><br>       ?ldconf:string -><br>       install_dir:string -><br>       meta_dir:string -> search_path:string list -> unit -> unit</code></pre><div class="info ">
 This is an alternate way to initialize the library directly. 
  Environment variables and configuration files are ignored.<br>
 </div>
-<pre><span id="VALdefault_location"><span class="keyword">val</span> default_location</span> : <code class="type">unit -> string</code></pre><div class="info">
+
+<pre><span id="VALdefault_location"><span class="keyword">val</span> default_location</span> : <code class="type">unit -> string</code></pre><div class="info ">
 Get the default installation directory for packages<br>
 </div>
-<pre><span id="VALmeta_directory"><span class="keyword">val</span> meta_directory</span> : <code class="type">unit -> string</code></pre><div class="info">
+
+<pre><span id="VALmeta_directory"><span class="keyword">val</span> meta_directory</span> : <code class="type">unit -> string</code></pre><div class="info ">
 Get the META installation directory for packages.
  Returns <code class="code">""</code> if no such directory is configured.<br>
 </div>
-<pre><span id="VALsearch_path"><span class="keyword">val</span> search_path</span> : <code class="type">unit -> string list</code></pre><div class="info">
+
+<pre><span id="VALsearch_path"><span class="keyword">val</span> search_path</span> : <code class="type">unit -> string list</code></pre><div class="info ">
 Get the search path for packages<br>
 </div>
-<pre><span id="VALcommand"><span class="keyword">val</span> command</span> : <code class="type">[ `ocamlbrowser<br>       | `ocamlc<br>       | `ocamlcp<br>       | `ocamldep<br>       | `ocamldoc<br>       | `ocamlmklib<br>       | `ocamlmktop<br>       | `ocamlopt<br>       | `ocamloptp ] -> string</code></pre><div class="info">
+
+<pre><span id="VALcommand"><span class="keyword">val</span> command</span> : <code class="type">[ `ocamlbrowser<br>       | `ocamlc<br>       | `ocamlcp<br>       | `ocamldep<br>       | `ocamldoc<br>       | `ocamlmklib<br>       | `ocamlmktop<br>       | `ocamlopt<br>       | `ocamloptp ] -> string</code></pre><div class="info ">
 Get the name/path of the executable<br>
 </div>
-<pre><span id="VALocaml_stdlib"><span class="keyword">val</span> ocaml_stdlib</span> : <code class="type">unit -> string</code></pre><div class="info">
+
+<pre><span id="VALocaml_stdlib"><span class="keyword">val</span> ocaml_stdlib</span> : <code class="type">unit -> string</code></pre><div class="info ">
 Get the directory of the standard library<br>
 </div>
-<pre><span id="VALocaml_ldconf"><span class="keyword">val</span> ocaml_ldconf</span> : <code class="type">unit -> string</code></pre><div class="info">
+
+<pre><span id="VALocaml_ldconf"><span class="keyword">val</span> ocaml_ldconf</span> : <code class="type">unit -> string</code></pre><div class="info ">
 Get the file name of <code class="code">ld.conf</code><br>
 </div>
-<pre><span id="VALpackage_directory"><span class="keyword">val</span> package_directory</span> : <code class="type">string -> string</code></pre><div class="info">
+
+<pre><span id="VALpackage_directory"><span class="keyword">val</span> package_directory</span> : <code class="type">string -> string</code></pre><div class="info ">
 Get the absolute path of the directory where the given package is
  stored.
 <p>
 
  Raises <code class="code">No_such_package</code> if the package cannot be found.<br>
 </div>
-<pre><span id="VALignore_dups_in"><span class="keyword">val</span> ignore_dups_in</span> : <code class="type">unit -> string option</code></pre><div class="info">
+
+<pre><span id="VALignore_dups_in"><span class="keyword">val</span> ignore_dups_in</span> : <code class="type">unit -> string option</code></pre><div class="info ">
 If <code class="code">Some d</code>, duplicate packages below <code class="code">d</code> are ignored, and do not
  produce warnings.  (Only affects the generation of warnings.)<br>
 </div>
-<pre><span id="VALpackage_property"><span class="keyword">val</span> package_property</span> : <code class="type">string list -> string -> string -> string</code></pre><div class="info">
+
+<pre><span id="VALpackage_property"><span class="keyword">val</span> package_property</span> : <code class="type">string list -> string -> string -> string</code></pre><div class="info ">
 <code class="code">package_property predlist pkg propname</code>:
  Looks up the property <code class="code">propname</code> of package <code class="code">pkg</code> under the assumption
  that the predicates in <code class="code">predlist</code> are true.
@@ -134,7 +148,8 @@ If <code class="code">Some d</code>, duplicate packages below <code class="code"
 </ul>
 <br>
 </div>
-<pre><span id="VALpackage_ancestors"><span class="keyword">val</span> package_ancestors</span> : <code class="type">string list -> string -> string list</code></pre><div class="info">
+
+<pre><span id="VALpackage_ancestors"><span class="keyword">val</span> package_ancestors</span> : <code class="type">string list -> string -> string list</code></pre><div class="info ">
 <code class="code">package_ancestors predlist pkg:</code>
  Determines the direct ancestors of package <code class="code">pkg</code> under the assumption
  that the predicates in <code class="code">predlist</code> are true, i.e. the names of the
@@ -145,7 +160,8 @@ If <code class="code">Some d</code>, duplicate packages below <code class="code"
  Raises <code class="code">No_such_package</code> if the package <code class="code">pkg</code> or one of its ancestors
  could not be found.<br>
 </div>
-<pre><span id="VALpackage_deep_ancestors"><span class="keyword">val</span> package_deep_ancestors</span> : <code class="type">string list -> string list -> string list</code></pre><div class="info">
+
+<pre><span id="VALpackage_deep_ancestors"><span class="keyword">val</span> package_deep_ancestors</span> : <code class="type">string list -> string list -> string list</code></pre><div class="info ">
 <code class="code">package_deep_ancestors predlist pkglist:</code>
  determines the list of direct or indirect ancestors of the packages
  named in <code class="code">pkglist</code> under the assumption that the predicates in <code class="code">predlist</code>
@@ -160,7 +176,8 @@ If <code class="code">Some d</code>, duplicate packages below <code class="code"
  the ancestors cannot be found. Raises <code class="code">Package_loop</code> if there is a
  cyclic dependency.<br>
 </div>
-<pre><span id="VALresolve_path"><span class="keyword">val</span> resolve_path</span> : <code class="type">?base:string -> string -> string</code></pre><div class="info">
+
+<pre><span id="VALresolve_path"><span class="keyword">val</span> resolve_path</span> : <code class="type">?base:string -> string -> string</code></pre><div class="info ">
 Resolves findlib notation in filename paths. The notation 
  <code class="code"> +name/path </code> can be used to refer to the subdirectory <code class="code">name</code>
  of the standard library directory; the continuation <code class="code"> /path </code> is
@@ -174,7 +191,8 @@ Resolves findlib notation in filename paths. The notation
 <div class="param_info"><code class="code">base</code> : When the function is applied on a relative path, the
    <code class="code">base</code> path is prepended. Otherwise, the path is returned as
    it is.</div>
-<pre><span id="VALlist_packages"><span class="keyword">val</span> list_packages</span> : <code class="type">?tab:int -> ?descr:bool -> Pervasives.out_channel -> unit</code></pre><div class="info">
+
+<pre><span id="VALlist_packages"><span class="keyword">val</span> list_packages</span> : <code class="type">?tab:int -> ?descr:bool -> Pervasives.out_channel -> unit</code></pre><div class="info ">
 Prints the list of available packages to the <code class="code">out_channel</code>.
 <p>
 

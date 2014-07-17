@@ -936,7 +936,7 @@ let pkg_dns = ocaml_dependency "dns" (Build (fun _ ->
 (* Main dependencies of libres3 *)
 let deps_default = [ pkg_ocamlnet; pkg_jsonm; pkg_xmlm; pkg_cryptokit; pkg_ounit; pkg_ssl ];;
 let deps = if want_ocsigen then
-  pkg_dns :: pkg_ocsigenserver :: deps_default
+  pkg_dns :: pkg_re :: pkg_ocsigenserver :: deps_default
 else
   deps_default;;
 

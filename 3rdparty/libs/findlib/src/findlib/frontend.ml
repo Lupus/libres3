@@ -1,4 +1,4 @@
-(* $Id: frontend.ml 203 2014-03-02 18:04:18Z gerd $
+(* $Id: frontend.ml 215 2014-06-23 20:32:41Z gerd $
  * ----------------------------------------------------------------------
  *
  *)
@@ -290,16 +290,28 @@ let check_package_list l =
 ;;
 
 
-let run_command ?filter verbose cmd args =
-  if verbose then begin
-    let escape_if_needed s =
-      if String.contains s ' ' then "\"" ^ String.escaped s ^ "\"" else s in
-    print_string ("+ " ^ cmd ^ " " ^
-		  String.concat " " (List.map escape_if_needed args) ^ "\n");
-    if filter <> None then
-      print_string ("  (output of this command is filtered by ocamlfind)\n")
-  end;
+type verbosity =
+  | Normal
+  | Verbose
+  | Only_show
 
+
+let run_command ?filter verbose cmd args =
+  let escape_if_needed s =
+    if String.contains s ' ' then "\"" ^ String.escaped s ^ "\"" else s in
+  let printable_cmd =
+    cmd ^ " " ^ String.concat " " (List.map escape_if_needed args) in
+  ( match verbose with
+      | Normal ->
+          ()
+      | Verbose ->
+          print_endline ("+ " ^ printable_cmd);
+          if filter <> None then
+            print_string
+              ("  (output of this command is filtered by ocamlfind)\n")
+      | Only_show ->
+          print_endline printable_cmd
+  );
   flush stdout;
 
   let filter_input, cmd_output =
@@ -361,7 +373,7 @@ let run_command ?filter verbose cmd args =
     match status with
       Unix.WEXITED 0 -> ()
     | Unix.WEXITED n ->
-	if verbose then
+	if verbose = Verbose then
 	  print_string (cmd ^ " returned with exit code " ^ string_of_int n ^ "\n");
 	exit n
     | Unix.WSIGNALED _ ->
@@ -674,6 +686,46 @@ let process_pp_spec syntax_preds packages pp_opts =
 	 String.concat " " (List.map Filename.quote pp_opts)]
 ;;
 
+(**************** ppx extensions ****************************************)
+
+let process_ppx_spec predicates packages ppx_opts =
+  (* Returns: ppx_commands *)
+  (* may raise No_such_package *)
+
+  let ppx_packages =
+    package_deep_ancestors predicates packages in
+
+  let ppx_opts =
+    List.map 
+      (fun opt ->
+         match Fl_split.in_words opt with
+           | pkg :: ((_ :: _) as opts) ->
+               let exists =
+                 try ignore(package_directory pkg); true
+                 with No_such_package _ -> false in
+               if not exists then
+                 failwith ("The package named in -ppxopt does not exist: " ^ 
+                             pkg);
+               pkg, opts
+           | _ -> 
+               failwith "-ppxopt must include package name, e.g. -ppxopt \"foo,-name bar\""
+      )
+      ppx_opts in
+
+  List.flatten
+    (List.map 
+       (fun pname ->
+          let base = package_directory pname in
+          let options =
+            try  List.assoc pname ppx_opts
+            with Not_found -> [] in
+          try
+            let preprocessor =
+              resolve_path ~base (package_property predicates pname "ppx") in
+            ["-ppx"; String.concat " " (preprocessor :: options)]
+          with Not_found -> []
+       )
+       ppx_packages)
 
 (**************** OCAMLC/OCAMLMKTOP/OCAMLOPT subcommands ****************)
 
@@ -700,6 +752,7 @@ let ocamlc which () =
   let pass_options = ref [] in
   let pass_files = ref [] in
   let incpath = ref [] in
+  let only_show = ref false in
 
   let dll_pkgs = ref [] in
   let dll_pkgs_all = ref false in
@@ -712,6 +765,7 @@ let ocamlc which () =
 
   let syntax_preds = ref [] in
   let pp_opts = ref [] in
+  let ppx_opts = ref [] in
   let pp_specified = ref false in
 
   let type_of_threads =
@@ -781,6 +835,8 @@ let ocamlc which () =
             "<p>       Use preprocessor with predicate <p>";
           "-ppopt", add_pp_opt,
             "<opt>      Append option <opt> to preprocessor invocation";
+          "-ppxopt", Arg.String (fun s -> ppx_opts := !ppx_opts @ [s]),
+            "<pkg>,<opts>  Append options <opts> to ppx invocation for package <pkg>";
           "-dllpath-pkg", add_dll_pkg,
             "<pkg> Add -dllpath for this package";
           "-dllpath-all", Arg.Set dll_pkgs_all,
@@ -790,7 +846,9 @@ let ocamlc which () =
           "-passopt", Arg.String (fun s -> pass_options := !pass_options @ [s]),
             "<opt>    Pass option <opt> directly to ocamlc/opt/mklib/mktop";
           "-passrest", Arg.Rest (fun s -> pass_options := !pass_options @ [s]),
-            "         Pass all remaining options directly\nSTANDARD OPTIONS:";
+            "         Pass all remaining options directly";
+          "-only-show", Arg.Set only_show,
+            "         Only show the constructed command, but do not exec it\nSTANDARD OPTIONS:";
         ];
 
         merge_native_arguments 
@@ -904,7 +962,10 @@ let ocamlc which () =
     syntax_preds := "preprocessor" :: "syntax" :: !syntax_preds;
   end;
 
-  let verbose = List.mem "-verbose" !switches in
+  let verbose = 
+    if List.mem "-verbose" !switches then Verbose else
+      if !only_show then Only_show else
+        Normal in
 
   if !pp_specified && !syntax_preds <> [] then
     prerr_endline("ocamlfind: [WARNING] -pp overrides the effect of -syntax partly");
@@ -955,7 +1016,7 @@ let ocamlc which () =
     )
     eff_packages;
 
-  if verbose then begin
+  if verbose = Verbose then begin
     if !syntax_preds <> [] then
       print_string ("Effective set of preprocessor predicates: " ^
 		    String.concat "," !syntax_preds ^ "\n");
@@ -1111,6 +1172,10 @@ let ocamlc which () =
       process_pp_spec !syntax_preds !packages !pp_opts
   in
 
+  let ppx_commands =
+    process_ppx_spec !predicates !packages !ppx_opts
+  in
+
   let pass_files' =
     List.flatten
       (List.map
@@ -1149,6 +1214,7 @@ let ocamlc which () =
     !pass_options @    (* other options from the command line *)
     i_options @        (* Generated -I options from package analysis *)
     pp_command @       (* Optional preprocessor command *)
+    ppx_commands @     (* Optional ppx extension commands *)
     (if !linkpkg then l_options else []) @  (* Generated -ccopt -L options *)
     (if !linkpkg then archives else []) @   (* Gen file names to link *)
     pass_files' @                           (* File names from cmd line *)
@@ -1179,9 +1245,10 @@ let ocamldoc() =
   let predicates = ref [] in
   let syntax_preds = ref [] in
   let pp_opts = ref [] in
+  let ppx_opts = ref [] in
   let pp_specified = ref false in
 
-  let verbose = ref false in
+  let verbose = ref Normal in
 
   let options = ref [] in
 
@@ -1211,7 +1278,11 @@ let ocamldoc() =
 	  "-ppopt",
 	  Arg.String (fun s -> pp_opts := !pp_opts @ [s]),
 	  "<opt>  Append option <opt> to preprocessor invocation";
-          
+
+          "-ppxopt",
+          Arg.String (fun s -> ppx_opts := !ppx_opts @ [s]),
+          "<pkg>,<opts>  Append options <opts> to ppx invocation for package <pkg>";
+ 
 	  "-thread",
 	  Arg.Unit (fun () -> predicates := "mt" :: "mt_posix" :: !predicates),
 	  "  Assume kernel multi-threading when doing dependency analyses";
@@ -1227,9 +1298,13 @@ let ocamldoc() =
           "-passrest",
           Arg.Rest (fun s -> options := !options @ [s]),
           "  Pass all remaining options directly to ocamldoc";
+
+          "-only-show",
+          Arg.Unit (fun () -> verbose := Only_show),
+          "  Only show the constructed command but do not exec it";
           
 	  "-verbose",
-	  Arg.Set verbose,
+	  Arg.Unit (fun () -> verbose := Verbose),
 	  "  Be verbose\nSTANDARD OPTIONS:";
         ]
       @
@@ -1241,7 +1316,7 @@ let ocamldoc() =
 	  (fun s ->
 	     Arg.String (fun arg ->
 			   options := !options @ [s; arg]))
-	  [ "-v", Arg.Set verbose;
+	  [ "-v", Arg.Unit (fun () -> verbose := Verbose);
 	    "-pp", Arg.String (fun s ->
 				 pp_specified := true;
 				 options := !options @ ["-pp"; s]);
@@ -1258,7 +1333,7 @@ let ocamldoc() =
     syntax_preds := "preprocessor" :: "syntax" :: !syntax_preds;
   );
 
-  if !verbose then begin
+  if !verbose = Verbose then begin
     if !syntax_preds <> [] then
       print_string ("Effective set of preprocessor predicates: " ^
 		    String.concat "," !syntax_preds ^ "\n");
@@ -1274,6 +1349,10 @@ let ocamldoc() =
       []
     else
       process_pp_spec !syntax_preds !packages !pp_opts
+  in
+
+  let ppx_commands =
+    process_ppx_spec !predicates !packages !ppx_opts
   in
 
   let eff_packages =
@@ -1297,6 +1376,7 @@ let ocamldoc() =
   let arguments =
     (List.flatten (List.map (fun d -> [ "-I"; slashify d ]) eff_packages_dl)) @
     pp_command @
+    ppx_commands @
     !options in
 
   let actual_command = Findlib.command `ocamldoc in
@@ -1352,11 +1432,13 @@ let ocamldep () =
   let pass_files = ref [] in
 
   let packages = ref [] in
+  let predicates = ref [] in
   let syntax_preds = ref [] in
   let pp_opts = ref [] in
+  let ppx_opts = ref [] in
   let pp_specified = ref false in
 
-  let verbose = ref false in
+  let verbose = ref Normal in
   let native_filter = ref false in
   let bytecode_filter = ref false in
 
@@ -1367,6 +1449,8 @@ let ocamldep () =
   let add_spec_fn name s =
     pass_options := !pass_options @ [name; s] in
   let add_spec name = Arg.String (add_spec_fn name) in
+  let add_pred =
+    Arg.String (fun s -> predicates := !predicates @ (Fl_split.in_words s)) in
   let add_syntax_pred =
     Arg.String (fun s -> syntax_preds := !syntax_preds @ (Fl_split.in_words s)) in
   let add_pp_opt =
@@ -1385,8 +1469,12 @@ let ocamldep () =
                 "<p>       Use preprocessor with predicate <p>";
 	"-package", add_pkg,
 	         "<p>      Add preprocessor package <p>";
+        "-predicates", add_pred,
+                    "<p>  Add predicate <p> when calculating dependencies";
 	"-ppopt", add_pp_opt,
                "<opt>      Append option <opt> to preprocessor invocation";
+  "-ppxopt", Arg.String (fun s -> ppx_opts := !ppx_opts @ [s]),
+          "<pkg>,<opts>  Append options <opts> to ppx invocation for package <pkg>";
 	"-passopt", Arg.String (fun s -> pass_options := !pass_options @ [s]),
                  "<opt>    Pass option <opt> directly to ocamlc/opt/mktop";
         "-passrest", Arg.Rest (fun s -> pass_options := !pass_options @ [s]),
@@ -1395,7 +1483,10 @@ let ocamldep () =
 	               "    Output only dependencies for native code (implies -native)";
 	"-bytecode-filter", Arg.Set bytecode_filter,
 	                 "  Output only dependencies for bytecode";
-	"-verbose", Arg.Set verbose,
+        "-only-show",  Arg.Unit (fun () -> verbose := Only_show),
+                   "        Only show the constructed command but do not exec it";
+          
+	"-verbose", Arg.Unit (fun () -> verbose := Verbose),
 	         "          Print calls to external commands\nSTANDARD OPTIONS:";
       ]
       @
@@ -1425,7 +1516,7 @@ let ocamldep () =
   if !syntax_preds <> [] then
     syntax_preds := "preprocessor" :: "syntax" :: !syntax_preds;
 
-  if !verbose && !syntax_preds <> [] then
+  if !verbose = Verbose && !syntax_preds <> [] then
     print_string ("Effective set of preprocessor predicates: " ^
 		  String.concat "," !syntax_preds ^ "\n");
 
@@ -1439,9 +1530,14 @@ let ocamldep () =
       process_pp_spec !syntax_preds !packages !pp_opts
   in
 
+  let ppx_commands =
+    process_ppx_spec !predicates !packages !ppx_opts
+  in
+
   let arguments =
     !pass_options @
     pp_command @
+    ppx_commands @
     !pass_files
   in
 
@@ -1517,7 +1613,7 @@ let ocamlbrowser () =
 
   let actual_command = Findlib.command `ocamlbrowser in
 
-  run_command false actual_command arguments
+  run_command Normal actual_command arguments
 ;;
 
 
@@ -1958,7 +2054,7 @@ let install_package () =
   (* Check if there is a postinstall script: *)
   let postinstall = Filename.concat !destdir "postinstall" in
   if Sys.file_exists postinstall then
-    run_command true postinstall [ slashify !destdir; !pkgname ]
+    run_command Verbose postinstall [ slashify !destdir; !pkgname ]
 ;;
 
 
@@ -2073,7 +2169,7 @@ let remove_package () =
   (* Check if there is a postremove script: *)
   let postremove = Filename.concat !destdir "postremove" in
   if Sys.file_exists postremove then
-    run_command true postremove [ slashify !destdir; !pkgname ]
+    run_command Verbose postremove [ slashify !destdir; !pkgname ]
 ;;
 
 
@@ -2171,7 +2267,7 @@ let ocamlcall pkg cmd =
 	  Unix.handle_unix_error (fun () -> raise other) ()
   end;
   let args = Array.to_list (Array.sub Sys.argv 2 (Array.length Sys.argv -2)) in
-  run_command false path args
+  run_command Normal path args
 ;;
 
 

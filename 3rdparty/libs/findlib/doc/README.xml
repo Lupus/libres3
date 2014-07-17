@@ -110,6 +110,20 @@ configuration files, and library routines in detail.</p>
     <ul>
 
     <li>
+      <p><em>1.5.1:</em> includes a file that was missing in 1.5</p>
+    </li>
+    <li>
+      <p><em>1.5:</em> Including the "bytes" package that is either
+a compat package for ocaml &lt; 4.02 or a fake package for ocaml &gt;= 4.02.
+The package aims at helping to support the transition to the new
+"bytes" type for mutable strings.</p>
+      <p>Also installing findlib.cmxs if OCaml supports it.</p>
+      <p>Allowing to disable camlp4 (in prep for OCaml-4.02).</p>
+      <p>The "ppx" package property can be specified for constructing
+ppx-type preprocessors (patches from Peter Zotov).</p>
+    </li>
+
+    <li>
       <p><em>1.4.1:</em>ocamldoc: The order of -ppopt arguments was
 changed by ocamlfind, which is not correct. (Sylvain Le Gall and
 Jérémie Dimino.)</p>
