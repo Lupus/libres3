@@ -22,6 +22,8 @@ depends: [
   "ocsigenserver" {>= "2.4.0"}
 # for ocsigenserver, choose sqlite3 as dbm doesn't build
   "sqlite3-ocaml"
+  "dns"
+  "re"
 ]
 depopts:["ounit"]
 build-test: [
