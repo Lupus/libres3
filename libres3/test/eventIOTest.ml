@@ -116,16 +116,6 @@ end = struct
       TestUtil.assert_eq_intlist [12;11;10;9] l
     );;
 
-  let expect_invalid_arg f =
-    IO.try_catch
-      (fun () -> f () >>= fun () ->
-        assert_failure "invalid argument expected"
-      )
-      (function
-      | Invalid_argument _ -> return ()
-      | e -> IO.fail e)
-      ();;
-
   let test_file_write () =
     M.run (
       let name = "test-file-write"
@@ -136,9 +126,6 @@ end = struct
       assert_equal ~printer:id expected actual;
       IO.unlink name
     );;
-
-  let build_onebuf c =
-    String.make Config.buffer_size c;;
 
   let mkdir_maybe name =
     IO.try_catch 

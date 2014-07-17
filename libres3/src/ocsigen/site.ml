@@ -29,7 +29,6 @@
 
 open Ocsigen_extensions
 open Ocsigen_http_frame
-open Ocsigen_http_frame.Http_header
 
 module Server = struct
   type 'a monad = 'a Lwt.t
@@ -51,6 +50,7 @@ module Server = struct
   let log _ str = Ocsigen_messages.warning str
 end
 
+open Ocsigen_http_frame.Http_header
 open SXLwt
 module OcsigenServer =
   Dispatch.Make(SXIO)(IO)(Server)

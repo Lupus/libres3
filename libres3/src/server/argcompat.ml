@@ -30,8 +30,6 @@
 (* print -h and --help instead of -help and --help, and always hide flags
  * without documentation *)
 
-open Netstring_str
-
 let rec is_whitespace str pos =
   if pos < String.length str then
     if str.[pos] = ' ' then

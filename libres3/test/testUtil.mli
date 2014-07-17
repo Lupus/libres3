@@ -28,7 +28,7 @@
 (**************************************************************************)
 
 val assert_eq_function : msg:string -> 'a -> 'a -> unit
-val id : string -> string
+val id : 'a -> 'a
 val assert_eq_string : ?msg:string -> string -> string -> unit
 val assert_eq_int : ?msg:string -> int -> int -> unit
 val assert_eq_int64 : ?msg:string -> int64 -> int64 -> unit
@@ -48,6 +48,5 @@ module Pipeline : sig
   val join2 : ('a * 'b list) list -> 'a list * 'b list
   val split : ('a * 'b) list -> ('a list * 'b list)
   val split2 : ('a * 'b) list -> 'b list
-  val id : 'a list -> 'a list
   val run : ('i,'o) listmap -> ('r,'d) listjoin -> ('i, 'o, 'r) dep list -> 'd
 end

@@ -48,6 +48,187 @@ let syntax = {
   url_enable_relative = true;
 }
 
+module AsyncJson (M: Sigs.Monad) = struct
+  type json_element = [`Bool of bool | `Float of float | `Null | `String of string]
+  type json_container = [`Array | `Object | `Field of string]
+  type 'a json_mapper = {
+    start: 'a -> json_container -> 'a * 'a json_mapper;
+    stop: parent:'a -> children:'a -> json_container -> 'a;
+    element: 'a -> json_element -> 'a
+  }
+  type range = (int * int) * (int * int);;
+
+  exception ParseError of (range * string);;
+
+  type 'a json_state = {
+    d: Jsonm.decoder;
+    input: unit -> (string * int * int) M.t;
+    mutable parents: (json_container * 'a * 'a json_mapper) list;
+    mutable state: 'a;
+    mutable mapper: 'a json_mapper;
+  }
+
+  open M
+  type decoded = [`End | `Error of Jsonm.error | `Lexeme of Jsonm.lexeme]
+
+  let rec decode s =
+    match Jsonm.decode s.d with
+    | `Await ->
+      s.input () >>= fun (str, pos, len) ->
+      Jsonm.Manual.src s.d str pos len;
+      decode s
+    | #decoded as v ->
+      return v
+  ;;
+
+  let json_fail s msg =
+    let r = Jsonm.decoded_range s.d in
+    let (l1, c1), (l2, c2) = r in
+    Printf.eprintf "Json parse error: %d:%d-%d:%d:%s\n%!" l1 c1 l2 c2 msg;
+    fail (ParseError (r, msg))
+  ;;
+  (* run one fold step *)
+  let start s v =
+    try
+      let state, mapper = s.mapper.start s.state v in
+      s.parents <- (v, s.state, s.mapper) :: s.parents;
+      s.state <- state;
+      s.mapper <- mapper;
+      return false
+    with Failure msg ->
+      json_fail s msg
+  ;;
+
+  let stop s parent parent_mapper v rest =
+    s.mapper <- parent_mapper;
+    s.parents <- rest;
+    s.state <- s.mapper.stop ~parent ~children:s.state v;
+  ;;
+
+  let stop_field s =
+    match s.parents with
+    | (`Field _ as f, parent, parent_mapper) :: rest ->
+      stop s parent parent_mapper f rest;
+      false
+    | [] ->
+      true (* EOF *)
+    | _ ->
+      false
+  ;;
+
+  let stop_container s v =
+    match s.parents with
+    | (parent_type, parent, parent_mapper) :: rest->
+      if parent_type = v then begin
+        try
+          stop s parent parent_mapper v rest;
+          return (stop_field s)
+        with Failure msg ->
+          json_fail s msg
+      end else
+        json_fail s "Array/Object end mismatch"
+    | [] ->
+      json_fail s "Array/Object end without start"
+  ;;
+
+  let fold_step_signal s v =
+    match v with
+    | `Lexeme `As ->
+      start s `Array
+    | `Lexeme `Ae ->
+      stop_container s `Array;
+    | `Lexeme `Os ->
+      start s `Object
+    | `Lexeme `Oe ->
+      stop_container s `Object;
+    | `Lexeme (`Name n) ->
+      start s (`Field n)
+    | `Lexeme (#json_element as v) ->
+      begin try
+          s.state <- s.mapper.element s.state v;
+          return (stop_field s)
+        with Failure msg ->
+          json_fail s msg
+      end
+    | `End ->
+      begin match s.parents with
+        | [] -> return true (* EOF *)
+        | _ -> json_fail s "Premature EOF"
+      end
+    | `Error err ->
+      Jsonm.pp_error Format.str_formatter err;
+      json_fail s (Format.flush_str_formatter ())
+  ;;
+
+  let fold_init input state mapper = {
+    d = Jsonm.decoder `Manual;
+    input = input;
+    parents = [];
+    state = state;
+    mapper = mapper
+  };;
+
+  let fold_step s =
+    decode s >>= fold_step_signal s
+  ;;
+
+  let rec fold s =
+    fold_step s >>= function
+    | true -> return s.state
+    | false -> fold s
+  ;;
+
+  type json = [`A of json list | `O of json list | `F of string * json list |
+               json_element]
+
+  open Printf
+  let rec pp_json = function
+    | `A l ->
+      printf "array (\n";
+      List.iter pp_json l;
+      printf ")\n";
+    | `O l ->
+      printf "object (\n";
+      List.iter pp_json l;
+      printf ")\n";
+    | `F (n, l) ->
+      printf "field %s:(\n" n;
+      List.iter pp_json l;
+      printf ")";
+    | `Bool b ->
+      printf "bool: %b\n" b
+    | `String s ->
+      printf "string: %s\n" s
+    | `Float f ->
+      printf "number: %g\n" f
+    | `Null ->
+      printf "null\n"
+  ;;
+
+  let rec json_parser = {
+    start = (fun _ _ -> [], json_parser);
+    stop = (fun ~parent ~children v ->
+        match v with
+        | `Array -> (`A (List.rev children)) :: parent
+        | `Object -> (`O (List.rev children)) :: parent
+        | `Field name -> (`F (name, children)) :: parent
+      );
+    element = (fun state v ->
+        (v :> json) :: state);
+  };;
+
+  let rec read_eof input =
+    input () >>= fun (_,_,len) ->
+    if len = 0 then return ()
+    else read_eof input;;
+
+  let json_parse_tree input =
+    fold (fold_init input [] json_parser) >>= fun result ->
+    read_eof input >>= fun () ->
+    return result
+  ;;
+end
+
 module Make
   (M:Sigs.Monad)
   (OS:EventIO.OSMonad with type 'a t = 'a M.t)
@@ -80,7 +261,7 @@ struct
 
   let scheme = "sx"
   let syntax = syntax
-  open M
+  open IO.Op
   let rec foldl base volume f lst accum =
     match lst with
     | hd :: tl ->
@@ -93,187 +274,6 @@ struct
     | [] ->
         return accum;;
 
-  module AsyncJson (M: Sigs.Monad) = struct
-    type json_element = [`Bool of bool | `Float of float | `Null | `String of string]
-    type json_container = [`Array | `Object | `Field of string]
-    type 'a json_mapper = {
-      start: 'a -> json_container -> 'a * 'a json_mapper;
-      stop: parent:'a -> children:'a -> json_container -> 'a;
-      element: 'a -> json_element -> 'a
-    }
-    type range = (int * int) * (int * int);;
-
-    exception ParseError of (range * string);;
-    exception Error of range * Jsonm.error;;
-
-    type 'a json_state = {
-      d: Jsonm.decoder;
-      input: unit -> (string * int * int) M.t;
-      mutable parents: (json_container * 'a * 'a json_mapper) list;
-      mutable state: 'a;
-      mutable mapper: 'a json_mapper;
-    }
-
-    open M
-    type decoded = [`End | `Error of Jsonm.error | `Lexeme of Jsonm.lexeme]
-
-    let rec decode s =
-      match Jsonm.decode s.d with
-      | `Await ->
-          s.input () >>= fun (str, pos, len) ->
-          Jsonm.Manual.src s.d str pos len;
-          decode s
-      | #decoded as v ->
-          return v
-    ;;
-
-    let json_fail s msg =
-      let r = Jsonm.decoded_range s.d in
-      let (l1, c1), (l2, c2) = r in
-      Printf.eprintf "Json parse error: %d:%d-%d:%d:%s\n%!" l1 c1 l2 c2 msg;
-      fail (ParseError (r, msg))
-    ;;
-    (* run one fold step *)
-    let start s v =
-      try
-        let state, mapper = s.mapper.start s.state v in
-        s.parents <- (v, s.state, s.mapper) :: s.parents;
-        s.state <- state;
-        s.mapper <- mapper;
-        return false
-      with Failure msg ->
-        json_fail s msg
-    ;;
-
-    let stop s parent parent_mapper v rest =
-      s.mapper <- parent_mapper;
-      s.parents <- rest;
-      s.state <- s.mapper.stop ~parent ~children:s.state v;
-    ;;
-
-    let stop_field s =
-      match s.parents with
-      | (`Field _ as f, parent, parent_mapper) :: rest ->
-          stop s parent parent_mapper f rest;
-          false
-      | [] ->
-          true (* EOF *)
-      | _ ->
-          false
-    ;;
-
-    let stop_container s v =
-      match s.parents with
-      | (parent_type, parent, parent_mapper) :: rest->
-          if parent_type = v then begin
-            try
-              stop s parent parent_mapper v rest;
-              return (stop_field s)
-            with Failure msg ->
-              json_fail s msg
-          end else
-            json_fail s "Array/Object end mismatch"
-      | [] ->
-          json_fail s "Array/Object end without start"
-      ;;
-
-    let fold_step_signal s v =
-      match v with
-      | `Lexeme `As ->
-          start s `Array
-      | `Lexeme `Ae ->
-          stop_container s `Array;
-      | `Lexeme `Os ->
-          start s `Object
-      | `Lexeme `Oe ->
-          stop_container s `Object;
-      | `Lexeme (`Name n) ->
-          start s (`Field n)
-      | `Lexeme (#json_element as v) ->
-          begin try
-            s.state <- s.mapper.element s.state v;
-            return (stop_field s)
-          with Failure msg ->
-            json_fail s msg
-          end
-      | `End ->
-          begin match s.parents with
-          | [] -> return true (* EOF *)
-          | _ -> json_fail s "Premature EOF"
-          end
-      | `Error err ->
-          Jsonm.pp_error Format.str_formatter err;
-          json_fail s (Format.flush_str_formatter ())
-    ;;
-
-    let fold_init input state mapper = {
-      d = Jsonm.decoder `Manual;
-      input = input;
-      parents = [];
-      state = state;
-      mapper = mapper
-    };;
-
-    let fold_step s =
-      decode s >>= fold_step_signal s
-    ;;
-
-    let rec fold s =
-      fold_step s >>= function
-      | true -> return s.state
-      | false -> fold s
-    ;;
-
-    type json = [`A of json list | `O of json list | `F of string * json list |
-                json_element]
-
-    open Printf
-    let rec pp_json = function
-      | `A l ->
-          printf "array (\n";
-          List.iter pp_json l;
-          printf ")\n";
-      | `O l ->
-          printf "object (\n";
-          List.iter pp_json l;
-          printf ")\n";
-      | `F (n, l) ->
-          printf "field %s:(\n" n;
-          List.iter pp_json l;
-          printf ")";
-      | `Bool b ->
-          printf "bool: %b\n" b
-      | `String s ->
-          printf "string: %s\n" s
-      | `Float f ->
-          printf "number: %g\n" f
-      | `Null ->
-          printf "null\n"
-    ;;
-
-    let rec json_parser = {
-      start = (fun _ _ -> [], json_parser);
-      stop = (fun ~parent ~children v ->
-        match v with
-        | `Array -> (`A (List.rev children)) :: parent
-        | `Object -> (`O (List.rev children)) :: parent
-        | `Field name -> (`F (name, children)) :: parent
-      );
-      element = (fun state v ->
-        (v :> json) :: state);
-    };;
-
-    let rec read_eof input =
-      input () >>= fun (_,_,len) ->
-      if len = 0 then return ()
-      else read_eof input;;
-
-    let rec json_parse_tree input =
-      fold (fold_init input [] json_parser) >>= fun result ->
-      read_eof input >>= fun () ->
-      return result
-    ;;
-  end
 
   let format_date_header t =
     Netdate.format ~fmt:"%a, %d %b %Y %H:%M:%S GMT" (Netdate.create t)
@@ -287,17 +287,6 @@ struct
     | `POST -> "POST"
     | `PUT -> "PUT"
     | _ -> "N/A";;
-
-  (* TODO: allow setting this via url's user/password param,
-   * and pass it from the server *)
-  let base64_encode s =
-    (* Base64.encode_compact_pad is not available in older cryptokit releases *)
-    let e = transform_string (Base64.encode_compact ()) s in
-    let padding = match (String.length e) mod 4 with
-    | 3 -> 1
-    | 2 -> 2
-    | _ -> 0 in
-    e ^ (String.make padding '=');;
 
   let sign_request token r =
     if token = "" then
@@ -328,205 +317,8 @@ struct
       req_headers = ("Authorization", auth) :: headers
     }
 
-    open IO.Op
     module Json = AsyncJson(IO.Op)
     open Json
-
-    let finish t =
-      match !t with
-      | Some p ->
-          P.stop_pipeline p;
-          t := None
-      | None -> ();;
-
-    type 'a source = 'a IO.Source.t
-    type reader = unit -> (string * int * int) M.t
-    type file_meta = {
-      filename: string;
-      mutable blocksize: int option;
-      mutable filesize: int64 option;
-      mutable hashaddrs: (string * string) list;
-      mutable sizeremaining : int64;
-      http_port: int;
-    }
-
-    let file_empty filename port ={
-      filename = filename;
-      blocksize = None;
-      filesize = None;
-      hashaddrs = [];
-      sizeremaining = 0L;
-      http_port = port;
-    }
-
-
-    let check_reply reply =
-      let c = reply.code in
-      if c >= 400 then
-        fail (Failure (Printf.sprintf "SX replied with code %d" c))
-      else
-        return ()
-    ;;
-
-    let expect_field_number _ f = {
-      start = (fun _ _ -> failwith "field value expected");
-      stop = (fun ~parent ~children _ -> failwith "field value expected");
-      element = (fun s -> function
-        | `Float flt -> s >>= (fun state -> f flt state; s)
-        | _ -> failwith "number expected")
-    }
-
-    let empty_list _ = []
-    let get_blocksize s = match s.blocksize with
-    | None ->
-        failwith "no blockSize"
-    | Some b -> b
-
-    let chain ~parent ~children _ =
-      parent >>= fun _ ->
-      children
-    ;;
-
-(*    let download_one_hash origurl host port hash blocksize =
-      let p = pipeline () in
-      P.make_cached_request p ~key:hash (
-          sign_request (token_of_user origurl) {
-            meth = `GET;
-            host = host;
-            port = port;
-            relative_url = Printf.sprintf "/.data/%d/%s" blocksize hash;
-            req_headers = [];
-            req_body = "";
-          });;*)
-
-    let download_hash_nodes hash =
-      {
-      start = (fun _ -> failwith "string expected");
-      stop = chain;
-      element = (fun s -> function
-      | `String host ->
-          s >>= fun state ->
-          state.hashaddrs <- (host, hash) :: state.hashaddrs;
-          return state
-      | _ ->
-          failwith "string expected"
-        )
-    };;
-
-    let download_hash_nodelist hash = {
-      start = (fun s -> function
-      | `Array ->
-          s, download_hash_nodes hash
-      | `Object | `Field _ ->
-          failwith "json array expected"
-        );
-      stop = chain;
-      element = (fun _ _ -> failwith "json array expected")
-    }
-    ;;
-
-    let download_hash_top = {
-      start = (fun s -> function
-      | `Field hash ->
-          s, download_hash_nodelist hash
-      | `Object | `Array ->
-          failwith "json field expected"
-      );
-      stop = chain;
-      element = (fun _ _ -> failwith "json field expected")
-    }
-    ;;
-
-    let hashlist_mapper_obj = {
-      start = (fun s -> function
-        | `Object ->
-            s, download_hash_top
-        | `Array | `Field _ ->
-            failwith "json object expected"
-      );
-      stop = chain;
-      element = (fun _ _ -> failwith "json object expected");
-    }
-
-    let hashlist_mapper_array = {
-      start = (fun s -> function
-        | `Array ->
-            s, hashlist_mapper_obj
-        | `Object | `Field _ ->
-            failwith "json array expected"
-      );
-      stop = (fun ~parent ~children _ -> children);
-      element = (fun _ _ -> failwith "json array expected")
-    }
-
-    let rec ignore_value = {
-      start = (fun s _ -> s, ignore_value);
-      stop = (fun ~parent ~children _ -> parent);
-      element = (fun s _ -> s)
-    }
-
-    let file_mapper = {
-      start = (fun s -> function
-        | `Array | `Object ->
-           failwith "json field expected"
-        | `Field "fileSize" ->
-            s, expect_field_number s (fun f s -> s.filesize <- Some (Int64.of_float f))
-        | `Field "blockSize" ->
-            s, expect_field_number s (fun f s -> s.blocksize <- Some (int_of_float f))
-        | `Field "fileData" ->
-            s, hashlist_mapper_array
-        | `Field _ ->
-            s, ignore_value
-      );
-      stop = chain;
-      element = (fun _ _ ->
-        failwith "Field expected")
-    }
-
-    let file_meta_mapper = {
-      start = (fun f -> function
-        | `Object -> f, file_mapper
-        | `Array | `Field _ ->
-            (* TODO: json_fail *)
-            failwith "json object expected"
-        );
-      stop = (fun ~parent ~children _ -> children);
-      element = (fun _ _ ->
-        failwith "json object expected")
-    }
-
-    let rec parse_hashes file state =
-      fold_step state >>= function
-      | false ->
-          parse_hashes file state
-      | true ->
-          file.hashaddrs <- List.rev file.hashaddrs;
-          return ()
-      ;;
-
-(*    let retrieve origurl file () =
-      match file.hashaddrs with
-      | (host, hash) :: rest ->
-          file.hashaddrs <- rest;
-          download_one_hash origurl host file.http_port hash (get_blocksize file) >>= fun str ->
-          let len =
-            Int64.to_int (
-              min (Int64.of_int (String.length str)) file.sizeremaining
-            ) in
-          if len = 0 then
-            return ("",0,0)
-          else begin
-            file.sizeremaining <-
-              Int64.sub file.sizeremaining (Int64.of_int len);
-            return (str, 0,len)
-          end
-      | [] ->
-          if file.sizeremaining > 0L then
-            fail (Failure (Printf.sprintf "We think we are at EOF, but file
-              not fully sent: %Ld" file.sizeremaining))
-          else
-              return ("",0,0)
-    ;;*)
 
     exception SXProto of string
     let expect_content_type reply ct =
@@ -550,24 +342,6 @@ struct
       with Not_found ->
         fail (SXProto (Printf.sprintf "No Server: header in reply!"))
     ;;
-
-(*    let rec retrieve_fileandsize origurl file state mtime =
-      match file.filesize with
-      | None ->
-          begin fold_step state >>= function
-          | true ->
-             fail (Failure "premature EOF on json stream (no filesize)")
-          | false ->
-              retrieve_fileandsize origurl file state mtime
-          end
-      | Some size ->
-          file.sizeremaining <- size;
-          parse_hashes file state >>= fun () ->
-          return ((retrieve origurl file),{
-            name = file.filename;
-            size = size;
-            mtime = mtime
-          });;*)
 
     let http_syntax = Hashtbl.find Neturl.common_url_syntax "http"
     let locate url =
@@ -1062,10 +836,6 @@ struct
      end
 
 
-    type json = [ `Array of json list | `Bool of bool | `Float of float
-                | `Null | `Object of json_mem list | `String of string]
-    and json_mem = string * json
-
     let rec print_json e = function
     | `Array a ->
         ignore (Jsonm.encode e (`Lexeme `As));
@@ -1081,42 +851,6 @@ struct
     and print_json_mem e (n, v) =
       ignore (Jsonm.encode e (`Lexeme (`Name n)));
       print_json e v;;
-
-    type err = [`Error | `ParseError];;
-    type range = (int * int) * (int * int);;
-
-    exception ParseError of (range * string);;
-    exception Error of range * Jsonm.error;;
-
-    let rec parse_json_val d = function
-    | `Lexeme `As ->
-        `Array (parse_json_arr d [])
-    | `Lexeme `Os ->
-        `Object (parse_json_obj d [])
-    | `Lexeme (`Null | `Bool _ | `Float _ | `String _ as v) ->
-        v
-    | `Lexeme (`Ae | `Oe | `Name _) ->
-        raise (ParseError (Jsonm.decoded_range d, "Premature array/object end"))
-    | `Error err ->
-        raise (Error (Jsonm.decoded_range d, err))
-    | `Await | `End -> assert false
-
-    and parse_json_obj d lst = match Jsonm.decode d with
-    | `Lexeme (`Name n) ->
-        parse_json_obj d ((n, parse_json_val d (Jsonm.decode d)) :: lst)
-    | `Lexeme `Oe ->
-        List.rev lst
-    | v ->
-        parse_json_obj d (("", parse_json_val d v) :: lst)
-
-    and parse_json_arr d lst = match Jsonm.decode d with
-    | `Lexeme `Ae ->
-        List.rev lst
-    | v ->
-        parse_json_arr d ((parse_json_val d v) :: lst);;
-
-    let parse_json d =
-      parse_json_val d (Jsonm.decode d);;
 
     let send_json nodelist url json =
       let b = Buffer.create 4096 in
@@ -1303,30 +1037,6 @@ struct
         ~path:["";".upload";token] ~encoded:false in
       make_request `PUT [Neturl.url_host url] url >>=
       job_get url
-
-    open Printf
-    let rec pp_json = function
-      | `Array l ->
-          printf "array (\n";
-          List.iter pp_json l;
-          printf ")\n";
-      | `Object l ->
-          printf "object (\n";
-          List.iter pp_json l;
-          printf ")\n";
-      | `Field (n, l) ->
-          printf "field %s:(\n" n;
-          List.iter pp_json l;
-          printf ")";
-      | `Bool b ->
-          printf "bool: %b\n" b
-      | `String s ->
-          printf "string: %s\n" s
-      | `Float f ->
-          printf "number: %g\n" f
-      | `Null ->
-          printf "null\n"
-    ;;
 
     let parse_server server =
       try

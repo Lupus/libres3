@@ -28,7 +28,6 @@
 (**************************************************************************)
 
 open CodedIO
-open Unix.LargeFile
 
 let list_all_buckets all =
   (* TODO: exceptions somehow escape our try/with *)

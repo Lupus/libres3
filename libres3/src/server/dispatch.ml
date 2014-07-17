@@ -29,8 +29,6 @@
 
 open CodedIO
 open Unix
-open Unix.LargeFile
-open Config
 open Configfile
 module StringMap = Map.Make(String)
 
@@ -135,7 +133,6 @@ module Make
     else S.send_data sender (str, 0, String.length str)
   ;;
 
-  let no_output _ = return ()
   let return_empty ~req ~canon ~status ~reply_headers =
     let headers =
       add_std_headers
@@ -151,10 +148,6 @@ module Make
       etag = None
     } >>= fun _ -> return ()
   ;;
-
-  let return_string_canon ~canon ~status ~reply_headers ~content_type str =
-    return_string ~id:canon.CanonRequest.id ~id2:(CanonRequest.gen_debug ~canon) ~status
-      ~reply_headers ~content_type str;;
 
   let invalid_range length =
     let header = Headers.make_content_range (`Bytes (None, Some length))
@@ -451,31 +444,6 @@ module Make
          return_error Error.NoSuchBucket ["Bucket", bucket]
     ;;
 
-  let list_bucket_files l common =
-    let contents = List.rev_map (fun (stat, name, md5) ->
-      Xml.tag "Contents" [
-        Xml.tag "Key" [Xml.d name];
-        Xml.tag "LastModified" [Xml.d (
-          Util.format_date stat.st_mtime)
-        ];
-        Xml.tag "ETag" [Xml.d ("\"" ^ md5 ^ "\"")];
-        Xml.tag "Size" [Xml.d (Int64.to_string stat.st_size)];
-        Xml.tag "StorageClass" [Xml.d "STANDARD"];
-        Xml.tag "Owner" [
-          Xml.tag "ID" [Xml.d (string_of_int stat.st_uid)];
-          Xml.tag "DisplayName" [Xml.d
-            (getpwuid stat.st_uid).pw_name
-          ];
-        ]
-      ]
-    ) l in
-    let prefixes = List.rev_map (fun (_, name, _) ->
-      Xml.tag "CommonPrefixes" [
-        Xml.tag "Prefix" [Xml.d (name ^ "/")]
-      ]
-    ) common in
-    List.rev_append contents prefixes;;
-
   module StringSet = Set.Make(String)
   let list_bucket_files2 l common =
     let contents = StringMap.fold (fun name (size, mtime, md5) accum ->
@@ -500,59 +468,7 @@ module Make
       ]) :: accum
     ) common contents;;
 
-  let metadata_cache_set file f create_fn =
-    create_fn f >>= fun res ->
-    (* TODO: log failures *)
-    IO.with_file_write file 0o600 (fun out ->
-      out res 0 (String.length res)) >|= fun () ->
-    res;;
-
-  let metadata_cache_set2 category f create_fn =
-    let h = Digest.to_hex (Digest.string (category ^ "_" ^ f)) in
-    let file = Filename.concat (!Configfile.buckets_dir ^ "-meta") h in
-    create_fn f >>= fun res ->
-    (* TODO: log failures *)
-    IO.with_file_write file 0o600 (fun out ->
-      out res 0 (String.length res)) >|= fun () ->
-    res;;
-
-  let metadata_cache_get category f create_fn =
-    let h = Digest.to_hex (Digest.string (category ^ "_" ^ f)) in
-    let file = Filename.concat (!Configfile.buckets_dir ^ "-meta") h in
-    IO.try_catch IO.string_of_file (fun _ ->
-      metadata_cache_set file f create_fn
-    ) file;;
-
-(*  let calc_md5 file =
-    let md5 = Cryptokit.Hash.md5 () in
-    let buf = String.create Config.buffer_size in
-    IO.with_file file (fun src ->
-      IO.Source.begin_read src 0L >>= fun readable ->
-      IO.Stream.iter readable (fun str pos len ->
-        md5#add_substring str pos len;
-        return ()
-      )
-    ) >>= fun () ->
-    return (Cryptokit.transform_string (Cryptokit.Hexa.encode ()) md5#result)
-  ;;*)
-
-(*  let md5_file file =
-    metadata_cache_get "md5" file calc_md5;;*)
-
-  let last_modified file =
-    Util.format_date (IO.Source.last_modified file);;
-
   (* returns tmpfile, digest *)
-  let copy_stream ~canon source =
-    let tmp = Filename.concat !Configfile.buckets_dir "tmp" in
-    let tmpfile = Filename.concat tmp (RequestId.to_string
-    canon.CanonRequest.id) in
-    let url = Neturl.file_url_of_local_path tmpfile in
-    U.copy source ~srcpos:0L (U.of_neturl url) >>= fun () ->
-    return tmpfile;;
-
-  (* returns tmpfile, digest *)
-
   let source_of_request ~canon body =
     if Headers.has_header canon.CanonRequest.headers "x-amz-copy-source" then
     begin
@@ -612,21 +528,6 @@ module Make
       seek = md5_seek_source2 md5 source
     };;
 
-  let check_content_md5 ~canon tmp digest =
-    if Headers.has_header canon.CanonRequest.headers "content-md5" then begin
-      let expected = Digest.to_hex (Cryptoutil.base64_decode (
-        Headers.field_single_value canon.CanonRequest.headers "content-md5" ""
-      )) in
-      if expected <> digest then
-        IO.unlink tmp >>= fun () ->
-        return_error Error.BadDigest [
-          "ExpectedMD5", digest
-        ]
-      else
-        return ()
-    end else
-      return ();;
-
   let copy_tourl ~canon body url =
     source_of_request ~canon body >>= fun (src,mtime) ->
     let source = match src with
@@ -640,27 +541,6 @@ module Make
     (* TODO: check for .., check Content-MD5, store it,
      * and store Content-Type*)
     return (!digest, mtime);;
-
-  let rec create_parents bucket path =
-    let parent = Filename.dirname path in
-    if parent = "" || parent = "/"  || parent = "//" then
-      return_error Error.NoSuchBucket [
-        "Bucket", bucket;
-      ]
-    else begin
-      let dir = get_path bucket parent in
-      IO.try_catch
-        (fun () ->
-          IO.mkdir dir 0o700)
-        (function
-        | Unix.Unix_error(Unix.ENOENT,_,_) ->
-          create_parents bucket parent >>= fun () ->
-          IO.mkdir dir 0o700
-        | Unix.Unix_error(Unix.EEXIST,_,_) ->
-            return ()
-        | e -> IO.fail e
-        ) ()
-    end;;
 
   let copy_object ~canon ~request body bucket path =
     (* TODO: check that body is empty *)
@@ -718,22 +598,6 @@ module Make
       ) ()
     );;
 
-  let empty_stats = {
-     Unix.LargeFile.
-      st_size = 0L;
-      st_mtime = 0.;
-      st_dev = 0;
-      st_ino = 0;
-      st_kind = Unix.S_DIR;
-      st_nlink = 0;
-      st_uid = 0;
-      st_gid = 0;
-      st_rdev = 0;
-      st_atime = 0.;
-      st_ctime = 0.;
-      st_perm = 0;
-  }
-
   let send_default_acl ~req ~canon =
     return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
       Xml.tag "AccessControlPolicy" [
@@ -788,33 +652,6 @@ module Make
           ]
       | e -> IO.fail e
     ) ();;
-
-  let list_dir dir =
-    (* TODO: use Monad interface *)
-    let d = opendir dir in
-    let l = ref [] in
-    begin try
-      while true; do
-        let name = readdir d in
-        if name <> "." && name <> ".." then
-          let s = stat (Filename.concat dir name) in
-          l := (s,name) :: !l
-      done;
-    with End_of_file -> ();
-    end;
-    closedir d;
-    !l;;
-
-  let is_dir (stat, _) = stat.st_kind = S_DIR
-  let is_file (stat,_,_) = stat.st_kind = S_REG
-
-  let map_file e =
-    {
-      empty_stats with
-      Unix.LargeFile.st_size = e.Sigs.size;
-      st_mtime = e.Sigs.mtime;
-    }, e.Sigs.name, "d41d8cd98f00b204e9800998ecf8427e" (* TODO: real md5 *)
-  ;;
 
   let fold_entry ~canon bucket prefix delim (fileset, dirset) entry =
     let common_prefix = match delim with
@@ -914,14 +751,6 @@ module Make
           IO.fail e
       ) ();;
 
-  let rec maybe_rmdir_parents bucket path () =
-    let parent = Filename.dirname path in
-    if parent <> ""  && parent <> "/" then begin
-      IO.rmdir (get_path bucket parent) >>= maybe_rmdir_parents bucket parent
-    end else
-      return ()
-  ;;
-
   let delete_object ~req ~canon bucket path =
     IO.try_catch
       (fun () ->
@@ -936,8 +765,6 @@ module Make
       | e ->
           IO.fail e
       ) ();;
-
-  let is_not_reserved (_,name) = name <> "tmp"
 
   let buf = Buffer.create 256
 
@@ -1146,12 +973,6 @@ module Make
         | _ ->
           return_error Error.AccessDenied ["ACL","Changing ACLs is not supported"]
       )
-
-  let disable_multipart () =
-    return_error Error.MethodNotAllowed [
-      "NotImplemented", "multipart upload";
-      "SXErrorMessage", "set 'enable_multipart = False' in .s3cfg"
-    ]
 
   let dispatch_request ~request ~canon =
     match
@@ -1387,7 +1208,6 @@ module Make
     ((float_of_int w) *. wsize_float) /. 1024.0;;
 
   open Gc
-  let tmpdir = try Sys.getenv "TMPDIR" with Not_found -> "/tmp";;
 
   let print_info _ =
     Gc.full_major ();

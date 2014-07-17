@@ -28,17 +28,16 @@
 (**************************************************************************)
 
 open UnixLabels
-open UnixLabels.LargeFile
 
 let write_pid pidfile =
   let fd = openfile ~mode:[O_RDWR;O_CREAT] ~perm:0o750 pidfile in
   let pid = getpid () in
   try
     lockf fd ~mode:F_TLOCK ~len:0;
-    ftruncate fd ~len:0L;
+    UnixLabels.LargeFile.ftruncate fd ~len:0L;
     let str = Printf.sprintf "%d\n" pid in
     let _ = write fd ~buf:str ~pos:0 ~len:(String.length str) in
-    ignore (lseek fd 0L ~mode:SEEK_SET);
+    ignore (UnixLabels.LargeFile.lseek fd 0L ~mode:SEEK_SET);
     lockf fd ~mode:F_TRLOCK ~len:0;
     (*at_exit (fun () -> try unlink pidfile with _ -> ());*)
   with

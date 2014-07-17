@@ -230,7 +230,6 @@ module MakePipeline (M:Sigs.Monad)(W:Sigs.ThreadMonad with type 'a t = 'a M.t)
      )
   ;;
 
-  let noop () = ()
   open M
   let input_of_async_channel str =
     let first = ref true in fun () ->

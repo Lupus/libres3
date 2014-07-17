@@ -47,7 +47,7 @@ module ListString = OUnitDiff.ListSimpleMake(EString);;*)
 let assert_eq_function ~msg a b =
   assert_bool msg (a == b);;
 
-let id (x:string) = x
+let id x = x
 
 let assert_eq_string ?msg expected actual =
   assert_equal ?msg ~printer:id expected actual;;
@@ -117,8 +117,6 @@ module Pipeline = struct
       List.fold_left (fun (a1,a2) (e1,e2) ->
         e1 :: a1, e2 :: a2) ([], []) lst in
     List.rev a, List.rev b;;
-
-  let id x = x
 
   (* pipeline combiner *)
   let lift lst = {

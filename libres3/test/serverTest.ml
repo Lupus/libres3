@@ -119,20 +119,6 @@ end = struct
   let build_tests dispatcher name =
     HttpTest.generate_tests name (perform_queries dispatcher) (S3TestData.suite false);;
 
-  let foreach_dir dir f =
-    try
-      let d = Unix.opendir dir in
-      try
-        while true; do
-          let n = Unix.readdir d in
-          if n <> "." && n <> ".." then
-          f (Filename.concat dir n)
-        done
-      with End_of_file ->
-        Unix.closedir d;
-      Unix.rmdir dir;
-    with Unix.Unix_error (Unix.ENOENT,_,_) -> ()
-
   let tests =
     let dispatcher = test_init () in
     "server">:::[

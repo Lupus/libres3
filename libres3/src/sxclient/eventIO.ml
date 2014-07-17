@@ -72,12 +72,10 @@ module Make (M: Sigs.Monad) (OS: OSMonad with type 'a t = 'a M.t)
       a >>= fun v ->
         return (map v)
   end
-  open Op
 
   type output_data = string * int * int
   type output_stream = string -> int -> int -> unit t
 
-  open M
   let try_finally fn_try fn_finally value =
     try_catch
       fn_try

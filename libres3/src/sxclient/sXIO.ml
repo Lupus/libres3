@@ -1,5 +1,3 @@
-(**************************************************************************)
-(*  SX client                                                             *)
 (*  Copyright (C) 2012-2014 Skylable Ltd. <info-copyright@skylable.com>   *)
 (*                                                                        *)
 (*  This library is free software; you can redistribute it and/or         *)
@@ -35,7 +33,7 @@
 exception Detail of exn * (string * string) list
 type metafn = unit -> (string * string) list
 module Make(M:Sigs.Monad) = struct
-  type 'a t = 'a M.t(* monad *)
+  include M
   module M = M
   type output_data = string * int * int
   type input_stream = unit -> output_data t
@@ -66,7 +64,6 @@ module Make(M:Sigs.Monad) = struct
       end
     );;
 
-  open M
   let rec iter stream f =
     stream () >>= fun (str,pos,len) ->
     f (str,pos,len) >>= fun () ->
@@ -213,35 +210,6 @@ module Make(M:Sigs.Monad) = struct
     let fold_recurse dir =
       recurse (remove_base prefix dir) in
     (ops_of_url url).fold_list url fold_entry fold_recurse;;
-
-  (* TODO: move to common *)
-  let is_prefix ~prefix str =
-    let plen = String.length prefix in
-    (String.length str) >= plen &&
-    (String.sub str 0 plen) = prefix;;
-
-  (* TODO: move to common *)
-  let is_prefix str ~prefix =
-    let plen = String.length prefix in
-    let n = String.length str in
-    n >= plen &&
-    (String.sub str 0 plen) = prefix;;
-
-  let prefix_re_match base re name =
-    is_prefix ~prefix:base name &&
-    match re with
-    | Some regexp ->
-      (Netstring_str.string_match regexp name (String.length base)) <> None
-    | None -> true;;
-
-  let fold_list_filter (`Url url) ~filter_re f accum =
-    let base = Neturl.join_path (Neturl.url_path url) in
-    let entry accum e =
-      if prefix_re_match base filter_re e.name then
-        f accum e
-      else return accum in
-    let recurse dir = is_prefix ~prefix:base dir in
-    fold_list (`Url url) ~entry ~recurse accum;;
 
   let create ?replica (`Url url) =
     (ops_of_url url).create ?replica url;;
