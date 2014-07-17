@@ -164,7 +164,8 @@ let open_out_ask name =
   try
     open_out_gen [Open_wronly;Open_creat;Open_excl] 0o600 name
   with Sys_error _ ->
-    Printf.printf "File '%s' already exists, overwriting\n%!" name;
+    if Sys.file_exists name then
+      Printf.printf "File '%s' already exists, overwriting\n%!" name;
     open_out name
 
 let update_s3cfg is_https host port key name =
