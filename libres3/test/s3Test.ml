@@ -79,7 +79,7 @@ let match_field exp_ns exp_tag exp_data lst =
   ) lst;
   assert_bool ("expected tag " ^ exp_tag ^ " in: " ^ (string_of_xmllist lst)) (!matched);;
 
-let expect_xml_error ?(resource=true) desc path body =
+let expect_xml_error ?(resource=true) desc _ body =
  try begin match CodedIO.Xml.parse_string body with
   | `El (((_,"Error"),[]), children) ->
       match_field "" "Code" desc children;

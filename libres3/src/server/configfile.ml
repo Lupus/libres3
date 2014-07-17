@@ -59,7 +59,7 @@ let parse_size s =
           | 'G' | 'g' -> size *. (2. ** 30.)
           | 'M' | 'm' -> size *. (2. ** 20.)
           | 'K' | 'k' -> size *. (2. ** 10.)
-          | c -> failwith ("Unknown suffix in " ^ s) in
+          | _ -> failwith ("Unknown suffix in " ^ s) in
         size)
   with _ ->
     failwith ("expected size with suffix: " ^ s)

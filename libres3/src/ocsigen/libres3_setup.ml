@@ -140,7 +140,7 @@ let fallback_read msg f x =
       raise Not_found;
     Printf.printf "Successfully obtained %s\n%!" (String.lowercase msg);
     result
-  with e ->
+  with _ ->
     (*Printf.eprintf "Warning (%s): %s\n%!" msg (Printexc.to_string e);*)
     flush stderr;
     read_value msg

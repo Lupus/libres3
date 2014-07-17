@@ -252,7 +252,7 @@ struct
     ;;
 
     let rec json_parser = {
-      start = (fun state _ -> [], json_parser);
+      start = (fun _ _ -> [], json_parser);
       stop = (fun ~parent ~children v ->
         match v with
         | `Array -> (`A (List.rev children)) :: parent
@@ -276,7 +276,7 @@ struct
   end
 
   let format_date_header t =
-    Netdate.format "%a, %d %b %Y %H:%M:%S GMT" (Netdate.create t)
+    Netdate.format ~fmt:"%a, %d %b %Y %H:%M:%S GMT" (Netdate.create t)
   ;;
 
   open Cryptokit
@@ -368,7 +368,7 @@ struct
         return ()
     ;;
 
-    let expect_field_number s f = {
+    let expect_field_number _ f = {
       start = (fun _ _ -> failwith "field value expected");
       stop = (fun ~parent ~children _ -> failwith "field value expected");
       element = (fun s -> function
@@ -715,7 +715,6 @@ struct
 
   let token_of_user url =
     let user = Neturl.url_user url in
-    let p = pipeline () in
     let url = Neturl.remove_from_url ~query:true (Neturl.modify_url
       ~path:["";".users";user] url ~scheme:"http") in
     try_catch (fun () ->
@@ -782,7 +781,7 @@ struct
 
     let get_nodelist url =
       match url_path ~encoded:true url with
-      | "" :: volume :: path ->
+      | "" :: volume :: _ ->
           let url = Neturl.modify_url url ~path:["";volume] in
           let nodes = initial_nodelist url in
           make_request `GET nodes (locate url) >>= (fun reply ->
@@ -870,7 +869,6 @@ struct
      * but we have to download them in different order to use batching and
      * multiple hosts *)
     let download_full_mem url blocksize hashes =
-      let p = pipeline () in
       let grouped = group_by_node hashes in
       (* launch all requests *)
       let batches = NodesMap.fold (fun nodes hashes accum ->
@@ -903,7 +901,6 @@ struct
     ;;
 
     let get_meta url =
-     let port = url_port_opt url in
      get_nodelist url >>= fun nodes ->
      let url = Neturl.modify_url ~syntax:http_syntax url ~query:"fileMeta" in
      make_request `GET nodes url >>= fun reply ->
@@ -918,7 +915,6 @@ struct
      | _ -> failwith "bad meta reply format"
 
     let get url =
-     let port = url_port_opt url in
      get_nodelist url >>= fun nodes ->
      try_catch (fun () ->
        make_request `GET nodes url >>= fun reply ->
@@ -1347,10 +1343,9 @@ struct
     ;;
 
     let locate_upload url size =
-      let p = pipeline () in
       match url_path ~encoded:true url with
       | "" :: volume :: _ ->
-        make_request `GET (initial_nodelist url) (Neturl.modify_url
+      begin make_request `GET (initial_nodelist url) (Neturl.modify_url
             ~path:["";volume]
             ~scheme:"http"
             ~syntax:http_syntax
@@ -1382,6 +1377,8 @@ struct
       | p ->
           List.iter AJson.pp_json p;
           fail (Failure "bad json locate format")
+      end
+      | _ -> fail (Invalid_argument "Can upload only to a file (not a volume or the root)")
     ;;
 
     let upload_batch user port source map token blocksize upload_map () =
@@ -1455,7 +1452,6 @@ struct
         let hashes = List.rev_map (fun h -> `String h) hashes_rev in
         let n = List.length hashes_rev in
         (* TODO: multiple hosts and retry *)
-        let chunksize = Int64.of_int (blocksize * n) in
         let expected_bytes = Int64.to_int (Int64.sub endpos pos) in
         let expected = (expected_bytes + blocksize - 1) / blocksize in
         if (n <> expected) then
@@ -1484,16 +1480,14 @@ struct
         (Printf.sprintf "libres3_upload_%s.tmp" hex)
 
     let put ?metafn src srcpos url =
-      let host = url_host url
-      and port = url_port_opt url in
+      let host = url_host url in
       let size = Int64.sub (src.XIO.meta.XIO.size)  srcpos in
       if size < 0L then
         fail (Failure "Source position beyond EOF")
       else match url_path ~encoded:true url with
-      | "" :: volume :: path as split ->
+      | "" :: _volume :: _path ->
         (* TODO: handle no such volume errors *)
         locate_upload url size >>= fun (uuid, nodes, blocksize) ->
-        let dst = join_path split in
         let url = Neturl.modify_url ~host url in
         let tmpfile = tempfilename () in
         src.XIO.seek 0L >>= fun stream ->
@@ -1510,6 +1504,8 @@ struct
           OS.close tmpfd >>= fun () ->
           OS.unlink tmpfile >>= fun () ->
           fail e) ()
+    | _ ->
+        fail (Failure "can only put a file (not a volume or the root)")
 
   let fold_list url f recurse accum =
     let fullpath = url_path ~encoded:true url in
@@ -1524,12 +1520,14 @@ struct
       let url = Neturl.modify_url url
         ~encoded:true ~scheme:"http" ~syntax:http_syntax
         ~path:["";volume] ~query in
-      get_nodelist url >>= fun nodes ->
-      (* TODO: support multiple nodes *)
-      let node :: _ = nodes in
-      let url = Neturl.modify_url ~host:node url in
-      listit url >>= fun lst ->
-      foldl base volume f lst accum
+      begin get_nodelist url >>= function
+      | [] -> fail (Failure "empty nodelist")
+      | node :: _ ->
+          (* TODO: support multiple nodes *)
+          let url = Neturl.modify_url ~host:node url in
+          listit url >>= fun lst ->
+            foldl base volume f lst accum
+      end
     | [""] | [] ->
         let base = Neturl.modify_url url
           ~encoded:true ~path:[""] ~scheme:"http" ~syntax:http_syntax
@@ -1559,7 +1557,7 @@ struct
     (* TODO: abort download*)
     return ()
 
-  let copy_same src dst =
+  let copy_same _ _ =
     (* TODO: optimize sx to sx copy if same host: copy just hashlist *)
     return false;;
 
@@ -1570,7 +1568,7 @@ struct
       return None
     | Some token ->
       begin match url_path ~encoded:true url with
-      | "" :: volume :: ("" :: [] | []) ->
+      | "" :: _volume :: ("" :: [] | []) ->
           (* does volume exist? *)
           P.make_http_request p (request_of_url ~token `HEAD (locate url))
           >>= fun reply ->
@@ -1634,6 +1632,7 @@ struct
         ) ()
     | path ->
         let rec last l = match l with
+        | [] -> invalid_arg "Cannot create the root"
         | _ :: [tl] -> tl
         | _ :: rest -> last rest in
         let path =

@@ -58,7 +58,7 @@ let reply_ns = Configfile.reply_ns
 let parse_mpart reply =
   try
   match CodedIO.Xml.parse_string reply.body with
-  | `El (((_, tag),_), c) as xml ->
+  | `El (((_, tag),_), _) as xml ->
       assert_eq_string ~msg:reply.body "InitiateMultipartUploadResult" tag;
       begin match get_xml_field "UploadId" xml with
       | None -> assert_failure "expected upload id"
@@ -104,10 +104,6 @@ let gen_complete_multipart fname uploadId _ replies =
     ]
   ) (Array.of_list replies)) in
   let xml = Xml.to_string (Xml.tag "CompleteMultipartUpload" parts) in
-  let port_opt = if !Configfile.base_port = 80 then "" else
-    (Printf.sprintf ":%d" !Configfile.base_port) in
-  let url = Printf.sprintf "http://%s%s%s"
-      !Configfile.base_hostname port_opt (encode fname) in
   {
     name = "complete multipart";
     req = sign_request {
@@ -134,7 +130,6 @@ let rec print_mismatch a b pos =
 
 let generate_multipart_test fname name parts =
 let all = String.concat "" parts in
-let digest = Digest.to_hex (Digest.string all) in
 Chain {
   chain_name = name ^ " multipart upload/download";
   first = sign_request {
@@ -209,7 +204,7 @@ Chain {
         })
     }
   ]);
-  finish = (fun reply _ -> {
+  finish = (fun _ _ -> {
     name = "delete multipart uploaded file";
     req = sign_request {
       meth = `DELETE;

@@ -37,7 +37,7 @@ let write_pid pidfile =
     lockf fd ~mode:F_TLOCK ~len:0;
     ftruncate fd ~len:0L;
     let str = Printf.sprintf "%d\n" pid in
-    let _ = write fd str 0 (String.length str) in
+    let _ = write fd ~buf:str ~pos:0 ~len:(String.length str) in
     ignore (lseek fd 0L ~mode:SEEK_SET);
     lockf fd ~mode:F_TRLOCK ~len:0;
     (*at_exit (fun () -> try unlink pidfile with _ -> ());*)
@@ -50,7 +50,7 @@ let write_pid pidfile =
     raise Exit;;
 
 let is_running pid =
-  try kill pid 0; true
+  try kill ~pid:pid ~signal:0; true
   with Unix_error(ESRCH,_,_) -> false
 
 let rec wait_pid pid =
@@ -77,7 +77,7 @@ let kill_pid name =
   begin match with_pidfile_read name (fun pid ->
       Printf.printf "Sending TERM to PID %d ... %!" pid;
       begin try
-          kill (-pid) 15;
+          kill ~pid:(-pid) ~signal:15;
           Printf.printf "\n%!";
         with Unix_error(e,_,_) ->
           Printf.eprintf "Kill failed: %s!\n%!" (error_message e);

@@ -190,7 +190,7 @@ module Make(M:Sigs.Monad) = struct
     | [] ->
         let `Source s = of_string "" in
         f s
-    | (`Url url) :: tl ->
+    | (`Url url) :: _ ->
         (* TODO: check they all have same scheme *)
         let urls = List.rev (List.rev_map (fun (`Url url) -> url) urls) in
       (ops_of_url url).with_urls_source urls filesize f;;
@@ -360,7 +360,7 @@ module Make(M:Sigs.Monad) = struct
           | [] -> return ("", 0, 0)
           | url :: tl ->
             current_urls := tl;
-            O.open_source url >>= fun (entry, state) ->
+            O.open_source url >>= fun (_, state) ->
             O.seek state 0L >>= fun () ->
             current_source := Some state;
             read_urls current_source current_urls ()

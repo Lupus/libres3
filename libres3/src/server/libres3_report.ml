@@ -51,7 +51,6 @@ let dump_channel out ch =
 
 let dump_file out name =
   print_wrap out name (fun () ->
-      let buf = String.make Config.buffer_size ' ' in
       try
         let f = open_in name in
         dump_channel out f;
@@ -119,7 +118,7 @@ let check_host host =
   let urlstr = Neturl.string_of_url url in
   try_catch (fun () ->
       SXIO.check (SXIO.of_neturl url) >>= function
-      | Some uuid ->
+      | Some _ ->
         return (Some (urlstr, None))
       | None ->
         return (Some (urlstr, Some "no uuid"))
@@ -149,7 +148,7 @@ let resolve_host out ~kind host =
   results
 
 let check_sx_hosts out sxhost =
-  let addrs = resolve_host out "SX" sxhost in
+  let addrs = resolve_host out ~kind:"SX" sxhost in
   Default.register ();
   eprintf "Checking connection ... %!";
   (* check all hosts in parallel *)
@@ -169,7 +168,7 @@ let check_sx_hosts out sxhost =
   eprintf "done\n%!"
 
 let check_s3_hosts out s3host =
-  ignore (resolve_host out "S3" s3host)
+  ignore (resolve_host out ~kind:"S3" s3host)
 
 let run out result =
   print_section out "Build configuration";

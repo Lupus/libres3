@@ -88,14 +88,14 @@ let anon_quoted str =
   else
     None
 
-let anon_mac str =
+let anon_mac _ =
   Some ":MAC"
 
-let anon_dns str = Some "NAME"
+let anon_dns _ = Some "NAME"
 
 let verb_re = Re_posix.compile_pat "[A-Z]+"
 
-let anon_verb url =
+let anon_verb _ =
   Some ":URL"
 
 let regexes = [

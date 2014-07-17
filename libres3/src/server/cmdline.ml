@@ -60,8 +60,7 @@ let print_config key v =
 let load_configuration spec =
   let keys = List.fold_left (fun accum (key, _, _) ->
     StringSet.add (String.lowercase key) accum) StringSet.empty spec in
-  let config = Paths.process_configuration Configfile.config_file
-    ~parse:(parse_configuration_line keys)
+  let config = Paths.process_configuration ~parse:(parse_configuration_line keys)
     in
   List.iter (fun (key, fn, _) ->
     try
@@ -99,8 +98,6 @@ let print_help print_conf_help spec usage () =
   exit 0
 
 let parse_cmdline ?(print_conf_help=true) additional_args =
-  let stop = ref false in
-  let status = ref false in
   let usage = (Printf.sprintf "Usage: %s [options]\n" Sys.argv.(0)) in
   let spec = ref [] in
   spec := [

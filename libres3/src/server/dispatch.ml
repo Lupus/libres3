@@ -189,7 +189,7 @@ module Make
        None
   ;;
 
-  let send_source url ~canon ~first ~length sender =
+  let send_source url ~canon ~first sender =
     if canon.CanonRequest.req_method = `HEAD then return () (* ensure HEAD's body is empty *)
     else
       U.copy url ~srcpos:first (U.of_sink (fun _ ->
@@ -210,7 +210,7 @@ module Make
           content_type = Some content_type;
           content_length = size;
           etag = None;
-        } >>= send_source url ~canon ~first:0L ~length:size
+        } >>= send_source url ~canon ~first:0L
     | Some (first, last) as range ->
         if first > last then
           invalid_range size (* not satisfiable *)
@@ -225,7 +225,7 @@ module Make
             content_type = Some content_type;
             content_length = length;
             etag = None;
-          } >>= send_source url ~canon ~first ~length
+          } >>= send_source url ~canon ~first
   ;;
 
   let return_xml ?log ~id ~id2 ~req ~status ~reply_headers xml =
@@ -307,7 +307,7 @@ module Make
     ) >>= fun () ->
     return (Buffer.contents buf);;
 
-  let parse_input_xml_opt ~request ~canon body root_tag validate f =
+  let parse_input_xml_opt body root_tag validate f =
     read_all ~input:body ~max:max_input_xml >>= function
     | "" -> f (validate [])
     | str ->
@@ -412,7 +412,7 @@ module Make
 
   let make_bucket ~req ~canon bucket =
     IO.try_catch (fun () ->
-      let base, url = url_of_volpath ~canon bucket "" in
+      let base, _ = url_of_volpath ~canon bucket "" in
       U.create base >>= fun () ->
       return_empty ~req ~canon ~status:`Ok ~reply_headers:["Location","/"^bucket]
     ) (function
@@ -424,7 +424,7 @@ module Make
 
   let create_bucket ~request ~canon body bucket =
     (* TODO: x-amz-grant-* for permissions *)
-    parse_input_xml_opt ~request ~canon body "CreateBucketConfiguration" (function
+    parse_input_xml_opt body "CreateBucketConfiguration" (function
       | [] -> Some "us-standard"
       | [`El (((_,"LocationConstraint"),_), children)] ->
           begin match children with
@@ -443,7 +443,7 @@ module Make
       );;
 
   let head_bucket ~req ~canon bucket =
-    let base, url = url_of_volpath ~canon bucket "" in
+    let _, url = url_of_volpath ~canon bucket "" in
     U.exists url >>= function
       | Some _ ->
         return_empty ~req ~canon ~status:`Ok ~reply_headers:[]
@@ -553,7 +553,7 @@ module Make
 
   (* returns tmpfile, digest *)
 
-  let source_of_request ~canon ~request body =
+  let source_of_request ~canon body =
     if Headers.has_header canon.CanonRequest.headers "x-amz-copy-source" then
     begin
       let source = (
@@ -562,7 +562,7 @@ module Make
       let source_bucket, source_path =
         Util.url_split_first_component (Neturl.split_path source) in
       let decoded_path = Netencoding.Url.decode source_path in
-      let base, url = url_of_volpath ~canon source_bucket decoded_path in
+      let _, url = url_of_volpath ~canon source_bucket decoded_path in
       U.with_url_source url (fun source ->
         return source.U.meta.U.mtime) >>= fun mtime ->
       return (url, mtime)
@@ -627,10 +627,10 @@ module Make
     end else
       return ();;
 
-  let copy_tourl ~canon ~request body url =
-    source_of_request ~canon ~request body >>= fun (src,mtime) ->
+  let copy_tourl ~canon body url =
+    source_of_request ~canon body >>= fun (src,mtime) ->
     let source = match src with
-    | `Tmp tmp -> `Source body
+    | `Tmp _ -> `Source body
     | (`Source _ | `Url _) as s -> s in
     U.copy source ~srcpos:0L url >>= fun () ->
     let digest = ref "" in
@@ -664,11 +664,11 @@ module Make
 
   let copy_object ~canon ~request body bucket path =
     (* TODO: check that body is empty *)
-    let base, url = url_of_volpath ~canon bucket path in
+    let _, url = url_of_volpath ~canon bucket path in
     (* TODO: handle the other x-amz-copy* and x-amz-meta* directives too *)
     IO.try_catch
       (fun () ->
-        copy_tourl ~canon ~request body url
+        copy_tourl ~canon body url
       )
       (function
       | Unix.Unix_error(Unix.EISDIR,_,_) ->
@@ -687,8 +687,8 @@ module Make
 
   let meta_key = "libres3-etag-md5"
 
-  let with_source ~canon ~request body f =
-    source_of_request ~canon ~request body >>= function
+  let with_source ~canon body f =
+    source_of_request ~canon body >>= function
       | `Source s, _ -> f s
       | `Url _ as url, _ ->
           U.with_url_source url f
@@ -699,12 +699,12 @@ module Make
     [meta_key, !digestref]
 
   let put_object ~canon ~request body bucket path =
-    with_source ~canon ~request body (fun src ->
+    with_source ~canon body (fun src ->
     let md5 = Cryptokit.Hash.md5 () in
     let source = md5_source2 md5 src in
     IO.try_catch
       (fun () ->
-        let base, url = url_of_volpath ~canon bucket path in
+        let _, url = url_of_volpath ~canon bucket path in
         let digestref = ref "" in
         U.copy ~metafn:(md5_metafn md5 digestref) source ~srcpos:0L url >>= fun () ->
         return_empty ~canon ~req:request ~status:`Ok
@@ -764,7 +764,7 @@ module Make
     (* TODO: hash of hashlist to md5 mapping *)
     let content_type = "application/octet-stream" in
     IO.try_catch (fun () ->
-      let base, url = url_of_volpath ~canon bucket path in
+      let _, url = url_of_volpath ~canon bucket path in
       IO.try_catch (fun () ->
         md5_of_url url
       ) (fun _ ->
@@ -830,7 +830,7 @@ module Make
       return (fileset, StringSet.add prefix dirset)
     | None ->
       try_catch (fun () ->
-          let base, url = url_of_volpath ~canon bucket entry.U.name in
+          let _, url = url_of_volpath ~canon bucket entry.U.name in
           md5_of_url url
       ) (fun _ ->
         return "") () >>= fun md5 ->
@@ -901,7 +901,7 @@ module Make
   let delete_bucket ~req ~canon bucket =
     IO.try_catch
       (fun () ->
-        let base, url = url_of_volpath ~canon bucket "" in
+        let base, _ = url_of_volpath ~canon bucket "" in
         U.delete base >>= fun () ->
         return_empty ~req ~canon ~status:`No_content ~reply_headers:[]
       )
@@ -925,7 +925,7 @@ module Make
   let delete_object ~req ~canon bucket path =
     IO.try_catch
       (fun () ->
-        let base, url = url_of_volpath ~canon bucket path in
+        let _, url = url_of_volpath ~canon bucket path in
         U.delete url >>= fun () ->
         return_empty ~req ~canon ~status:`No_content ~reply_headers:[]
       )
@@ -964,7 +964,6 @@ module Make
       return bucket
 
   let mput_initiate ~canon ~request bucket path =
-    let file = Filename.concat bucket path in
     Buffer.reset buf;
     Buffer.add_string buf (Digest.string (bucket ^"/"^path));
     Buffer.add_char buf '\x00';
@@ -995,7 +994,7 @@ module Make
         "Requirements","part numbers must be integers >= 1 and <= 10000"
       ];;
 
-  let mput_part ~canon ~request ~partNumber ~uploadId body bucket path =
+  let mput_part ~canon ~request ~partNumber ~uploadId body _ _ =
     validate_partNumber partNumber >>= fun n ->
     mpart_get_bucket ~canon >>= fun mpart_bucket ->
     let path = Printf.sprintf "%s/%05d" uploadId n in
@@ -1057,8 +1056,8 @@ module Make
       Int64.add filesize size, url :: names
     ) (0L, [])
 
-  let check_parts ~canon ~request mpart_bucket ~uploadId body =
-    parse_input_xml_opt ~request ~canon body "CompleteMultipartUpload"
+  let check_parts ~canon mpart_bucket ~uploadId body =
+    parse_input_xml_opt body "CompleteMultipartUpload"
       parse_parts (get_part_sizes ~canon mpart_bucket ~uploadId)
 
   let list_parts ~canon ~uploadId =
@@ -1077,7 +1076,7 @@ module Make
     ) ~recurse:(fun _ -> true) (0L, []) >|= fun (filesize, names) ->
     filesize, List.fast_sort String.compare names
 
-  let mput_delete ~canon ~request ~uploadId bucket path =
+  let mput_delete ~canon ~request ~uploadId _ _ =
     mpart_get_bucket ~canon >>= fun mpart_bucket ->
     list_parts ~canon ~uploadId >>= fun (_, names) ->
     IO.rev_map_p (fun name ->
@@ -1086,7 +1085,6 @@ module Make
     return_empty ~req:request ~canon ~status:`No_content ~reply_headers:[];;
 
   let mput_complete ~canon ~request ~uploadId ~body bucket path =
-    let file = get_path bucket path in
     mpart_get_bucket ~canon >>= fun mpart_bucket ->
     let started = Filename.concat uploadId "0" in
     U.exists (snd (url_of_volpath ~canon mpart_bucket started)) >>= function
@@ -1097,8 +1095,8 @@ module Make
         "file",path
       ]
     | Some _ ->
-    check_parts ~canon ~request mpart_bucket ~uploadId body >>= fun (filesize, urls) ->
-    let base, url = url_of_volpath ~canon bucket path in
+    check_parts ~canon mpart_bucket ~uploadId body >>= fun (filesize, urls) ->
+    let _, url = url_of_volpath ~canon bucket path in
     let digestref = ref "" in
     let md5 = Cryptokit.Hash.md5 () in
     U.with_urls_source urls filesize (fun src ->
@@ -1133,8 +1131,8 @@ module Make
     return_xml_canon ~req:request ~canon ~status:`Ok ~reply_headers:[]
       (ServiceOps.list_all_buckets !buckets);;
 
-  let set_object_acl ~canon ~request body bucket path =
-    parse_input_xml_opt ~request ~canon body "AccessControlPolicy" (function
+  let set_object_acl ~canon ~request body _ _ =
+    parse_input_xml_opt body "AccessControlPolicy" (function
         | [`El (((_,"Owner"), _), _); (* check owner/id if we really implement this *)
            `El (((_,"AccessControlList"),_), lst)] ->
           Some lst
@@ -1169,9 +1167,9 @@ module Make
     | `GET, Bucket bucket, path, [] ->
         (* TODO: use params! *)
         get_object ~req:request ~canon bucket path
-    | `GET, Bucket bucket, path, ["acl",""] ->
+    | `GET, Bucket _, _, ["acl",""] ->
         send_default_acl ~req:request ~canon
-    | `GET, Bucket bucket, path, params ->
+    | `GET, Bucket _, _, params ->
         return_error Error.NotImplemented params
     | `HEAD, Bucket bucket, path, _ ->
         get_object ~req:request ~canon bucket path
@@ -1185,7 +1183,7 @@ module Make
           put_object ~canon ~request body bucket path
     | `PUT body, Bucket bucket, path, ["acl",""] ->
         set_object_acl ~canon ~request body bucket path
-    | `POST body, Bucket bucket, path,["uploads",""] ->
+    | `POST _, Bucket bucket, path,["uploads",""] ->
         if Headers.has_header canon.CanonRequest.headers "x-amz-copy-source"
         then
           return_error Error.InvalidArgument
@@ -1425,7 +1423,6 @@ module Make
       fail (Failure "SX secret access key must be set!")
     else begin
       Gc.compact ();
-      let base, _ = url_of_volpath_user ~user:!Config.key_id "" "" in
       if !Configfile.buckets_dir <> "" && !Configfile.buckets_dir <> "/" then
         mkdir_maybe !Configfile.buckets_dir >>= fun () ->
         mkdir_maybe (Filename.concat !Configfile.buckets_dir "tmp")

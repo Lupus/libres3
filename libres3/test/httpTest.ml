@@ -139,8 +139,8 @@ let rec generate_chain_testcase f c =
       ]
     with e ->
       raise e;
-      reply,
-      c.chain_name>::(fun () -> raise e)
+(*      reply,
+      c.chain_name>::(fun () -> raise e)*)
   )
 
 and generate_one_testcase f = function

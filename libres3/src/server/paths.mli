@@ -30,7 +30,6 @@
 type 'a configuration = 'a Map.Make(String).t
 
 val process_configuration :
-  string ->
     parse:(in_channel -> 'a configuration -> 'a configuration) ->
     'a configuration
 
