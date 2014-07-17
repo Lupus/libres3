@@ -903,12 +903,15 @@ module Make
     ) ~recurse:(fun _ -> true) (0L, []) >|= fun (filesize, names) ->
     filesize, List.fast_sort String.compare names
 
-  let mput_delete ~canon ~request ~uploadId _ _ =
+  let mput_delete_common ~canon ~request ~uploadId =
     mpart_get_bucket ~canon >>= fun mpart_bucket ->
     list_parts ~canon ~uploadId >>= fun (_, names) ->
     IO.rev_map_p (fun name ->
       U.delete (snd (url_of_volpath ~canon mpart_bucket name))
-    ) names >>= fun _ ->
+    ) names
+
+  let mput_delete ~canon ~request ~uploadId _ _ =
+    mput_delete_common ~canon ~request ~uploadId >>= fun _ ->
     return_empty ~req:request ~canon ~status:`No_content ~reply_headers:[];;
 
   let mput_complete ~canon ~request ~uploadId ~body bucket path =
@@ -929,7 +932,7 @@ module Make
     U.with_urls_source urls filesize (fun src ->
         let source = md5_source2 md5 src in
         U.copy ~metafn:(md5_metafn md5 digestref) source ~srcpos:0L url >>= fun () ->
-        mput_delete ~canon ~request ~uploadId bucket path >>= fun () ->
+        mput_delete_common ~canon ~request ~uploadId >>= fun _ ->
         (* TODO: periodically send whitespace to keep connection alive *)
         return_xml_canon ~req:request ~canon ~status:`Ok ~reply_headers:[] (
           Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "CompleteMultipartUploadResult"
