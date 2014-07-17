@@ -36,7 +36,7 @@ let open_errmsg = ref false
 let s3_host = ref ""
 let default_replica = ref ""
 let ssl = ref true
-let spec = Arg.align [
+let spec = [
   "--s3-host", Arg.Set_string s3_host,
     " Base hostname to use (equivalent to; s3.amazonaws.com, host_base in .s3cfg)";
   "--default-replica", Arg.Set_string default_replica,
@@ -65,7 +65,7 @@ let ask_arg (_, spec, doc) =
 (* cmdline parsing *)
 let () =
   let usage = Printf.sprintf "Usage: %s [options]\n" Sys.argv.(0) in
-  Arg.parse spec anon_fail usage;
+  Argcompat.parse_align ~extra:(fun () -> ()) spec anon_fail usage;
   if !sxsetup_conf = "" then
     sxsetup_conf := Filename.concat Configure.sysconfdir "sxserver/sxsetup.conf"
   else
