@@ -242,7 +242,7 @@ let () =
     "--no-ssl", Arg.Clear Config.sx_ssl, "";
   ];
   let result =
-    try OK (Cmdline.load_and_validate_configuration ())
+    try OK (Cmdline.validate_configuration (Cmdline.load_configuration Configfile.entries))
     with e -> Error e in
   let output =
     if !output_file = "-" then stdout

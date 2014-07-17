@@ -227,6 +227,7 @@ let initialize config =
   ] in
 
   Cmdline.parse_cmdline extra_spec;
+  let conf = Cmdline.load_configuration Configfile.entries in
   if !stop then begin
     Pid.kill_pid !Configfile.pidfile;
     exit 0
@@ -235,7 +236,7 @@ let initialize config =
     Pid.print_status !Configfile.pidfile;
     exit 0
   end;
-  Cmdline.load_and_validate_configuration ();
+  Cmdline.validate_configuration conf;
 
   config.logdir :=
     if !Configfile.syslog_facility = None then Some !Paths.log_dir else None;

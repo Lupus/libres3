@@ -28,4 +28,5 @@
 (**************************************************************************)
 
 val parse_cmdline : ?print_conf_help:bool -> (Arg.key * Arg.spec * Arg.doc) list -> unit
-val load_and_validate_configuration : unit -> unit
+val load_configuration : (Arg.key * (string -> unit) * Arg.doc) list -> string Paths.configuration
+val validate_configuration : string Paths.configuration -> unit

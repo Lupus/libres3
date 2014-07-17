@@ -116,8 +116,7 @@ let parse_cmdline ?(print_conf_help=true) additional_args =
     raise (Arg.Bad ("invalid option " ^ anon))
   ) usage
 
-let load_and_validate_configuration () =
-  let config = load_configuration Configfile.entries in
+let validate_configuration config =
   if !Configfile.pidfile = "" then begin
     Printf.eprintf "pidfile is not set!\n";
     raise Exit
