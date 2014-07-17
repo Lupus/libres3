@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: d3d13dc0ff69308ec499c8fd1fd66a5c)
+# DO NOT EDIT (digest: 1e653a633585749aaed85ca5b078ad9c)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -132,6 +132,7 @@
 "src/ocsigen/murmur.c": package(netstring)
 "src/ocsigen/murmur.c": package(netsys)
 "src/ocsigen/murmur.c": package(ocsigenserver)
+"src/ocsigen/murmur.c": package(re.posix)
 "src/ocsigen/murmur.c": package(ssl)
 "src/ocsigen/murmur.c": package(str)
 "src/ocsigen/murmur.c": package(threads)
@@ -151,6 +152,7 @@
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(netstring)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(netsys)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(ocsigenserver)
+<src/ocsigen/libres3_ocsigen.{native,byte}>: package(re.posix)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(ssl)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(str)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(threads)
@@ -170,6 +172,7 @@
 <src/ocsigen/*.ml{,i}>: package(netstring)
 <src/ocsigen/*.ml{,i}>: package(netsys)
 <src/ocsigen/*.ml{,i}>: package(ocsigenserver)
+<src/ocsigen/*.ml{,i}>: package(re.posix)
 <src/ocsigen/*.ml{,i}>: package(ssl)
 <src/ocsigen/*.ml{,i}>: package(str)
 <src/ocsigen/*.ml{,i}>: package(threads)

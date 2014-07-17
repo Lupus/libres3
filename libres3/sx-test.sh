@@ -16,7 +16,7 @@ cleanup() {
 }
 trap cleanup INT TERM EXIT
 echo "Starting SX"
-#(cd $SXDIR/server && test/start-nginx.sh)
+(cd $SXDIR/server && test/start-nginx.sh)
 echo
 echo "Installing ocsigen"
 make reinstall

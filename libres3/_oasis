@@ -120,7 +120,7 @@ Library libres3_site
   Build$: flag(ocsigen)
   Modules: Site
   CompiledObject: Best
-  BuildDepends: server, netcgi2, threads, sxclient.lwt, dns.lwt
+  BuildDepends: server, netcgi2, threads, sxclient.lwt, dns.lwt, re.posix
   Install: false
   CSources: murmur.c
 

@@ -227,7 +227,7 @@ let dns_check dns =
   | ver :: [] ->
       begin try
         Scanf.sscanf ver "%d.%d.%d" (fun maj min sec ->
-          Scanf.sscanf Version.version "%d.%d.%s" (fun srcmaj srcmin _ ->
+          Scanf.sscanf Version.version "%d.%d" (fun srcmaj srcmin ->
             match check_version (maj,min,sec > 0) (srcmaj, srcmin) with
             | SecurityUpdate -> upgrade_msg true (maj,min) (srcmaj,srcmin)
             | Update -> upgrade_msg false (maj,min) (srcmaj,srcmin)
@@ -245,6 +245,9 @@ let dns_check dns =
       return ()
 
 let hdist_seed = 0x1337 (* must match SX *)
+let self_id = murmurhash64
+  (Anonymize.anonymize_item "SELF" (Unix.gethostname ()))
+  hdist_seed
 
 let check_url url =
   SXIO.check url >>= function
@@ -258,7 +261,7 @@ let check_url url =
     let uuidbin = Cryptokit.transform_string (Cryptokit.Hexa.decode ()) uuidhex
     in
     let id = murmurhash64 uuidbin hdist_seed in
-    dns_check (Printf.sprintf "%d.%016Lx.s3ver.skylable.com" (Random.bits ()) id)
+    dns_check (Printf.sprintf "%d.%016Lx%016Lx.s3ver.skylable.com" (Random.bits ()) self_id id)
   | None ->
     return ()
 
