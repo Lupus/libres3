@@ -1,0 +1,322 @@
+(*
+ * Copyright (c) 2014 Anil Madhavapeddy <anil@recoil.org>
+ * Copyright (c) 2013 Citrix Systems Inc
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *)
+open OUnit
+
+let to_string { Cstruct.buffer; off; len } =
+  Printf.sprintf "buffer length = %d; off=%d; len=%d" (Bigarray.Array1.dim buffer) off len
+
+(* Check we can create and use an empty cstruct *)
+let test_empty_cstruct () =
+  let x = Cstruct.create 0 in
+  assert_equal ~printer:string_of_int 0 (Cstruct.len x);
+  let y = Cstruct.to_string x in
+  assert_equal "" y
+
+(* Check that we can't create a cstruct with a negative length *)
+let test_anti_cstruct () =
+  try
+    let x = Cstruct.create (-1) in
+    failwith (Printf.sprintf "test_anti_cstruct: %s" (to_string x))
+  with Invalid_argument _ ->
+    ()
+
+(* Check we can shift in the +ve direction *)
+let test_positive_shift () =
+  let x = Cstruct.create 1 in
+  let y = Cstruct.shift x 1 in
+  assert_equal ~printer:string_of_int 0 (Cstruct.len y)
+
+(* Check we can shift in the -ve direction *)
+let test_negative_shift () =
+  let x = Cstruct.create 10 in
+  let y = Cstruct.sub x 5 5 in
+  let z = Cstruct.shift y (-5) in
+  assert_equal ~printer:string_of_int 0 z.Cstruct.off;
+  assert_equal ~printer:string_of_int 10 z.Cstruct.len
+
+(* Check that an attempt to shift beyond the end of the buffer fails *)
+let test_bad_positive_shift () =
+  let x = Cstruct.create 10 in
+  try
+    let y = Cstruct.shift x 11 in
+    failwith (Printf.sprintf "test_bad_positive_shift: %s" (to_string y))
+  with Invalid_argument _ -> ()
+
+(* Check that an attempt to shift before the start of the buffer fails *)
+let test_bad_negative_shift () =
+  let x = Cstruct.create 10 in
+  try
+    let y = Cstruct.shift x (-1) in
+    failwith (Printf.sprintf "test_bad_negative_shift: %s" (to_string y))
+  with Invalid_argument _ -> ()
+
+(* Check that 'sub' works *)
+let test_sub () =
+  let x = Cstruct.create 100 in
+  let y = Cstruct.sub x 10 80 in
+  assert_equal ~printer:string_of_int 10 y.Cstruct.off;
+  assert_equal ~printer:string_of_int 80 y.Cstruct.len;
+  let z = Cstruct.sub y 10 60 in
+  assert_equal ~printer:string_of_int 20 z.Cstruct.off;
+  assert_equal ~printer:string_of_int 60 z.Cstruct.len
+
+(* Check that 'sub' can't set 'len' too big *)
+let test_sub_len_too_big () =
+  let x = Cstruct.create 0 in
+  try
+    let y = Cstruct.sub x 0 1 in
+    failwith (Printf.sprintf "test_sub_len_too_big: %s" (to_string y))
+  with Invalid_argument _ -> ()
+
+let test_sub_len_too_small () =
+  let x = Cstruct.create 0 in
+  try
+    let y = Cstruct.sub x 0 (-1) in
+    failwith (Printf.sprintf "test_sub_len_too_small: %s" (to_string y))
+  with Invalid_argument _ -> ()
+
+let test_sub_offset_too_big () =
+  let x = Cstruct.create 10 in
+  begin
+    try
+      let y = Cstruct.sub x 11 0 in
+      failwith (Printf.sprintf "test_sub_offset_too_big: %s" (to_string y))
+    with Invalid_argument _ -> ()
+  end;
+  let y = Cstruct.sub x 1 9 in
+  begin
+    try
+      let z = Cstruct.sub y 10 0 in
+      failwith (Printf.sprintf "test_sub_offset_too_big: %s" (to_string z))
+    with Invalid_argument _ -> ()
+  end
+
+let test_sub_offset_too_small () =
+  let x = Cstruct.create 0 in
+  try
+    let y = Cstruct.sub x (-1) 0 in
+    failwith (Printf.sprintf "test_sub_offset_too_small: %s" (to_string y))
+  with Invalid_argument _ -> ()
+
+let test_set_len_too_big () =
+  let x = Cstruct.create 0 in
+  try
+    let y = Cstruct.set_len x 1 in
+    failwith (Printf.sprintf "test_set_len_too_big: %s" (to_string y))
+  with Invalid_argument _ -> ()
+
+let test_set_len_too_small () =
+  let x = Cstruct.create 0 in
+  try
+    let y = Cstruct.set_len x (-1) in
+    failwith (Printf.sprintf "test_set_len_too_small: %s" (to_string y))
+  with Invalid_argument _ -> ()
+
+let test_add_len_too_big () =
+  let x = Cstruct.create 0 in
+  try
+    let y = Cstruct.add_len x 1 in
+    failwith (Printf.sprintf "test_add_len_too_big: %s" (to_string y))
+  with Invalid_argument _ -> ()
+
+let test_add_len_too_small () =
+  let x = Cstruct.create 0 in
+  try
+    let y = Cstruct.add_len x (-1) in
+    failwith (Printf.sprintf "test_add_len_too_small: %s" (to_string y))
+  with Invalid_argument _ -> ()
+
+let test_blit_offset_too_big () =
+  let x = Cstruct.create 1 in
+  let y = Cstruct.create 1 in
+  try
+    Cstruct.blit x 2 y 1 1;
+    failwith "test_blit_offset_too_big"
+  with Invalid_argument _ -> ()
+
+let test_blit_offset_too_small () =
+  let x = Cstruct.create 1 in
+  let y = Cstruct.create 1 in
+  try
+    Cstruct.blit x (-1) y 1 1;
+    failwith "test_blit_offset_too_small"
+  with Invalid_argument _ -> ()
+
+let test_blit_dst_offset_too_big () =
+  let x = Cstruct.create 1 in
+  let y = Cstruct.create 1 in
+  try
+    Cstruct.blit x 1 y 2 1;
+    failwith "test_blit_dst_offset_too_big"
+  with Invalid_argument _ -> ()
+
+let test_blit_dst_offset_too_small () =
+  let x = Cstruct.create 1 in
+  let y = Cstruct.create 1 in
+  try
+    Cstruct.blit x 1 y (-1) 1;
+    failwith "test_blit_dst_offset_too_small"
+  with Invalid_argument _ -> ()
+
+let test_blit_len_too_big () =
+  let x = Cstruct.create 1 in
+  let y = Cstruct.create 2 in
+  try
+    Cstruct.blit x 0 y 0 2;
+    failwith "test_blit_len_too_big"
+  with Invalid_argument _ -> ()
+
+let test_blit_len_too_big2 () =
+  let x = Cstruct.create 2 in
+  let y = Cstruct.create 1 in
+  try
+    Cstruct.blit x 0 y 0 2;
+    failwith "test_blit_len_too_big2"
+  with Invalid_argument _ -> ()
+
+let test_blit_len_too_small () =
+  let x = Cstruct.create 1 in
+  let y = Cstruct.create 1 in
+  try
+    Cstruct.blit x 0 y 0 (-1);
+    failwith "test_blit_len_too_small"
+  with Invalid_argument _ -> ()
+
+let test_view_bounds_too_small () =
+  let src = Cstruct.create 4 in
+  let dst = Cstruct.create 4 in
+  let dst_small = Cstruct.sub dst 0 2 in
+  try
+    Cstruct.blit src 0 dst_small 0 3;
+    failwith "test_view_bounds_too_small"
+  with
+    Invalid_argument _ -> ()
+
+let test_view_bounds_too_small_get_u8 () =
+  let x = Cstruct.create 2 in
+  let x' = Cstruct.sub x 0 1 in
+  try
+    let _ = Cstruct.get_uint8 x' 1 in
+    failwith "test_view_bounds_too_small_get_u8"
+  with
+    Invalid_argument _ -> ()
+
+let test_view_bounds_too_small_get_char () =
+  let x = Cstruct.create 2 in
+  let x' = Cstruct.sub x 0 1 in
+  try
+    let _ = Cstruct.get_char x' 1 in
+    failwith "test_view_bounds_too_small_get_char"
+  with
+    Invalid_argument _ -> ()
+
+let test_view_bounds_too_small_get_be16 () =
+  let x = Cstruct.create 4 in
+  let x' = Cstruct.sub x 0 1 in
+  try
+    let _ = Cstruct.BE.get_uint16 x' 0 in
+    failwith "test_view_bounds_too_small_get_be16"
+  with
+    Invalid_argument _ -> ()
+
+let test_view_bounds_too_small_get_be32 () =
+  let x = Cstruct.create 8 in
+  let x' = Cstruct.sub x 2 5 in
+  try
+    let _ = Cstruct.BE.get_uint32 x' 2 in
+    failwith "test_view_bounds_too_small_get_be32"
+  with
+    Invalid_argument _ -> ()
+
+let test_view_bounds_too_small_get_be64 () =
+  let x = Cstruct.create 9 in
+  let x' = Cstruct.sub x 1 5 in
+  try
+    let _ = Cstruct.BE.get_uint64 x' 0 in
+    failwith "test_view_bounds_too_small_get_be64"
+  with
+    Invalid_argument _ -> ()
+
+let test_view_bounds_too_small_get_le16 () =
+  let x = Cstruct.create 4 in
+  let x' = Cstruct.sub x 0 1 in
+  try
+    let _ = Cstruct.LE.get_uint16 x' 0 in
+    failwith "test_view_bounds_too_small_get_le16"
+  with
+    Invalid_argument _ -> ()
+
+let test_view_bounds_too_small_get_le32 () =
+  let x = Cstruct.create 8 in
+  let x' = Cstruct.sub x 2 5 in
+  try
+    let _ = Cstruct.LE.get_uint32 x' 2 in
+    failwith "test_view_bounds_too_small_get_le32"
+  with
+    Invalid_argument _ -> ()
+
+let test_view_bounds_too_small_get_le64 () =
+  let x = Cstruct.create 9 in
+  let x' = Cstruct.sub x 1 5 in
+  try
+    let _ = Cstruct.LE.get_uint64 x' 0 in
+    failwith "test_view_bounds_too_small_get_le64"
+  with
+    Invalid_argument _ -> ()
+
+let _ =
+  let verbose = ref false in
+  Arg.parse [
+    "-verbose", Arg.Unit (fun _ -> verbose := true), "Run in verbose mode";
+  ] (fun x -> Printf.fprintf stderr "Ignoring argument: %s" x)
+  "Test bounds checks";
+
+  let suite = "bounds" >::: [
+    "test empty cstruct" >:: test_empty_cstruct;
+    "test anti cstruct" >:: test_anti_cstruct;
+    "test positive shift" >:: test_positive_shift;
+    "test negative shift" >:: test_negative_shift;
+    "test bad positive shift" >:: test_bad_positive_shift;
+    "test bad negative shift" >:: test_bad_negative_shift;
+    "test sub" >:: test_sub;
+    "test sub len too big" >:: test_sub_len_too_big;
+    "test sub len too small" >:: test_sub_len_too_small;
+    "test sub offset too big" >:: test_sub_offset_too_big;
+    "test sub offset too small" >:: test_sub_offset_too_small;
+    "test set len too big" >:: test_set_len_too_big;
+    "test set len too small" >:: test_set_len_too_small;
+    "test add len too big" >:: test_add_len_too_big;
+    "test add len too small" >:: test_add_len_too_small;
+    "test blit offset too big" >:: test_blit_offset_too_big;
+    "test blit offset too small" >:: test_blit_offset_too_small;
+    "test blit dst offset too big" >:: test_blit_dst_offset_too_big;
+    "test blit dst offset too small" >:: test_blit_dst_offset_too_small;
+    "test blit len too big" >:: test_blit_len_too_big;
+    "test blit len too big2" >:: test_blit_len_too_big2;
+    "test blit len too small" >:: test_blit_len_too_small;
+    "test view bounds too small" >:: test_view_bounds_too_small;
+    "test_view_bounds_too_small_get_u8"  >:: test_view_bounds_too_small_get_u8;
+    "test_view_bounds_too_small_get_char"  >:: test_view_bounds_too_small_get_char;
+    "test_view_bounds_too_small_get_be16"  >:: test_view_bounds_too_small_get_be16;
+    "test_view_bounds_too_small_get_be32"  >:: test_view_bounds_too_small_get_be32;
+    "test_view_bounds_too_small_get_be64"  >:: test_view_bounds_too_small_get_be64;
+    "test_view_bounds_too_small_get_le16"  >:: test_view_bounds_too_small_get_le16;
+    "test_view_bounds_too_small_get_le32"  >:: test_view_bounds_too_small_get_le32;
+    "test_view_bounds_too_small_get_le64"  >:: test_view_bounds_too_small_get_le64;
+  ] in
+  run_test_tt ~verbose:!verbose suite
+

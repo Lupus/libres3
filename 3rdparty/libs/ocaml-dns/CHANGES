@@ -1,0 +1,82 @@
+0.9.0 (2014-06-16):
+* Ensure that all `Dns.Buf.t` buffers are page-aligned, via `Io_page`.
+* Remove a Unix dependency that snuck into the `Dns_resolver` portable
+  core, by adding a timeout argument to the `commfn` type.
+* Improve ocamldoc in `Dns_resolver_unix`.
+
+0.8.1 (2014-04-19):
+* Add `process_of_zonebufs` to handle multiple zone files.
+* Adapt `Dns_server_unix` to expose multiple zonebuf functions.
+
+0.8.0 (2014-02-21):
+* Use `Ipaddr.V6` to restore IPv6/AAAA RR support.
+* `process_query` now takes an output buffer so it doesn't have to
+  overwrite the input buffer it just parsed.
+* Add Travis continuous integration scripts.
+* Regenerate with OASIS 0.4.1
+* Split the `dns.lwt` into a portable `dns.lwt-core` that doesn't
+  require Unix (from which a Mirage version can be built).  The only
+  change to existing applications is that Unix-specific functions
+  have shifted into `Dns_resolver_unix` or `Dns_server_unix`, with
+  the module types for `PROCESSOR` and `CLIENT` unchanged.
+
+0.7.0 (2013-08-26):
+* Add path argument to `Resolv_conf in Dns_resolver.config.
+* `Dns_resolver.t` is now a record type rather than a first-class module.
+* Fix `mldig` server and port options.
+* Change `Zone.load_zone` to `Zone.load` and make it functional over `Loader.db`.
+* Use `Ipaddr.V4.t` addresses in favor of Cstruct or Uri_IP representations.
+* Fix `RRSIG` signed type to be of the answer rather than the question.
+* Fix `ANY` queries.
+* Add `Buf` to provide a nickname for `char Bigarray`s.
+* Change `Packet.{parse,marshal}` to use Buf.t rather than exposing Cstruct.t
+* Change `Packet.parse` to remove name map parameter
+* Factor protocol modules into `Protocol` with default DNS implementations
+* Add first-class `PROCESSOR` module to `Dns_server` for contextual
+  protocol extensions
+* Change `Dns_server.listen` to accept processor
+* Rename `Dns_server.listen_with_zonebuf` and `Dns_server.listen_with_zonefile`
+  to `Dns_server.serve_with_zonebuf` and `Dns_server.serve_with_zonefile` resp.
+* Add `processor_of_process`, `process_of_zonebuf`,
+  `eventual_process_of_zonefile`, and `serve_with_processor` to `Dns_server`
+* Rename `Query.query_answer` to `Query.answer`
+* Add `Query.response_of_answer` and `Query.answer_of_response`
+* Move `Dns_resolver.build_query` to `Query.create`
+* By default, DNS packet IDs are randomly generated with Random
+* `Dns_resolver` now supports simultaneous resolver protocol requests
+* Fix reversed multiple TXT parse bug
+* Move DNSSEC implementation to <//github.com/dsheets/ocaml-dnssec>
+
+0.6.2 (2013-02-13):
+* Fix Lwt compilation after switch to `Dns.Names.Map` instead of `Hashtbl`.
+* Fix Lwt Makefile detection (`Lwt.unix` instead of `Lwt.ssl`)
+
+0.6.1 (2013-02-12):
+* Improve performance of packet marshalling.
+* Add a Mirage `Dns_server` subpackage.
+
+0.6.0 (2012-12-31):
+* (Very) experimental DNSSEC support.
+* Use cstruct-0.6.0 API.
+* Improve robustness of `Dns_resolver`.
+* Add EDNS0 support for larger packet sizes.
+
+0.5.2 (2012-11-28):
+* Fix the server interface to be fully asynchronous.
+* Correct `q_type`/`q_class` arguments being ignored in the Lwt
+  Dns_resolver (from Pierre Chambart).
+
+0.5.1 (2012-10-05):
+* Remain compatible with OCaml-3.12.1 with the more verbose
+  first-class module syntax.
+
+0.5.0 (2012-09-29):
+* Add mldig as a full(ish)-featured dig clone, with similar
+  output format.
+* Add `Dns.Resolvconf` for parsing `/etc/resolv.conf` files on
+  POSIX hosts.
+* Move the Lwt bits (resolver, server, cmdline client) into
+  a separate directory, to follow the Cohttp convention.
+
+0.4.0 (2012-09-18):
+* Initial public release.

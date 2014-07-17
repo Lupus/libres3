@@ -1,0 +1,15 @@
+# OASIS_START
+# DO NOT EDIT (digest: ef12b2024fd36b126092821c8a89f523)
+Base64
+Hashcons
+Loader
+Name
+Operators
+Packet
+Query
+RR
+Trie
+Zone
+Zone_lexer
+Zone_parser
+# OASIS_STOP

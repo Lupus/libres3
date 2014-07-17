@@ -1,0 +1,7 @@
+setup.data
+setup.log
+*.swp
+_build/
+dist/
+*.docdir
+*.byte

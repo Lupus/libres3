@@ -1,0 +1,100 @@
+OASISFormat: 0.3
+OCamlVersion: >= 4.00.0
+Name:        dns
+Version:     0.9.0
+Authors:     Anil Madhavapeddy, Tim Deegan, Richard Mortier, Haris Rotsos, David Sheets, Thomas Gazagnaire
+Maintainers: Anil Madhavapeddy <anil@recoil.org>
+License:     ISC
+Synopsis:    DNS client and server implementation
+Description: This is a pure OCaml implementation of the DNS protocol.
+  It is intended to be a reasonably high-performance implementation,
+  but clarity is preferred rather than low-level performance hacks.
+Homepage:    https://github.com/mirage/ocaml-dns
+Plugins:     META (0.3)
+BuildTools:  ocamlbuild
+
+Flag lwt
+  Description: build the Lwt library
+  Default: false
+
+Flag nettests
+  Description: run the internet-using tests
+  Default: false
+
+Library dns
+  Path: lib
+  Findlibname: dns
+  Pack: true
+  Modules:
+    Base64, Hashcons, Loader, Name, Operators, Packet, Query, RR, Trie,
+    Zone, Zone_lexer, Zone_parser, Resolvconf, Buf, Protocol
+  BuildDepends:	cstruct (>= 0.7.1), cstruct.syntax, re, re.str, ipaddr (>= 2.2.0), io-page
+  XMetaRequires: cstruct, re, re.str, ipaddr, io-page
+
+Library "dns-lwt"
+  Path: lwt
+  Build$: flag(lwt)
+  Install$: flag(lwt)
+  Findlibname: lwt
+  Modules: Dns_server_unix, Dns_resolver_unix
+  BuildDepends: lwt.unix (>= 2.4.1), cstruct.lwt, lwt.syntax, dns, dns.lwt-core, ipaddr.unix, io-page.unix
+  XMetaRequires: lwt.unix, cstruct.lwt, dns, dns.lwt-core, ipaddr.unix, io-page.unix
+  FindlibParent: dns
+
+Library "dns-lwt-core"
+  Path: lwt
+  Build$: flag(lwt)
+  Install$: flag(lwt)
+  Findlibname: lwt-core
+  Modules: Dns_server, Dns_resolver
+  BuildDepends: lwt, cstruct, lwt.syntax, dns
+  FindlibParent: dns
+
+Document dns
+  Title:                DNS docs
+  Type:                 ocamlbuild (0.3)
+  BuildTools+:          ocamldoc
+  XOCamlbuildPath:      lib
+  XOCamlbuildModules:
+    Base64, Hashcons, Loader, Name, Operators, Packet, Query, RR, Trie,
+    Zone, Zone_lexer, Zone_parser
+
+Document dns_lwt
+  Title:                DNS Lwt docs
+  Type:                 ocamlbuild (0.3)
+  BuildTools+:          ocamldoc
+  Build$:               flag(lwt)
+  XOCamlbuildPath:      lwt
+  XOCamlbuildModules:   Dns_resolver, Dns_server
+
+Executable lwt_server
+  Path:               lib_test
+  MainIs:             lwt_server.ml
+  Build$:             flag(tests) && flag(lwt)
+  Custom:             true
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       lwt, lwt.unix, re, re.str, dns, dns.lwt
+
+Executable time_server
+  Path:               lib_test
+  MainIs:             time_server.ml
+  Build$:             flag(tests) && flag(lwt)
+  Custom:             true
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       lwt, lwt.unix, re, re.str, dns.lwt
+
+Executable mldig
+  Path:               lwt
+  MainIs:             mldig.ml
+  Build$:             flag(tests) && flag(lwt)
+  Custom:             true
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       lwt, lwt.unix, lwt.syntax, dns, dns.lwt, re, re.str, ipaddr, cmdliner
+
+Test lwt_server
+  Run$:               flag(tests) && flag(lwt)
+  Command:            $lwt_server
+  WorkingDirectory:   lib_test
