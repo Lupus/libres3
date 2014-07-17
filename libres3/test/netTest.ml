@@ -139,6 +139,8 @@ let set_backtrace () =
 
 let noop () = () (* oUnit handles it *)
 
+let ssl = ref true
+
 let arg_specs = Arg.align [
   "-verbose", Arg.Unit noop, " Run the test in verbose mode.";
   "-only-test", Arg.Unit noop, " path Run only the selected test";
@@ -148,6 +150,7 @@ let arg_specs = Arg.align [
     " Show backtrace on exceptions";
   "--version", Arg.Unit print_version, " Print version";
   "-V", Arg.Unit print_version, " Print version";
+  "--no-ssl", Arg.Clear Config.sx_ssl, ""
 ]
 
 let _ =

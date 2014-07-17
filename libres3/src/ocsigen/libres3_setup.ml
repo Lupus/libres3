@@ -35,6 +35,7 @@ let sxsetup_conf = ref ""
 let open_errmsg = ref false
 let s3_host = ref ""
 let default_replica = ref ""
+let ssl = ref true
 let spec = Arg.align [
   "--s3-host", Arg.Set_string s3_host,
     " Base hostname to use (equivalent to; s3.amazonaws.com, host_base in .s3cfg)";
@@ -44,6 +45,7 @@ let spec = Arg.align [
   "--sxsetup-conf", Arg.Set_string sxsetup_conf, " Path to sxsetup.conf";
   "--version", Arg.Unit print_version, " Print version";
   "-V", Arg.Unit print_version, " Print version";
+  "--no-ssl", Arg.Clear ssl, ""
 ]
 
 let anon_fail flag =
@@ -51,8 +53,8 @@ let anon_fail flag =
 
 let read_value msg =
   Printf.printf "\n%s: %!" msg;
-  let reply = input_line stdin in
-  reply
+  try input_line stdin
+  with End_of_file -> ""
 
 let ask_arg (_, spec, doc) =
   match spec with
@@ -150,11 +152,13 @@ let rec read_yes_no default msg =
   Printf.eprintf "%s %s " msg choice;
   flush stdout;
   flush stderr;
-  match (String.lowercase (input_line stdin)) with
-  | "y" -> true
-  | "n" -> false
-  | "" -> default
-  | _ -> read_yes_no default msg
+  try
+    match (String.lowercase (input_line stdin)) with
+    | "y" -> true
+    | "n" -> false
+    | "" -> default
+    | _ -> read_yes_no default msg
+  with End_of_file -> default
 
 let open_out_ask name =
   try
@@ -216,6 +220,15 @@ let ask_start () =
           exit 1
   end
 
+let print_opt out key = function
+  | Some value ->
+      Printf.fprintf out "%s=%S\n" key value
+  | None -> ()
+
+let file_exists_opt = function
+  | Some file -> Sys.file_exists file
+  | None -> false
+
 let () =
   try
     let config = load_config !sxsetup_conf in
@@ -226,14 +239,20 @@ let () =
     and rundir = Filename.concat Configure.localstatedir "run"
     and webuser = fallback_read "Run as user" load "SX_SERVER_USER"
     and webgroup = fallback_read "Run as group" load "SX_SERVER_GROUP"
-    and ssl_key = fallback_read "SSL key file" load "SX_SSL_KEY_FILE"
-    and ssl_cert = fallback_read "SSL certificate file" load "SX_SSL_CERT_FILE"
+    and ssl_key =
+      if !ssl then Some (fallback_read "SSL key file" load "SX_SSL_KEY_FILE")
+      else None
+    and ssl_cert =
+      if !ssl then Some (fallback_read "SSL certificate file" load "SX_SSL_CERT_FILE")
+      else None
     and volume_size = "10G"
     in
     if !s3_host = "" then
       s3_host := fallback_read "S3 (DNS) name" load "LIBRES3_HOST";
     let s3_port = 8008 in (* TODO: when --no-ssl is added ask for this too *)
-    let s3_ssl_port = fallback_read "S3 SSL port" load "LIBRES3_PORT" in
+    let s3_ssl_port =
+      if !ssl then Some (fallback_read "S3 SSL port" load "LIBRES3_PORT")
+      else None in
     if !default_replica = "" then
       default_replica := fallback_read "Default volume replica count" load "LIBRES3_REPLICA";
     let name = libres3_conf () in
@@ -246,19 +265,25 @@ let () =
     Printf.fprintf outfile "sx_host=%S\n" this_ip;
     Printf.fprintf outfile "sx_port=%s\n" this_port;
     Printf.fprintf outfile "s3_host=%S\n" !s3_host;
-    Printf.fprintf outfile "s3_ssl_port=%S\n" s3_ssl_port;
+    print_opt outfile "s3_ssl_port" s3_ssl_port;
     Printf.fprintf outfile "pidfile=%S\n" (Filename.concat rundir "libres3.pid");
     Printf.fprintf outfile "run-as=%S\n" (webuser ^ ":" ^ webgroup);
     Printf.fprintf outfile "replica_count=%s\n" !default_replica;
     Printf.fprintf outfile "volume_size=%s\n" volume_size;
-    if Sys.file_exists ssl_cert && Sys.file_exists ssl_key then begin
-      Printf.fprintf outfile "s3_ssl_certificate_file=%S\n" ssl_cert;
-      Printf.fprintf outfile "s3_ssl_privatekey_file=%S\n" ssl_key;
+    print_opt outfile "s3_ssl_certificate_file" ssl_cert;
+    print_opt outfile "s3_ssl_privatekey_file" ssl_key;
+    if !ssl && not (file_exists_opt ssl_cert && file_exists_opt ssl_key) then
+    begin
+      Printf.eprintf "SSL is enabled, but SSL certificate/key file doesn't exist!\n"
     end;
     Printf.fprintf outfile "allow_volume_create_any_user=true\n";
     close_out outfile;
     update_s3cfg false !s3_host s3_port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
-    update_s3cfg true !s3_host (int_of_string s3_ssl_port) admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.s3cfg");
+    begin match s3_ssl_port with
+    | Some port ->
+      update_s3cfg true !s3_host (int_of_string port) admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.s3cfg");
+    | None -> ()
+    end;
     ask_start ();
   with Sys_error msg ->
     Printf.eprintf "Error: %s\n" msg;

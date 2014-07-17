@@ -81,14 +81,20 @@ let print_version () =
 
 let noop () = ()
 
+let usage_hide spec usage =
+  (* hide flags with empty docs *)
+  let spec = List.filter (fun (_,_,doc) -> doc <> "") spec in
+  Printf.printf "%s\n" usage;
+  List.iter (fun (spec, _, doc) ->
+      Printf.printf "  %s %s\n" spec doc
+  ) (Arg.align spec)
+
 let print_help print_conf_help spec usage () =
-  Arg.usage !spec usage;
+  usage_hide !spec usage;
   if print_conf_help then begin
-    let confspec = List.append (List.map (fun (key, _, desc) ->
-        (key, Arg.Unit noop, desc)) Configfile.entries)
-        ["-help",Arg.Unit noop,"";
-         "--help",Arg.Unit noop,""] in
-    Arg.usage (Arg.align confspec) "\nlibres3.conf entries:";
+    let confspec = List.map (fun (key, _, desc) ->
+        (key, Arg.Unit noop, desc)) Configfile.entries in
+    usage_hide confspec "\nlibres3.conf entries:";
   end;
   exit 0
 
@@ -97,7 +103,7 @@ let parse_cmdline ?(print_conf_help=true) additional_args =
   let status = ref false in
   let usage = (Printf.sprintf "Usage: %s [options]\n" Sys.argv.(0)) in
   let spec = ref [] in
-  spec := Arg.align [
+  spec := [
     "--config-file", Arg.Set_string Paths.config_file,
       " Path to configuration file (default: " ^ !Paths.config_file ^ ")";
     "--version", Arg.Unit print_version, " Print version";
