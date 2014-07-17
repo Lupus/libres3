@@ -24,7 +24,7 @@ open Printf
 *)
 
 (** Pipe. *)
-external (|>) : 'a -> ('a -> 'b) -> 'b = "%revapply";;
+let (|>) x f = f x;;
 
 (** Element-wise pipe. *)
 let (||>) l f = List.map f l

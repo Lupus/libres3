@@ -128,7 +128,7 @@ val string_to_bar16 : string -> bar16 option
 
 (** {2 Base types } *)
 
-type buffer = (char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t with sexp
+type buffer = (char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
 (** Type of a buffer. A cstruct is composed of an underlying buffer
     and position/length within this buffer. *)
 
@@ -136,7 +136,7 @@ type t = private {
   buffer: buffer;
   off   : int;
   len   : int;
-} with sexp
+}
 (** Type of a cstruct. *)
 
 type byte = char

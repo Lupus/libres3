@@ -97,7 +97,7 @@ let gethostbyname
     name =
   let open DP in
   let domain = string_to_domain_name name in
-  resolve (module Dns.Protocol.Client) commfn q_class q_type domain
+  resolve (module Dns.Protocol.Client : CLIENT) commfn q_class q_type domain
   >|= fun r ->
     List.fold_left (fun a x ->
       match x.rdata with |A ip -> ip::a |_ -> a
@@ -112,7 +112,7 @@ let gethostbyaddr
   let addr = for_reverse addr in
   log_info (sprintf "gethostbyaddr: %s" (domain_name_to_string addr));
   let open DP in
-  resolve (module Dns.Protocol.Client) commfn q_class q_type addr
+  resolve (module Dns.Protocol.Client : CLIENT) commfn q_class q_type addr
   >|= fun r ->
     List.fold_left (fun a x ->
       match x.rdata with |PTR n -> (domain_name_to_string n)::a |_->a

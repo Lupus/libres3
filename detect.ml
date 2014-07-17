@@ -642,7 +642,7 @@ end = struct
   let build_confgnumake ?(flags=[]) ~findlibnames source = {
     source = source;
     findlibnames = findlibnames;
-    configure = append ["sh";"configure";"--prefix";prefix] flags;
+    configure = append ["sh";"configure";"--prefix";prefix;"--libdir";destdir] flags;
     make = [gnu_make];
     install = [gnu_make; "install"];
     uninstall = [gnu_make; "uninstall"]
@@ -844,7 +844,8 @@ let pkg_jsonm = ocaml_dependency "jsonm" (Build (fun _ ->
 (* jsonm *)
 let pkg_ipaddr = ocaml_dependency "ipaddr" (Build (fun _ ->
   build_oasis "3rdparty/libs/ipaddr" ~findlibnames:["ipaddr"] ~flags:[]))
-  ~deps:[dep_ocamlbuild];;
+  ~deps:[dep_ocamlbuild]
+  ~version:(fun v -> v >=? "2.2.0") ;;
 
 (* cryptokit *)
 let pkg_cryptokit = ocaml_dependency "cryptokit" (Build (fun _ ->
@@ -871,7 +872,7 @@ let pkg_lwt = ocaml_dependency "lwt" ~findlibnames:["lwt";"lwt.unix";"lwt.ssl"]
     }] ["--disable-libev";"--enable-react"] in
     build_oasis "3rdparty/libs/lwt" ~flags ~findlibnames:["lwt"]
   ))
-  ~version:(fun v -> (v >=? "2.4.2"))
+  ~version:(fun v -> (v >=? "2.4.3"))
   ~deps:[pkg_react; camlp4_dep; dep_ocamlbuild]
   ~deps_opt:[pkg_ssl]
 ;;
@@ -902,10 +903,40 @@ let pkg_ocsigenserver = ocaml_dependency "ocsigenserver"
   gnu_make_dep; camlp4_dep; pkg_findlib; pkg_pcre; pkg_ocamlnet; pkg_react; pkg_ssl; pkg_lwt; pkg_cryptokit; pkg_tyxml; pkg_ipaddr
 ]
 
+let pkg_re = ocaml_dependency "re" (Build (fun _ ->
+  build_oasis "3rdparty/libs/ocaml-re" ~findlibnames:["re";"re.posix"] ~flags:[]))
+  ~deps:[dep_ocamlbuild]
+
+let pkg_optcomp = ocaml_dependency "optcomp" ~cmi:("optcomp","pa_optcomp.cmi","optcomp.cmxa") (Build (fun _ ->
+  build_oasis "3rdparty/libs/optcomp" ~findlibnames:["optcomp"] ~flags:[]))
+  ~deps:[dep_ocamlbuild; camlp4_dep]
+
+let pkg_base_bytes = ocaml_dependency "bytes" (Build (fun _ ->
+  build_confgnumake "3rdparty/libs/ocaml-bytes" ~findlibnames:["bytes"]))
+  ~deps:[dep_ocamlbuild]
+
+let pkg_ocplib_endian = ocaml_dependency "ocplib-endian" ~cmi:("ocplib-endian","endianString.cmi","ocplib_endian.cmxa") (Build (fun _ ->
+  build_oasis "3rdparty/libs/ocplib-endian" ~findlibnames:["ocplib-endian"] ~flags:[]))
+  ~deps:[dep_ocamlbuild; pkg_base_bytes; pkg_optcomp; camlp4_dep]
+
+let pkg_cstruct = ocaml_dependency "cstruct" (Build (fun _ ->
+  build_oasis "3rdparty/libs/ocaml-cstruct" ~findlibnames:["cstruct";"cstruct.lwt"] ~flags:["--enable-lwt"]))
+  ~deps:[dep_ocamlbuild; pkg_ocplib_endian; pkg_ounit; camlp4_dep]
+  ~version:(fun v -> v >=? "1.0.1")
+
+let pkg_iopage = ocaml_dependency "io-page" ~cmi:("io-page","io_page.cmi","io_page.cmxa") (Build (fun _ ->
+  build_oasis "3rdparty/libs/io-page" ~findlibnames:["io-page"] ~flags:[]))
+  ~deps:[dep_ocamlbuild; pkg_cstruct; pkg_ounit ]
+
+let pkg_dns = ocaml_dependency "dns" (Build (fun _ ->
+  build_oasis "3rdparty/libs/ocaml-dns" ~findlibnames:["dns";"dns.lwt"] ~flags:["--enable-lwt"]))
+  ~deps:[dep_ocamlbuild; pkg_lwt; pkg_cstruct; pkg_re; pkg_ipaddr; pkg_iopage ]
+  ~version:(fun v -> v >=? "0.9.0")
+
 (* Main dependencies of libres3 *)
 let deps_default = [ pkg_ocamlnet; pkg_jsonm; pkg_xmlm; pkg_cryptokit; pkg_ounit; pkg_ssl ];;
 let deps = if want_ocsigen then
-  pkg_ocsigenserver :: deps_default
+  pkg_dns :: pkg_ocsigenserver :: deps_default
 else
   deps_default;;
 
