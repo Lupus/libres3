@@ -104,7 +104,7 @@ let print_status name =
   end;
   print_endline "\n\n--- LibreS3 INFO ---";
   begin match !Configfile.ssl_privatekey_file with
-    | Some f -> Printf.printf "SSL private key: %s" f
+    | Some f -> Printf.printf "SSL private key: %s\n" f
     | None -> ()
   end;
   Printf.printf "LibreS3 logs: ";
@@ -112,5 +112,5 @@ let print_status name =
     | Some facility ->
       Printf.printf "syslog facility %s\n" facility
     | None->
-      Printf.printf "directory %s\n" !Paths.log_dir
+      Printf.printf "%s/\n" !Paths.log_dir
   end
