@@ -62,8 +62,16 @@ let map_reply call =
     headers = call#response_header#fields
   };;
 
+let () = Ssl.init ~thread_safe:true ();;
 let perform_http_queries lst =
+  try
   let pipeline = new pipeline in
+  (*  Http_client.Debug.enable := true;
+    Uq_ssl.Debug.enable := true;
+    Netlog.Debug.enable_all ();*)
+  let ctx = Ssl.create_context Ssl.TLSv1 Ssl.Client_context in
+  let tct = Https_client.https_transport_channel_type ctx in
+  pipeline # configure_transport Http_client.https_cb_id tct;
   (* without this we get an 'EOF on message' error *)
   pipeline#set_options { pipeline#get_options with
       Http_client.connection_timeout = 10.; };
@@ -77,7 +85,7 @@ let perform_http_queries lst =
     | `TRACE -> new trace_call
     | `OPTIONS -> new options_call in
     let url =
-      Printf.sprintf "http://%s:%d%s" req.host req.port req.relative_url in
+      Printf.sprintf "http%s://%s:%d%s" (if !Config.sx_ssl then "s" else "") req.host req.port req.relative_url in
     call#set_request_uri url;
     call#set_request_header (new Netmime.basic_mime_header req.req_headers);
     call#set_request_body (new Netmime.memory_mime_body req.req_body);
@@ -87,7 +95,10 @@ let perform_http_queries lst =
   (* TODO: set resolver to ensure that *.libres3.skylable.com is resolved to
    * 127.0.0.1 even if network is down *)
   pipeline#run ();
-  List.rev (List.rev_map map_reply calls);;
+  List.rev (List.rev_map map_reply calls)
+  with e ->
+    Printf.eprintf "Error: %s\n%!" (Printexc.to_string e);
+    raise e
 
 let build_tests name testcases =
   HttpTest.generate_tests name perform_http_queries testcases;;
@@ -138,8 +149,6 @@ let set_backtrace () =
   Printexc.record_backtrace true;;
 
 let noop () = () (* oUnit handles it *)
-
-let ssl = ref true
 
 let arg_specs = Arg.align [
   "-verbose", Arg.Unit noop, " Run the test in verbose mode.";

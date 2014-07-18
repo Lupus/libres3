@@ -766,13 +766,11 @@ struct
     module ListCache = Cache.Make(M)(struct
         type t = string * string * float
 
-        let cache_expires = 30. (* 30s *)
-
         let compare (user1, url1, expires1) (user2, url2, expires2) =
           if user1 = user2 then begin
             if url1 = url2  then begin
               (* if within the expiration time consider them equal *)
-              if abs_float (expires1 -. expires2) < cache_expires then 0
+              if abs_float (expires1 -. expires2) < !Config.list_cache_expires then 0
               else Pervasives.compare expires1 expires2
             end
             else String.compare url1 url2

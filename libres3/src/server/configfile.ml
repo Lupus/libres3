@@ -142,6 +142,15 @@ let parse_positive_int s =
     failwith (Printf.sprintf "Invalid number (must be strictly positive and <2^30): %Ld" i);
   Int64.to_int i
 
+let parse_positive_float s =
+  try
+    let f = float_of_string s in
+    if f < 0. then
+      failwith "negative";
+    f
+  with Failure _ ->
+    failwith (Printf.sprintf "Invalid number (must be floating point >= 0): %s" s)
+
 let user_sep = regexp ":"
 let user_re = regexp "^[A-Za-z0-9._][A-Za-z0-9._-]*$"
 
@@ -270,6 +279,7 @@ let entries : (string * (string -> unit) * string) list = [
     "filebuffersize", expect parse_positive_int filebuffersize, "";
     "maxretries", expect parse_positive_int maxretries, "";
     "keyid", expect (fun s -> s) Config.key_id, "";
+    "list_cache_expires", expect parse_positive_float Config.list_cache_expires, "";
     (* for backwards compatibility *)
     deprecated ~old:"user" ~use:"run-as" expect_opt validate_username user;
     deprecated ~old:"group" ~use:"run-as" expect_opt validate_username group;

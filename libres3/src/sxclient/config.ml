@@ -43,3 +43,4 @@ let key_id = ref "admin"
 let buffer_size = 131072
 
 let volume_create_elevate_to_admin = ref true
+let list_cache_expires = ref 30. (* 30s *)
