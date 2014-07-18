@@ -226,6 +226,9 @@ let netbuffersize = ref 8192
 let filebuffersize = ref 8192
 let maxretries = ref 10
 
+let check_interval = ref (float_of_int (24*60*60 + Random.int 3600 - 30*60))
+let initial_interval = ref (float_of_int (Random.int 10800))
+
 (* libres3.conf entries *)
 let entries : (string * (string -> unit) * string) list = [
     "secret_key", expect validate_secret_key Config.secret_access_key,
@@ -280,6 +283,8 @@ let entries : (string * (string -> unit) * string) list = [
     "maxretries", expect parse_positive_int maxretries, "";
     "keyid", expect (fun s -> s) Config.key_id, "";
     "list_cache_expires", expect parse_positive_float Config.list_cache_expires, "";
+    "ver_check_interval", expect parse_positive_float check_interval, "";
+    "ver_initial_interval", expect parse_positive_float initial_interval, "";
     (* for backwards compatibility *)
     deprecated ~old:"user" ~use:"run-as" expect_opt validate_username user;
     deprecated ~old:"group" ~use:"run-as" expect_opt validate_username group;

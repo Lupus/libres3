@@ -269,17 +269,9 @@ let noop e =
   Printf.eprintf "check error: %s\n%!" (Printexc.to_string e);
   return ()
 
-let check_interval = float_of_int (24*60*60 + Random.int 3600 - 30*60)
-let initial_interval = float_of_int (Random.int 10800)
-
-(*
-let initial_interval = 5.
-let check_interval = 1.
-*)
-
 let rec dns_check_loop url =
   try_catch check_url noop url >>= fun () ->
-  OS.sleep check_interval >>= fun () ->
+  OS.sleep !Configfile.check_interval >>= fun () ->
   dns_check_loop url
 
 let periodic_check () =
@@ -289,7 +281,7 @@ let periodic_check () =
     let url = SXIO.of_neturl (Neturl.make_url ~encoded:false
       ~scheme:"sx" ~user:!Config.key_id ~port:!Config.sx_port
       ~host ~path:[""] SXC.syntax) in
-    OS.sleep initial_interval >>= fun () ->
+    OS.sleep !Configfile.initial_interval >>= fun () ->
     dns_check_loop url
 
 let fun_site _ config_info _ _ _ _ =
