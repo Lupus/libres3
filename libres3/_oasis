@@ -139,7 +139,8 @@ Executable libres3_ocsigen
     ../files/sbin/libres3_env.sh ($sbindir/),
     ../files/sbin/libres3 ($sbindir/),
     ../../README ($docdir/),
-    ../../COPYING ($docdir/)
+    ../../COPYING ($docdir/),
+    ../files/libres3.pid ($localstatedir/run/)
 
 Executable libres3_setup
   Path: src/ocsigen
