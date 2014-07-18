@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: bdca29af6d5e3e15163bdcf8cff629c9) *)
+(* DO NOT EDIT (digest: 5ce729ab61635b8615f7b01404e6a015) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -603,7 +603,7 @@ let package_default =
           ("server", ["src/server"], []);
           ("libres3_site", ["src/ocsigen"], [])
        ];
-     lib_c = [("libres3_site", "src/ocsigen", [])];
+     lib_c = [];
      flags = [];
      includes =
        [

@@ -122,7 +122,6 @@ Library libres3_site
   CompiledObject: Best
   BuildDepends: server, netcgi2, threads, sxclient.lwt, dns.lwt, re.posix
   Install: false
-  CSources: murmur.c
 
 Executable libres3_ocsigen
   Path: src/ocsigen
