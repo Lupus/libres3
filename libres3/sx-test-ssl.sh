@@ -22,7 +22,6 @@ echo "Installing ocsigen"
 make reinstall
 $sbindir/libres3_ocsigen --version
 echo "Configuring ocsigen"
-mkdir -p $localstatedir/run
 
 conf=$SXDIR/server/test-sx/1/etc/sxserver/sxsetup.conf </dev/null
 echo "LIBRES3_PORT=8443" >>$conf

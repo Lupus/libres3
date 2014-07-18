@@ -22,7 +22,6 @@ echo "Installing ocsigen"
 make reinstall
 $sbindir/libres3_ocsigen --version
 echo "Configuring ocsigen"
-mkdir -p $localstatedir/run
 $sbindir/libres3_setup --no-ssl --s3-host libres3.skylable.com --default-replica 1 --sxsetup-conf $SXDIR/server/test-sx/1/etc/sxserver/sxsetup.conf </dev/null
 $sbindir/libres3_ocsigen --stop
 echo "list_cache_expires=0." >>$sysconfdir/libres3/libres3.conf
