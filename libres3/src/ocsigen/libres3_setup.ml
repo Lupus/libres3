@@ -88,7 +88,7 @@ let load_file name =
 
 type line = KV of string * string | Other of string
 
-let load_config file =
+let load_config ~kind file =
   try
     let f = open_in file in
     let rec loop lst =
@@ -102,7 +102,7 @@ let load_config file =
         loop (entry :: lst)
       with End_of_file ->
         close_in f;
-        Printf.printf "Successfully loaded SX configuration from '%s'\n%!" file;
+        Printf.printf "Successfully loaded %s configuration from '%s'\n%!" kind file;
         List.rev lst in
     loop []
   with Sys_error msg ->
@@ -170,7 +170,7 @@ let open_out_ask name =
 
 let update_s3cfg is_https host port key name =
   Printf.printf "Updating '%s'\n" name;
-  let lst = load_config name in
+  let lst = load_config ~kind:"s3cmd" name in
   let f = open_out (name ^ ".tmp") in
   (* restrict access to the file because it contains keys *)
   Unix.fchmod (Unix.descr_of_out_channel f) 0o600;
@@ -232,7 +232,7 @@ let file_exists_opt = function
 
 let () =
   try
-    let config = load_config !sxsetup_conf in
+    let config = load_config ~kind:"SX" !sxsetup_conf in
     let load = find config in
     let admin_key = fallback_read "Admin key" load "SX_ADMIN_KEY" in
     let this_ip = fallback_read "SX server IP/DNS name" load "SX_NODE_IP"
