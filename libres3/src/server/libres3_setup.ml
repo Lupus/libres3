@@ -308,7 +308,7 @@ let () =
       else "SX server HTTP port" in
     let generated =
       begin StringMap.empty
-      |> read_and_validate ~key:"secret_key" "Admin key (token or filename)" load "SX_ADMIN_KEY"
+      |> read_and_validate ~key:"secret_key" "Admin key or path to key-file" load "SX_ADMIN_KEY"
       |> read_and_validate ~key:"sx_host" "SX server IP/DNS name" load "SX_NODE_IP"
       |> read_and_validate ~key:"sx_port" sx_server_port_msg load "SX_PORT"
       |> validate_and_add ~key:"pidfile" ~default:(fun () ->
