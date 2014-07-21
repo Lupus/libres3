@@ -23,9 +23,8 @@ make reinstall
 $sbindir/libres3_ocsigen --version
 echo "Configuring ocsigen"
 
-conf=$SXDIR/server/test-sx/1/etc/sxserver/sxsetup.conf </dev/null
-echo "LIBRES3_PORT=8443" >>$conf
-$sbindir/libres3_setup --s3-host libres3.skylable.com --default-replica 1 --sxsetup-conf $conf </dev/null
+conf=$SXDIR/server/test-sx/1/etc/sxserver/sxsetup.conf
+$sbindir/libres3_setup --s3-host libres3.skylable.com --s3-port 8443 --default-replica 1 --sxsetup-conf $conf </dev/null
 $sbindir/libres3_ocsigen --stop
 echo "list_cache_expires=0." >>$sysconfdir/libres3/libres3.conf
 $sbindir/libres3_ocsigen

@@ -36,9 +36,12 @@ let open_errmsg = ref false
 let s3_host = ref ""
 let default_replica = ref ""
 let ssl = ref true
+let s3_port = ref ""
 let spec = [
   "--s3-host", Arg.Set_string s3_host,
     " Base hostname to use (equivalent to; s3.amazonaws.com, host_base in .s3cfg)";
+  "--s3-port", Arg.Set_string s3_port,
+    " Port to use for LibreS3";
   "--default-replica", Arg.Set_string default_replica,
     " Default volume replica count"
   ;
@@ -335,10 +338,14 @@ let () =
       |> validate_and_add ~key:"s3_host" ~default:(fun () ->
           if !s3_host <> "" then !s3_host
           else load "LIBRES3_HOST" ()) (read_value "S3 (DNS) name")
-      |> validate_and_add ~key:"s3_port" ~default:(fun () -> "8008")
-        (read_value "S3 port") ~validate:port_validate
-      |> read_and_validate_opt !ssl ~key:"s3_ssl_port" "S3 SSL port"
-         load "LIBRES3_PORT" ~validate:port_validate
+      |> (
+        let key = if !ssl then "s3_ssl_port" else "s3_port" in
+        let port_msg = if !ssl then "S3 SSL port" else "S3 port" in
+        validate_and_add ~key ~default:(fun () ->
+          if !s3_port <> "" then !s3_port
+          else load "LIBRES3_PORT" ()) (read_value port_msg)
+              ~validate:port_validate
+        )
       |> validate_and_add ~key:"replica_count" ~default:(fun () ->
           if !default_replica <> "" then !default_replica
           else load "LIBRES3_REPLICA" ())
@@ -367,15 +374,15 @@ let () =
 
     close_out outfile;
     let s3_host = StringMap.find "s3_host" generated in
-    let s3_port = StringMap.find "s3_port" generated in
     let admin_key = StringMap.find "secret_key" generated in
-    update_s3cfg false s3_host (int_of_string s3_port) admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
-    begin try
+    if !ssl then begin
       let portstr = StringMap.find "s3_ssl_port" generated in
       let port = int_of_string portstr in
       update_s3cfg true s3_host port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.s3cfg");
       generate_boto true s3_host port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.boto")
-    with Not_found ->
+    end else begin
+      let s3_port = StringMap.find "s3_port" generated in
+      update_s3cfg false s3_host (int_of_string s3_port) admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
       generate_boto false s3_host (int_of_string s3_port) admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.boto")
     end;
     ask_start ();
