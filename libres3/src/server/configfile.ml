@@ -98,12 +98,11 @@ let validate_secret_key s =
   else
     let ch = open_in (validate_filename s) in
     Paths.with_file ch ~close:close_in (fun ch ->
-      let len = in_channel_length ch in
+      let token = input_line ch in
+      let len = String.length token in
       if len <> expected then
         failwith (Printf.sprintf
           "Invalid SX access token specified in file '%s', length: %d" s len);
-      let token = String.make expected ' ' in
-      really_input ch s 0 expected;
       validate_string ~desc:"SX access token" ~expect:"base64-encoded auth token"
         base64_re token
     )
