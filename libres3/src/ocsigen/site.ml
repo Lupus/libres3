@@ -178,16 +178,13 @@ let process_request dispatcher ri () =
 
 open Dns.Packet
 
-let resolver = Dns_resolver_unix.create ()
-
 let rec get_txt = function
   | [] -> []
   | { Dns.Packet.rdata = TXT txt_list; _ } :: _ -> txt_list
   | _ :: tl -> get_txt tl
 
-let query_txt name =
-  resolver >>= fun r ->
-  Dns_resolver_unix.resolve r Q_IN Q_TXT
+let query_txt resolver name =
+  Dns_resolver_unix.resolve resolver Q_IN Q_TXT
     (Dns.Name.string_to_domain_name name)
   >>= fun packet ->
   return (get_txt packet.answers)
@@ -217,8 +214,8 @@ let upgrade_msg security (maj,min) (srcmaj,srcmin) =
       maj min
   )
 
-let dns_check dns =
-  query_txt dns >>= function
+let dns_check resolver dns =
+  query_txt resolver dns >>= function
   | [] ->
       Ocsigen_messages.console2 (Printf.sprintf "Cannot check version: no TXT record for '%s'" dns);
       return ()
@@ -247,7 +244,7 @@ let self_id = Murmur.murmurhash64b
   (Anonymize.anonymize_item "SELF" (Unix.gethostname ()))
   hdist_seed
 
-let check_url url =
+let check_url resolver url =
   SXIO.check url >>= function
   | Some uuid ->
     let buf = Buffer.create 32 in
@@ -259,18 +256,18 @@ let check_url url =
     let uuidbin = Cryptokit.transform_string (Cryptokit.Hexa.decode ()) uuidhex
     in
     let id = Murmur.murmurhash64b uuidbin hdist_seed in
-    dns_check (Printf.sprintf "%d.%016Lx%016Lx.s3ver.skylable.com" (Random.bits ()) self_id id)
+    dns_check resolver (Printf.sprintf "%d.%016Lx%016Lx.s3ver.skylable.com" (Random.bits ()) self_id id)
   | None ->
     return ()
 
 let noop e =
-  Printf.eprintf "check error: %s\n%!" (Printexc.to_string e);
+  Ocsigen_messages.warning (Printf.sprintf "version check error: %s" (Printexc.to_string e));
   return ()
 
-let rec dns_check_loop url =
-  try_catch check_url noop url >>= fun () ->
+let rec dns_check_loop resolver url =
+  try_catch (check_url resolver) noop url >>= fun () ->
   OS.sleep !Configfile.check_interval >>= fun () ->
-  dns_check_loop url
+  dns_check_loop resolver url
 
 let periodic_check () =
   match !Configfile.sx_host with
@@ -279,8 +276,9 @@ let periodic_check () =
     let url = SXIO.of_neturl (Neturl.make_url ~encoded:false
       ~scheme:"sx" ~user:!Config.key_id ~port:!Config.sx_port
       ~host ~path:[""] SXC.syntax) in
+    Dns_resolver_unix.create () >>= fun resolver->
     OS.sleep !Configfile.initial_interval >>= fun () ->
-    dns_check_loop url
+    dns_check_loop resolver url
 
 let fun_site _ config_info _ _ _ _ =
   Configfile.base_hostname := config_info.default_hostname;
