@@ -237,7 +237,7 @@ let entries : (string * (string -> unit) * string) list = [
     "s3_host", expect validate_dns_name base_hostname,
       " Base hostname to use (equivalent of s3.amazonaws.com, host_base in .s3cfg)";
     "s3_listen_ip", expect_opt parse_ip base_listen_ip,
-      " Bind to specified IP (default: any)";
+      " Bind to specified IP (default: any IPv4/IPv6. To bind to IPv4 only use 0.0.0.0)";
     "s3_port", expect parse_port base_port,
       " Bind to specified port";
     "s3_ssl_port", expect parse_port base_ssl_port,
