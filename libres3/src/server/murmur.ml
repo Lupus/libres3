@@ -29,3 +29,4 @@ let rec loop data i h1 h2 =
 let murmurhash64b data seed =
   let h1 = logxor seed (Int32.of_int (String.length data)) in
   loop data 0 h1 0l
+
