@@ -240,6 +240,19 @@ let update_s3cfg is_https host port key name =
   close_out f;
   Sys.rename (name ^ ".tmp") name
 
+let generate_boto secure host port key name =
+  Printf.printf "Generating '%s'\n" name;
+  let f = open_out (name ^ ".tmp") in
+  (* restrict access to the file because it contains keys *)
+  Unix.fchmod (Unix.descr_of_out_channel f) 0o600;
+  Printf.fprintf f "[Credentials]\ns3_host=%s:%d\n" host port;
+  Printf.fprintf f "aws_secret_access_key=%s\n" key;
+  Printf.fprintf f "aws_access_key_id=%s\n" !Config.key_id;
+  Printf.fprintf f "\n[Boto]\nis_secure=%s\n"
+    (if secure then "True" else "False");
+  close_out f;
+  Sys.rename (name ^ ".tmp") name
+
 let ask_start () =
   let init_d_script = "/etc/init.d/libres3" in
   let sbin_script = Filename.concat Configure.sbindir "libres3" in
@@ -346,9 +359,12 @@ let () =
     let admin_key = StringMap.find "secret_key" generated in
     update_s3cfg false s3_host (int_of_string s3_port) admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
     begin try
-      let port = StringMap.find "s3_ssl_port" generated in
-      update_s3cfg true s3_host (int_of_string port) admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.s3cfg");
-    with Not_found -> ()
+      let portstr = StringMap.find "s3_ssl_port" generated in
+      let port = int_of_string portstr in
+      update_s3cfg true s3_host port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.s3cfg");
+      generate_boto true s3_host port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.boto")
+    with Not_found ->
+      generate_boto false s3_host (int_of_string s3_port) admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.boto")
     end;
     ask_start ();
   with
