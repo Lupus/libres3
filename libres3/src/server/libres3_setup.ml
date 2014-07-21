@@ -130,10 +130,6 @@ let rec replace add lst key value out_list = match lst with
 | hd :: tl ->
     replace add tl key value (hd :: out_list)
 
-let load_admin_key lst () =
-  let dir = find lst "data-dir" () in
-  load_file (Filename.concat dir "admin.key")
-
 let libres3_conf () =
   Filename.concat Configure.sysconfdir "libres3/libres3.conf"
 
@@ -290,6 +286,19 @@ let file_exists_opt = function
 let run_as_of_user_group user group =
   user ^ ":" ^ group
 
+let maybe_load_file f () =
+  let v = f () in
+  if String.length v > 1 && v.[0] = '/' then
+    let ch = open_in v in
+    Paths.with_file ch ~close:close_in (fun ch ->
+      input_line ch
+    )
+  else v
+
+let read_and_validate_admin_key ~key msg f x m =
+  validate_and_add ~key ~default:(maybe_load_file (f x))
+    (maybe_load_file (read_value msg)) m
+
 let (|>) x f = f x
 
 let () =
@@ -308,7 +317,7 @@ let () =
       else "SX server HTTP port" in
     let generated =
       begin StringMap.empty
-      |> read_and_validate ~key:"secret_key" "Admin key or path to key-file" load "SX_ADMIN_KEY"
+      |> read_and_validate_admin_key ~key:"secret_key" "Admin key or path to key-file" load "SX_ADMIN_KEY"
       |> read_and_validate ~key:"sx_host" "SX server IP/DNS name" load "SX_NODE_IP"
       |> read_and_validate ~key:"sx_port" sx_server_port_msg load "SX_PORT"
       |> validate_and_add ~key:"pidfile" ~default:(fun () ->

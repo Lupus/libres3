@@ -90,22 +90,8 @@ let validate_directory path =
 let base64_re = regexp "^[A-Za-z0-9+/]+$"
 
 let validate_secret_key s =
-  let n = String.length s in
-  let expected = 56 in
-  if n = expected then
-    validate_string ~desc:"SX access token" ~expect:"base64-encoded auth token"
-      base64_re s
-  else
-    let ch = open_in (validate_filename s) in
-    Paths.with_file ch ~close:close_in (fun ch ->
-      let token = input_line ch in
-      let len = String.length token in
-      if len <> expected then
-        failwith (Printf.sprintf
-          "Invalid SX access token specified in file '%s', length: %d" s len);
-      validate_string ~desc:"SX access token" ~expect:"base64-encoded auth token"
-        base64_re token
-    )
+  validate_string ~desc:"SX access token" ~expect:"base64-encoded auth token"
+    base64_re s
 
 let dns_re = regexp "^[a-zA-Z0-9-]+\\(\\.[a-zA-Z0-9-]+\\)*$"
 
