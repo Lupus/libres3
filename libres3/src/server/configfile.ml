@@ -69,6 +69,8 @@ let validate_filename path =
     failwith "Empty path"
   else if path.[0] <> '/' then
     failwith ("Expected absolute path, got: " ^ path)
+  else if not (Sys.file_exists path) then
+    failwith (Printf.sprintf "File '%s' does not exist" path)
   else
     path
 

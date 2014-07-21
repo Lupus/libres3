@@ -51,15 +51,15 @@ let spec = [
 let anon_fail flag =
   raise (Arg.Bad ("invalid option: " ^ flag))
 
-let read_value msg =
+let read_value msg () =
+  flush stderr;
   Printf.printf "\n%s: %!" msg;
-  try input_line stdin
-  with End_of_file -> ""
+  input_line stdin
 
 let ask_arg (_, spec, doc) =
   match spec with
   | Arg.Set_string str ->
-      if !str = "" then str := read_value doc
+      if !str = "" then str := read_value doc ()
   | _ -> ()
 
 (* cmdline parsing *)
@@ -88,7 +88,7 @@ let load_file name =
 
 type line = KV of string * string | Other of string
 
-let load_config ~kind file =
+let load_config ?kind file =
   try
     let f = open_in file in
     let rec loop lst =
@@ -102,7 +102,11 @@ let load_config ~kind file =
         loop (entry :: lst)
       with End_of_file ->
         close_in f;
-        Printf.printf "Successfully loaded %s configuration from '%s'\n%!" kind file;
+        begin match kind with
+        | Some k ->
+          Printf.printf "Successfully loaded %s configuration from '%s'\n%!" k file;
+        | None -> ()
+        end;
         List.rev lst in
     loop []
   with Sys_error msg ->
@@ -110,12 +114,12 @@ let load_config ~kind file =
       Printf.eprintf "Cannot open configuration file: %s\n%!" msg;
     []
 
-let rec find lst key = match lst with
+let rec find lst key () = match lst with
 | [] -> raise Not_found
 | KV (k, v) :: _ when k = key ->
     v
 | _ :: tl ->
-  find tl key
+  find tl key ()
 
 let rec replace add lst key value out_list = match lst with
 | [] ->
@@ -126,24 +130,12 @@ let rec replace add lst key value out_list = match lst with
 | hd :: tl ->
     replace add tl key value (hd :: out_list)
 
-let load_admin_key lst =
-  let dir = find lst "data-dir" in
+let load_admin_key lst () =
+  let dir = find lst "data-dir" () in
   load_file (Filename.concat dir "admin.key")
 
 let libres3_conf () =
   Filename.concat Configure.sysconfdir "libres3/libres3.conf"
-
-let fallback_read msg f x =
-  try
-    let result = f x in
-    if result = "" then
-      raise Not_found;
-    Printf.printf "Successfully obtained %s\n%!" (String.lowercase msg);
-    result
-  with _ ->
-    (*Printf.eprintf "Warning (%s): %s\n%!" msg (Printexc.to_string e);*)
-    flush stderr;
-    read_value msg
 
 let rec read_yes_no default msg =
   let choice = match default with
@@ -158,7 +150,7 @@ let rec read_yes_no default msg =
     | "n" -> false
     | "" -> default
     | _ -> read_yes_no default msg
-  with End_of_file -> default
+  with End_of_file -> false
 
 let open_out_ask name =
   try
@@ -171,39 +163,58 @@ let open_out_ask name =
 
 module StringMap = Map.Make(String)
 
-let rec validate_and_add ?(retries=0) ~key f m =
+let port_validate portstr =
+  let port = int_of_string portstr in
+  let socket = Unix.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
+  let msg =
+    try
+      Unix.setsockopt socket Unix.SO_REUSEADDR true;
+      Unix.bind socket (Unix.ADDR_INET (Unix.inet_addr_any, port));
+      None
+    with Unix.Unix_error(e,_,_) ->
+      Some (Printf.sprintf "cannot bind to port: %s"
+              (Unix.error_message e));
+  in
+  Unix.close socket;
+  match msg with
+  | None -> ()
+  | Some str -> failwith str
+
+let validate_one ~key f ?validate m =
+  let value = f () in
   try
-    let value = f () in
-    let _, validate, _ = List.find (fun (k,_,_) -> k = key) Configfile.entries in
-    validate value;
+    let _, validator, _ = List.find (fun (k,_,_) -> k = key) Configfile.entries in
+    validator value;
+    begin match validate with
+    | Some extra_validator -> extra_validator value
+    | None -> ()
+    end;
     StringMap.add key value m
-  with Failure msg ->
-    Printf.eprintf "Invalid value for '%s': %s\n" key msg;
-    if retries < 3 then
-      validate_and_add ~retries:(retries+1) ~key f m
-    else
-      failwith msg
+  with Failure msg as e ->
+    Printf.eprintf "Invalid value for '%s=%s': %s\n" key value msg;
+    raise e
 
-let read_and_validate ~key msg f x m =
-  validate_and_add ~key (fun () -> fallback_read msg f x) m
+let rec validate_loop ~key f ?validate m =
+  try validate_one ~key f ?validate m
+  with Failure _ -> validate_loop ~key f ?validate m
 
-let read_and_validate_opt opt ~key msg f x m =
-  if opt then read_and_validate ~key msg f x m
-  else m
+let validate_and_add ~key ?default f ?validate m =
+  match default with
+  | None -> validate_loop ~key f ?validate m
+  | Some default_fn ->
+      try validate_one ~key default_fn ?validate m
+      with Not_found | Failure _ -> validate_loop ~key f ?validate m
 
-let read_and_validate_opt_file opt ~key msg f x m =
-  if opt then
-    validate_and_add ~key (fun () ->
-      let file = fallback_read msg f x in
-      if not (Sys.file_exists file) then
-        failwith (Printf.sprintf "File '%s' does not exist!" file);
-      file
-    ) m
+let read_and_validate ~key msg f x ?validate m =
+  validate_and_add ~key ~default:(f x) (read_value msg) ?validate m
+
+let read_and_validate_opt opt ~key msg f x ?validate m =
+  if opt then read_and_validate ~key msg f x ?validate m
   else m
 
 let update_s3cfg is_https host port key name =
   Printf.printf "Updating '%s'\n" name;
-  let lst = load_config ~kind:"s3cmd" name in
+  let lst = load_config name in
   let f = open_out (name ^ ".tmp") in
   (* restrict access to the file because it contains keys *)
   Unix.fchmod (Unix.descr_of_out_channel f) 0o600;
@@ -263,6 +274,9 @@ let file_exists_opt = function
   | Some file -> Sys.file_exists file
   | None -> false
 
+let run_as_of_user_group user group =
+  user ^ ":" ^ group
+
 let (|>) x f = f x
 
 let () =
@@ -270,7 +284,7 @@ let () =
     let config = load_config ~kind:"SX" !sxsetup_conf in
     let load = find config in
     let sx_no_ssl =
-      try load "SX_NO_SSL" = "1"
+      try load "SX_NO_SSL" () = "1"
       with _ -> false in
     let sx_server_port_msg =
       if sx_no_ssl then "SX server HTTP port"
@@ -282,26 +296,30 @@ let () =
       |> read_and_validate ~key:"secret_key" "Admin key" load "SX_ADMIN_KEY"
       |> read_and_validate ~key:"sx_host" "SX server IP/DNS name" load "SX_NODE_IP"
       |> read_and_validate ~key:"sx_port" sx_server_port_msg load "SX_PORT"
-      |> validate_and_add ~key:"pidfile" (fun () ->
+      |> validate_and_add ~key:"pidfile" ~default:(fun () ->
           let rundir = Filename.concat Configure.localstatedir "run" in
-          Filename.concat rundir "libres3.pid")
-      |> validate_and_add ~key:"run-as" (fun () ->
-          let webuser = fallback_read "Run as user" load "SX_SERVER_USER"
-          and webgroup = fallback_read "Run as group" load "SX_SERVER_GROUP" in
-          webuser ^ ":" ^ webgroup)
-      |> read_and_validate_opt_file !ssl ~key:"s3_ssl_privatekey_file" "SSL key file" load "SX_SSL_KEY_FILE"
-      |> read_and_validate_opt_file !ssl ~key:"s3_ssl_certificate_file" "SSL certificate file" load "SX_SSL_CERT_FILE"
-      |> validate_and_add ~key:"volume_size" (fun () -> "10G")
-      |> validate_and_add ~key:"s3_host" (fun () ->
-        if !s3_host = "" then fallback_read "S3 (DNS) name" load "LIBRES3_HOST"
-        else !s3_host)
-      |> validate_and_add ~key:"s3_port" (fun () -> "8008")
-      |> read_and_validate_opt !ssl ~key:"s3_ssl_port" "S3 SSL port" load "LIBRES3_PORT"
-      |> validate_and_add ~key:"replica_count" (fun () ->
-        if !default_replica = "" then fallback_read "Default volume replica count" load "LIBRES3_HOST"
-        else !default_replica)
-      |> validate_and_add ~key:"allow_volume_create_any_user" (fun () ->
-          "true")
+          Filename.concat rundir "libres3.pid") (read_value "PID file path")
+      |> validate_and_add ~key:"run-as" ~default:(fun () ->
+          run_as_of_user_group
+            (load "SX_SERVER_USER" ()) (load "SX_SERVER_GROUP" ())) (fun () ->
+          run_as_of_user_group
+            (read_value "Run as user" ()) (read_value "Run as group" ()))
+      |> read_and_validate_opt !ssl ~key:"s3_ssl_privatekey_file" "SSL key file" load "SX_SSL_KEY_FILE"
+      |> read_and_validate_opt !ssl ~key:"s3_ssl_certificate_file" "SSL certificate file" load "SX_SSL_CERT_FILE"
+      |> validate_and_add ~key:"volume_size" ~default:(fun () -> "10G") (fun () -> invalid_arg "built-in value")
+      |> validate_and_add ~key:"s3_host" ~default:(fun () ->
+          if !s3_host <> "" then !s3_host
+          else load "LIBRES3_HOST" ()) (read_value "S3 (DNS) name")
+      |> validate_and_add ~key:"s3_port" ~default:(fun () -> "8008")
+        (read_value "S3 port") ~validate:port_validate
+      |> read_and_validate_opt !ssl ~key:"s3_ssl_port" "S3 SSL port"
+         load "LIBRES3_PORT" ~validate:port_validate
+      |> validate_and_add ~key:"replica_count" ~default:(fun () ->
+          if !default_replica <> "" then !default_replica
+          else load "LIBRES3_REPLICA" ())
+          (read_value "Default volume replica count")
+      |> validate_and_add ~key:"allow_volume_create_any_user"
+        ~default:(fun () -> "true") (fun () -> invalid_arg "built-in value")
       end
     in
     let name = libres3_conf () in
@@ -333,6 +351,11 @@ let () =
     with Not_found -> ()
     end;
     ask_start ();
-  with Sys_error msg ->
+  with
+  | Sys_error msg ->
     Printf.eprintf "Error: %s\n" msg;
     exit 1
+  | End_of_file ->
+    Printf.eprintf "\nEOF encountered before reading all the answers!\n";
+    exit 1
+

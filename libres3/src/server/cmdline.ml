@@ -147,10 +147,10 @@ let validate_configuration config =
       Configfile.user := None;
       Configfile.group := None;
     end;
-    Printf.printf "Starting an HTTP S3 server on %s:%d\n"
+    Printf.printf "HTTP S3 server configured for %s:%d\n"
       !Configfile.base_hostname !Configfile.base_port;
     if !Configfile.ssl_privatekey_file <> None then
-      Printf.printf "Starting an HTTPS S3 server on %s:%d\n"
+      Printf.printf "HTTPS S3 server configured for %s:%d\n"
         !Configfile.base_hostname !Configfile.base_ssl_port;
     match !Configfile.sx_host with
     | Some sx ->
