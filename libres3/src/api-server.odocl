@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 7468cd9a96d62dc4610127f6b8f6f7ed)
+# DO NOT EDIT (digest: 0356b3c7d3b35b6ae6317e30e4f106c3)
 server/Paths
 server/Cmdline
 server/Dispatch
@@ -14,4 +14,5 @@ server/Cryptoutil
 server/Util
 server/Configfile
 server/Pid
+server/Murmur
 # OASIS_STOP

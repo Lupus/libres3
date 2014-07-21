@@ -92,9 +92,9 @@ Document "api-client"
 
 Library server
   Path: src/server
-  Modules: Paths, Cmdline, Dispatch, Bucket, ServiceOps, BucketOps, ObjectOps, Error, CodedIO, CanonRequest, Cryptoutil, Util, Configfile, Pid
+  Modules: Paths, Cmdline, Dispatch, Bucket, ServiceOps, BucketOps, ObjectOps, Error, CodedIO, CanonRequest, Cryptoutil, Util, Configfile, Pid, Murmur
   CompiledObject: Best
-  BuildDepends: xmlm, netstring, netsys, str, cryptokit, sxclient, threads, ocsigenserver, ipaddr
+  BuildDepends: xmlm, netstring, netsys, str, cryptokit, sxclient, threads, ocsigenserver, ipaddr, ocplib-endian
   Install: false
 
 Document "api-server"
@@ -122,7 +122,6 @@ Library libres3_site
   CompiledObject: Best
   BuildDepends: server, netcgi2, threads, sxclient.lwt, dns.lwt, re.posix
   Install: false
-  CSources: murmur.c
 
 Executable libres3_ocsigen
   Path: src/ocsigen

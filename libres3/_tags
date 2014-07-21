@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: c6d771a8d85cc19d6baebf7a1af5bb58)
+# DO NOT EDIT (digest: ab478ec6c230cb4171e88bafb854dfc1)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -66,6 +66,7 @@
 # Library server
 "src/server/server.cmxs": use_server
 <src/server/*.ml{,i}>: package(netsys)
+<src/server/*.ml{,i}>: package(ocplib-endian)
 <src/server/*.ml{,i}>: package(ocsigenserver)
 <src/server/*.ml{,i}>: package(str)
 <src/server/*.ml{,i}>: package(xmlm)
@@ -78,6 +79,7 @@
 <src/fcgi/libres3_fcgi.{native,byte}>: package(netclient)
 <src/fcgi/libres3_fcgi.{native,byte}>: package(netstring)
 <src/fcgi/libres3_fcgi.{native,byte}>: package(netsys)
+<src/fcgi/libres3_fcgi.{native,byte}>: package(ocplib-endian)
 <src/fcgi/libres3_fcgi.{native,byte}>: package(ocsigenserver)
 <src/fcgi/libres3_fcgi.{native,byte}>: package(ssl)
 <src/fcgi/libres3_fcgi.{native,byte}>: package(str)
@@ -94,6 +96,7 @@
 <src/*.ml{,i}>: package(netclient)
 <src/*.ml{,i}>: package(netstring)
 <src/*.ml{,i}>: package(netsys)
+<src/*.ml{,i}>: package(ocplib-endian)
 <src/*.ml{,i}>: package(ocsigenserver)
 <src/*.ml{,i}>: package(ssl)
 <src/*.ml{,i}>: package(str)
@@ -110,6 +113,7 @@
 <src/fcgi/*.ml{,i}>: package(netclient)
 <src/fcgi/*.ml{,i}>: package(netstring)
 <src/fcgi/*.ml{,i}>: package(netsys)
+<src/fcgi/*.ml{,i}>: package(ocplib-endian)
 <src/fcgi/*.ml{,i}>: package(ocsigenserver)
 <src/fcgi/*.ml{,i}>: package(ssl)
 <src/fcgi/*.ml{,i}>: package(str)
@@ -120,26 +124,6 @@
 <src/fcgi/*.ml{,i}>: use_sxclient.thread
 # Library libres3_site
 "src/ocsigen/libres3_site.cmxs": use_libres3_site
-<src/ocsigen/libres3_site.{cma,cmxa}>: use_liblibres3_site_stubs
-"src/ocsigen/murmur.c": package(cryptokit)
-"src/ocsigen/murmur.c": package(dns.lwt)
-"src/ocsigen/murmur.c": package(equeue-ssl)
-"src/ocsigen/murmur.c": package(ipaddr)
-"src/ocsigen/murmur.c": package(jsonm)
-"src/ocsigen/murmur.c": package(lwt.unix)
-"src/ocsigen/murmur.c": package(netcgi2)
-"src/ocsigen/murmur.c": package(netclient)
-"src/ocsigen/murmur.c": package(netstring)
-"src/ocsigen/murmur.c": package(netsys)
-"src/ocsigen/murmur.c": package(ocsigenserver)
-"src/ocsigen/murmur.c": package(re.posix)
-"src/ocsigen/murmur.c": package(ssl)
-"src/ocsigen/murmur.c": package(str)
-"src/ocsigen/murmur.c": package(threads)
-"src/ocsigen/murmur.c": package(xmlm)
-"src/ocsigen/murmur.c": use_server
-"src/ocsigen/murmur.c": use_sxclient
-"src/ocsigen/murmur.c": use_sxclient.lwt
 # Executable libres3_ocsigen
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(cryptokit)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(dns.lwt)
@@ -151,6 +135,7 @@
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(netclient)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(netstring)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(netsys)
+<src/ocsigen/libres3_ocsigen.{native,byte}>: package(ocplib-endian)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(ocsigenserver)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(re.posix)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(ssl)
@@ -171,6 +156,7 @@
 <src/ocsigen/*.ml{,i}>: package(netclient)
 <src/ocsigen/*.ml{,i}>: package(netstring)
 <src/ocsigen/*.ml{,i}>: package(netsys)
+<src/ocsigen/*.ml{,i}>: package(ocplib-endian)
 <src/ocsigen/*.ml{,i}>: package(ocsigenserver)
 <src/ocsigen/*.ml{,i}>: package(re.posix)
 <src/ocsigen/*.ml{,i}>: package(ssl)
@@ -222,6 +208,7 @@
 <test/test_server.{native,byte}>: package(netstring)
 <test/test_server.{native,byte}>: package(netsys)
 <test/test_server.{native,byte}>: package(oUnit)
+<test/test_server.{native,byte}>: package(ocplib-endian)
 <test/test_server.{native,byte}>: package(ocsigenserver)
 <test/test_server.{native,byte}>: package(ssl)
 <test/test_server.{native,byte}>: package(str)
@@ -240,6 +227,7 @@
 <test/test_directio.{native,byte}>: package(netstring)
 <test/test_directio.{native,byte}>: package(netsys)
 <test/test_directio.{native,byte}>: package(oUnit)
+<test/test_directio.{native,byte}>: package(ocplib-endian)
 <test/test_directio.{native,byte}>: package(ocsigenserver)
 <test/test_directio.{native,byte}>: package(ssl)
 <test/test_directio.{native,byte}>: package(str)
@@ -259,6 +247,7 @@
 <test/test_lwtio.{native,byte}>: package(netstring)
 <test/test_lwtio.{native,byte}>: package(netsys)
 <test/test_lwtio.{native,byte}>: package(oUnit)
+<test/test_lwtio.{native,byte}>: package(ocplib-endian)
 <test/test_lwtio.{native,byte}>: package(ocsigenserver)
 <test/test_lwtio.{native,byte}>: package(ssl)
 <test/test_lwtio.{native,byte}>: package(str)
@@ -278,6 +267,7 @@
 <test/test_misc.{native,byte}>: package(netstring)
 <test/test_misc.{native,byte}>: package(netsys)
 <test/test_misc.{native,byte}>: package(oUnit)
+<test/test_misc.{native,byte}>: package(ocplib-endian)
 <test/test_misc.{native,byte}>: package(ocsigenserver)
 <test/test_misc.{native,byte}>: package(ssl)
 <test/test_misc.{native,byte}>: package(str)
@@ -294,6 +284,7 @@
 <test/netTest.{native,byte}>: package(netstring)
 <test/netTest.{native,byte}>: package(netsys)
 <test/netTest.{native,byte}>: package(oUnit)
+<test/netTest.{native,byte}>: package(ocplib-endian)
 <test/netTest.{native,byte}>: package(ocsigenserver)
 <test/netTest.{native,byte}>: package(ssl)
 <test/netTest.{native,byte}>: package(str)
@@ -309,6 +300,7 @@
 <test/*.ml{,i}>: package(netstring)
 <test/*.ml{,i}>: package(netsys)
 <test/*.ml{,i}>: package(oUnit)
+<test/*.ml{,i}>: package(ocplib-endian)
 <test/*.ml{,i}>: package(ocsigenserver)
 <test/*.ml{,i}>: package(ssl)
 <test/*.ml{,i}>: package(str)

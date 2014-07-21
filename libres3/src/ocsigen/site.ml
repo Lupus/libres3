@@ -217,8 +217,6 @@ let upgrade_msg security (maj,min) (srcmaj,srcmin) =
       maj min
   )
 
-external murmurhash64 : string -> int -> int64 = "ml_murmurhash64"
-
 let dns_check dns =
   query_txt dns >>= function
   | [] ->
@@ -244,8 +242,8 @@ let dns_check dns =
         Printf.sprintf "Cannot check version: too many TXT records for '%s'" dns);
       return ()
 
-let hdist_seed = 0x1337 (* must match SX *)
-let self_id = murmurhash64
+let hdist_seed = 0x1337l (* must match SX *)
+let self_id = Murmur.murmurhash64b
   (Anonymize.anonymize_item "SELF" (Unix.gethostname ()))
   hdist_seed
 
@@ -260,7 +258,7 @@ let check_url url =
     let uuidhex = Buffer.contents buf in
     let uuidbin = Cryptokit.transform_string (Cryptokit.Hexa.decode ()) uuidhex
     in
-    let id = murmurhash64 uuidbin hdist_seed in
+    let id = Murmur.murmurhash64b uuidbin hdist_seed in
     dns_check (Printf.sprintf "%d.%016Lx%016Lx.s3ver.skylable.com" (Random.bits ()) self_id id)
   | None ->
     return ()

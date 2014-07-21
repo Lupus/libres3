@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 2ebdcc6275b1b065a3ca6b060fd632a9)
+# DO NOT EDIT (digest: 34fdb178851b7f55d515ec2ce59b080a)
 Paths
 Cmdline
 Dispatch
@@ -14,4 +14,5 @@ Cryptoutil
 Util
 Configfile
 Pid
+Murmur
 # OASIS_STOP
