@@ -143,10 +143,10 @@ Executable libres3_ocsigen
     ../files/libres3.pid ($localstatedir/run/)
 
 Executable libres3_setup
-  Path: src/ocsigen
+  Path: src/server
   Install: true
   MainIs: libres3_setup.ml
-  BuildDepends: unix
+  BuildDepends: unix, ipaddr, netstring
   CompiledObject: Best
 
 Executable libres3_report

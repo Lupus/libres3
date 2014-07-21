@@ -222,7 +222,7 @@ let initialize config =
     "--status", Arg.Set status, " Print running process status (based on PIDfile)";
     "--debug", Arg.Unit (fun () ->
       set_veryverbose ();
-      set_debugmode true), "";
+      set_debugmode true), " Turn on verbose/debug messages";
     "--no-ssl", Arg.Clear Config.sx_ssl, ""
   ] in
 

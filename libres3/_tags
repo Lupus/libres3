@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 1e653a633585749aaed85ca5b078ad9c)
+# DO NOT EDIT (digest: c6d771a8d85cc19d6baebf7a1af5bb58)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -182,8 +182,9 @@
 <src/ocsigen/*.ml{,i}>: use_sxclient
 <src/ocsigen/*.ml{,i}>: use_sxclient.lwt
 # Executable libres3_setup
-<src/ocsigen/libres3_setup.{native,byte}>: package(unix)
-<src/ocsigen/*.ml{,i}>: package(unix)
+<src/server/libres3_setup.{native,byte}>: package(ipaddr)
+<src/server/libres3_setup.{native,byte}>: package(netstring)
+<src/server/libres3_setup.{native,byte}>: package(unix)
 # Executable libres3_report
 <src/server/libres3_report.{native,byte}>: package(cryptokit)
 <src/server/libres3_report.{native,byte}>: package(equeue-ssl)

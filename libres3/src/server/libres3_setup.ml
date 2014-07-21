@@ -168,6 +168,39 @@ let open_out_ask name =
       Printf.printf "File '%s' already exists, overwriting\n%!" name;
     open_out name
 
+
+module StringMap = Map.Make(String)
+
+let rec validate_and_add ?(retries=0) ~key f m =
+  try
+    let value = f () in
+    let _, validate, _ = List.find (fun (k,_,_) -> k = key) Configfile.entries in
+    validate value;
+    StringMap.add key value m
+  with Failure msg ->
+    Printf.eprintf "Invalid value for '%s': %s\n" key msg;
+    if retries < 3 then
+      validate_and_add ~retries:(retries+1) ~key f m
+    else
+      failwith msg
+
+let read_and_validate ~key msg f x m =
+  validate_and_add ~key (fun () -> fallback_read msg f x) m
+
+let read_and_validate_opt opt ~key msg f x m =
+  if opt then read_and_validate ~key msg f x m
+  else m
+
+let read_and_validate_opt_file opt ~key msg f x m =
+  if opt then
+    validate_and_add ~key (fun () ->
+      let file = fallback_read msg f x in
+      if not (Sys.file_exists file) then
+        failwith (Printf.sprintf "File '%s' does not exist!" file);
+      file
+    ) m
+  else m
+
 let update_s3cfg is_https host port key name =
   Printf.printf "Updating '%s'\n" name;
   let lst = load_config ~kind:"s3cmd" name in
@@ -230,60 +263,74 @@ let file_exists_opt = function
   | Some file -> Sys.file_exists file
   | None -> false
 
+let (|>) x f = f x
+
 let () =
   try
     let config = load_config ~kind:"SX" !sxsetup_conf in
     let load = find config in
-    let admin_key = fallback_read "Admin key" load "SX_ADMIN_KEY" in
-    let this_ip = fallback_read "SX server IP/DNS name" load "SX_NODE_IP"
-    and this_port = fallback_read "SX server port" load "SX_PORT"
-    and rundir = Filename.concat Configure.localstatedir "run"
-    and webuser = fallback_read "Run as user" load "SX_SERVER_USER"
-    and webgroup = fallback_read "Run as group" load "SX_SERVER_GROUP"
-    and ssl_key =
-      if !ssl then Some (fallback_read "SSL key file" load "SX_SSL_KEY_FILE")
-      else None
-    and ssl_cert =
-      if !ssl then Some (fallback_read "SSL certificate file" load "SX_SSL_CERT_FILE")
-      else None
-    and volume_size = "10G"
+    let sx_no_ssl =
+      try load "SX_NO_SSL" = "1"
+      with _ -> false in
+    let sx_server_port_msg =
+      if sx_no_ssl then "SX server HTTP port"
+      else "SX server HTTPS port" in
+    if sx_no_ssl <> !ssl then
+      Printf.eprintf "Warning: SX and LibreS3 SSL mode mismatch!\n";
+    let generated =
+      begin StringMap.empty
+      |> read_and_validate ~key:"secret_key" "Admin key" load "SX_ADMIN_KEY"
+      |> read_and_validate ~key:"sx_host" "SX server IP/DNS name" load "SX_NODE_IP"
+      |> read_and_validate ~key:"sx_port" sx_server_port_msg load "SX_PORT"
+      |> validate_and_add ~key:"pidfile" (fun () ->
+          let rundir = Filename.concat Configure.localstatedir "run" in
+          Filename.concat rundir "libres3.pid")
+      |> validate_and_add ~key:"run-as" (fun () ->
+          let webuser = fallback_read "Run as user" load "SX_SERVER_USER"
+          and webgroup = fallback_read "Run as group" load "SX_SERVER_GROUP" in
+          webuser ^ ":" ^ webgroup)
+      |> read_and_validate_opt_file !ssl ~key:"s3_ssl_privatekey_file" "SSL key file" load "SX_SSL_KEY_FILE"
+      |> read_and_validate_opt_file !ssl ~key:"s3_ssl_certificate_file" "SSL certificate file" load "SX_SSL_CERT_FILE"
+      |> validate_and_add ~key:"volume_size" (fun () -> "10G")
+      |> validate_and_add ~key:"s3_host" (fun () ->
+        if !s3_host = "" then fallback_read "S3 (DNS) name" load "LIBRES3_HOST"
+        else !s3_host)
+      |> validate_and_add ~key:"s3_port" (fun () -> "8008")
+      |> read_and_validate_opt !ssl ~key:"s3_ssl_port" "S3 SSL port" load "LIBRES3_PORT"
+      |> validate_and_add ~key:"replica_count" (fun () ->
+        if !default_replica = "" then fallback_read "Default volume replica count" load "LIBRES3_HOST"
+        else !default_replica)
+      |> validate_and_add ~key:"allow_volume_create_any_user" (fun () ->
+          "true")
+      end
     in
-    if !s3_host = "" then
-      s3_host := fallback_read "S3 (DNS) name" load "LIBRES3_HOST";
-    let s3_port = 8008 in (* TODO: when --no-ssl is added ask for this too *)
-    let s3_ssl_port =
-      if !ssl then Some (fallback_read "S3 SSL port" load "LIBRES3_PORT")
-      else None in
-    if !default_replica = "" then
-      default_replica := fallback_read "Default volume replica count" load "LIBRES3_REPLICA";
     let name = libres3_conf () in
     Printf.printf "\nGenerating '%s'\n" name;
     let outfile = open_out_ask name in
     (* restrict access to the file because it contains keys *)
     Unix.fchmod (Unix.descr_of_out_channel outfile) 0o600;
     Printf.fprintf outfile "# LibreS3 configuration file\n";
-    Printf.fprintf outfile "secret_key=%S\n" admin_key;
-    Printf.fprintf outfile "sx_host=%S\n" this_ip;
-    Printf.fprintf outfile "sx_port=%s\n" this_port;
-    Printf.fprintf outfile "s3_host=%S\n" !s3_host;
-    print_opt outfile "s3_ssl_port" s3_ssl_port;
-    Printf.fprintf outfile "pidfile=%S\n" (Filename.concat rundir "libres3.pid");
-    Printf.fprintf outfile "run-as=%S\n" (webuser ^ ":" ^ webgroup);
-    Printf.fprintf outfile "replica_count=%s\n" !default_replica;
-    Printf.fprintf outfile "volume_size=%s\n" volume_size;
-    print_opt outfile "s3_ssl_certificate_file" ssl_cert;
-    print_opt outfile "s3_ssl_privatekey_file" ssl_key;
-    if !ssl && not (file_exists_opt ssl_cert && file_exists_opt ssl_key) then
-    begin
-      Printf.eprintf "SSL is enabled, but SSL certificate/key file doesn't exist!\n"
-    end;
-    Printf.fprintf outfile "allow_volume_create_any_user=true\n";
+
+    let active, inactive =
+      List.partition (fun (key,_,_) -> StringMap.mem key generated) Configfile.entries in
+    List.iter (fun (key,_,doc) ->
+      let value = StringMap.find key generated in
+      Printf.fprintf outfile "\n#%s\n%s=%S\n" doc key value
+    ) active;
+
+    List.iter (fun (key,_,doc) ->
+      if doc <> "" then
+        Printf.fprintf outfile "\n#%s\n#%s=\n" doc key) inactive;
+
     close_out outfile;
-    update_s3cfg false !s3_host s3_port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
-    begin match s3_ssl_port with
-    | Some port ->
-      update_s3cfg true !s3_host (int_of_string port) admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.s3cfg");
-    | None -> ()
+    let s3_host = StringMap.find "s3_host" generated in
+    let s3_port = StringMap.find "s3_port" generated in
+    let admin_key = StringMap.find "secret_key" generated in
+    update_s3cfg false s3_host (int_of_string s3_port) admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
+    begin try
+      let port = StringMap.find "s3_ssl_port" generated in
+      update_s3cfg true s3_host (int_of_string port) admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.s3cfg");
+    with Not_found -> ()
     end;
     ask_start ();
   with Sys_error msg ->

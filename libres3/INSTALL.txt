@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 57c60fffcff976914a6741dc4f6e2bf1) *)
+(* DO NOT EDIT (digest: 9f68fcb47ca6c1b0034d0ecb7b379c6a) *)
 
 This is the INSTALL file for the libres3 distribution.
 
@@ -15,7 +15,8 @@ In order to compile this package, you will need:
   test server, doc api-client, doc api-server
 * findlib (>= 1.2.8)
 * netclient (>= 3.7.4) for library sxclient, executable net_test
-* netstring for library server, library sxclient, executable libres3_report
+* netstring for library server, library sxclient, executable libres3_report,
+  executable libres3_setup
 * jsonm for library sxclient
 * cryptokit (>= 1.3) for library server, library sxclient,
   executable directio_test, executable lwtio_test, executable misc_test,
@@ -26,7 +27,8 @@ In order to compile this package, you will need:
 * xmlm for library server
 * netsys for library server, executable libres3_ocsigen
 * ocsigenserver for library server, executable libres3_ocsigen
-* ipaddr for library server, executable libres3_report
+* ipaddr for library server, executable libres3_report,
+  executable libres3_setup
 * netcgi2 for library libres3_site, executable libres3_fcgi,
   executable server_test
 * dns for library libres3_site
