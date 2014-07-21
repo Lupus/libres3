@@ -37,6 +37,8 @@ let s3_host = ref ""
 let default_replica = ref ""
 let ssl = ref true
 let s3_port = ref ""
+let batch_mode = ref false
+
 let spec = [
   "--s3-host", Arg.Set_string s3_host,
     " Base hostname to use (equivalent to; s3.amazonaws.com, host_base in .s3cfg)";
@@ -46,6 +48,7 @@ let spec = [
     " Default volume replica count"
   ;
   "--sxsetup-conf", Arg.Set_string sxsetup_conf, " Path to sxsetup.conf";
+  "--batch", Arg.Set batch_mode, "  Turn off interactive confirmations and assume safe defaults";
   "--version", Arg.Unit print_version, " Print version";
   "-V", Arg.Unit print_version, " Print version";
   "--no-ssl", Arg.Clear ssl, ""
@@ -54,10 +57,18 @@ let spec = [
 let anon_fail flag =
   raise (Arg.Bad ("invalid option: " ^ flag))
 
+let read_line () =
+  if !batch_mode then begin
+    prerr_endline "Default value invalid, and running in batch mode!";
+    raise End_of_file
+  end
+  else
+    input_line stdin
+
 let read_value msg () =
   flush stderr;
   Printf.printf "\n%s: %!" msg;
-  input_line stdin
+  read_line ()
 
 let ask_arg (_, spec, doc) =
   match spec with
@@ -144,7 +155,7 @@ let rec read_yes_no default msg =
   flush stdout;
   flush stderr;
   try
-    match (String.lowercase (input_line stdin)) with
+    match (String.lowercase (read_line ())) with
     | "y" -> true
     | "n" -> false
     | "" -> default
@@ -385,12 +396,16 @@ let () =
       update_s3cfg false s3_host (int_of_string s3_port) admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
       generate_boto false s3_host (int_of_string s3_port) admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.boto")
     end;
-    ask_start ();
+    if not !batch_mode then
+      ask_start ();
   with
   | Sys_error msg ->
     Printf.eprintf "Error: %s\n" msg;
     exit 1
   | End_of_file ->
-    Printf.eprintf "\nEOF encountered before reading all the answers!\n";
+    if not !batch_mode then
+      prerr_endline "\nEOF encountered before reading all the answers!\n"
+    else
+      prerr_endline "\nError(s) encountered while generating libres3.conf";
     exit 1
 

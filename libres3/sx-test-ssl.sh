@@ -24,8 +24,7 @@ $sbindir/libres3_ocsigen --version
 echo "Configuring ocsigen"
 
 conf=$SXDIR/server/test-sx/1/etc/sxserver/sxsetup.conf
-$sbindir/libres3_setup --s3-host libres3.skylable.com --s3-port 8443 --default-replica 1 --sxsetup-conf $conf </dev/null
-$sbindir/libres3_ocsigen --stop
+$sbindir/libres3_setup --s3-host libres3.skylable.com --s3-port 8443 --default-replica 1 --sxsetup-conf $conf --batch
 echo "list_cache_expires=0." >>$sysconfdir/libres3/libres3.conf
 $sbindir/libres3_ocsigen
 echo "Running tests"
