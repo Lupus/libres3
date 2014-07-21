@@ -1,4 +1,4 @@
-$(localstatedir)/log/libres3/access.log $(localstatedir)/log/libres3/errors.log $(localstatedir)/log/libres3/warnings.log {
+$(localstatedir)/log/libres3/access.log $(localstatedir)/log/libres3/errors.log $(localstatedir)/log/libres3/warnings.log $(localstatedir)/log/libres3/info.log {
         daily
         missingok
         rotate 7
