@@ -1,0 +1,38 @@
+#!/usr/bin/python
+# Requires a .boto configure like this:
+# [Credentials]
+# aws_access_key_id = <your-SX-username>
+# aws_secret_access_key = <your-SX-auth-token>
+# s3_host=<s3_host from libres3.conf>:<s3_port from libres3.conf>
+# [Boto]
+# is_secure = True
+#
+# Example usage:
+# BOTO_CONFIG=$(sysconfdir)/etc/libres3/libres3.sample.boto python s3genlink.py bucket/path
+
+import boto
+from boto.s3.connection import OrdinaryCallingFormat
+
+if __name__ == "__main__":
+    import sys
+    connection = boto.connect_s3(calling_format=OrdinaryCallingFormat())
+
+    if len(sys.argv) == 1:
+        print "Example usage:"
+        print " BOTO_CONFIG=$(sysconfdir)/libres3/libres3.sample.boto python $(docdir)/s3genlink.py bucket/path"
+        exit(1)
+
+    for name in sys.argv[1:]:
+        bucket, obj = name.split("/",1)
+        url = connection.generate_url(
+                300, 'GET',
+                bucket,
+                obj)
+        try:
+            import urllib2
+            request = urllib2.Request(url)
+            response = urllib2.urlopen(request)
+            print url
+        except:
+            print "Error in '%s': %s" % (url,
+                    sys.exc_info()[1])

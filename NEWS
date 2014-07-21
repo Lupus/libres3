@@ -1,3 +1,13 @@
+0.3 (Third Beta)
+----------------
+
+Changes in this release include:
+ * support SX running on a custom port
+ * separate libres3_report tool
+ * improved libres3_setup and libres3.conf
+ * generate .boto sample configuration
+ * script to generate pre-signed URL
+
 0.2 (Second Beta)
 -----------------
 

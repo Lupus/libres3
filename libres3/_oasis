@@ -27,7 +27,8 @@ FilesAB:
     src/files/conf/logrotate.d/libres3.ab,
     src/files/sbin/libres3_env.sh.ab,
     src/files/sbin/libres3.ab,
-    src/files/sbin/libres3_certgen.ab
+    src/files/sbin/libres3_certgen.ab,
+    src/files/s3genlink.py.ab
 PostCleanCommand:
     rm -f bisect*.out reply.log sigs.log
 PostBuildCommand:
@@ -139,6 +140,7 @@ Executable libres3_ocsigen
     ../files/sbin/libres3_env.sh ($sbindir/),
     ../files/sbin/libres3 ($sbindir/),
     ../files/sbin/libres3_certgen ($sbindir/),
+    ../files/s3genlink.py ($docdir/),
     ../../README ($docdir/),
     ../../COPYING ($docdir/),
     ../files/libres3.pid ($localstatedir/run/)
