@@ -24,7 +24,6 @@ FilesAB:
     src/server/configure.ml.ab,
     src/files/conf/libres3.sample.s3cfg.ab,
     src/files/conf/libres3-insecure.sample.s3cfg.ab,
-    src/files/conf/libres3.boto.ab,
     src/files/conf/logrotate.d/libres3.ab,
     src/files/sbin/libres3_env.sh.ab,
     src/files/sbin/libres3.ab
