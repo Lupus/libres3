@@ -56,7 +56,9 @@ let connect_to_resolver server port =
     let buf = Dns.Buf.sub buf 0 len in
     match f buf with
     | None -> rxfn f
-    | Some r -> return r
+    | Some r ->
+        Lwt_unix.close ofd >>= fun () ->
+        return r
   in
   txfn, rxfn, timerfn
 
