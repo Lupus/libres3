@@ -296,14 +296,16 @@ let () =
   try
     let config = load_config ~kind:"SX" !sxsetup_conf in
     let load = find config in
-    let sx_no_ssl =
-      try load "SX_NO_SSL" () = "1"
-      with _ -> false in
+    let sx_use_ssl =
+      try
+        let v = load "SX_USE_SSL" () = "yes" in
+        if v <> !ssl then
+          Printf.eprintf "Warning: SX and LibreS3 SSL mode mismatch!\n";
+        v
+      with _ -> true in
     let sx_server_port_msg =
-      if sx_no_ssl then "SX server HTTP port"
-      else "SX server HTTPS port" in
-    if sx_no_ssl <> !ssl then
-      Printf.eprintf "Warning: SX and LibreS3 SSL mode mismatch!\n";
+      if sx_use_ssl then "SX server HTTPS port"
+      else "SX server HTTP port" in
     let generated =
       begin StringMap.empty
       |> read_and_validate ~key:"secret_key" "Admin key (token or filename)" load "SX_ADMIN_KEY"
@@ -315,8 +317,9 @@ let () =
       |> validate_and_add ~key:"run-as" ~default:(fun () ->
           run_as_of_user_group
             (load "SX_SERVER_USER" ()) (load "SX_SERVER_GROUP" ())) (fun () ->
-          run_as_of_user_group
-            (read_value "Run as user" ()) (read_value "Run as group" ()))
+          let u = read_value "Run as user" ()
+          and g = read_value "Run as group" () in
+          run_as_of_user_group u g)
       |> read_and_validate_opt !ssl ~key:"s3_ssl_privatekey_file" "SSL key file" load "SX_SSL_KEY_FILE"
       |> read_and_validate_opt !ssl ~key:"s3_ssl_certificate_file" "SSL certificate file" load "SX_SSL_CERT_FILE"
       |> validate_and_add ~key:"volume_size" ~default:(fun () -> "10G") (fun () -> invalid_arg "built-in value")
