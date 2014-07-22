@@ -303,18 +303,24 @@ let file_exists_opt = function
   | Some file -> Sys.file_exists file
   | None -> false
 
-let run_as_of_user_group user group =
+let check_user user =
   try
     ignore (Unix.getpwnam user);
-    try
-      ignore (Unix.getgrnam group);
-      user ^ ":" ^ group
-    with Not_found ->
-      Printf.eprintf "Group not found: %s\n" group;
-      failwith "group not found"
+    user
   with Not_found ->
     Printf.eprintf "User not found: %s\n" user;
     failwith "user not found"
+
+let check_group group =
+  try
+    ignore (Unix.getgrnam group);
+    group
+  with Not_found ->
+    Printf.eprintf "Group not found: %s\n" group;
+    failwith "group not found"
+
+let run_as_of_user_group user group =
+      user ^ ":" ^ group
 
 let maybe_load_file f () =
   let v = f () in
@@ -364,9 +370,10 @@ let () =
           Filename.concat rundir "libres3.pid") (read_value "PID file path")
       |> validate_and_add ~key:"run-as" ~default:(fun () ->
           run_as_of_user_group
-            (load "SX_SERVER_USER" ()) (load "SX_SERVER_GROUP" ())) (fun () ->
-          let u = read_value "Run as user" ()
-          and g = read_value "Run as group" () in
+            (check_user (load "SX_SERVER_USER" ()))
+            (check_group (load "SX_SERVER_GROUP" ()))) (fun () ->
+          let u = check_user (read_value "Run as user" ())
+          and g = check_group (read_value "Run as group" ()) in
           run_as_of_user_group u g)
       |> validate_and_add ~key:"volume_size" ~default:(fun () -> "10G") (fun () -> invalid_arg "built-in value")
       |> validate_and_add ~key:"s3_host" ~default:(fun () ->
