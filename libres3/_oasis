@@ -32,7 +32,7 @@ FilesAB:
 PostCleanCommand:
     rm -f bisect*.out reply.log sigs.log
 PostBuildCommand:
-    chmod +x src/files/sbin/libres3 src/files/sbin/libres3_certgen
+    chmod +x src/files/sbin/libres3 src/files/sbin/libres3_certgen src/files/s3genlink.py
 
 BuildTools: ocamlbuild
 
