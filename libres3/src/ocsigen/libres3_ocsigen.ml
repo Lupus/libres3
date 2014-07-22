@@ -255,8 +255,9 @@ let initialize config =
   set_respect_pipeline ();
   set_filebuffersize Config.buffer_size;
   set_netbuffersize Config.buffer_size;
+  let rundir = Filename.dirname !Configfile.pidfile in
   List.iter (fun d -> mkdir_p ~perm:0o770 !d)
-    (config.datadir :: config.uploaddir :: list_of_opt config.logdir);
+    (ref rundir :: config.datadir :: config.uploaddir :: list_of_opt config.logdir);
   let configfile = Paths.generated_config_file in
   let ch = open_out configfile in
   write_config ch (build_config config);

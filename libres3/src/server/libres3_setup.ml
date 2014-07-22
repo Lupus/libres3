@@ -367,7 +367,7 @@ let () =
       |> read_and_validate ~key:"sx_port" sx_server_port_msg load "SX_PORT"
       |> validate_and_add ~key:"pidfile" ~default:(fun () ->
           let rundir = Filename.concat Configure.localstatedir "run" in
-          Filename.concat rundir "libres3.pid") (read_value "PID file path")
+          Filename.concat rundir "libres3/libres3.pid") (read_value "PID file path")
       |> validate_and_add ~key:"run-as" ~default:(fun () ->
           run_as_of_user_group
             (check_user (load "SX_SERVER_USER" ()))
