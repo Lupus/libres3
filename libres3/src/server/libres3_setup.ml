@@ -279,7 +279,7 @@ let ask_start () =
     Printf.printf "\n%!";
     if read_yes_no true "Do you want to start LibreS3 now?" then begin
       let exec = if has_init_d_script then init_d_script else sbin_script in
-      let cmd = exec ^ " start" in
+      let cmd = exec ^ " restart" in
       match Unix.system cmd with
       | Unix.WEXITED 0 -> ()
       | Unix.WEXITED n ->
