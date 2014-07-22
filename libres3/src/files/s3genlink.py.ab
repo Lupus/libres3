@@ -8,7 +8,7 @@
 # is_secure = True
 #
 # Example usage:
-# BOTO_CONFIG=$(sysconfdir)/etc/libres3/libres3.sample.boto python s3genlink.py bucket/path
+# BOTO_CONFIG=$(sysconfdir)/libres3/libres3.sample.boto python s3genlink.py bucket/path
 
 import boto
 from boto.s3.connection import OrdinaryCallingFormat
