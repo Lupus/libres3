@@ -304,7 +304,17 @@ let file_exists_opt = function
   | None -> false
 
 let run_as_of_user_group user group =
-  user ^ ":" ^ group
+  try
+    ignore (Unix.getpwnam user);
+    try
+      ignore (Unix.getgrnam group);
+      user ^ ":" ^ group
+    with Not_found ->
+      Printf.eprintf "Group not found: %s\n" group;
+      failwith "group not found"
+  with Not_found ->
+    Printf.eprintf "User not found: %s\n" user;
+    failwith "user not found"
 
 let maybe_load_file f () =
   let v = f () in
