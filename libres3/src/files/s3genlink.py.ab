@@ -15,12 +15,12 @@ from boto.s3.connection import OrdinaryCallingFormat
 
 if __name__ == "__main__":
     import sys
-    connection = boto.connect_s3(calling_format=OrdinaryCallingFormat())
-
     if len(sys.argv) == 1:
         print "Example usage:"
         print " BOTO_CONFIG=$(sysconfdir)/libres3/libres3.sample.boto python $(docdir)/s3genlink.py bucket/path"
         exit(1)
+
+    connection = boto.connect_s3(calling_format=OrdinaryCallingFormat())
 
     for name in sys.argv[1:]:
         bucket, obj = name.split("/",1)
