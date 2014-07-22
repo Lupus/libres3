@@ -11,8 +11,6 @@ if [ ! -f "\$CONFIG" ]; then
 fi
 
 umask 027
-export OCAMLFIND_CONF="\$ETCDIR/libres3/findlib.conf"
-touch \$OCAMLFIND_CONF
 
 case "\$1" in
     start)
