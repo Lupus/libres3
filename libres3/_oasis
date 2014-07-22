@@ -141,7 +141,7 @@ Executable libres3_ocsigen
     ../files/sbin/libres3 ($sbindir/),
     ../files/sbin/libres3_certgen ($sbindir/),
     ../files/s3genlink.py ($docdir/),
-    ../files/info.log ($localstatedir/log/),
+    ../files/info.log ($localstatedir/log/libres3/),
     ../../README ($docdir/),
     ../../COPYING ($docdir/),
     ../files/libres3.pid ($localstatedir/run/)
