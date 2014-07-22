@@ -105,8 +105,6 @@ let validate_configuration config =
     Printf.eprintf "pidfile is not set!\n";
     raise Exit
   end;
-  Printf.printf "Configuration:\n";
-  StringMap.iter print_config config;
   try
     if !Configfile.base_hostname = "" then
       raise (Arg.Bad "s3_host must be set");
@@ -146,19 +144,7 @@ let validate_configuration config =
       end;
       Configfile.user := None;
       Configfile.group := None;
-    end;
-    Printf.printf "HTTP S3 server configured for %s:%d\n"
-      !Configfile.base_hostname !Configfile.base_port;
-    if !Configfile.ssl_privatekey_file <> None then
-      Printf.printf "HTTPS S3 server configured for %s:%d\n"
-        !Configfile.base_hostname !Configfile.base_ssl_port;
-    match !Configfile.sx_host with
-    | Some sx ->
-      Printf.printf "Connecting to SX backend at %s\n"
-        sx
-    | None ->
-      Printf.printf "Using the FS backend at %s\n"
-        !Configfile.buckets_dir
+    end
   with Arg.Bad msg ->
     Printf.eprintf "Command-line error: %s!\n" msg;
     raise Exit
