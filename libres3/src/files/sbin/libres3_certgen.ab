@@ -11,7 +11,7 @@ mkdir -p "\$SSL_KEY_DIR" "\$SSL_CERT_DIR"
 SSL_KEY_FILE="\$SSL_KEY_DIR/libres3.key"
 SSL_CERT_FILE="\$SSL_CERT_DIR/libres3.pem"
 
-CERTCONF_TMP=`tempfile`
+CERTCONF_TMP=`mktemp`
 trap "rm -f -- '\$CERTCONF_TMP'" EXIT
 
 cat > "\$CERTCONF_TMP" <<EOF
