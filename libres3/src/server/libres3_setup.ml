@@ -215,6 +215,10 @@ let validate_and_add ~key ?default f ?validate m =
       try validate_one ~key default_fn ?validate m
       with Not_found | Failure _ -> validate_loop ~key f ?validate m
 
+let validate_and_add_opt opt ~key ?default f ?validate m =
+  if opt then validate_and_add ~key ?default f ?validate m
+  else m
+
 let read_and_validate ~key msg f x ?validate m =
   validate_and_add ~key ~default:(f x) (read_value msg) ?validate m
 
@@ -315,6 +319,15 @@ let read_and_validate_admin_key ~key msg f x m =
   validate_and_add ~key ~default:(maybe_load_file (f x))
     (maybe_load_file (read_value msg)) m
 
+let generate_ssl_certificate m =
+  if !ssl then begin
+    let s3_host = StringMap.find "s3_host" m in
+    let cmd = Printf.sprintf "%s/libres3_certgen '%s'" Configure.sbindir s3_host in
+    if Sys.command cmd <> 0 then
+      prerr_endline "Cannot generate SSL certificate";
+  end;
+  m
+
 let (|>) x f = f x
 
 let () =
@@ -345,12 +358,17 @@ let () =
           let u = read_value "Run as user" ()
           and g = read_value "Run as group" () in
           run_as_of_user_group u g)
-      |> read_and_validate_opt !ssl ~key:"s3_ssl_privatekey_file" "SSL key file" load "SX_SSL_KEY_FILE"
-      |> read_and_validate_opt !ssl ~key:"s3_ssl_certificate_file" "SSL certificate file" load "SX_SSL_CERT_FILE"
       |> validate_and_add ~key:"volume_size" ~default:(fun () -> "10G") (fun () -> invalid_arg "built-in value")
       |> validate_and_add ~key:"s3_host" ~default:(fun () ->
           if !s3_host <> "" then !s3_host
           else load "LIBRES3_HOST" ()) (read_value "S3 (DNS) name")
+      |> generate_ssl_certificate
+      |> validate_and_add_opt !ssl ~key:"s3_ssl_privatekey_file" ~default:(fun () ->
+          Filename.concat Configure.sysconfdir "ssl/private/libres3.key")
+          (read_value "SSL private key file")
+      |> validate_and_add_opt !ssl ~key:"s3_ssl_certificate_file" ~default:(fun () ->
+          Filename.concat Configure.sysconfdir "ssl/certs/libres3.pem")
+          (read_value "SSL certificate file")
       |> (
         let key = if !ssl then "s3_ssl_port" else "s3_port" in
         let port_msg = if !ssl then "S3 SSL port" else "S3 port" in

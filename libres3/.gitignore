@@ -4,6 +4,7 @@ setup.data
 reply.log
 src/files/sbin/libres3_env.sh
 src/files/sbin/libres3
+src/files/sbin/libres3_certgen
 src/files/conf/libres3.conf
 src/files/conf/libres3-nginx.conf
 src/files/conf/libres3.sample.s3cfg

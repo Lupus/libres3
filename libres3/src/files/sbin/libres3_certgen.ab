@@ -1,0 +1,48 @@
+#!/bin/sh
+DNS_NAME="\$1"
+if test -z "\$DNS_NAME"; then
+    echo "DNS name cannot be empty!"
+    exit 1
+fi
+SSL_KEY_DIR=$(sysconfdir)/ssl/private/
+SSL_CERT_DIR=$(sysconfdir)/ssl/certs/
+
+mkdir -p "\$SSL_KEY_DIR" "\$SSL_CERT_DIR"
+SSL_KEY_FILE="\$SSL_KEY_DIR/libres3.key"
+SSL_CERT_FILE="\$SSL_CERT_DIR/libres3.pem"
+
+CERTCONF_TMP=`tempfile`
+trap "rm -f -- '\$CERTCONF_TMP'" EXIT
+
+cat > "\$CERTCONF_TMP" <<EOF
+[ req ]
+default_bits		= 2048
+distinguished_name	= req_distinguished_name
+prompt			= no
+encrypt_key		= no
+x509_extensions		= v3_ca
+
+[ req_distinguished_name ]
+CN		       = *.\$DNS_NAME
+
+[ CA_default ]
+copy_extensions = copy
+
+[ alternate_names ]
+DNS.1=*.\$DNS_NAME
+DNS.2=\$DNS_NAME
+
+[ v3_ca ]
+subjectAltName=@alternate_names
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid:always,issuer:always
+basicConstraints = critical,CA:true
+keyUsage=keyCertSign,cRLSign,digitalSignature,keyEncipherment,nonRepudiation
+EOF
+
+echo
+echo "Generating default SSL certificate and key in \$SSL_KEY_FILE \$SSL_CERT_FILE"
+umask 077
+openssl req -days 1825 -x509 -config "\$CERTCONF_TMP" -new -keyout "\$SSL_KEY_FILE" -out "\$SSL_CERT_FILE"
+umask 022
+chmod 655 "\$SSL_CERT_FILE"
