@@ -420,6 +420,7 @@ let () =
       let portstr = StringMap.find "s3_ssl_port" generated in
       let port = int_of_string portstr in
       update_s3cfg true s3_host port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.s3cfg");
+      update_s3cfg false s3_host 8008 admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
       generate_boto true s3_host port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.boto")
     end else begin
       let s3_port = StringMap.find "s3_port" generated in
