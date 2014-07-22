@@ -12,8 +12,6 @@ host_bucket = %(bucket)s.libres3.skylable.com:8443
 cloudfront_host = libres3.skylable.com
 simpledb_host = libres3.skylable.com
 website_endpoint = https://libres3.skylable.com/
-# You can turn on HTTPS communication, but remember to update the ports too
-# above, or just use the supplied libres3-https.sample.s3cfg
 use_https = True
 enable_multipart = True
 # You shouldn't need to change anything below

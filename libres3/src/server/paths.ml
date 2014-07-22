@@ -57,7 +57,7 @@ let parse_configuration path parse default =
   match open_file path with
   | None -> default
   | Some ch ->
-      Printf.printf "Loading configuration from %s\n" path;
+      Printf.printf "\nLoading configuration from %s\n" path;
       try
         with_file ch (readlocked (parse_full parse default)) ~close:close_in
       with
