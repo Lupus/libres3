@@ -250,10 +250,12 @@ module Make
     let code_str, code_msg, status = Error.info code in
     let rid = RequestId.to_string id in
     let code_msg =
-      try
-        let _, sxmsg = List.find (function "SXErrorMessage",_ -> true | _ -> false) detail in
-        code_msg ^ " (" ^ sxmsg ^ ")"
-      with Not_found -> code_msg in
+      let rec findmsg = function
+        | ("SXErrorMessage", sxmsg) :: _ -> code_msg ^ " (" ^ sxmsg ^ ")"
+        | ("LibreS3ErrorMessage", msg) :: _ -> msg
+        | _ :: tl -> findmsg tl
+        | [] -> code_msg in
+      findmsg detail in
     let xml =
       if code = Error.AccessDenied then
         Xml.tag "Error" [

@@ -563,8 +563,8 @@ struct
           | [`O [`F ("nodeList", [`A nodes]); `F ("volumeMeta", [`O metalist])]] ->
             if has_field "filterActive" metalist then
               fail (SXIO.Detail(
-                Unix.Unix_error(Unix.EACCES, volume, "Volume has filters"),
-                ["LibreS3ErrorMessage","Cannot access a volume that has filters"]
+                Unix.Unix_error(Unix.EACCES, volume, "Volume uses filters"),
+                ["LibreS3ErrorMessage","Cannot access a volume that uses filters"]
               ))
             else
               return (List.rev_map
@@ -1067,8 +1067,8 @@ struct
         ]] ->
           if has_field "filterActive" metalist then
             fail (SXIO.Detail(
-              Unix.Unix_error(Unix.EACCES, volume, "Volume has filters"),
-              ["LibreS3ErrorMessage","Cannot access a volume that has filters"]
+              Unix.Unix_error(Unix.EACCES, volume, "Volume uses filters"),
+              ["LibreS3ErrorMessage","Cannot access a volume that uses filters"]
             ))
           else let nodes =
             List.rev_map (function
