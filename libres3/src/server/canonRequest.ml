@@ -121,7 +121,7 @@ let parse_query encoded_query =
     let params = Netstring_str.split split_query_re encoded_query in
     List.fold_left (fun accum nameval ->
       let name, value =
-        match Netstring_str.split split_param_re nameval with
+        match Netstring_str.bounded_split split_param_re nameval 2 with
         | name :: value :: [] ->
             Netencoding.Url.decode name, Netencoding.Url.decode value
         | name :: [] ->
