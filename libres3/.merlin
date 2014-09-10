@@ -1,0 +1,11 @@
+PKG netclient netstring netsys str jsonm cryptokit ssl equeue-ssl lwt.unix xmlm ocsigenserver ipaddr ocplib-endian dns.lwt re.posix
+
+S src/server
+S src/sxclient
+S src/ocsigen
+
+B _build/src/server
+B _build/src/sxclient
+B _build/src/sxclient/lwt
+B _build/src/ocsigen
+B +threads
