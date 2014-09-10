@@ -122,7 +122,7 @@ Library libres3_site
   Build$: flag(ocsigen)
   Modules: Site
   CompiledObject: Best
-  BuildDepends: server, netcgi2, threads, sxclient.lwt, dns.lwt, re.posix
+  BuildDepends: server, threads, sxclient.lwt, dns.lwt, re.posix
   Install: false
 
 Executable libres3_ocsigen
@@ -164,7 +164,7 @@ Executable server_test
   Path: test
   Build$: flag(tests)
   MainIs: test_server.ml
-  BuildDepends: oUnit, server, sxclient.thread, netcgi2
+  BuildDepends: oUnit, server, sxclient.thread
   CompiledObject: Best
 
 Executable directio_test

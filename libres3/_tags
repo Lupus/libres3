@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: ab478ec6c230cb4171e88bafb854dfc1)
+# DO NOT EDIT (digest: e115b89d29175937dd15460c783ea1f7)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -131,7 +131,6 @@
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(ipaddr)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(jsonm)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(lwt.unix)
-<src/ocsigen/libres3_ocsigen.{native,byte}>: package(netcgi2)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(netclient)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(netstring)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(netsys)
@@ -152,7 +151,6 @@
 <src/ocsigen/*.ml{,i}>: package(ipaddr)
 <src/ocsigen/*.ml{,i}>: package(jsonm)
 <src/ocsigen/*.ml{,i}>: package(lwt.unix)
-<src/ocsigen/*.ml{,i}>: package(netcgi2)
 <src/ocsigen/*.ml{,i}>: package(netclient)
 <src/ocsigen/*.ml{,i}>: package(netstring)
 <src/ocsigen/*.ml{,i}>: package(netsys)
@@ -203,7 +201,6 @@
 <test/test_server.{native,byte}>: package(equeue-ssl)
 <test/test_server.{native,byte}>: package(ipaddr)
 <test/test_server.{native,byte}>: package(jsonm)
-<test/test_server.{native,byte}>: package(netcgi2)
 <test/test_server.{native,byte}>: package(netclient)
 <test/test_server.{native,byte}>: package(netstring)
 <test/test_server.{native,byte}>: package(netsys)
@@ -217,7 +214,6 @@
 <test/test_server.{native,byte}>: use_server
 <test/test_server.{native,byte}>: use_sxclient
 <test/test_server.{native,byte}>: use_sxclient.thread
-<test/*.ml{,i}>: package(netcgi2)
 # Executable directio_test
 <test/test_directio.{native,byte}>: package(cryptokit)
 <test/test_directio.{native,byte}>: package(equeue-ssl)
@@ -311,3 +307,4 @@
 # OASIS_STOP
 <src/ocsigen/libres3_ocsigen.{native,byte}>: link_ocsigen
 <**/*.ml{,i}>: warn_A, warn_e, warn_z, warn_error_S,warn_error_U, annot, strict_sequence
+true: bin_annot
