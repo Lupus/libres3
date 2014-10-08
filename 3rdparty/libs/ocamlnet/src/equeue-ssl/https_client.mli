@@ -16,6 +16,7 @@ object
                    string -> int -> Unixqueue.event_system ->
                    exn option ->
                    Uq_engines.multiplex_controller
+  method default_port : int option
 end
 (** Same as {!Http_client.transport_channel_type} *)	  
 

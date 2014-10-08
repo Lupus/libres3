@@ -15,6 +15,7 @@ object
                    string -> int -> Unixqueue.event_system ->
                    exn option ->
                    Uq_engines.multiplex_controller
+  method default_port : int option
 end
 
 
@@ -64,5 +65,7 @@ let https_transport_channel_type ?(verify = fun _ _ _ -> ())
             ~ssl_socket
 	    fd ctx esys in
 	(mplex :> Uq_engines.multiplex_controller)
+
+      method default_port = Some 443
     end
   )

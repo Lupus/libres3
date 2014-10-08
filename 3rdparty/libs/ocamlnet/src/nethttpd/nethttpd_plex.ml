@@ -1,4 +1,4 @@
-(* $Id: nethttpd_plex.ml 1588 2011-04-28 13:59:54Z gerd $ *)
+(* $Id: nethttpd_plex.ml 1989 2014-08-24 12:44:32Z gerd $ *)
 
 open Nethttpd_services
 open Netplex_types
@@ -197,10 +197,11 @@ let std_error_response =
   Nethttpd_util.std_error_response
 
 
-let (default_file_service : ('a,'b) service_factory) handlers cfg addr uri_path =
-  restrict_file_service_config cfg addr;
-  let spec = read_file_service_config cfg addr uri_path in
-  Nethttpd_services.file_service spec
+let default_file_service : ('a,'b) service_factory =
+  fun handlers cfg addr uri_path ->
+    restrict_file_service_config cfg addr;
+    let spec = read_file_service_config cfg addr uri_path in
+    Nethttpd_services.file_service spec
 
 
 let restrict_dynamic_service_config cfg addr =

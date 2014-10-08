@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (*
   TODO, Issues:
@@ -46,7 +46,6 @@
     @see <http://dev.w3.org/html5/spec/Overview.html> information concerning HTML5 at W3C.
 *)
 
-(** See {!Xhtml.M} for a description of the transcription's principles. *)
 
 (** {1 Attribute types.} *)
 
@@ -419,7 +418,7 @@ type formassociated = [ | listed | `Progress | `Meter | `Label ]
         to a standard element (such as [p]), it will yield an error.
         Exception to that : if you embdedd the element in another transparent (of an
         another kind) : [p [noscript (a [a []])]] will be correctly typed.
-    *)
+*)
 type (+'interactive, +'noscript, +'regular, +'media) transparent =
   [
     | `A of 'interactive
@@ -663,9 +662,9 @@ type core_phrasing_without_media =
   ]
 
 type phrasing_without_noscript =
-    (phrasing_without_interactive,
-     phrasing,
-     phrasing_without_media) transparent_without_noscript
+  (phrasing_without_interactive,
+   phrasing,
+   phrasing_without_media) transparent_without_noscript
 
 and phrasing_without_media =
   [
@@ -685,20 +684,20 @@ and phrasing_without_interactive =
 and phrasing =
   [
     | (phrasing_without_interactive, phrasing_without_noscript, phrasing,
-        phrasing_without_media) transparent
+       phrasing_without_media) transparent
     | core_phrasing
   ]
 
 type (+'a, +'b) between_phrasing_and_phrasing_without_interactive =
-   ( [<  core_phrasing
-     | ([< phrasing_without_interactive] as 'b,
-       phrasing_without_noscript,
-       phrasing,
-       phrasing_without_media) transparent
-       > `Abbr `B `Bdo `Br `Canvas `Cite `Code `Command
-       `Datalist `Del `Dfn `Em `I `Img `Ins `Kbd `Map `Mark `Meter
-       `Noscript `Object `PCDATA `Progress `Q `Ruby `Samp `Script
-       `Small `Span `Strong `Sub `Sup `Svg `Time `U `Var  `Wbr  ] as 'a)
+  ( [<  core_phrasing
+    | ([< phrasing_without_interactive] as 'b,
+                                           phrasing_without_noscript,
+                                           phrasing,
+                                           phrasing_without_media) transparent
+        > `Abbr `B `Bdo `Br `Canvas `Cite `Code `Command
+        `Datalist `Del `Dfn `Em `I `Img `Ins `Kbd `Map `Mark `Meter
+        `Noscript `Object `PCDATA `Progress `Q `Ruby `Samp `Script
+        `Small `Span `Strong `Sub `Sup `Svg `Time `U `Var  `Wbr  ] as 'a)
 
 (** Phrasing without the interactive markups *)
 type phrasing_without_dfn =
@@ -734,7 +733,7 @@ type phrasing_without_dfn =
     | `Abbr
     | `PCDATA
     | (phrasing_without_interactive, phrasing_without_noscript,
-        phrasing_without_dfn, phrasing_without_media) transparent
+       phrasing_without_dfn, phrasing_without_media) transparent
   ]
 
 type phrasing_without_label =
@@ -770,7 +769,7 @@ type phrasing_without_label =
     | `Abbr
     | `PCDATA
     | (phrasing_without_interactive, phrasing_without_noscript,
-        phrasing_without_label, phrasing_without_media) transparent
+       phrasing_without_label, phrasing_without_media) transparent
   ]
 
 type phrasing_without_progress =
@@ -809,7 +808,7 @@ type phrasing_without_progress =
     | `Abbr
     | `PCDATA
     | (phrasing_without_interactive, phrasing_without_noscript,
-        phrasing_without_progress, phrasing_without_media) transparent
+       phrasing_without_progress, phrasing_without_media) transparent
   ]
 
 type phrasing_without_time =
@@ -845,7 +844,7 @@ type phrasing_without_time =
     | `Abbr
     | `PCDATA
     | (phrasing_without_interactive, phrasing_without_noscript,
-        phrasing_without_time, phrasing_without_media) transparent
+       phrasing_without_time, phrasing_without_media) transparent
   ]
 
 type phrasing_without_meter =
@@ -884,7 +883,7 @@ type phrasing_without_meter =
     | `Abbr
     | `PCDATA
     | (phrasing_without_interactive, phrasing_without_noscript,
-        phrasing_without_meter, phrasing_without_media) transparent
+       phrasing_without_meter, phrasing_without_media) transparent
   ]
 
 type core_flow5 =
@@ -963,9 +962,9 @@ type flow5_without_interactive =
 
 and flow5_without_noscript =
   [ | core_flow5_without_noscript
-  | (flow5_without_interactive,
-     flow5,
-     flow5_without_media) transparent_without_noscript
+    | (flow5_without_interactive,
+       flow5,
+       flow5_without_media) transparent_without_noscript
   ]
 
 and flow5_without_media =
@@ -977,7 +976,7 @@ and flow5 =
   [
     | core_flow5
     | (flow5_without_interactive, flow5_without_noscript, flow5,
-        flow5_without_media) transparent
+       flow5_without_media) transparent
   ]
 
 type flow5_without_table =
@@ -995,11 +994,11 @@ type flow5_without_table =
     | `Dl
     | `Details
     | (flow5_without_interactive, flow5_without_noscript, flow5,
-        flow5_without_media) transparent
+       flow5_without_media) transparent
   ]
 
 type flow5_without_interactive_header_footer =
- [
+  [
     | heading
     | sectioning
     | `Pre
@@ -1019,7 +1018,7 @@ type flow5_without_interactive_header_footer =
     | `Figure
     | `Dl
     | (flow5_without_noscript, flow5, flow5_without_media)
-	transparent_without_interactive
+        transparent_without_interactive
   ]
 
 type flow5_without_header_footer =
@@ -1050,20 +1049,20 @@ type flow5_without_header_footer =
 
 type +'a between_flow5_and_flow5_without_interactive_header_footer =
   [< flow5  > `Abbr `Address `Article `Aside `Audio `B `Bdo `Blockquote `Br
-      `Button `Canvas `Cite `Code `Command `Datalist `Del `Dfn `Div `Dl `Em
-      `Fieldset `Figure `Form `H1 `H2 `H3 `H4 `H5 `H6 `Hgroup `Hr `I `Img
-      `Input `Ins `Kbd `Keygen `Label `Map`Mark `Menu `Meter `Nav `Noscript
-      `Object `Ol `Output `P `PCDATA `Pre `Progress `Q `Ruby `Samp `Script
-      `Section `Select `Small `Span `Strong `Style `Sub `Sup `Svg `Table
-      `Textarea `Time `U `Ul `Var `Video `Wbr] as 'a
+       `Button `Canvas `Cite `Code `Command `Datalist `Del `Dfn `Div `Dl `Em
+       `Fieldset `Figure `Form `H1 `H2 `H3 `H4 `H5 `H6 `Hgroup `Hr `I `Img
+       `Input `Ins `Kbd `Keygen `Label `Map`Mark `Menu `Meter `Nav `Noscript
+       `Object `Ol `Output `P `PCDATA `Pre `Progress `Q `Ruby `Samp `Script
+       `Section `Select `Small `Span `Strong `Style `Sub `Sup `Svg `Table
+       `Textarea `Time `U `Ul `Var `Video `Wbr] as 'a
 
 type (+'a, +'b) between_flow5_and_flow5_without_header_footer =
   [< core_flow5
   | ([< flow5_without_interactive ] as 'b,
-     flow5_without_noscript, 'a,
-     flow5_without_media)
+                                       flow5_without_noscript, 'a,
+                                       flow5_without_media)
       transparent
-    > `A `Abbr `Address `Article `Aside `Audio `Audio_interactive `B
+      > `A `Abbr `Address `Article `Aside `Audio `Audio_interactive `B
       `Bdo `Blockquote `Br `Button `Canvas `Cite `Code `Command
       `Datalist `Del `Details `Dfn `Div `Dl `Em `Embed `Fieldset
       `Figure `Form `H1 `H2 `H3 `H4 `H5 `H6 `Hgroup `Hr `I `Iframe
@@ -1089,7 +1088,7 @@ type flow5_without_form =
     | `Dl
     | `Details
     | (flow5_without_interactive, flow5_without_noscript, flow5,
-        flow5_without_media) transparent
+       flow5_without_media) transparent
   ]
 
 type flow5_without_sectioning_heading_header_footer_address =
@@ -1111,7 +1110,7 @@ type flow5_without_sectioning_heading_header_footer_address =
     | `Dl
     | `Details
     | (flow5_without_interactive, flow5_without_noscript, flow5,
-        flow5_without_media) transparent
+       flow5_without_media) transparent
   ]
 
 (*
@@ -1126,8 +1125,6 @@ type no_attribute_allowed
 type noattrib = [ `No_attribute_allowed of no_attribute_allowed ]
 
 type html = [ | `Html ]
-
-type xhtml = html
 
 type html_content_fun = [ | `Head | `Body ]
 
@@ -1401,6 +1398,15 @@ type dt_content_fun = [ | phrasing ]
 type dt_attrib = [ | common ]
 
 
+type dl = [ | `Dl ]
+
+type dl_content = [ | `Dt | `Dd ]
+
+type dl_content_fun = [ | `Dt | `Dd ]
+
+type dl_attrib = [ | common ]
+
+
 (* NAME: figcaption, KIND: star, TYPE: [= common ], [= flow5], [=`Figcaption], ARG: [= flow5], ATTRIB:  OUT: [=`Figcaption] *)
 type figcaption = [ | `Figcaption ]
 
@@ -1409,6 +1415,34 @@ type figcaption_content = [ | flow5 ]
 type figcaption_content_fun = [ | flow5 ]
 
 type figcaption_attrib = [ | common ]
+
+
+(* figure *)
+type figure = [ | `Figure ]
+
+type figure_content = [ | flow5 ]
+
+type figure_content_fun = [ | flow5 ]
+
+type figure_attrib = [ | common ]
+
+
+(* Rp, Rt and ruby *)
+type rp = [ | `Rp ]
+type rp_content = [ | phrasing ]
+type rp_content_fun = [ | phrasing ]
+type rp_attrib = [ | common ]
+
+type rt = [ | `Rt ]
+type rt_content = [ | phrasing ]
+type rt_content_fun = [ | phrasing ]
+type rt_attrib = [ | common ]
+
+type ruby = [ | `Ruby ]
+type ruby_content = [ | phrasing | rp | rt ]
+type ruby_content_fun = [ | phrasing | rp | rt ]
+type ruby_attrib = [ | common ]
+
 
 (* NAME: hr, KIND: nullary, TYPE: [= common ], [=`Hr], ARG: notag, ATTRIB:  OUT: [=`Hr] *)
 type hr = [ | `Hr ]
@@ -1657,7 +1691,7 @@ type iframe_attrib =
     | common
     | `Src
     | (*| `Srcdoc*)
-    `Name
+      `Name
     | `Sandbox
     | `Seamless
     | `Width
@@ -1700,40 +1734,48 @@ type embed_content_fun = notag
 
 type embed_attrib = [ | common | `Src | `Height | `Mime_type | `Width ]
 
-type 'a audio = [ | `Audio of 'a | `Audio_interactive of 'a ]
+
+type img = [ `Img ]
+type img_interactive = [ `Img | `Img_interactive ]
+type img_content = notag
+type img_content_fun = notag
+type img_attrib = [ | common | `Height | `Ismap | `Width]
+
+(* Attributes used by audio and video. *)
+type media_attrib =
+  [ | `Crossorigin
+    | `Preload
+    | `Autoplay
+    | `Mediagroup
+    | `Loop
+    | `Muted
+    | `Controls
+  ]
+
+type 'a audio = [ | `Audio of 'a ]
+type 'a audio_interactive = [ | `Audio of 'a | `Audio_interactive of 'a ]
 
 type audio_content = flow5_without_media
-
 type audio_ = audio_content audio
-
 type audio_content_fun = flow5_without_media
 
 type audio_attrib =
-  [
-    | common
-    | `Poster
-    | `Preload
-    | `Autoplay
-    | `Loop
-    | `Controls
-    | `Width
-    | `Height
+  [ | common
+    | media_attrib
   ]
 
-type 'a video = [ | `Video of 'a | `Video_interactive of 'a ]
+
+type 'a video = [ | `Video of 'a ]
+type 'a video_interactive = [ | `Video of 'a | `Video_interactive of 'a ]
 
 type video_content = flow5_without_media
 type video_ = video_content video
 type video_content_fun = flow5_without_media
 
 type video_attrib =
-  [
-    | common
+  [ | common
+    | media_attrib
     | `Poster
-    | `Preload
-    | `Autoplay
-    | `Loop
-    | `Controls
     | `Width
     | `Height
   ]

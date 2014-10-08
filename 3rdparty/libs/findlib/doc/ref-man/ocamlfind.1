@@ -176,6 +176,9 @@ s\c
 \&\ |\c
 \&
 .br
+\&\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ -pp\ |\c
+\&
+.br
 \&\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ -descendants\ |\ -d\ |\c
 \&
 .br
@@ -333,7 +336,7 @@ linker backend are printed.\c
 .RS "7m"
 .ft R
 .ft R
-Same as -format "%a", i.e. archive file names are printed.\c
+Same as -format "%+a", i.e. archive file names are printed.\c
 .RE
 .ft R
 .sp
@@ -452,6 +455,25 @@ Instead of the ancestors the descendants of the\c
 \&.\c
 .RE
 .ft R
+.sp
+.RS "2m"
+.ft R
+-pp\c
+.RE
+.ft R
+.sp
+.RS "7m"
+.ft R
+.ft R
+Query preprocessor packages (camlp4 syntax extensions). Normally\c
+\&  
+it is not needed to set -predicates, except you need the archives (then add\c
+\&  
+-predicates byte). This option implies 
+-recursive\c
+\&.\c
+.RE
+.ft R
 .PP
 .ft R
 .SS "Placeholders meaningful in the -format option"
@@ -539,6 +561,21 @@ Replaced by the archive filename. If there is more\c
 .sp
 .RS "2m"
 .ft R
+%+a\c
+.RE
+.ft R
+.sp
+.RS "7m"
+.ft R
+.ft R
+Like %a, but the filenames are converted to absolute\c
+\&  
+\& paths ("+" and "@" notations are resolved)\c
+.RE
+.ft R
+.sp
+.RS "2m"
+.ft R
 %A\c
 .RE
 .ft R
@@ -547,6 +584,21 @@ Replaced by the archive filename. If there is more\c
 .ft R
 .ft R
 Replaced by the list of archive filenames.\c
+.RE
+.ft R
+.sp
+.RS "2m"
+.ft R
+%+A\c
+.RE
+.ft R
+.sp
+.RS "7m"
+.ft R
+.ft R
+Like %A, but the filenames are converted to absolute\c
+\&  
+\& paths ("+" and "@" notations are resolved)\c
 .RE
 .ft R
 .sp

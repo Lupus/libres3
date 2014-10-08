@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -206,7 +206,8 @@
 &nbsp;<a class="post" href="Netcompression.html" title="Netcompression">Next</a>
 </div>
 <h1>Module <a href="type_Xdr.html">Xdr</a></h1>
-<pre><span class="keyword">module</span> Xdr: <code class="code">sig</code> <a href="Xdr.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Xdr: <code class="code">sig</code> <a href="Xdr.html">..</a> <code class="code">end</code></pre><div class="info module top">
 External Data Representation<br>
 </div>
 <hr width="100%">
@@ -337,6 +338,7 @@ Terms that describe possible XDR types:
  <code class="code">read</code> the cursor is advanced by the number of written bytes. There
  must be enough space in <code class="code">s</code>. The function <code class="code">size</code> can be used to determine
  the number of written bytes beforehand.<br>
+
 <pre><code><span id="TYPExdr_type_term"><span class="keyword">type</span> <code class="type"></code>xdr_type_term</span> = </code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
@@ -501,8 +503,9 @@ Terms that describe possible XDR types:
 </tr></table>
 
 
+
 <pre><span id="TYPExdr_type"><span class="keyword">type</span> <code class="type"></code>xdr_type</span> </pre>
-<div class="info">
+<div class="info ">
 This is the validated version of <code class="code">xdr_type_term</code>. Note that it does not
  contain <code class="code">X_type</code> constructors, i.e. is completely expanded.
  It is allowed that an <code class="code">xdr_type</code> contains <code class="code">X_param</code> constructors (parameters).
@@ -510,8 +513,9 @@ This is the validated version of <code class="code">xdr_type_term</code>. Note t
  <code class="code">xdr_type</code>.<br>
 </div>
 
+
 <pre><span id="TYPExdr_type_term_system"><span class="keyword">type</span> <code class="type"></code>xdr_type_term_system</span> = <code class="type">(string * <a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a>) list</code> </pre>
-<div class="info">
+<div class="info ">
 Bind names to types. In a correct system you can only refer to
  previously defined types, i.e. the type called <code class="code">n</code> must be defined
  in the list before it can be used via <code class="code">X_type n</code>.
@@ -520,33 +524,41 @@ Bind names to types. In a correct system you can only refer to
  in an environment allowing bindings to names.<br>
 </div>
 
+
 <pre><span id="TYPExdr_type_system"><span class="keyword">type</span> <code class="type"></code>xdr_type_system</span> </pre>
-<div class="info">
+<div class="info ">
 A validated type system.<br>
 </div>
 
-<pre><span id="VALx_bool"><span class="keyword">val</span> x_bool</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a></code></pre><div class="info">
+
+<pre><span id="VALx_bool"><span class="keyword">val</span> x_bool</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a></code></pre><div class="info ">
 Common abbreviation for boolean types. Has values <code class="code">xv_true</code> and <code class="code">xv_false</code>.<br>
 </div>
-<pre><span id="VALx_optional"><span class="keyword">val</span> x_optional</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a> -> <a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a></code></pre><div class="info">
+
+<pre><span id="VALx_optional"><span class="keyword">val</span> x_optional</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a> -> <a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a></code></pre><div class="info ">
 Common abbreviation for optional types. Has values <code class="code">xv_none</code> and
  <code class="code">xv_some v</code>.<br>
 </div>
-<pre><span id="VALx_opaque_max"><span class="keyword">val</span> x_opaque_max</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a></code></pre><div class="info">
+
+<pre><span id="VALx_opaque_max"><span class="keyword">val</span> x_opaque_max</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a></code></pre><div class="info ">
 Common abbreviation for opaque data of arbitrary length<br>
 </div>
-<pre><span id="VALx_string_max"><span class="keyword">val</span> x_string_max</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a></code></pre><div class="info">
+
+<pre><span id="VALx_string_max"><span class="keyword">val</span> x_string_max</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a></code></pre><div class="info ">
 Common abbreviation for strings of arbitrary length<br>
 </div>
-<pre><span id="VALx_mstring_max"><span class="keyword">val</span> x_mstring_max</span> : <code class="type">string -> <a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a></code></pre><div class="info">
+
+<pre><span id="VALx_mstring_max"><span class="keyword">val</span> x_mstring_max</span> : <code class="type">string -> <a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a></code></pre><div class="info ">
 Common abbreviation for mstrings of arbitrary length<br>
 </div>
-<pre><span id="VALx_array_max"><span class="keyword">val</span> x_array_max</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a> -> <a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a></code></pre><div class="info">
+
+<pre><span id="VALx_array_max"><span class="keyword">val</span> x_array_max</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a> -> <a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a></code></pre><div class="info ">
 Common abbreviation for arrays of arbitrary length<br>
 </div>
 <br>
 Values possible for XDR types. This is straight-forward, except the
  "_fast" variants:<br>
+
 <pre><code><span id="TYPExdr_value"><span class="keyword">type</span> <code class="type"></code>xdr_value</span> = </code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
@@ -703,23 +715,51 @@ Values possible for XDR types. This is straight-forward, except the
 </tr></table>
 
 
-<pre><span id="VALxv_true"><span class="keyword">val</span> xv_true</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre><pre><span id="VALxv_false"><span class="keyword">val</span> xv_false</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre><div class="info">
+
+<pre><span id="VALxv_true"><span class="keyword">val</span> xv_true</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre>
+<pre><span id="VALxv_false"><span class="keyword">val</span> xv_false</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre><div class="info ">
 See <code class="code">x_bool</code><br>
 </div>
-<pre><span id="VALxv_none"><span class="keyword">val</span> xv_none</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre><pre><span id="VALxv_some"><span class="keyword">val</span> xv_some</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre><div class="info">
+
+<pre><span id="VALxv_none"><span class="keyword">val</span> xv_none</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre>
+<pre><span id="VALxv_some"><span class="keyword">val</span> xv_some</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre><div class="info ">
 See <code class="code">x_optional</code><br>
 </div>
+
 <pre><span id="EXCEPTIONDest_failure"><span class="keyword">exception</span> Dest_failure</span></pre>
-<div class="info">
+<div class="info ">
 raised if the dest_* function are applied to non-matching xdr_value<br>
 </div>
-<pre><span id="VALdest_xv_int"><span class="keyword">val</span> dest_xv_int</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Rtypes.html#TYPEint4">Rtypes.int4</a></code></pre><pre><span id="VALdest_xv_uint"><span class="keyword">val</span> dest_xv_uint</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a></code></pre><pre><span id="VALdest_xv_hyper"><span class="keyword">val</span> dest_xv_hyper</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Rtypes.html#TYPEint8">Rtypes.int8</a></code></pre><pre><span id="VALdest_xv_uhyper"><span class="keyword">val</span> dest_xv_uhyper</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Rtypes.html#TYPEuint8">Rtypes.uint8</a></code></pre><pre><span id="VALdest_xv_enum"><span class="keyword">val</span> dest_xv_enum</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> string</code></pre><pre><span id="VALdest_xv_enum_fast"><span class="keyword">val</span> dest_xv_enum_fast</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> int</code></pre><pre><span id="VALdest_xv_float"><span class="keyword">val</span> dest_xv_float</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Rtypes.html#TYPEfp4">Rtypes.fp4</a></code></pre><pre><span id="VALdest_xv_double"><span class="keyword">val</span> dest_xv_double</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Rtypes.html#TYPEfp8">Rtypes.fp8</a></code></pre><pre><span id="VALdest_xv_opaque"><span class="keyword">val</span> dest_xv_opaque</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> string</code></pre><pre><span id="VALdest_xv_string"><span class="keyword">val</span> dest_xv_string</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> string</code></pre><pre><span id="VALdest_xv_mstring"><span class="keyword">val</span> dest_xv_mstring</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Xdr_mstring.mstring-c.html">Xdr_mstring.mstring</a></code></pre><pre><span id="VALdest_xv_array"><span class="keyword">val</span> dest_xv_array</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Xdr.html#TYPExdr_value">xdr_value</a> array</code></pre><pre><span id="VALdest_xv_array_of_string_fast"><span class="keyword">val</span> dest_xv_array_of_string_fast</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> string array</code></pre><pre><span id="VALdest_xv_struct"><span class="keyword">val</span> dest_xv_struct</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> (string * <a href="Xdr.html#TYPExdr_value">xdr_value</a>) list</code></pre><pre><span id="VALdest_xv_struct_fast"><span class="keyword">val</span> dest_xv_struct_fast</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Xdr.html#TYPExdr_value">xdr_value</a> array</code></pre><pre><span id="VALdest_xv_union_over_int"><span class="keyword">val</span> dest_xv_union_over_int</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Rtypes.html#TYPEint4">Rtypes.int4</a> * <a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre><pre><span id="VALdest_xv_union_over_uint"><span class="keyword">val</span> dest_xv_union_over_uint</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> * <a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre><pre><span id="VALdest_xv_union_over_enum"><span class="keyword">val</span> dest_xv_union_over_enum</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> string * <a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre><pre><span id="VALdest_xv_union_over_enum_fast"><span class="keyword">val</span> dest_xv_union_over_enum_fast</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> int * <a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre><pre><span id="VALdest_xv_void"><span class="keyword">val</span> dest_xv_void</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> unit</code></pre><pre><span id="VALmap_xv_enum_fast"><span class="keyword">val</span> map_xv_enum_fast</span> : <code class="type"><a href="Xdr.html#TYPExdr_type">xdr_type</a> -> <a href="Xdr.html#TYPExdr_value">xdr_value</a> -> int32</code></pre><div class="info">
+
+<pre><span id="VALdest_xv_int"><span class="keyword">val</span> dest_xv_int</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Rtypes.html#TYPEint4">Rtypes.int4</a></code></pre>
+<pre><span id="VALdest_xv_uint"><span class="keyword">val</span> dest_xv_uint</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a></code></pre>
+<pre><span id="VALdest_xv_hyper"><span class="keyword">val</span> dest_xv_hyper</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Rtypes.html#TYPEint8">Rtypes.int8</a></code></pre>
+<pre><span id="VALdest_xv_uhyper"><span class="keyword">val</span> dest_xv_uhyper</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Rtypes.html#TYPEuint8">Rtypes.uint8</a></code></pre>
+<pre><span id="VALdest_xv_enum"><span class="keyword">val</span> dest_xv_enum</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> string</code></pre>
+<pre><span id="VALdest_xv_enum_fast"><span class="keyword">val</span> dest_xv_enum_fast</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> int</code></pre>
+<pre><span id="VALdest_xv_float"><span class="keyword">val</span> dest_xv_float</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Rtypes.html#TYPEfp4">Rtypes.fp4</a></code></pre>
+<pre><span id="VALdest_xv_double"><span class="keyword">val</span> dest_xv_double</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Rtypes.html#TYPEfp8">Rtypes.fp8</a></code></pre>
+<pre><span id="VALdest_xv_opaque"><span class="keyword">val</span> dest_xv_opaque</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> string</code></pre>
+<pre><span id="VALdest_xv_string"><span class="keyword">val</span> dest_xv_string</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> string</code></pre>
+<pre><span id="VALdest_xv_mstring"><span class="keyword">val</span> dest_xv_mstring</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Xdr_mstring.mstring-c.html">Xdr_mstring.mstring</a></code></pre>
+<pre><span id="VALdest_xv_array"><span class="keyword">val</span> dest_xv_array</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Xdr.html#TYPExdr_value">xdr_value</a> array</code></pre>
+<pre><span id="VALdest_xv_array_of_string_fast"><span class="keyword">val</span> dest_xv_array_of_string_fast</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> string array</code></pre>
+<pre><span id="VALdest_xv_struct"><span class="keyword">val</span> dest_xv_struct</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> (string * <a href="Xdr.html#TYPExdr_value">xdr_value</a>) list</code></pre>
+<pre><span id="VALdest_xv_struct_fast"><span class="keyword">val</span> dest_xv_struct_fast</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Xdr.html#TYPExdr_value">xdr_value</a> array</code></pre>
+<pre><span id="VALdest_xv_union_over_int"><span class="keyword">val</span> dest_xv_union_over_int</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Rtypes.html#TYPEint4">Rtypes.int4</a> * <a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre>
+<pre><span id="VALdest_xv_union_over_uint"><span class="keyword">val</span> dest_xv_union_over_uint</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> * <a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre>
+<pre><span id="VALdest_xv_union_over_enum"><span class="keyword">val</span> dest_xv_union_over_enum</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> string * <a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre>
+<pre><span id="VALdest_xv_union_over_enum_fast"><span class="keyword">val</span> dest_xv_union_over_enum_fast</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> int * <a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre>
+<pre><span id="VALdest_xv_void"><span class="keyword">val</span> dest_xv_void</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> unit</code></pre>
+<pre><span id="VALmap_xv_enum_fast"><span class="keyword">val</span> map_xv_enum_fast</span> : <code class="type"><a href="Xdr.html#TYPExdr_type">xdr_type</a> -> <a href="Xdr.html#TYPExdr_value">xdr_value</a> -> int32</code></pre><div class="info ">
 Works for both <code class="code">XV_enum</code> and <code class="code">XV_enum_fast</code><br>
 </div>
-<pre><span id="VALmap_xv_struct_fast"><span class="keyword">val</span> map_xv_struct_fast</span> : <code class="type"><a href="Xdr.html#TYPExdr_type">xdr_type</a> -> <a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Xdr.html#TYPExdr_value">xdr_value</a> array</code></pre><div class="info">
+
+<pre><span id="VALmap_xv_struct_fast"><span class="keyword">val</span> map_xv_struct_fast</span> : <code class="type"><a href="Xdr.html#TYPExdr_type">xdr_type</a> -> <a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Xdr.html#TYPExdr_value">xdr_value</a> array</code></pre><div class="info ">
 Works for both <code class="code">XV_struct</code> and <code class="code">XV_struct_fast</code><br>
 </div>
-<pre><span id="VALmap_xv_union_over_enum_fast"><span class="keyword">val</span> map_xv_union_over_enum_fast</span> : <code class="type"><a href="Xdr.html#TYPExdr_type">xdr_type</a> -> <a href="Xdr.html#TYPExdr_value">xdr_value</a> -> int * int32 * <a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre><div class="info">
+
+<pre><span id="VALmap_xv_union_over_enum_fast"><span class="keyword">val</span> map_xv_union_over_enum_fast</span> : <code class="type"><a href="Xdr.html#TYPExdr_type">xdr_type</a> -> <a href="Xdr.html#TYPExdr_value">xdr_value</a> -> int * int32 * <a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre><div class="info ">
 Works for both <code class="code">XV_union_over_enum</code> and <code class="code">XV_union_over_enum_fast</code>.
  Returns the triple <code class="code">(k,i,x)</code>:<ul>
 <li><code class="code">k</code>: Position of the selected value in the <code class="code">T_enum</code> array</li>
@@ -728,23 +768,29 @@ Works for both <code class="code">XV_union_over_enum</code> and <code class="cod
 </ul>
 <br>
 </div>
+
 <pre><span id="EXCEPTIONXdr_format"><span class="keyword">exception</span> Xdr_format</span> <span class="keyword">of</span> <code class="type">string</code></pre>
-<div class="info">
+<div class="info ">
 Format error found during unpacking a string<br>
 </div>
+
 <pre><span id="EXCEPTIONXdr_format_message_too_long"><span class="keyword">exception</span> Xdr_format_message_too_long</span> <span class="keyword">of</span> <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre>
-<div class="info">
+<div class="info ">
 The message is too long and cannot be packed into a string<br>
 </div>
+
 <pre><span id="EXCEPTIONXdr_failure"><span class="keyword">exception</span> Xdr_failure</span> <span class="keyword">of</span> <code class="type">string</code></pre>
-<div class="info">
+<div class="info ">
 Usually a problem during packing<br>
 </div>
 <br>
 You must use these two functions to obtain validated types and
  type systems. They fail with "validate_xdr_type" resp.
  "validate_xdr_type_system" if the parameters are incorrect.<br>
-<pre><span id="VALvalidate_xdr_type"><span class="keyword">val</span> validate_xdr_type</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a> -> <a href="Xdr.html#TYPExdr_type">xdr_type</a></code></pre><pre><span id="VALvalidate_xdr_type_system"><span class="keyword">val</span> validate_xdr_type_system</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term_system">xdr_type_term_system</a> -> <a href="Xdr.html#TYPExdr_type_system">xdr_type_system</a></code></pre><pre><span id="VALparams"><span class="keyword">val</span> params</span> : <code class="type"><a href="Xdr.html#TYPExdr_type">xdr_type</a> -> string list</code></pre><div class="info">
+
+<pre><span id="VALvalidate_xdr_type"><span class="keyword">val</span> validate_xdr_type</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a> -> <a href="Xdr.html#TYPExdr_type">xdr_type</a></code></pre>
+<pre><span id="VALvalidate_xdr_type_system"><span class="keyword">val</span> validate_xdr_type_system</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term_system">xdr_type_term_system</a> -> <a href="Xdr.html#TYPExdr_type_system">xdr_type_system</a></code></pre>
+<pre><span id="VALparams"><span class="keyword">val</span> params</span> : <code class="type"><a href="Xdr.html#TYPExdr_type">xdr_type</a> -> string list</code></pre><div class="info ">
 return the <code class="code">X_param</code> parameters contained in the type<br>
 </div>
 <br>
@@ -754,16 +800,22 @@ Get the unvalidated version back:
 <li>Note that <code class="code">X_type</code> constructions are always resolved</li>
 </ul>
 <br>
-<pre><span id="VALxdr_type_term"><span class="keyword">val</span> xdr_type_term</span> : <code class="type"><a href="Xdr.html#TYPExdr_type">xdr_type</a> -> <a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a></code></pre><pre><span id="VALxdr_type_term_system"><span class="keyword">val</span> xdr_type_term_system</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_system">xdr_type_system</a> -> <a href="Xdr.html#TYPExdr_type_term_system">xdr_type_term_system</a></code></pre><br>
+
+<pre><span id="VALxdr_type_term"><span class="keyword">val</span> xdr_type_term</span> : <code class="type"><a href="Xdr.html#TYPExdr_type">xdr_type</a> -> <a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a></code></pre>
+<pre><span id="VALxdr_type_term_system"><span class="keyword">val</span> xdr_type_term_system</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_system">xdr_type_system</a> -> <a href="Xdr.html#TYPExdr_type_term_system">xdr_type_term_system</a></code></pre><br>
 You can expand any type term relative to a (validated) type system.
  For example:
    <code class="code">expanded_xdr_type sys1 (X_type "xy")</code>
  extracts the type called "xy" defined in sys1.
  Expansion removes all X_type constructions in a type term.<br>
-<pre><span id="VALexpanded_xdr_type"><span class="keyword">val</span> expanded_xdr_type</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_system">xdr_type_system</a> -> <a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a> -> <a href="Xdr.html#TYPExdr_type">xdr_type</a></code></pre><pre><span id="VALexpanded_xdr_type_term"><span class="keyword">val</span> expanded_xdr_type_term</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term_system">xdr_type_term_system</a> -> <a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a> -> <a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a></code></pre><pre><span id="VALare_compatible"><span class="keyword">val</span> are_compatible</span> : <code class="type"><a href="Xdr.html#TYPExdr_type">xdr_type</a> -> <a href="Xdr.html#TYPExdr_type">xdr_type</a> -> bool</code></pre><div class="info">
+
+<pre><span id="VALexpanded_xdr_type"><span class="keyword">val</span> expanded_xdr_type</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_system">xdr_type_system</a> -> <a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a> -> <a href="Xdr.html#TYPExdr_type">xdr_type</a></code></pre>
+<pre><span id="VALexpanded_xdr_type_term"><span class="keyword">val</span> expanded_xdr_type_term</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term_system">xdr_type_term_system</a> -> <a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a> -> <a href="Xdr.html#TYPExdr_type_term">xdr_type_term</a></code></pre>
+<pre><span id="VALare_compatible"><span class="keyword">val</span> are_compatible</span> : <code class="type"><a href="Xdr.html#TYPExdr_type">xdr_type</a> -> <a href="Xdr.html#TYPExdr_type">xdr_type</a> -> bool</code></pre><div class="info ">
 <code class="code">are_compatible</code>: currently not implemented<br>
 </div>
-<pre><span id="VALvalue_matches_type"><span class="keyword">val</span> value_matches_type</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Xdr.html#TYPExdr_type">xdr_type</a> -> (string * <a href="Xdr.html#TYPExdr_type">xdr_type</a>) list -> bool</code></pre><div class="info">
+
+<pre><span id="VALvalue_matches_type"><span class="keyword">val</span> value_matches_type</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Xdr.html#TYPExdr_type">xdr_type</a> -> (string * <a href="Xdr.html#TYPExdr_type">xdr_type</a>) list -> bool</code></pre><div class="info ">
 Is the value properly formed with respect to this type? The third
  argument of this function is a list of parameter instances. Note that
  all parameters must be instantiated to compare a value with a type
@@ -830,17 +882,21 @@ Is the value properly formed with respect to this type? The third
 <p>
 
  Exceptions raised in encoders or decoders fall through unmodified.<br>
+
 <pre><span id="TYPEencoder"><span class="keyword">type</span> <code class="type"></code>encoder</span> = <code class="type"><a href="Xdr_mstring.mstring-c.html">Xdr_mstring.mstring</a> list -> <a href="Xdr_mstring.mstring-c.html">Xdr_mstring.mstring</a> list</code> </pre>
-<div class="info">
+<div class="info ">
 see text above<br>
 </div>
+
 
 <pre><span id="TYPEdecoder"><span class="keyword">type</span> <code class="type"></code>decoder</span> = <code class="type">string -> int -> int -> string * int</code> </pre>
-<div class="info">
+<div class="info ">
 see text above<br>
 </div>
 
-<pre><span id="VALpack_xdr_value"><span class="keyword">val</span> pack_xdr_value</span> : <code class="type">?encode:(string * <a href="Xdr.html#TYPEencoder">encoder</a>) list -><br>       <a href="Xdr.html#TYPExdr_value">xdr_value</a> -><br>       <a href="Xdr.html#TYPExdr_type">xdr_type</a> -> (string * <a href="Xdr.html#TYPExdr_type">xdr_type</a>) list -> (string -> unit) -> unit</code></pre><pre><span id="VALpack_xdr_value_as_string"><span class="keyword">val</span> pack_xdr_value_as_string</span> : <code class="type">?rm:bool -><br>       ?encode:(string * <a href="Xdr.html#TYPEencoder">encoder</a>) list -><br>       <a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Xdr.html#TYPExdr_type">xdr_type</a> -> (string * <a href="Xdr.html#TYPExdr_type">xdr_type</a>) list -> string</code></pre><div class="info">
+
+<pre><span id="VALpack_xdr_value"><span class="keyword">val</span> pack_xdr_value</span> : <code class="type">?encode:(string * <a href="Xdr.html#TYPEencoder">encoder</a>) list -><br>       <a href="Xdr.html#TYPExdr_value">xdr_value</a> -><br>       <a href="Xdr.html#TYPExdr_type">xdr_type</a> -> (string * <a href="Xdr.html#TYPExdr_type">xdr_type</a>) list -> (string -> unit) -> unit</code></pre>
+<pre><span id="VALpack_xdr_value_as_string"><span class="keyword">val</span> pack_xdr_value_as_string</span> : <code class="type">?rm:bool -><br>       ?encode:(string * <a href="Xdr.html#TYPEencoder">encoder</a>) list -><br>       <a href="Xdr.html#TYPExdr_value">xdr_value</a> -> <a href="Xdr.html#TYPExdr_type">xdr_type</a> -> (string * <a href="Xdr.html#TYPExdr_type">xdr_type</a>) list -> string</code></pre><div class="info ">
 rm: If true, four null bytes are prepended to the string for the
         record mark
 <p>
@@ -848,15 +904,17 @@ rm: If true, four null bytes are prepended to the string for the
       Changed in Ocamlnet-3.3: these functions raise <code class="code">Xdr_failure</code> in
       case of errors.<br>
 </div>
-<pre><span id="VALpack_xdr_value_as_mstrings"><span class="keyword">val</span> pack_xdr_value_as_mstrings</span> : <code class="type">?encode:(string * <a href="Xdr.html#TYPEencoder">encoder</a>) list -><br>       <a href="Xdr.html#TYPExdr_value">xdr_value</a> -><br>       <a href="Xdr.html#TYPExdr_type">xdr_type</a> -> (string * <a href="Xdr.html#TYPExdr_type">xdr_type</a>) list -> <a href="Xdr_mstring.mstring-c.html">Xdr_mstring.mstring</a> list</code></pre><div class="info">
+
+<pre><span id="VALpack_xdr_value_as_mstrings"><span class="keyword">val</span> pack_xdr_value_as_mstrings</span> : <code class="type">?encode:(string * <a href="Xdr.html#TYPEencoder">encoder</a>) list -><br>       <a href="Xdr.html#TYPExdr_value">xdr_value</a> -><br>       <a href="Xdr.html#TYPExdr_type">xdr_type</a> -> (string * <a href="Xdr.html#TYPExdr_type">xdr_type</a>) list -> <a href="Xdr_mstring.mstring-c.html">Xdr_mstring.mstring</a> list</code></pre><div class="info ">
 The concatanated mstrings are the packed representation
 <p>
 
       Changed in Ocamlnet-3.3: this function raises <code class="code">Xdr_failure</code> in
       case of errors.<br>
 </div>
+
 <pre><span id="TYPExdr_value_version"><span class="keyword">type</span> <code class="type"></code>xdr_value_version</span> = <code class="type">[ `Ocamlrpcgen | `V1 | `V2 | `V3 | `V4 ]</code> </pre>
-<div class="info">
+<div class="info ">
 Selects which version of <code class="code">xdr_value</code> is returned by <code class="code">unpack_xdr_value</code>.
       During the development of Ocamlnet several incompatible changes were
       made, but by selecting a certain version these changes can be hidden
@@ -882,7 +940,9 @@ Selects which version of <code class="code">xdr_value</code> is returned by <cod
       for this purpose, despite its name).<br>
 </div>
 
-<pre><span id="VALunpack_xdr_value"><span class="keyword">val</span> unpack_xdr_value</span> : <code class="type">?pos:int -><br>       ?len:int -><br>       ?fast:bool -><br>       ?prefix:bool -><br>       ?mstring_factories:<a href="Xdr_mstring.html#TYPEnamed_mstring_factories">Xdr_mstring.named_mstring_factories</a> -><br>       ?xv_version:<a href="Xdr.html#TYPExdr_value_version">xdr_value_version</a> -><br>       ?decode:(string * <a href="Xdr.html#TYPEdecoder">decoder</a>) list -><br>       string -> <a href="Xdr.html#TYPExdr_type">xdr_type</a> -> (string * <a href="Xdr.html#TYPExdr_type">xdr_type</a>) list -> <a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre><pre><span id="VALunpack_xdr_value_l"><span class="keyword">val</span> unpack_xdr_value_l</span> : <code class="type">?pos:int -><br>       ?len:int -><br>       ?fast:bool -><br>       ?prefix:bool -><br>       ?mstring_factories:<a href="Xdr_mstring.html#TYPEnamed_mstring_factories">Xdr_mstring.named_mstring_factories</a> -><br>       ?xv_version:<a href="Xdr.html#TYPExdr_value_version">xdr_value_version</a> -><br>       ?decode:(string * <a href="Xdr.html#TYPEdecoder">decoder</a>) list -><br>       string -> <a href="Xdr.html#TYPExdr_type">xdr_type</a> -> (string * <a href="Xdr.html#TYPExdr_type">xdr_type</a>) list -> <a href="Xdr.html#TYPExdr_value">xdr_value</a> * int</code></pre><div class="info">
+
+<pre><span id="VALunpack_xdr_value"><span class="keyword">val</span> unpack_xdr_value</span> : <code class="type">?pos:int -><br>       ?len:int -><br>       ?fast:bool -><br>       ?prefix:bool -><br>       ?mstring_factories:<a href="Xdr_mstring.html#TYPEnamed_mstring_factories">Xdr_mstring.named_mstring_factories</a> -><br>       ?xv_version:<a href="Xdr.html#TYPExdr_value_version">xdr_value_version</a> -><br>       ?decode:(string * <a href="Xdr.html#TYPEdecoder">decoder</a>) list -><br>       string -> <a href="Xdr.html#TYPExdr_type">xdr_type</a> -> (string * <a href="Xdr.html#TYPExdr_type">xdr_type</a>) list -> <a href="Xdr.html#TYPExdr_value">xdr_value</a></code></pre>
+<pre><span id="VALunpack_xdr_value_l"><span class="keyword">val</span> unpack_xdr_value_l</span> : <code class="type">?pos:int -><br>       ?len:int -><br>       ?fast:bool -><br>       ?prefix:bool -><br>       ?mstring_factories:<a href="Xdr_mstring.html#TYPEnamed_mstring_factories">Xdr_mstring.named_mstring_factories</a> -><br>       ?xv_version:<a href="Xdr.html#TYPExdr_value_version">xdr_value_version</a> -><br>       ?decode:(string * <a href="Xdr.html#TYPEdecoder">decoder</a>) list -><br>       string -> <a href="Xdr.html#TYPExdr_type">xdr_type</a> -> (string * <a href="Xdr.html#TYPExdr_type">xdr_type</a>) list -> <a href="Xdr.html#TYPExdr_value">xdr_value</a> * int</code></pre><div class="info ">
 <code class="code">prefix</code>: whether it is ok that the string is longer than the message
    (default: false)
 <p>

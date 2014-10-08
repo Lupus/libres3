@@ -53,7 +53,7 @@ PLUGINS_BIN  :=
 
 PLUGINS_INTF := extensions/ocsigen_comet.cmi       \
                 extensions/accesscontrol.cmi       \
-                extensions/authbasic.cmi
+                extensions/authbasic.cmi 
 
 PLUGINS_IMPL := extensions/staticmod.cmo           \
                 extensions/cgimod.cmo              \

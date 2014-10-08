@@ -13,6 +13,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -26,12 +29,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -42,7 +43,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -104,6 +104,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -139,7 +140,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -164,6 +164,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -181,8 +183,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -921,19 +921,14 @@ Access a variable with simple type.
 Returns the bound programs
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALbounded_full_split">bounded_full_split</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
-<td><div class="info">
-Like <code class="code">split_delim</code>, but returns the delimiters in the result
-</div>
-</td></tr>
 <tr><td><a href="Netstring_str.html#VALbounded_full_split">bounded_full_split</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
 <td><div class="info">
 Splits into at most <code class="code">n</code> substrings, based on <code class="code">full_split</code>
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALbounded_split">bounded_split</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALbounded_full_split">bounded_full_split</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
-Splits the string according to the regexp in substrings.
+Splits into at most <code class="code">n</code> substrings, based on <code class="code">full_split</code>
 </div>
 </td></tr>
 <tr><td><a href="Netstring_str.html#VALbounded_split">bounded_split</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
@@ -941,13 +936,17 @@ Splits the string according to the regexp in substrings.
 Splits into at most <code class="code">n</code> substrings, based on <code class="code">split</code>
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALbounded_split_delim">bounded_split_delim</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALbounded_split">bounded_split</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
-Same as <code class="code">split</code>, but occurrences of the delimiter at the beginning 
- and the end are returned as empty strings
+Splits into at most <code class="code">n</code> substrings, based on <code class="code">split</code>
 </div>
 </td></tr>
 <tr><td><a href="Netstring_str.html#VALbounded_split_delim">bounded_split_delim</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
+<td><div class="info">
+Splits into at most <code class="code">n</code> substrings, based on <code class="code">split_delim</code>
+</div>
+</td></tr>
+<tr><td><a href="Netstring_pcre.html#VALbounded_split_delim">bounded_split_delim</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 Splits into at most <code class="code">n</code> substrings, based on <code class="code">split_delim</code>
 </div>
@@ -2993,11 +2992,6 @@ Enables <a href="Netlog.html"><code class="code">Netlog</code></a>-style debuggi
 </td></tr>
 <tr><td><a href="Netcamlbox.Debug.html#VALenable">enable</a> [<a href="Netcamlbox.Debug.html">Netcamlbox.Debug</a>]</td>
 <td></td></tr>
-<tr><td><a href="Uq_ssl.Debug.html#VALenable">enable</a> [<a href="Uq_ssl.Debug.html">Uq_ssl.Debug</a>]</td>
-<td><div class="info">
-Enables <a href="Netlog.html"><code class="code">Netlog</code></a>-style debugging of this module
-</div>
-</td></tr>
 <tr><td><a href="Uq_engines.Debug.html#VALenable">enable</a> [<a href="Uq_engines.Debug.html">Uq_engines.Debug</a>]</td>
 <td><div class="info">
 Enables <a href="Netlog.html"><code class="code">Netlog</code></a>-style debugging
@@ -3011,6 +3005,11 @@ Enable <a href="Netlog.html"><code class="code">Netlog</code></a> debugging
 <tr><td><a href="Equeue.Debug.html#VALenable">enable</a> [<a href="Equeue.Debug.html">Equeue.Debug</a>]</td>
 <td><div class="info">
 Enable <a href="Netlog.html"><code class="code">Netlog</code></a> debugging
+</div>
+</td></tr>
+<tr><td><a href="Uq_ssl.Debug.html#VALenable">enable</a> [<a href="Uq_ssl.Debug.html">Uq_ssl.Debug</a>]</td>
+<td><div class="info">
+Enables <a href="Netlog.html"><code class="code">Netlog</code></a>-style debugging of this module
 </div>
 </td></tr>
 <tr><td><a href="Netlog.Debug.html#VALenable_all">enable_all</a> [<a href="Netlog.Debug.html">Netlog.Debug</a>]</td>
@@ -3476,12 +3475,12 @@ This creates a <code class="code">job_engine</code> internally and runs until it
  finished, i.e.
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALfirst_chars">first_chars</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_str.html#VALfirst_chars">first_chars</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
 <td><div class="info">
-The last <code class="code">n</code> characters of a string
+Same as <code class="code">string_before</code>
 </div>
 </td></tr>
-<tr><td><a href="Netstring_str.html#VALfirst_chars">first_chars</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALfirst_chars">first_chars</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 Same as <code class="code">string_before</code>
 </div>
@@ -3740,12 +3739,12 @@ Sync data and metadata to disk
 Same as function
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALfull_split">full_split</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_str.html#VALfull_split">full_split</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
 <td><div class="info">
-Splits into at most <code class="code">n</code> substrings, based on <code class="code">split_delim</code>
+Like <code class="code">split_delim</code>, but returns the delimiters in the result
 </div>
 </td></tr>
-<tr><td><a href="Netstring_str.html#VALfull_split">full_split</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALfull_split">full_split</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 Like <code class="code">split_delim</code>, but returns the delimiters in the result
 </div>
@@ -4567,25 +4566,26 @@ The global cache.
 Returns the global config: <code class="code">policy = `None</code>, <code class="code">disable_timeout_min = 1.0</code>, <code class="code">disable_timeout_max = 64.0</code>, <code class="code">threshold = 1</code>, <code class="code">availability = fun _ _ -&gt; true</code>
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALglobal_replace">global_replace</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
-<td><div class="info">
-Returns the position where the substring matching the nth
- group ends
-</div>
-</td></tr>
 <tr><td><a href="Netstring_str.html#VALglobal_replace">global_replace</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
 <td><div class="info">
 <code class="code">global_replace re templ s</code>: Replaces all matchings of <code class="code">re</code> in
  <code class="code">s</code> by <code class="code">templ</code>.
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALglobal_substitute">global_substitute</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALglobal_replace">global_replace</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
-<code class="code">replace_first re templ s</code>: Replaces the first match of <code class="code">re</code> in
+<code class="code">global_replace re templ s</code>: Replaces all matchings of <code class="code">re</code> in
  <code class="code">s</code> by <code class="code">templ</code>.
 </div>
 </td></tr>
 <tr><td><a href="Netstring_str.html#VALglobal_substitute">global_substitute</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
+<td><div class="info">
+<code class="code">global_substitute re subst s</code>: Applies the substitution function
+ <code class="code">subst</code> to all matchings of <code class="code">re</code> in <code class="code">s</code>, and returns the 
+ transformed string.
+</div>
+</td></tr>
+<tr><td><a href="Netstring_pcre.html#VALglobal_substitute">global_substitute</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 <code class="code">global_substitute re subst s</code>: Applies the substitution function
  <code class="code">subst</code> to all matchings of <code class="code">re</code> in <code class="code">s</code>, and returns the 
@@ -4615,25 +4615,25 @@ Grant access to this PTY
 Execute a sequence of operations in a group:
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALgroup_beginning">group_beginning</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
-<td><div class="info">
-Extracts the substring the nth group matches from the whole
- string.
-</div>
-</td></tr>
 <tr><td><a href="Netstring_str.html#VALgroup_beginning">group_beginning</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
 <td><div class="info">
 Returns the position where the substring matching the nth
  group begins
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALgroup_end">group_end</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALgroup_beginning">group_beginning</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 Returns the position where the substring matching the nth
  group begins
 </div>
 </td></tr>
 <tr><td><a href="Netstring_str.html#VALgroup_end">group_end</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
+<td><div class="info">
+Returns the position where the substring matching the nth
+ group ends
+</div>
+</td></tr>
+<tr><td><a href="Netstring_pcre.html#VALgroup_end">group_end</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 Returns the position where the substring matching the nth
  group ends
@@ -5666,12 +5666,12 @@ Retrieves the localization from the passed locale (use "" for the
       standard locale).
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALlast_chars">last_chars</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_str.html#VALlast_chars">last_chars</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
 <td><div class="info">
-Same as <code class="code">string_before</code>
+Same as <code class="code">string_after</code>
 </div>
 </td></tr>
-<tr><td><a href="Netstring_str.html#VALlast_chars">last_chars</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALlast_chars">last_chars</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 Same as <code class="code">string_after</code>
 </div>
@@ -6179,17 +6179,12 @@ Works for both <code class="code">XV_struct</code> and <code class="code">XV_str
 Works for both <code class="code">XV_union_over_enum</code> and <code class="code">XV_union_over_enum_fast</code>.
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALmatch_beginning">match_beginning</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
-<td><div class="info">
-Extracts the matched part from the string.
-</div>
-</td></tr>
 <tr><td><a href="Netstring_str.html#VALmatch_beginning">match_beginning</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
 <td><div class="info">
 Returns the position where the matched part begins
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALmatch_end">match_end</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALmatch_beginning">match_beginning</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 Returns the position where the matched part begins
 </div>
@@ -6199,14 +6194,14 @@ Returns the position where the matched part begins
 Returns the position where the matched part ends
 </div>
 </td></tr>
+<tr><td><a href="Netstring_pcre.html#VALmatch_end">match_end</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<td><div class="info">
+Returns the position where the matched part ends
+</div>
+</td></tr>
 <tr><td><a href="Netglob.html#VALmatch_glob_expr">match_glob_expr</a> [<a href="Netglob.html">Netglob</a>]</td>
 <td><div class="info">
 Matches the glob_expr against a string.
-</div>
-</td></tr>
-<tr><td><a href="Netstring_pcre.html#VALmatched_group">matched_group</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
-<td><div class="info">
-Returns the position where the matched part ends
 </div>
 </td></tr>
 <tr><td><a href="Netstring_str.html#VALmatched_group">matched_group</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
@@ -6215,13 +6210,18 @@ Extracts the substring the nth group matches from the whole
  string.
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALmatched_string">matched_string</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALmatched_group">matched_group</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
-Searches a match of the string with the regexp, starting at
- the position and in backward direction.
+Extracts the substring the nth group matches from the whole
+ string.
 </div>
 </td></tr>
 <tr><td><a href="Netstring_str.html#VALmatched_string">matched_string</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
+<td><div class="info">
+Extracts the matched part from the string.
+</div>
+</td></tr>
+<tr><td><a href="Netstring_pcre.html#VALmatched_string">matched_string</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 Extracts the matched part from the string.
 </div>
@@ -7768,12 +7768,12 @@ Almost the same as <code class="code">seq_engine</code>, but this version does n
 Quits and disconnects
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALquote">quote</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_str.html#VALquote">quote</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
 <td><div class="info">
-Parses a case-insensitive regexp
+Quotes a string such that it can be included in a regexp
 </div>
 </td></tr>
-<tr><td><a href="Netstring_str.html#VALquote">quote</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALquote">quote</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 Quotes a string such that it can be included in a regexp
 </div>
@@ -7990,17 +7990,12 @@ Tries to add characters to the <code class="code">unicode_lexbuf</code> by calli
  <code class="code">ulb_refill</code> function.
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALregexp">regexp</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
-<td><div class="info">
-The type of matching results
-</div>
-</td></tr>
 <tr><td><a href="Netstring_str.html#VALregexp">regexp</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
 <td><div class="info">
 Parses a regexp
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALregexp_case_fold">regexp_case_fold</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALregexp">regexp</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 Parses a regexp
 </div>
@@ -8010,9 +8005,9 @@ Parses a regexp
 Parses a case-insensitive regexp
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALregexp_string">regexp_string</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALregexp_case_fold">regexp_case_fold</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
-Quotes a string such that it can be included in a regexp
+Parses a case-insensitive regexp
 </div>
 </td></tr>
 <tr><td><a href="Netstring_str.html#VALregexp_string">regexp_string</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
@@ -8020,12 +8015,17 @@ Quotes a string such that it can be included in a regexp
 Returns a regexp that matches exactly the string
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALregexp_string_case_fold">regexp_string_case_fold</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALregexp_string">regexp_string</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 Returns a regexp that matches exactly the string
 </div>
 </td></tr>
 <tr><td><a href="Netstring_str.html#VALregexp_string_case_fold">regexp_string_case_fold</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
+<td><div class="info">
+Returns a case-insensitive regexp that matches exactly the string
+</div>
+</td></tr>
+<tr><td><a href="Netstring_pcre.html#VALregexp_string_case_fold">regexp_string_case_fold</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 Returns a case-insensitive regexp that matches exactly the string
 </div>
@@ -8197,13 +8197,13 @@ Renames the <code class="code">file_from</code> into <code class="code">file_to<
    in <code class="code">tbl</code> by a binding of <code class="code">x</code> to <code class="code">y</code>.
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALreplace_first">replace_first</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_str.html#VALreplace_first">replace_first</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
 <td><div class="info">
-<code class="code">global_replace re templ s</code>: Replaces all matchings of <code class="code">re</code> in
+<code class="code">replace_first re templ s</code>: Replaces the first match of <code class="code">re</code> in
  <code class="code">s</code> by <code class="code">templ</code>.
 </div>
 </td></tr>
-<tr><td><a href="Netstring_str.html#VALreplace_first">replace_first</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALreplace_first">replace_first</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 <code class="code">replace_first re templ s</code>: Replaces the first match of <code class="code">re</code> in
  <code class="code">s</code> by <code class="code">templ</code>.
@@ -8576,24 +8576,25 @@ Returns all following tokens as a list (excluding <code class="code">End</code>)
 The OID of SCRAM
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALsearch_backward">search_backward</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
-<td><div class="info">
-Searches a match of the string with the regexp, starting at
- the position and in forward direction.
-</div>
-</td></tr>
 <tr><td><a href="Netstring_str.html#VALsearch_backward">search_backward</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
 <td><div class="info">
 Searches a match of the string with the regexp, starting at
  the position and in backward direction.
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALsearch_forward">search_forward</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALsearch_backward">search_backward</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
-Matches the string at the position with the regexp.
+Searches a match of the string with the regexp, starting at
+ the position and in backward direction.
 </div>
 </td></tr>
 <tr><td><a href="Netstring_str.html#VALsearch_forward">search_forward</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
+<td><div class="info">
+Searches a match of the string with the regexp, starting at
+ the position and in forward direction.
+</div>
+</td></tr>
+<tr><td><a href="Netstring_pcre.html#VALsearch_forward">search_forward</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 Searches a match of the string with the regexp, starting at
  the position and in forward direction.
@@ -9842,24 +9843,23 @@ The sets of special characters defined by the RFCs 822 and 2045.
 </td></tr>
 <tr><td><a href="Mimestring.html#VALspecials_rfc822">specials_rfc822</a> [<a href="Mimestring.html">Mimestring</a>]</td>
 <td></td></tr>
-<tr><td><a href="Netstring_pcre.html#VALsplit">split</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
-<td><div class="info">
-<code class="code">substitute_first re subst s</code>: Applies the substitution function
- <code class="code">subst</code> to the first matching of <code class="code">re</code> in <code class="code">s</code>, and returns the 
- transformed string.
-</div>
-</td></tr>
 <tr><td><a href="Netstring_str.html#VALsplit">split</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
 <td><div class="info">
 Splits the string according to the regexp in substrings.
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALsplit_delim">split_delim</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALsplit">split</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
-Splits into at most <code class="code">n</code> substrings, based on <code class="code">split</code>
+Splits the string according to the regexp in substrings.
 </div>
 </td></tr>
 <tr><td><a href="Netstring_str.html#VALsplit_delim">split_delim</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
+<td><div class="info">
+Same as <code class="code">split</code>, but occurrences of the delimiter at the beginning 
+ and the end are returned as empty strings
+</div>
+</td></tr>
+<tr><td><a href="Netstring_pcre.html#VALsplit_delim">split_delim</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 Same as <code class="code">split</code>, but occurrences of the delimiter at the beginning 
  and the end are returned as empty strings
@@ -10087,12 +10087,12 @@ The multiplex controller for stream encapsulation
 Same as function
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALstring_after">string_after</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_str.html#VALstring_after">string_after</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
 <td><div class="info">
-The first <code class="code">n</code> characters of a string
+The last <code class="code">n</code> characters of a string
 </div>
 </td></tr>
-<tr><td><a href="Netstring_str.html#VALstring_after">string_after</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALstring_after">string_after</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 The last <code class="code">n</code> characters of a string
 </div>
@@ -10102,12 +10102,12 @@ The last <code class="code">n</code> characters of a string
 Uses strings to represent mstrings
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALstring_before">string_before</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_str.html#VALstring_before">string_before</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
 <td><div class="info">
-Splits into at most <code class="code">n</code> substrings, based on <code class="code">full_split</code>
+The first <code class="code">n</code> characters of a string
 </div>
 </td></tr>
-<tr><td><a href="Netstring_str.html#VALstring_before">string_before</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALstring_before">string_before</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 The first <code class="code">n</code> characters of a string
 </div>
@@ -10117,12 +10117,12 @@ The first <code class="code">n</code> characters of a string
 Represents a string in the following way.
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALstring_match">string_match</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_str.html#VALstring_match">string_match</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
 <td><div class="info">
-Returns a case-insensitive regexp that matches exactly the string
+Matches the string at the position with the regexp.
 </div>
 </td></tr>
-<tr><td><a href="Netstring_str.html#VALstring_match">string_match</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALstring_match">string_match</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 Matches the string at the position with the regexp.
 </div>
@@ -10293,14 +10293,14 @@ Returns a substring of the lexeme as array of Unicode
 <code class="code">request_rec</code> <code class="code">subprocess_env</code> field.
 </div>
 </td></tr>
-<tr><td><a href="Netstring_pcre.html#VALsubstitute_first">substitute_first</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
+<tr><td><a href="Netstring_str.html#VALsubstitute_first">substitute_first</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
 <td><div class="info">
-<code class="code">global_substitute re subst s</code>: Applies the substitution function
- <code class="code">subst</code> to all matchings of <code class="code">re</code> in <code class="code">s</code>, and returns the 
+<code class="code">substitute_first re subst s</code>: Applies the substitution function
+ <code class="code">subst</code> to the first matching of <code class="code">re</code> in <code class="code">s</code>, and returns the 
  transformed string.
 </div>
 </td></tr>
-<tr><td><a href="Netstring_str.html#VALsubstitute_first">substitute_first</a> [<a href="Netstring_str.html">Netstring_str</a>]</td>
+<tr><td><a href="Netstring_pcre.html#VALsubstitute_first">substitute_first</a> [<a href="Netstring_pcre.html">Netstring_pcre</a>]</td>
 <td><div class="info">
 <code class="code">substitute_first re subst s</code>: Applies the substitution function
  <code class="code">subst</code> to the first matching of <code class="code">re</code> in <code class="code">s</code>, and returns the 

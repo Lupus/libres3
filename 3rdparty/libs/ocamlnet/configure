@@ -1,8 +1,11 @@
 #! /bin/sh
 
-# $Id: configure 1958 2014-05-12 18:49:44Z gerd $
+# $Id: configure 2049 2014-09-16 11:47:00Z gerd $
 
 #######################################################################
+# Constants:
+cppo_version=0.9.4
+
 # Helpers:
 
 # Split $PATH into words:
@@ -31,7 +34,6 @@ get_path () {
         fi
     done
 }
-
 #######################################################################
 # Defaults
 
@@ -67,7 +69,7 @@ set_defaults () {
 ocamlc=`get_path ocamlc`
 set_defaults
 
-version="3.7.4"
+version="3.7.6"
 exec_suffix=""
 path_sep=":"
 
@@ -338,7 +340,7 @@ done
 # Check OS
 
 with_rpc_xti=0
-
+with_cppo_tweak=0
 printf "%s" "Checking operating system... "
 u=`uname`
 case "$u" in
@@ -348,6 +350,7 @@ case "$u" in
 		path_sep=";"   # this is only for OCAMLPATH, ";" is correct for Cygwin
 		case `ocamlc -config | grep os_type` in
 		    *Win32*)
+                        with_cppo_tweak=1
                         if [ $cpp_set = 0 ]; then
                             cpp=`realpath /bin/cpp | cygpath -m -f -`
                         fi
@@ -359,6 +362,7 @@ case "$u" in
         MINGW*)
 		echo "MinGW"
 		exec_suffix=".exe"
+		with_cppo_tweak=2
 		path_sep=";"
 		mingw_lib=`get_path gcc`
 		mingw_lib=`dirname "$mingw_lib"`/../lib
@@ -450,7 +454,7 @@ printf "%s" "Checking word size... "
 cat <<_EOF_ >tmp/t.ml
 print_endline(string_of_int(Sys.word_size))
 _EOF_
-word_size="$(ocaml tmp/t.ml)"
+word_size="$(ocaml tmp/t.ml | tr -d '\r')"
 echo "$word_size bit"
 
 printf "%s" "Checking endianess... "
@@ -487,7 +491,7 @@ fi
 
 printf "Checking for GPROF... "
 
-stdlib=`ocamlc -where`
+stdlib=`ocamlc -where | tr -d '\r'`
 if [ -f $stdlib/std_exit.p.cmx ]; then
     echo "found"
     have_gprof=1
@@ -682,11 +686,11 @@ if [ $enable_gtk2 -gt 0 ]; then
 
     printf "%s" "Checking whether lablgtk2 has GMain.Io.remove... "
     mkdir -p tmp
-    cat <<EOF >tmp/gtk.ml
+    cat <<EOF >tmp/gtktest.ml
 let _ = GMain.Io.remove;;
 EOF
 
-    if ocamlfind ocamlc -package lablgtk2 -c tmp/gtk.ml >/dev/null 2>/dev/null;
+    if ocamlfind ocamlc -package lablgtk2 -c tmp/gtktest.ml >/dev/null 2>/dev/null;
     then
         echo "yes"
     else
@@ -697,21 +701,21 @@ EOF
     
     printf "%s" "Checking whether lablgtk2 has GMain.Io.add_watch with list support... "
     mkdir -p tmp
-    cat <<'EOF' >tmp/gtk.ml
+    cat <<'EOF' >tmp/gtktest.ml
 open GMain.Io
 let _ = (add_watch : cond:condition list -> callback:(condition list -> bool) -> ?prio:int -> channel -> id);;
 exit 0
 EOF
     # Note: this newer API is never broken in the sense checked below, i.e.
     # such lablgtk2 versions do not exist.
-    if ocamlfind ocamlc -package unix,lablgtk2 -linkpkg -o tmp/gtk tmp/gtk.ml >/dev/null 2>/dev/null && tmp/gtk; then
+    if ocamlfind ocamlc -package unix,lablgtk2 -linkpkg -o tmp/gtk tmp/gtktest.ml >/dev/null 2>/dev/null && tmp/gtk; then
         echo "yes"
-        gtk2_io_add_watch_supports_lists="-ppopt -DGTK2_IO_ADD_WATCH_SUPPORTS_LISTS"
+        gtk2_io_add_watch_supports_lists="-D GTK2_IO_ADD_WATCH_SUPPORTS_LISTS"
     else
         echo "no"
         printf "%s" "Checking whether lablgtk2's GMain.Io.add_watch is broken... "
         mkdir -p tmp
-        cat <<'EOF' >tmp/gtk.ml
+        cat <<'EOF' >tmp/gtktest.ml
 GMain.Main.init();;
 let ch = GMain.Io.channel_of_descr (Unix.stdout) in
 let w = GMain.Io.add_watch
@@ -724,7 +728,7 @@ if (Obj.magic w : int) > 0 then
 else
   exit 1
 EOF
-	if ocamlfind ocamlc -package unix,lablgtk2 -linkpkg -o tmp/gtk tmp/gtk.ml >/dev/null 2>/dev/null && tmp/gtk; then
+	if ocamlfind ocamlc -package unix,lablgtk2 -linkpkg -o tmp/gtk tmp/gtktest.ml >/dev/null 2>/dev/null && tmp/gtk; then
             echo "no"
         else
             echo "yes"
@@ -962,6 +966,23 @@ fi
 ######################################################################
 # Write Makefile.conf
 
+if [ $with_cppo_tweak -ne 0 ]; then
+    # Under Windows, calling cppo by relative path is difficult. If we
+    # use forward slashes, we need to escape these for cmd.exe. If we
+    # use backward slashes, the escaping is difficult for sh+make.
+    # The workaround is to call cppo implicitly by PATH search.
+    xdir="$(readlink -f "$(dirname "$0")")"
+    if [ $with_cppo_tweak -eq 1 ]; then
+        xdir="$(cygpath "${xdir}")"
+    fi
+    xdir="${xdir}/tools/cppo-${cppo_version}"
+    export_path="export PATH:=${xdir}:\$(PATH)"
+    cppo="cppo-ocamlnet.exe"
+else
+    export_path=""
+    cppo="\$(TOP_DIR)/tools/cppo-${cppo_version}/cppo"
+fi
+
 echo "Writing Makefile.conf"
 cat <<_EOF_ >Makefile.conf
 # Makefike.conf written by configure
@@ -1048,6 +1069,10 @@ APXS = $apxs
 # ocamlrpcgen
 OCAMLRPCGEN_CPP = $cpp
 
+# cppo:
+CPPO = $cppo
+CPPO_VERSION = $cppo_version
+$export_path
 _EOF_
 
 ######################################################################

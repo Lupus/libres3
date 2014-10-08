@@ -16,6 +16,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -29,12 +32,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -45,7 +46,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -107,6 +107,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -142,7 +143,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -167,6 +167,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -184,8 +186,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -203,7 +203,8 @@
 &nbsp;<a class="post" href="Netnumber.LE.html" title="Netnumber.LE">Next</a>
 </div>
 <h1>Module <a href="type_Netnumber.BE.html">Netnumber.BE</a></h1>
-<pre><span class="keyword">module</span> BE: <code class="type"><a href="Netnumber.ENCDEC.html">ENCDEC</a></code><code class="type"> </code></pre><div class="info">
+
+<pre><span class="keyword">module</span> BE: <code class="type"><a href="Netnumber.ENCDEC.html">ENCDEC</a></code><code class="type"> </code></pre><div class="info module top">
 Encoders/decoders for big endian - network byte order<br>
 </div>
 <hr width="100%">
@@ -214,23 +215,49 @@ Encode/decode numbers as strings. These functions exist in two
 <li><a href="Netnumber.LE.html"><code class="code">Netnumber.LE</code></a> implements little endian</li>
 </ul>
 <br>
-<pre><span id="VALread_int4"><span class="keyword">val</span> read_int4</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEint4">Netnumber.int4</a></code></pre><pre><span id="VALread_int8"><span class="keyword">val</span> read_int8</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEint8">Netnumber.int8</a></code></pre><pre><span id="VALread_uint4"><span class="keyword">val</span> read_uint4</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code></pre><pre><span id="VALread_uint8"><span class="keyword">val</span> read_uint8</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEuint8">Netnumber.uint8</a></code></pre><div class="info">
+
+<pre><span id="VALread_int4"><span class="keyword">val</span> read_int4</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEint4">Netnumber.int4</a></code></pre>
+<pre><span id="VALread_int8"><span class="keyword">val</span> read_int8</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEint8">Netnumber.int8</a></code></pre>
+<pre><span id="VALread_uint4"><span class="keyword">val</span> read_uint4</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code></pre>
+<pre><span id="VALread_uint8"><span class="keyword">val</span> read_uint8</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEuint8">Netnumber.uint8</a></code></pre><div class="info ">
 <code class="code">read_</code>&lt;t&gt; create integer values from the characters found at a
 	certain position in the string. Raises <code class="code">Out_of_range</code> if the position
 	is bad<br>
 </div>
-<pre><span id="VALread_int4_unsafe"><span class="keyword">val</span> read_int4_unsafe</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEint4">Netnumber.int4</a></code></pre><pre><span id="VALread_int8_unsafe"><span class="keyword">val</span> read_int8_unsafe</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEint8">Netnumber.int8</a></code></pre><pre><span id="VALread_uint4_unsafe"><span class="keyword">val</span> read_uint4_unsafe</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code></pre><pre><span id="VALread_uint8_unsafe"><span class="keyword">val</span> read_uint8_unsafe</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEuint8">Netnumber.uint8</a></code></pre><div class="info">
+
+<pre><span id="VALread_int4_unsafe"><span class="keyword">val</span> read_int4_unsafe</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEint4">Netnumber.int4</a></code></pre>
+<pre><span id="VALread_int8_unsafe"><span class="keyword">val</span> read_int8_unsafe</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEint8">Netnumber.int8</a></code></pre>
+<pre><span id="VALread_uint4_unsafe"><span class="keyword">val</span> read_uint4_unsafe</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code></pre>
+<pre><span id="VALread_uint8_unsafe"><span class="keyword">val</span> read_uint8_unsafe</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEuint8">Netnumber.uint8</a></code></pre><div class="info ">
 Same, but no index check<br>
 </div>
-<pre><span id="VALwrite_int4"><span class="keyword">val</span> write_int4</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEint4">Netnumber.int4</a> -> unit</code></pre><pre><span id="VALwrite_int8"><span class="keyword">val</span> write_int8</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEint8">Netnumber.int8</a> -> unit</code></pre><pre><span id="VALwrite_uint4"><span class="keyword">val</span> write_uint4</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a> -> unit</code></pre><pre><span id="VALwrite_uint8"><span class="keyword">val</span> write_uint8</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEuint8">Netnumber.uint8</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALwrite_int4"><span class="keyword">val</span> write_int4</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEint4">Netnumber.int4</a> -> unit</code></pre>
+<pre><span id="VALwrite_int8"><span class="keyword">val</span> write_int8</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEint8">Netnumber.int8</a> -> unit</code></pre>
+<pre><span id="VALwrite_uint4"><span class="keyword">val</span> write_uint4</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a> -> unit</code></pre>
+<pre><span id="VALwrite_uint8"><span class="keyword">val</span> write_uint8</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEuint8">Netnumber.uint8</a> -> unit</code></pre><div class="info ">
 <code class="code">write_</code>&lt;t&gt; copies the characters corresponding to the integer values 
 	into the string at the given positions. Raises <code class="code">Out_of_range</code> if the
 	position is bad.<br>
 </div>
-<pre><span id="VALwrite_int4_unsafe"><span class="keyword">val</span> write_int4_unsafe</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEint4">Netnumber.int4</a> -> unit</code></pre><pre><span id="VALwrite_int8_unsafe"><span class="keyword">val</span> write_int8_unsafe</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEint8">Netnumber.int8</a> -> unit</code></pre><pre><span id="VALwrite_uint4_unsafe"><span class="keyword">val</span> write_uint4_unsafe</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a> -> unit</code></pre><pre><span id="VALwrite_uint8_unsafe"><span class="keyword">val</span> write_uint8_unsafe</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEuint8">Netnumber.uint8</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALwrite_int4_unsafe"><span class="keyword">val</span> write_int4_unsafe</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEint4">Netnumber.int4</a> -> unit</code></pre>
+<pre><span id="VALwrite_int8_unsafe"><span class="keyword">val</span> write_int8_unsafe</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEint8">Netnumber.int8</a> -> unit</code></pre>
+<pre><span id="VALwrite_uint4_unsafe"><span class="keyword">val</span> write_uint4_unsafe</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a> -> unit</code></pre>
+<pre><span id="VALwrite_uint8_unsafe"><span class="keyword">val</span> write_uint8_unsafe</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEuint8">Netnumber.uint8</a> -> unit</code></pre><div class="info ">
 <code class="code">write_</code>&lt;t&gt;<code class="code">_unsafe</code>: Same, but no index check.<br>
 </div>
-<pre><span id="VALint4_as_string"><span class="keyword">val</span> int4_as_string</span> : <code class="type"><a href="Netnumber.html#TYPEint4">Netnumber.int4</a> -> string</code></pre><pre><span id="VALint8_as_string"><span class="keyword">val</span> int8_as_string</span> : <code class="type"><a href="Netnumber.html#TYPEint8">Netnumber.int8</a> -> string</code></pre><pre><span id="VALuint4_as_string"><span class="keyword">val</span> uint4_as_string</span> : <code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a> -> string</code></pre><pre><span id="VALuint8_as_string"><span class="keyword">val</span> uint8_as_string</span> : <code class="type"><a href="Netnumber.html#TYPEuint8">Netnumber.uint8</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALint4_as_string"><span class="keyword">val</span> int4_as_string</span> : <code class="type"><a href="Netnumber.html#TYPEint4">Netnumber.int4</a> -> string</code></pre>
+<pre><span id="VALint8_as_string"><span class="keyword">val</span> int8_as_string</span> : <code class="type"><a href="Netnumber.html#TYPEint8">Netnumber.int8</a> -> string</code></pre>
+<pre><span id="VALuint4_as_string"><span class="keyword">val</span> uint4_as_string</span> : <code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a> -> string</code></pre>
+<pre><span id="VALuint8_as_string"><span class="keyword">val</span> uint8_as_string</span> : <code class="type"><a href="Netnumber.html#TYPEuint8">Netnumber.uint8</a> -> string</code></pre><div class="info ">
 &lt;t&gt;<code class="code">_as_string</code>: Returns the corresponding string for an integer value<br>
 </div>
-<pre><span id="VALwrite_fp4"><span class="keyword">val</span> write_fp4</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEfp4">Netnumber.fp4</a> -> unit</code></pre><pre><span id="VALwrite_fp8"><span class="keyword">val</span> write_fp8</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEfp8">Netnumber.fp8</a> -> unit</code></pre><pre><span id="VALfp4_as_string"><span class="keyword">val</span> fp4_as_string</span> : <code class="type"><a href="Netnumber.html#TYPEfp4">Netnumber.fp4</a> -> string</code></pre><pre><span id="VALfp8_as_string"><span class="keyword">val</span> fp8_as_string</span> : <code class="type"><a href="Netnumber.html#TYPEfp8">Netnumber.fp8</a> -> string</code></pre><pre><span id="VALread_fp4"><span class="keyword">val</span> read_fp4</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEfp4">Netnumber.fp4</a></code></pre><pre><span id="VALread_fp8"><span class="keyword">val</span> read_fp8</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEfp8">Netnumber.fp8</a></code></pre></body></html>
+
+<pre><span id="VALwrite_fp4"><span class="keyword">val</span> write_fp4</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEfp4">Netnumber.fp4</a> -> unit</code></pre>
+<pre><span id="VALwrite_fp8"><span class="keyword">val</span> write_fp8</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEfp8">Netnumber.fp8</a> -> unit</code></pre>
+<pre><span id="VALfp4_as_string"><span class="keyword">val</span> fp4_as_string</span> : <code class="type"><a href="Netnumber.html#TYPEfp4">Netnumber.fp4</a> -> string</code></pre>
+<pre><span id="VALfp8_as_string"><span class="keyword">val</span> fp8_as_string</span> : <code class="type"><a href="Netnumber.html#TYPEfp8">Netnumber.fp8</a> -> string</code></pre>
+<pre><span id="VALread_fp4"><span class="keyword">val</span> read_fp4</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEfp4">Netnumber.fp4</a></code></pre>
+<pre><span id="VALread_fp8"><span class="keyword">val</span> read_fp8</span> : <code class="type">string -> int -> <a href="Netnumber.html#TYPEfp8">Netnumber.fp8</a></code></pre></body></html>

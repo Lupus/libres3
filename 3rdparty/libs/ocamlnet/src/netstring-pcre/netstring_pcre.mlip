@@ -1,4 +1,4 @@
-(* $Id: netstring_pcre.mlip 1791 2012-07-19 23:01:25Z gerd $ *)
+(* $Id: netstring_pcre.mlip 2048 2014-09-16 11:46:38Z gerd $ *)
 
 (** Wrapper for regexps with PCRE syntax
  *
@@ -16,28 +16,28 @@
 
 (** Supported regexp syntax: See pcrepattern(3). *)
 
-IFDEF HAVE_PCRE THEN
+#ifdef HAVE_PCRE
 type regexp = Pcre.regexp
   (** The type of regular expressions; now based on [Pcre] *)
-ELSE
+#else
 type regexp
-ENDIF
+#endif
 
 
-IFDEF HAVE_PCRE THEN
+#ifdef HAVE_PCRE
 type split_result = Pcre.split_result = 
   | Text of string
   | Delim of string
   | Group of int * string
   | NoGroup
   (** Here we keep compatiblity with [Pcre] *)
-ELSE
+#else
 type split_result =
   | Text of string
   | Delim of string
   | Group of int * string
   | NoGroup
-ENDIF
+#endif
 
 type result;;
   (** The type of matching results *)

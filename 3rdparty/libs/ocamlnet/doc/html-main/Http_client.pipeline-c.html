@@ -16,6 +16,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -29,12 +32,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -45,7 +46,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -107,6 +107,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -142,7 +143,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -167,6 +167,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -184,8 +186,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -203,7 +203,8 @@
 &nbsp;<a class="up" href="Http_client.html" title="Http_client">Up</a>
 &nbsp;</div>
 <h1>Class <a href="type_Http_client.pipeline.html">Http_client.pipeline</a></h1>
-<pre><span name="TYPEpipeline"><span class="keyword">class</span> pipeline</span> : <code class="type"></code><code class="code">object</code> <a href="Http_client.pipeline-c.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span name="TYPEpipeline"><span class="keyword">class</span> pipeline</span> : <code class="type"></code><code class="code">object</code> <a href="Http_client.pipeline-c.html">..</a> <code class="code">end</code></pre><div class="info class top">
 A pipeline is a queue of HTTP calls to perform<br>
 </div>
 <hr width="100%">
@@ -250,50 +251,62 @@ A pipeline is a queue of HTTP calls to perform<br>
 <p>
 
  By default, the pipeline only supports "http" URLs. You can configure
- "https" support via <a href="Https_client.html"><code class="code">Https_client</code></a>.<pre><span id="METHODevent_system"><span class="keyword">method</span> event_system</span> : <code class="type"><a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a></code></pre><div class="info">
+ "https" support via <a href="Https_client.html"><code class="code">Https_client</code></a>.
+<pre><span id="METHODevent_system"><span class="keyword">method</span> event_system</span> : <code class="type"><a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a></code></pre><div class="info ">
 Returns the event system<br>
 </div>
-<pre><span id="METHODset_event_system"><span class="keyword">method</span> set_event_system</span> : <code class="type"><a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_event_system"><span class="keyword">method</span> set_event_system</span> : <code class="type"><a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -> unit</code></pre><div class="info ">
 Sets the event system. Must be called before the first call
  is added<br>
 </div>
-<pre><span id="METHODconnection_cache"><span class="keyword">method</span> connection_cache</span> : <code class="type"><a href="Http_client.html#TYPEconnection_cache">connection_cache</a></code></pre><div class="info">
+
+<pre><span id="METHODconnection_cache"><span class="keyword">method</span> connection_cache</span> : <code class="type"><a href="Http_client.html#TYPEconnection_cache">connection_cache</a></code></pre><div class="info ">
 The current connection cache. By default, a private
  restrictive cache is used.<br>
 </div>
-<pre><span id="METHODset_connection_cache"><span class="keyword">method</span> set_connection_cache</span> : <code class="type"><a href="Http_client.html#TYPEconnection_cache">connection_cache</a> -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_connection_cache"><span class="keyword">method</span> set_connection_cache</span> : <code class="type"><a href="Http_client.html#TYPEconnection_cache">connection_cache</a> -> unit</code></pre><div class="info ">
 Set the connection cache. This must happen before the first
  call is added.<br>
 </div>
-<pre><span id="METHODadd_authentication_method"><span class="keyword">method</span> add_authentication_method</span> : <code class="type"><a href="Http_client.basic_auth_method-c.html">basic_auth_method</a> -> unit</code></pre><div class="info">
+
+<pre><span id="METHODadd_authentication_method"><span class="keyword">method</span> add_authentication_method</span> : <code class="type"><a href="Http_client.basic_auth_method-c.html">basic_auth_method</a> -> unit</code></pre><div class="info ">
 adds an old-style authentication method<br>
 </div>
-<pre><span id="METHODadd_auth_handler"><span class="keyword">method</span> add_auth_handler</span> : <code class="type"><a href="Http_client.auth_handler-c.html">auth_handler</a> -> unit</code></pre><div class="info">
+
+<pre><span id="METHODadd_auth_handler"><span class="keyword">method</span> add_auth_handler</span> : <code class="type"><a href="Http_client.auth_handler-c.html">auth_handler</a> -> unit</code></pre><div class="info ">
 adds a new-style authentication handler<br>
 </div>
-<pre><span id="METHODset_proxy"><span class="keyword">method</span> set_proxy</span> : <code class="type">string -> int -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_proxy"><span class="keyword">method</span> set_proxy</span> : <code class="type">string -> int -> unit</code></pre><div class="info ">
 <code class="code">set_proxy name port</code>:
  sets that an HTTP proxy <code class="code">name</code> listening on <code class="code">port</code> is to be used<br>
 </div>
-<pre><span id="METHODset_proxy_auth"><span class="keyword">method</span> set_proxy_auth</span> : <code class="type">string -> string -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_proxy_auth"><span class="keyword">method</span> set_proxy_auth</span> : <code class="type">string -> string -> unit</code></pre><div class="info ">
 sets user and password for the proxy. Works for both "digest"
 	    and "basic" mechanisms. Any realm is acceptable.<br>
 </div>
-<pre><span id="METHODavoid_proxy_for"><span class="keyword">method</span> avoid_proxy_for</span> : <code class="type">string list -> unit</code></pre><div class="info">
+
+<pre><span id="METHODavoid_proxy_for"><span class="keyword">method</span> avoid_proxy_for</span> : <code class="type">string list -> unit</code></pre><div class="info ">
 sets a list of host names or domain suffixes for which no proxy
  should be used. 
  e.g. <code class="code"> "localhost"; ".our.net" </code><br>
 </div>
-<pre><span id="METHODset_proxy_from_environment"><span class="keyword">method</span> set_proxy_from_environment</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_proxy_from_environment"><span class="keyword">method</span> set_proxy_from_environment</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Inspect the environment variables <code class="code">http_proxy</code> and <code class="code">no_proxy</code>
  and set the proxy options from them.<br>
 </div>
-<pre><span id="METHODset_socks5_proxy"><span class="keyword">method</span> set_socks5_proxy</span> : <code class="type">string -> int -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_socks5_proxy"><span class="keyword">method</span> set_socks5_proxy</span> : <code class="type">string -> int -> unit</code></pre><div class="info ">
 Sets that a SOCKS version 5 proxy is used at this host and port.
 	  There is no authentication. The <code class="code">avoid_proxy_for</code> setting is
 	  honoured.<br>
 </div>
-<pre><span id="METHODconfigure_transport"><span class="keyword">method</span> configure_transport</span> : <code class="type"><a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a> -> <a href="Http_client.transport_channel_type-c.html">transport_channel_type</a> -> unit</code></pre><div class="info">
+
+<pre><span id="METHODconfigure_transport"><span class="keyword">method</span> configure_transport</span> : <code class="type"><a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a> -> <a href="Http_client.transport_channel_type-c.html">transport_channel_type</a> -> unit</code></pre><div class="info ">
 <code class="code">configure_transport id transport</code>: Configures that messages with
 	   channel binding ID <code class="code">id</code> are exchanged on <code class="code">transport</code>.
 <p>
@@ -301,13 +314,15 @@ Sets that a SOCKS version 5 proxy is used at this host and port.
 	   By default, there is only a configuration for
 	   <a href="Http_client.html#VALhttp_cb_id"><code class="code">Http_client.http_cb_id</code></a>, i.e. for normal unencrypted channels.<br>
 </div>
-<pre><span id="METHODset_transport_proxy"><span class="keyword">method</span> set_transport_proxy</span> : <code class="type"><a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a> -><br>       string -> int -> (string * string) option -> <a href="Http_client.html#TYPEproxy_type">proxy_type</a> -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_transport_proxy"><span class="keyword">method</span> set_transport_proxy</span> : <code class="type"><a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a> -><br>       string -> int -> (string * string) option -> <a href="Http_client.html#TYPEproxy_type">proxy_type</a> -> unit</code></pre><div class="info ">
 <code class="code">set_transport_proxy id host port auth ptype</code>: Sets a special
 	  proxy for the transport identified by <code class="code">id</code>. This overrides
 	  <code class="code">set_proxy</code>, <code class="code">set_proxy_auth</code>, and <code class="code">set_socks5_proxy</code> for the
 	  given transport.<br>
 </div>
-<pre><span id="METHODset_transport_proxy_from_environment"><span class="keyword">method</span> set_transport_proxy_from_environment</span> : <code class="type">(string * <a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a>) list -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_transport_proxy_from_environment"><span class="keyword">method</span> set_transport_proxy_from_environment</span> : <code class="type">(string * <a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a>) list -> unit</code></pre><div class="info ">
 Like <code class="code">set_proxy_from_environment</code>, this method inspects environment
 	  variables and configures the proxy settings. This function, however,
 	  is more flexible, and can use different environment variables for
@@ -324,7 +339,8 @@ Like <code class="code">set_proxy_from_environment</code>, this method inspects 
 
 	  The variable <code class="code">"no_proxy"</code> is interpreted anyway.<br>
 </div>
-<pre><span id="METHODreset"><span class="keyword">method</span> reset</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="METHODreset"><span class="keyword">method</span> reset</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Empties the pipeline and inactivates any open connection.
  The currently active operation is interrupted, and every request
  with response is set to <code class="code">No_reply</code> (i.e. you get the exception
@@ -340,11 +356,13 @@ Empties the pipeline and inactivates any open connection.
  of the connection allows this; otherwise the connections are
  closed.<br>
 </div>
-<pre><span id="METHODadd"><span class="keyword">method</span> add</span> : <code class="type"><a href="Http_client.http_call-c.html">http_call</a> -> unit</code></pre><div class="info">
+
+<pre><span id="METHODadd"><span class="keyword">method</span> add</span> : <code class="type"><a href="Http_client.http_call-c.html">http_call</a> -> unit</code></pre><div class="info ">
 Adds the call to the end of the pipeline. 
  One must not add calls that have already been served.<br>
 </div>
-<pre><span id="METHODadd_with_callback"><span class="keyword">method</span> add_with_callback</span> : <code class="type"><a href="Http_client.http_call-c.html">http_call</a> -> (<a href="Http_client.http_call-c.html">http_call</a> -> unit) -> unit</code></pre><div class="info">
+
+<pre><span id="METHODadd_with_callback"><span class="keyword">method</span> add_with_callback</span> : <code class="type"><a href="Http_client.http_call-c.html">http_call</a> -> (<a href="Http_client.http_call-c.html">http_call</a> -> unit) -> unit</code></pre><div class="info ">
 Adds the call to the end of the pipeline.
 <p>
 
@@ -356,22 +374,27 @@ Adds the call to the end of the pipeline.
  server is available (perhaps OK status), or an exception is
  indicated.<br>
 </div>
-<pre><span id="METHODadd_e"><span class="keyword">method</span> add_e</span> : <code class="type"><a href="Http_client.http_call-c.html">http_call</a> -> <a href="Http_client.http_call-c.html">http_call</a> <a href="Uq_engines.engine-c.html">Uq_engines.engine</a></code></pre><div class="info">
+
+<pre><span id="METHODadd_e"><span class="keyword">method</span> add_e</span> : <code class="type"><a href="Http_client.http_call-c.html">http_call</a> -> <a href="Http_client.http_call-c.html">http_call</a> <a href="Uq_engines.engine-c.html">Uq_engines.engine</a></code></pre><div class="info ">
 The same as engine: The call <code class="code">c</code> is added to the pipeline, and
 	  when it is processed, the returned engine transitions to the
 	  state <code class="code">`Done c</code>.<br>
 </div>
-<pre><span id="METHODproxy_type"><span class="keyword">method</span> proxy_type</span> : <code class="type">string -> <a href="Http_client.html#TYPEproxy_type">proxy_type</a> option</code></pre><div class="info">
+
+<pre><span id="METHODproxy_type"><span class="keyword">method</span> proxy_type</span> : <code class="type">string -> <a href="Http_client.html#TYPEproxy_type">proxy_type</a> option</code></pre><div class="info ">
 <code class="code">proxy_type url</code> returns <code class="code">Some pt</code> if a proxy would be used for this
 	  <code class="code">url</code>, and <code class="code">None</code> if a direct connection would be made.<br>
 </div>
-<pre><span id="METHODproxy_type_of_call"><span class="keyword">method</span> proxy_type_of_call</span> : <code class="type"><a href="Http_client.http_call-c.html">http_call</a> -> <a href="Http_client.html#TYPEproxy_type">proxy_type</a> option</code></pre><div class="info">
+
+<pre><span id="METHODproxy_type_of_call"><span class="keyword">method</span> proxy_type_of_call</span> : <code class="type"><a href="Http_client.http_call-c.html">http_call</a> -> <a href="Http_client.html#TYPEproxy_type">proxy_type</a> option</code></pre><div class="info ">
 Same for an already created call object<br>
 </div>
-<pre><span id="METHODchannel_binding"><span class="keyword">method</span> channel_binding</span> : <code class="type"><a href="Http_client.http_call-c.html">http_call</a> -> <a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a></code></pre><div class="info">
+
+<pre><span id="METHODchannel_binding"><span class="keyword">method</span> channel_binding</span> : <code class="type"><a href="Http_client.http_call-c.html">http_call</a> -> <a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a></code></pre><div class="info ">
 Reports the current channel binding of this call<br>
 </div>
-<pre><span id="METHODrun"><span class="keyword">method</span> run</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="METHODrun"><span class="keyword">method</span> run</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Runs through the requests in the pipeline. If a request can be
  fulfilled, i.e. the server sends a response, the state of the
  request is set and the request is removed from the pipeline.
@@ -400,39 +423,51 @@ Runs through the requests in the pipeline. If a request can be
  caller of this function to react on them.
 <br>
 </div>
-<pre><span id="METHODget_options"><span class="keyword">method</span> get_options</span> : <code class="type"><a href="Http_client.html#TYPEhttp_options">http_options</a></code></pre><pre><span id="METHODset_options"><span class="keyword">method</span> set_options</span> : <code class="type"><a href="Http_client.html#TYPEhttp_options">http_options</a> -> unit</code></pre><div class="info">
+
+<pre><span id="METHODget_options"><span class="keyword">method</span> get_options</span> : <code class="type"><a href="Http_client.html#TYPEhttp_options">http_options</a></code></pre>
+<pre><span id="METHODset_options"><span class="keyword">method</span> set_options</span> : <code class="type"><a href="Http_client.html#TYPEhttp_options">http_options</a> -> unit</code></pre><div class="info ">
 Get/Set the available options for the HTTP engine. 
  The new options will take into effect immediately.<br>
 </div>
-<pre><span id="METHODnumber_of_open_messages"><span class="keyword">method</span> number_of_open_messages</span> : <code class="type">int</code></pre><div class="info">
+
+<pre><span id="METHODnumber_of_open_messages"><span class="keyword">method</span> number_of_open_messages</span> : <code class="type">int</code></pre><div class="info ">
 Returns the number of messages which are still in the pipeline.<br>
 </div>
-<pre><span id="METHODnumber_of_open_connections"><span class="keyword">method</span> number_of_open_connections</span> : <code class="type">int</code></pre><div class="info">
+
+<pre><span id="METHODnumber_of_open_connections"><span class="keyword">method</span> number_of_open_connections</span> : <code class="type">int</code></pre><div class="info ">
 Returns the number of connections which are open at the same time
  and currently being used by this object (i.e. connections 
  returned to the cache do not count)<br>
 </div>
-<pre><span id="METHODconnections"><span class="keyword">method</span> connections</span> : <code class="type">(string * int * int) list</code></pre><div class="info">
+
+<pre><span id="METHODconnections"><span class="keyword">method</span> connections</span> : <code class="type">(string * int * int) list</code></pre><div class="info ">
 Reports which connections exist: <code class="code"> (host, port, queue_length) </code><br>
 </div>
-<pre><span id="METHODcnt_new_connections"><span class="keyword">method</span> cnt_new_connections</span> : <code class="type">int</code></pre><div class="info">
+
+<pre><span id="METHODcnt_new_connections"><span class="keyword">method</span> cnt_new_connections</span> : <code class="type">int</code></pre><div class="info ">
 Counts new connections (or better: attempts to establish connections)<br>
 </div>
-<pre><span id="METHODcnt_timed_out_connections"><span class="keyword">method</span> cnt_timed_out_connections</span> : <code class="type">int</code></pre><div class="info">
+
+<pre><span id="METHODcnt_timed_out_connections"><span class="keyword">method</span> cnt_timed_out_connections</span> : <code class="type">int</code></pre><div class="info ">
 Counts connections given up because of timeouts<br>
 </div>
-<pre><span id="METHODcnt_crashed_connections"><span class="keyword">method</span> cnt_crashed_connections</span> : <code class="type">int</code></pre><div class="info">
+
+<pre><span id="METHODcnt_crashed_connections"><span class="keyword">method</span> cnt_crashed_connections</span> : <code class="type">int</code></pre><div class="info ">
 Counts connections with network or protocol errors<br>
 </div>
-<pre><span id="METHODcnt_server_eof_connections"><span class="keyword">method</span> cnt_server_eof_connections</span> : <code class="type">int</code></pre><div class="info">
+
+<pre><span id="METHODcnt_server_eof_connections"><span class="keyword">method</span> cnt_server_eof_connections</span> : <code class="type">int</code></pre><div class="info ">
 Counts connections the server terminated with EOF<br>
 </div>
-<pre><span id="METHODcnt_successful_connections"><span class="keyword">method</span> cnt_successful_connections</span> : <code class="type">int</code></pre><div class="info">
+
+<pre><span id="METHODcnt_successful_connections"><span class="keyword">method</span> cnt_successful_connections</span> : <code class="type">int</code></pre><div class="info ">
 Counts connections closed because pipelines become empty<br>
 </div>
-<pre><span id="METHODcnt_failed_connections"><span class="keyword">method</span> cnt_failed_connections</span> : <code class="type">int</code></pre><div class="info">
+
+<pre><span id="METHODcnt_failed_connections"><span class="keyword">method</span> cnt_failed_connections</span> : <code class="type">int</code></pre><div class="info ">
 Counts totally failed connections (no more reconnects allowed)<br>
 </div>
+
 <pre><span id="METHODreset_counters"><span class="keyword">method</span> reset_counters</span> : <code class="type">unit -> unit</code></pre><h2 id="2_Notesoncounters">Notes on counters:</h2>
 <p>
 <ul>

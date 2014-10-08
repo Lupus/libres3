@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -207,7 +207,8 @@
 &nbsp;<a class="post" href="Neturl.html" title="Neturl">Next</a>
 </div>
 <h1>Module <a href="type_Netsendmail.html">Netsendmail</a></h1>
-<pre><span class="keyword">module</span> Netsendmail: <code class="code">sig</code> <a href="Netsendmail.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Netsendmail: <code class="code">sig</code> <a href="Netsendmail.html">..</a> <code class="code">end</code></pre><div class="info module top">
 Functions to compose and send electronic mails 
 <p>
 
@@ -249,7 +250,8 @@ Functions to compose and send electronic mails
  can also generate the mail by calling <a href="Netsendmail.html#VALwrap_mail"><code class="code">Netsendmail.wrap_mail</code></a>,
  <a href="Netsendmail.html#VALwrap_parts"><code class="code">Netsendmail.wrap_parts</code></a>, and <a href="Netsendmail.html#VALwrap_attachment"><code class="code">Netsendmail.wrap_attachment</code></a>, getting
  more fine-grained control of certain options.<br>
-<pre><span id="VALcompose"><span class="keyword">val</span> compose</span> : <code class="type">?in_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?out_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?from_addr:string * string -><br>       ?cc_addrs:(string * string) list -><br>       ?bcc_addrs:(string * string) list -><br>       ?content_type:string * (string * <a href="Mimestring.html#TYPEs_param">Mimestring.s_param</a>) list -><br>       ?container_type:string * (string * <a href="Mimestring.html#TYPEs_param">Mimestring.s_param</a>) list -><br>       ?attachments:<a href="Netmime.html#TYPEcomplex_mime_message">Netmime.complex_mime_message</a> list -><br>       to_addrs:(string * string) list -><br>       subject:string -> string -> <a href="Netmime.html#TYPEcomplex_mime_message">Netmime.complex_mime_message</a></code></pre><div class="info">
+
+<pre><span id="VALcompose"><span class="keyword">val</span> compose</span> : <code class="type">?in_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?out_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?from_addr:string * string -><br>       ?cc_addrs:(string * string) list -><br>       ?bcc_addrs:(string * string) list -><br>       ?content_type:string * (string * <a href="Mimestring.html#TYPEs_param">Mimestring.s_param</a>) list -><br>       ?container_type:string * (string * <a href="Mimestring.html#TYPEs_param">Mimestring.s_param</a>) list -><br>       ?attachments:<a href="Netmime.html#TYPEcomplex_mime_message">Netmime.complex_mime_message</a> list -><br>       to_addrs:(string * string) list -><br>       subject:string -> string -> <a href="Netmime.html#TYPEcomplex_mime_message">Netmime.complex_mime_message</a></code></pre><div class="info ">
 Composes a mail message with a main text, and optionally
  a number of attachments.
 <p>
@@ -354,7 +356,8 @@ Composes a mail message with a main text, and optionally
 
  For a discusion of the other <code class="code">container_type</code>s see the
  <code class="code">Netsendmail.tutorial</code> at the end of this document.<br>
-<pre><span id="VALwrap_attachment"><span class="keyword">val</span> wrap_attachment</span> : <code class="type">?in_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?out_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?content_id:string -><br>       ?content_description:string -><br>       ?content_location:string -><br>       ?content_disposition:string * (string * <a href="Mimestring.html#TYPEs_param">Mimestring.s_param</a>) list -><br>       content_type:string * (string * <a href="Mimestring.html#TYPEs_param">Mimestring.s_param</a>) list -><br>       <a href="Netmime.mime_body-c.html">Netmime.mime_body</a> -> <a href="Netmime.html#TYPEcomplex_mime_message">Netmime.complex_mime_message</a></code></pre><div class="info">
+
+<pre><span id="VALwrap_attachment"><span class="keyword">val</span> wrap_attachment</span> : <code class="type">?in_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?out_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?content_id:string -><br>       ?content_description:string -><br>       ?content_location:string -><br>       ?content_disposition:string * (string * <a href="Mimestring.html#TYPEs_param">Mimestring.s_param</a>) list -><br>       content_type:string * (string * <a href="Mimestring.html#TYPEs_param">Mimestring.s_param</a>) list -><br>       <a href="Netmime.mime_body-c.html">Netmime.mime_body</a> -> <a href="Netmime.html#TYPEcomplex_mime_message">Netmime.complex_mime_message</a></code></pre><div class="info ">
 Generates a header for the <code class="code">mime_body</code>. The returned value
  is intended to be used as input for the <code class="code">attachments</code> argument
  of the <code class="code">compose</code> function:
@@ -405,7 +408,8 @@ Generates a header for the <code class="code">mime_body</code>. The returned val
    type and list of parameters. Example:
    <code class="code"> ("text/plain", ["charset", Mimestring.mk_param "ISO-8859-1" ]) </code>
    (see <a href="Mimestring.html#VALmk_param"><code class="code">Mimestring.mk_param</code></a>)</div>
-<pre><span id="VALwrap_mail"><span class="keyword">val</span> wrap_mail</span> : <code class="type">?in_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?out_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?from_addr:string * string -><br>       ?cc_addrs:(string * string) list -><br>       ?bcc_addrs:(string * string) list -><br>       to_addrs:(string * string) list -><br>       subject:string -><br>       <a href="Netmime.html#TYPEcomplex_mime_message">Netmime.complex_mime_message</a> -> <a href="Netmime.html#TYPEcomplex_mime_message">Netmime.complex_mime_message</a></code></pre><div class="info">
+
+<pre><span id="VALwrap_mail"><span class="keyword">val</span> wrap_mail</span> : <code class="type">?in_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?out_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?from_addr:string * string -><br>       ?cc_addrs:(string * string) list -><br>       ?bcc_addrs:(string * string) list -><br>       to_addrs:(string * string) list -><br>       subject:string -><br>       <a href="Netmime.html#TYPEcomplex_mime_message">Netmime.complex_mime_message</a> -> <a href="Netmime.html#TYPEcomplex_mime_message">Netmime.complex_mime_message</a></code></pre><div class="info ">
 Sets the mail-related header fields in the input message, and
  returns a message ready for delivery. Transfer- and delivery-related 
  header fields are removed from the message first, and the new fields
@@ -430,7 +434,8 @@ Sets the mail-related header fields in the input message, and
  Note that mails generated by <code class="code">wrap_mail</code> always appear as new mails,
  not as forwarded or replied mails. In order to do the latter a different
  way of processing the message is needed.<br>
-<pre><span id="VALwrap_parts"><span class="keyword">val</span> wrap_parts</span> : <code class="type">?in_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?out_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?content_type:string * (string * <a href="Mimestring.html#TYPEs_param">Mimestring.s_param</a>) list -><br>       ?content_id:string -><br>       ?content_description:string -><br>       ?content_location:string -><br>       ?content_disposition:string * (string * <a href="Mimestring.html#TYPEs_param">Mimestring.s_param</a>) list -><br>       <a href="Netmime.html#TYPEcomplex_mime_message">Netmime.complex_mime_message</a> list -> <a href="Netmime.html#TYPEcomplex_mime_message">Netmime.complex_mime_message</a></code></pre><div class="info">
+
+<pre><span id="VALwrap_parts"><span class="keyword">val</span> wrap_parts</span> : <code class="type">?in_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?out_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?content_type:string * (string * <a href="Mimestring.html#TYPEs_param">Mimestring.s_param</a>) list -><br>       ?content_id:string -><br>       ?content_description:string -><br>       ?content_location:string -><br>       ?content_disposition:string * (string * <a href="Mimestring.html#TYPEs_param">Mimestring.s_param</a>) list -><br>       <a href="Netmime.html#TYPEcomplex_mime_message">Netmime.complex_mime_message</a> list -> <a href="Netmime.html#TYPEcomplex_mime_message">Netmime.complex_mime_message</a></code></pre><div class="info ">
 Generates an intermediate container for multipart attachments.
  Use this if you want to bundle a set of attachments as a single
  attachment.
@@ -451,7 +456,8 @@ Generates an intermediate container for multipart attachments.
 <div class="param_info"><code class="code">content_disposition</code> : The <code class="code">Content-Disposition</code> header</div>
 <br>
 <b>Low-level</b><br>
-<pre><span id="VALcreate_address_list_tokens"><span class="keyword">val</span> create_address_list_tokens</span> : <code class="type">?in_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?out_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       (string * string) list -> <a href="Mimestring.html#TYPEs_token">Mimestring.s_token</a> list</code></pre><div class="info">
+
+<pre><span id="VALcreate_address_list_tokens"><span class="keyword">val</span> create_address_list_tokens</span> : <code class="type">?in_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?out_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       (string * string) list -> <a href="Mimestring.html#TYPEs_token">Mimestring.s_token</a> list</code></pre><div class="info ">
 Returns the list of <code class="code">s_token</code>s representing email addresses as
  structured value. The addresses are passed as list of pairs
  <code class="code">(human_readable, formal)</code> as in the <code class="code">compose</code> function above.
@@ -474,7 +480,8 @@ Returns the list of <code class="code">s_token</code>s representing email addres
 <div class="param_info"><code class="code">out_charset</code> : The character encoding used in the generated
    encoded word. This encoding must be ASCII-compatible. Defaults to
    <code class="code">`Enc_iso88591</code>.</div>
-<pre><span id="VALcreate_text_tokens"><span class="keyword">val</span> create_text_tokens</span> : <code class="type">?in_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?out_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -> string -> <a href="Mimestring.html#TYPEs_token">Mimestring.s_token</a> list</code></pre><div class="info">
+
+<pre><span id="VALcreate_text_tokens"><span class="keyword">val</span> create_text_tokens</span> : <code class="type">?in_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?out_charset:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -> string -> <a href="Mimestring.html#TYPEs_token">Mimestring.s_token</a> list</code></pre><div class="info ">
 Returns the list of <code class="code">s_token</code>s representing an informal text
  as structured value. The text is passed as simple string.
  The returned structured field value can be formatted and filled
@@ -495,7 +502,8 @@ Returns the list of <code class="code">s_token</code>s representing an informal 
 <div class="param_info"><code class="code">out_charset</code> : The character encoding used in the generated
    encoded words. This encoding must be ASCII-compatible. Defaults to
    <code class="code">`Enc_iso88591</code>.</div>
-<pre><span id="VALformat_field_value"><span class="keyword">val</span> format_field_value</span> : <code class="type">string -> <a href="Mimestring.html#TYPEs_token">Mimestring.s_token</a> list -> string</code></pre><div class="info">
+
+<pre><span id="VALformat_field_value"><span class="keyword">val</span> format_field_value</span> : <code class="type">string -> <a href="Mimestring.html#TYPEs_token">Mimestring.s_token</a> list -> string</code></pre><div class="info ">
 To put <code class="code">sval</code>, an <code class="code">s_token list</code>, into the header field <code class="code">name</code>,
  call
 <p>
@@ -507,7 +515,8 @@ To put <code class="code">sval</code>, an <code class="code">s_token list</code>
 </div>
 <br>
 <h1 id="sending">Sending Messages</h1><br>
-<pre><span id="VALsendmail"><span class="keyword">val</span> sendmail</span> : <code class="type">?mailer:string -> ?crlf:bool -> <a href="Netmime.html#TYPEcomplex_mime_message">Netmime.complex_mime_message</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALsendmail"><span class="keyword">val</span> sendmail</span> : <code class="type">?mailer:string -> ?crlf:bool -> <a href="Netmime.html#TYPEcomplex_mime_message">Netmime.complex_mime_message</a> -> unit</code></pre><div class="info ">
 Sends the passed message. The mailer program must be sendmail-compatible
  (this can be assumed on all Unix systems, even if a non-sendmail
  mailer is installed).

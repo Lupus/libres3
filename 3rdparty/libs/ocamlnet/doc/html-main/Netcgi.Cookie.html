@@ -16,6 +16,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -29,12 +32,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -45,7 +46,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -107,6 +107,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -142,7 +143,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -167,6 +167,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -184,8 +186,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -203,7 +203,8 @@
 &nbsp;<a class="up" href="Netcgi.html" title="Netcgi">Up</a>
 &nbsp;</div>
 <h1>Module <a href="type_Netcgi.Cookie.html">Netcgi.Cookie</a></h1>
-<pre><span class="keyword">module</span> Cookie: <code class="code">sig</code> <a href="Netcgi.Cookie.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Cookie: <code class="code">sig</code> <a href="Netcgi.Cookie.html">..</a> <code class="code">end</code></pre><div class="info module top">
 Functions to manipulate cookies.
 <p>
 
@@ -225,12 +226,14 @@ Functions to manipulate cookies.
     N.B. This module appears also as <a href="Nethttp.Cookie.html"><code class="code">Nethttp.Cookie</code></a>.<br>
 </div>
 <hr width="100%">
+
 <pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> = <code class="type"><a href="Nethttp.Cookie.html#TYPEt">Nethttp.Cookie.t</a></code> </pre>
-<div class="info">
+<div class="info ">
 Mutable cookie type.<br>
 </div>
 
-<pre><span id="VALmake"><span class="keyword">val</span> make</span> : <code class="type">?max_age:int -><br>       ?domain:string -><br>       ?path:string -><br>       ?secure:bool -><br>       ?comment:string -><br>       ?comment_url:string -> ?ports:int list -> string -> string -> <a href="Netcgi.Cookie.html#TYPEt">t</a></code></pre><div class="info">
+
+<pre><span id="VALmake"><span class="keyword">val</span> make</span> : <code class="type">?max_age:int -><br>       ?domain:string -><br>       ?path:string -><br>       ?secure:bool -><br>       ?comment:string -><br>       ?comment_url:string -> ?ports:int list -> string -> string -> <a href="Netcgi.Cookie.html#TYPEt">t</a></code></pre><div class="info ">
 <code class="code">make ?expires ?domain ?path ?secure name value</code> creates a new
         cookie with name <code class="code">name</code> holding <code class="code">value</code>.<br>
 </div>
@@ -246,45 +249,56 @@ Mutable cookie type.<br>
 	                   Default: <code class="code">""</code>.</div>
 <div class="param_info"><code class="code">ports</code> : see <a href="Netcgi.Cookie.html#VALset_ports"><code class="code">Netcgi.Cookie.set_ports</code></a>.
 	             Default: same port the cookie was sent.</div>
-<pre><span id="VALname"><span class="keyword">val</span> name</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALname"><span class="keyword">val</span> name</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string</code></pre><div class="info ">
 The name of the cookie.<br>
 </div>
-<pre><span id="VALvalue"><span class="keyword">val</span> value</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALvalue"><span class="keyword">val</span> value</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string</code></pre><div class="info ">
 The value of the cookie.<br>
 </div>
-<pre><span id="VALdomain"><span class="keyword">val</span> domain</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string option</code></pre><div class="info">
+
+<pre><span id="VALdomain"><span class="keyword">val</span> domain</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string option</code></pre><div class="info ">
 The domain of the cookie, if set.<br>
 </div>
-<pre><span id="VALpath"><span class="keyword">val</span> path</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string option</code></pre><div class="info">
+
+<pre><span id="VALpath"><span class="keyword">val</span> path</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string option</code></pre><div class="info ">
 The path of the cookie, if set.<br>
 </div>
-<pre><span id="VALports"><span class="keyword">val</span> ports</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> int list option</code></pre><div class="info">
+
+<pre><span id="VALports"><span class="keyword">val</span> ports</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> int list option</code></pre><div class="info ">
 <code class="code">port c</code> the ports to which the cookie may be returned or <code class="code">[]</code> if
 	not set.<br>
 </div>
-<pre><span id="VALmax_age"><span class="keyword">val</span> max_age</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> int option</code></pre><div class="info">
+
+<pre><span id="VALmax_age"><span class="keyword">val</span> max_age</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> int option</code></pre><div class="info ">
 The expiration time of the cookie, in seconds.  <code class="code">None</code> means
         that the cookie will be discarded when the browser exits.
         This information is not returned by the browser.<br>
 </div>
-<pre><span id="VALsecure"><span class="keyword">val</span> secure</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> bool</code></pre><div class="info">
+
+<pre><span id="VALsecure"><span class="keyword">val</span> secure</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> bool</code></pre><div class="info ">
 Tells whether the cookie is secure.
         This information is not returned by the browser.<br>
 </div>
-<pre><span id="VALcomment"><span class="keyword">val</span> comment</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALcomment"><span class="keyword">val</span> comment</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string</code></pre><div class="info ">
 Returns the comment associated to the cookie or <code class="code">""</code> if it
         does not exists.  This information is not returned by the
         browser.<br>
 </div>
-<pre><span id="VALcomment_url"><span class="keyword">val</span> comment_url</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALcomment_url"><span class="keyword">val</span> comment_url</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string</code></pre><div class="info ">
 Returns the comment URL associated to the cookie or <code class="code">""</code> if it
         does not exists.  This information is not returned by the
         browser.<br>
 </div>
-<pre><span id="VALset_value"><span class="keyword">val</span> set_value</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_value"><span class="keyword">val</span> set_value</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string -> unit</code></pre><div class="info ">
 <code class="code">set_value c v</code> sets the value of the cookie <code class="code">c</code> to <code class="code">v</code>.<br>
 </div>
-<pre><span id="VALset_max_age"><span class="keyword">val</span> set_max_age</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> int option -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_max_age"><span class="keyword">val</span> set_max_age</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> int option -> unit</code></pre><div class="info ">
 <code class="code">set_max_age c (Some t)</code> sets the lifetime of the cookie <code class="code">c</code>
         to <code class="code">t</code> seconds.  If <code class="code">t &lt;= 0</code>, it means that the cookie should
         be discarded immediately.  <code class="code">set_expires c None</code> tells the
@@ -292,7 +306,8 @@ Returns the comment URL associated to the cookie or <code class="code">""</code>
         the fact that the name is borrowed from the version 1 of the
         specification, it works transparently with version 0.)<br>
 </div>
-<pre><span id="VALset_domain"><span class="keyword">val</span> set_domain</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string option -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_domain"><span class="keyword">val</span> set_domain</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string option -> unit</code></pre><div class="info ">
 Cookies are bound to a certain domain, i.e. the browser sends
 	them only when web pages of the domain are requested:<ul>
 <li><code class="code">None</code>: the domain is the hostname of the server.</li>
@@ -300,7 +315,8 @@ Cookies are bound to a certain domain, i.e. the browser sends
 </ul>
 <br>
 </div>
-<pre><span id="VALset_path"><span class="keyword">val</span> set_path</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string option -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_path"><span class="keyword">val</span> set_path</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string option -> unit</code></pre><div class="info ">
 Cookies are also bound to certain path prefixes, i.e. the
         browser sends them only when web pages at the path or below are
         requested.<ul>
@@ -310,12 +326,14 @@ Cookies are also bound to certain path prefixes, i.e. the
 </ul>
 <br>
 </div>
-<pre><span id="VALset_secure"><span class="keyword">val</span> set_secure</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> bool -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_secure"><span class="keyword">val</span> set_secure</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> bool -> unit</code></pre><div class="info ">
 Cookies are also bound to the type of the web server:
         <code class="code">set_secure false</code> means servers without SSL, <code class="code">set_secure
         true</code> means servers with activated SSL ("https").<br>
 </div>
-<pre><span id="VALset_comment"><span class="keyword">val</span> set_comment</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_comment"><span class="keyword">val</span> set_comment</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string -> unit</code></pre><div class="info ">
 <code class="code">set_comment c s</code> sets the comment of the cookie <code class="code">c</code> to <code class="code">s</code>
 	which must be UTF-8 encoded (RFC 2279).  Because cookies can
 	store personal information, the comment should describe how
@@ -325,7 +343,8 @@ Cookies are also bound to the type of the web server:
 
 	Cookie version 1 (RFC 2109).<br>
 </div>
-<pre><span id="VALset_comment_url"><span class="keyword">val</span> set_comment_url</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_comment_url"><span class="keyword">val</span> set_comment_url</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> string -> unit</code></pre><div class="info ">
 <code class="code">set_comment_url c url</code> same as <a href="Netcgi.Cookie.html#VALset_comment"><code class="code">Netcgi.Cookie.set_comment</code></a>
 	except that the cookie comment is available on the page
 	pointed by <code class="code">url</code>.  To cancel, set it to <code class="code">""</code>.
@@ -333,7 +352,8 @@ Cookies are also bound to the type of the web server:
 
 	Cookie version 1 (RFC 2965).<br>
 </div>
-<pre><span id="VALset_ports"><span class="keyword">val</span> set_ports</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> int list option -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_ports"><span class="keyword">val</span> set_ports</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> int list option -> unit</code></pre><div class="info ">
 <code class="code">set ports c (Some p)</code> says that the cookie <code class="code">c</code> must only be
 	returned if the server request comes from one of the listed
 	ports.  If <code class="code">p = []</code>, the cookie will only be sent to the
@@ -343,10 +363,12 @@ Cookies are also bound to the type of the web server:
 
 	Cookie version 1 (RFC 2965).<br>
 </div>
-<pre><span id="VALof_netscape_cookie"><span class="keyword">val</span> of_netscape_cookie</span> : <code class="type"><a href="Nethttp.html#TYPEnetscape_cookie">Nethttp.netscape_cookie</a> -> <a href="Netcgi.Cookie.html#TYPEt">t</a></code></pre><div class="info">
+
+<pre><span id="VALof_netscape_cookie"><span class="keyword">val</span> of_netscape_cookie</span> : <code class="type"><a href="Nethttp.html#TYPEnetscape_cookie">Nethttp.netscape_cookie</a> -> <a href="Netcgi.Cookie.html#TYPEt">t</a></code></pre><div class="info ">
 Convert a Netscape cookie to the new representation<br>
 </div>
-<pre><span id="VALto_netscape_cookie"><span class="keyword">val</span> to_netscape_cookie</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> <a href="Nethttp.html#TYPEnetscape_cookie">Nethttp.netscape_cookie</a></code></pre><div class="info">
+
+<pre><span id="VALto_netscape_cookie"><span class="keyword">val</span> to_netscape_cookie</span> : <code class="type"><a href="Netcgi.Cookie.html#TYPEt">t</a> -> <a href="Nethttp.html#TYPEnetscape_cookie">Nethttp.netscape_cookie</a></code></pre><div class="info ">
 Convert to Netscape cookie (with information loss)<br>
 </div>
 </body></html>

@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -209,7 +209,8 @@
 &nbsp;<a class="post" href="Netglob.html" title="Netglob">Next</a>
 </div>
 <h1>Module <a href="type_Netfs.html">Netfs</a></h1>
-<pre><span class="keyword">module</span> Netfs: <code class="code">sig</code> <a href="Netfs.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Netfs: <code class="code">sig</code> <a href="Netfs.html">..</a> <code class="code">end</code></pre><div class="info module top">
 Class type <code class="code">stream_fs</code> for filesystems with stream access to files<br>
 </div>
 <hr width="100%">
@@ -301,36 +302,51 @@ The class type <a href="Netfs.stream_fs-c.html"><code class="code">Netfs.stream_
     has been extended.<br>
 <br>
 <h2 id="2_Theclasstypestreamfs">The class type <code class="code">stream_fs</code></h2><br>
+
 <pre><span id="TYPEread_flag"><span class="keyword">type</span> <code class="type"></code>read_flag</span> = <code class="type">[ `Binary | `Dummy | `Skip of int64 | `Streaming ]</code> </pre>
+
 
 <pre><span id="TYPEread_file_flag"><span class="keyword">type</span> <code class="type"></code>read_file_flag</span> = <code class="type">[ `Binary | `Dummy ]</code> </pre>
 
+
 <pre><span id="TYPEwrite_flag"><span class="keyword">type</span> <code class="type"></code>write_flag</span> = <code class="type">[ `Binary | `Create | `Dummy | `Exclusive | `Streaming | `Truncate ]</code> </pre>
+
 
 <pre><span id="TYPEwrite_file_flag"><span class="keyword">type</span> <code class="type"></code>write_file_flag</span> = <code class="type">[ `Binary | `Create | `Dummy | `Exclusive | `Link | `Truncate ]</code> </pre>
 
+
 <pre><span id="TYPEwrite_common"><span class="keyword">type</span> <code class="type"></code>write_common</span> = <code class="type">[ `Binary | `Create | `Dummy | `Exclusive | `Truncate ]</code> </pre>
-<div class="info">
+<div class="info ">
 The intersection of <code class="code">write_flag</code> and <code class="code">write_file_flag</code><br>
 </div>
 
+
 <pre><span id="TYPEsize_flag"><span class="keyword">type</span> <code class="type"></code>size_flag</span> = <code class="type">[ `Dummy ]</code> </pre>
+
 
 <pre><span id="TYPEtest_flag"><span class="keyword">type</span> <code class="type"></code>test_flag</span> = <code class="type">[ `Dummy | `Link ]</code> </pre>
 
+
 <pre><span id="TYPEremove_flag"><span class="keyword">type</span> <code class="type"></code>remove_flag</span> = <code class="type">[ `Dummy | `Recursive ]</code> </pre>
+
 
 <pre><span id="TYPErename_flag"><span class="keyword">type</span> <code class="type"></code>rename_flag</span> = <code class="type">[ `Dummy ]</code> </pre>
 
+
 <pre><span id="TYPEsymlink_flag"><span class="keyword">type</span> <code class="type"></code>symlink_flag</span> = <code class="type">[ `Dummy ]</code> </pre>
+
 
 <pre><span id="TYPEreaddir_flag"><span class="keyword">type</span> <code class="type"></code>readdir_flag</span> = <code class="type">[ `Dummy ]</code> </pre>
 
+
 <pre><span id="TYPEreadlink_flag"><span class="keyword">type</span> <code class="type"></code>readlink_flag</span> = <code class="type">[ `Dummy ]</code> </pre>
+
 
 <pre><span id="TYPEmkdir_flag"><span class="keyword">type</span> <code class="type"></code>mkdir_flag</span> = <code class="type">[ `Dummy | `Nonexcl | `Path ]</code> </pre>
 
+
 <pre><span id="TYPErmdir_flag"><span class="keyword">type</span> <code class="type"></code>rmdir_flag</span> = <code class="type">[ `Dummy ]</code> </pre>
+
 
 <pre><span id="TYPEcopy_flag"><span class="keyword">type</span> <code class="type"></code>copy_flag</span> = <code class="type">[ `Dummy ]</code> </pre>
 
@@ -342,8 +358,9 @@ Note <code class="code">`Dummy</code>: this flag is always ignored. There are tw
       (e.g. in: <code class="code">if &lt;condition&gt; then `Create else `Dummy</code>)</li>
 </ul>
 <br>
+
 <pre><span id="TYPEtest_type"><span class="keyword">type</span> <code class="type"></code>test_type</span> = <code class="type">[ `D | `E | `F | `H | `N | `R | `S | `W | `X ]</code> </pre>
-<div class="info">
+<div class="info ">
 Tests:<ul>
 <li><code class="code">`N</code>: the file name exists</li>
 <li><code class="code">`E</code>: the file exists</li>
@@ -359,10 +376,14 @@ Tests:<ul>
 <br>
 </div>
 
-<pre><span id="TYPElocal_file"><span class="keyword">class type</span> <a href="Netfs.local_file-c.html">local_file</a></span> = <code class="code">object</code> <a href="Netfs.local_file-c.html">..</a> <code class="code">end</code></pre><pre><span id="TYPEstream_fs"><span class="keyword">class type</span> <a href="Netfs.stream_fs-c.html">stream_fs</a></span> = <code class="code">object</code> <a href="Netfs.stream_fs-c.html">..</a> <code class="code">end</code></pre><pre><span name="TYPEempty_fs"><span class="keyword">class</span> <a href="Netfs.empty_fs-c.html">empty_fs</a></span> : <code class="type">string -> </code><code class="type"><a href="Netfs.stream_fs-c.html">stream_fs</a></code></pre><div class="info">
+
+<pre><span id="TYPElocal_file"><span class="keyword">class type</span> <a href="Netfs.local_file-c.html">local_file</a></span> = <code class="code">object</code> <a href="Netfs.local_file-c.html">..</a> <code class="code">end</code></pre>
+<pre><span id="TYPEstream_fs"><span class="keyword">class type</span> <a href="Netfs.stream_fs-c.html">stream_fs</a></span> = <code class="code">object</code> <a href="Netfs.stream_fs-c.html">..</a> <code class="code">end</code></pre>
+<pre><span name="TYPEempty_fs"><span class="keyword">class</span> <a href="Netfs.empty_fs-c.html">empty_fs</a></span> : <code class="type">string -> </code><code class="type"><a href="Netfs.stream_fs-c.html">stream_fs</a></code></pre><div class="info">
 This is a class where all methods fail with <code class="code">ENOSYS</code>.
 </div>
-<pre><span id="VALlocal_fs"><span class="keyword">val</span> local_fs</span> : <code class="type">?encoding:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?root:string -> ?enable_relative_paths:bool -> unit -> <a href="Netfs.stream_fs-c.html">stream_fs</a></code></pre><div class="info">
+
+<pre><span id="VALlocal_fs"><span class="keyword">val</span> local_fs</span> : <code class="type">?encoding:<a href="Netconversion.html#TYPEencoding">Netconversion.encoding</a> -><br>       ?root:string -> ?enable_relative_paths:bool -> unit -> <a href="Netfs.stream_fs-c.html">stream_fs</a></code></pre><div class="info ">
 <code class="code">local_fs()</code>: Returns a filesystem object for the local filesystem.
 <p>
 <ul>
@@ -446,7 +467,8 @@ List:
 <br>
 <br>
 <h2 id="2_Algorithms">Algorithms</h2><br>
-<pre><span id="VALcopy"><span class="keyword">val</span> copy</span> : <code class="type">?replace:bool -><br>       ?streaming:bool -><br>       #<a href="Netfs.stream_fs-c.html">stream_fs</a> -> string -> #<a href="Netfs.stream_fs-c.html">stream_fs</a> -> string -> unit</code></pre><div class="info">
+
+<pre><span id="VALcopy"><span class="keyword">val</span> copy</span> : <code class="type">?replace:bool -><br>       ?streaming:bool -><br>       #<a href="Netfs.stream_fs-c.html">stream_fs</a> -> string -> #<a href="Netfs.stream_fs-c.html">stream_fs</a> -> string -> unit</code></pre><div class="info ">
 <code class="code">copy orig_fs orig_name dest_fs dest_name</code>: Copies the file <code class="code">orig_name</code>
       from <code class="code">orig_fs</code> to the file <code class="code">dest_name</code> in <code class="code">dest_fs</code>. By default,
       the destination file is truncated and overwritten if it already
@@ -474,7 +496,8 @@ List:
 </ul>
 <br>
 </div>
-<pre><span id="VALcopy_into"><span class="keyword">val</span> copy_into</span> : <code class="type">?replace:bool -><br>       ?subst:(int -> string) -><br>       ?streaming:bool -><br>       #<a href="Netfs.stream_fs-c.html">stream_fs</a> -> string -> #<a href="Netfs.stream_fs-c.html">stream_fs</a> -> string -> unit</code></pre><div class="info">
+
+<pre><span id="VALcopy_into"><span class="keyword">val</span> copy_into</span> : <code class="type">?replace:bool -><br>       ?subst:(int -> string) -><br>       ?streaming:bool -><br>       #<a href="Netfs.stream_fs-c.html">stream_fs</a> -> string -> #<a href="Netfs.stream_fs-c.html">stream_fs</a> -> string -> unit</code></pre><div class="info ">
 <code class="code">copy_into orig_fs orig_name dest_fs dest_name</code>: 
       Like <code class="code">copy</code>, but this version also supports recursive copies. The
       <code class="code">dest_name</code> must be an existing directory, and the file or tree at
@@ -493,9 +516,11 @@ List:
 </ul>
 <br>
 </div>
+
 <pre><span id="TYPEfile_kind"><span class="keyword">type</span> <code class="type"></code>file_kind</span> = <code class="type">[ `Directory | `None | `Other | `Regular | `Symlink ]</code> </pre>
 
-<pre><span id="VALiter"><span class="keyword">val</span> iter</span> : <code class="type">pre:(string -> <a href="Netfs.html#TYPEfile_kind">file_kind</a> -> <a href="Netfs.html#TYPEfile_kind">file_kind</a> -> unit) -><br>       ?post:(string -> unit) -> #<a href="Netfs.stream_fs-c.html">stream_fs</a> -> string -> unit</code></pre><div class="info">
+
+<pre><span id="VALiter"><span class="keyword">val</span> iter</span> : <code class="type">pre:(string -> <a href="Netfs.html#TYPEfile_kind">file_kind</a> -> <a href="Netfs.html#TYPEfile_kind">file_kind</a> -> unit) -><br>       ?post:(string -> unit) -> #<a href="Netfs.stream_fs-c.html">stream_fs</a> -> string -> unit</code></pre><div class="info ">
 <code class="code">iter pre fs start</code>: Iterates over the file hierarchy at <code class="code">start</code>.
       The function <code class="code">pre</code> is called for every filename. The filenames
       passed to <code class="code">pre</code> are relative to <code class="code">start</code>. The <code class="code">start</code> must
@@ -523,7 +548,8 @@ List:
       Note: symlinks to non-existing files are reported as
       <code class="code">pre name `None `Symlink</code>.<br>
 </div>
-<pre><span id="VALconvert_path"><span class="keyword">val</span> convert_path</span> : <code class="type">?subst:(int -> string) -><br>       #<a href="Netfs.stream_fs-c.html">stream_fs</a> -> #<a href="Netfs.stream_fs-c.html">stream_fs</a> -> string -> string</code></pre><div class="info">
+
+<pre><span id="VALconvert_path"><span class="keyword">val</span> convert_path</span> : <code class="type">?subst:(int -> string) -><br>       #<a href="Netfs.stream_fs-c.html">stream_fs</a> -> #<a href="Netfs.stream_fs-c.html">stream_fs</a> -> string -> string</code></pre><div class="info ">
 <code class="code">convert_path oldfs newfs oldpath</code>: The encoding of <code class="code">oldpath</code>
       (which is assumed to reside in <code class="code">oldfs</code>) is converted to the encoding
       of <code class="code">newfs</code> and returned.

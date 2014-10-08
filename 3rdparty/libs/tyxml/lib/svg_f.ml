@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (** Type instantiations for SVG *)
 
@@ -59,7 +59,7 @@ module Unit = struct
     match unit with
     | Some unit -> f unit
     | None -> ""
-    end
+  end
 
   let angle_names = function `Deg -> "deg" | `Grad -> "grad" | `Rad -> "rad"
   let string_of_angle a = to_string angle_names a
@@ -98,16 +98,16 @@ let string_of_percentage = Printf.sprintf "%d%%"
 let string_of_transform =
   function
   | Matrix ((a, b, c, d, e, f)) ->
-      Printf.sprintf "matrix(%g %g %g %g %g %g)" a b c d e f
+    Printf.sprintf "matrix(%g %g %g %g %g %g)" a b c d e f
   | Translate x ->
-      Printf.sprintf "translate(%s)" (string_of_number_optional_number x)
+    Printf.sprintf "translate(%s)" (string_of_number_optional_number x)
   | Scale x ->
-      Printf.sprintf "scale(%s)" (string_of_number_optional_number x)
+    Printf.sprintf "scale(%s)" (string_of_number_optional_number x)
   | Rotate ((angle, x)) ->
-      Printf.sprintf "rotate(%s %s)" (string_of_angle angle)
-        (match x with
-         | Some ((x, y)) -> Printf.sprintf "%g %g" x y
-         | None -> "")
+    Printf.sprintf "rotate(%s %s)" (string_of_angle angle)
+      (match x with
+       | Some ((x, y)) -> Printf.sprintf "%g %g" x y
+       | None -> "")
   | SkewX angle -> Printf.sprintf "skewX(%s)" (string_of_angle angle)
   | SkewY angle -> Printf.sprintf "skewY(%s)" (string_of_angle angle)
 let string_of_transforms x = String.concat " " (List.map string_of_transform x)
@@ -132,12 +132,13 @@ let string_of_paint_whitout_icc = function
 let string_of_paint = function
   | `Icc (iri, None) -> string_of_iri iri
   | `Icc (iri, Some b) ->
-      (string_of_iri iri) ^" "^ (string_of_paint_whitout_icc b)
+    (string_of_iri iri) ^" "^ (string_of_paint_whitout_icc b)
   | #paint_whitout_icc as c -> string_of_paint_whitout_icc c
 
 module MakeWrapped
     (W : Xml_wrap.T)
-    (Xml : Xml_sigs.Wrapped with type 'a wrap = 'a W.t) =
+    (Xml : Xml_sigs.Wrapped with type 'a wrap = 'a W.t
+                             and type 'a list_wrap = 'a W.tlist) =
 struct
 
   module Xml = Xml
@@ -150,12 +151,10 @@ struct
     let standard = "http://www.w3.org/TR/svg11/"
     let namespace = "http://www.w3.org/2000/svg"
     let doctype =
-      Xml_print.compose_doctype	"svg"
-	["-//W3C//DTD SVG 1.1//EN";
-	 "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"]
+      Xml_print.compose_doctype"svg"
+        ["-//W3C//DTD SVG 1.1//EN";
+         "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"]
   end
-
-  open Unit
 
   type uri = Xml.uri
   let string_of_uri = Xml.string_of_uri
@@ -169,6 +168,7 @@ struct
   type +'a elt = Xml.elt
 
   type 'a wrap = 'a W.t
+  type 'a list_wrap = 'a W.tlist
 
   type +'a elts = Xml.elt list
 
@@ -177,10 +177,7 @@ struct
   type ('a, 'b, 'c) unary = ?a: (('a attrib) list) -> 'b elt wrap -> 'c elt
 
   type ('a, 'b, 'c) star =
-      ?a: (('a attrib) list) -> ('b elt) list wrap -> 'c elt
-
-  type ('a, 'b, 'c) plus =
-      ?a: (('a attrib) list) -> 'b elt wrap -> ('b elt) list wrap -> 'c elt
+    ?a: (('a attrib) list) -> ('b elt) list_wrap -> 'c elt
 
   let tot x = x
 
@@ -196,16 +193,12 @@ struct
   let to_attrib x = x
 
   let nullary tag ?a () =
-    Xml.node ?a tag (W.return [])
+    Xml.node ?a tag (W.nil ())
 
   let unary tag ?a elt =
-    Xml.node ?a tag (W.fmap (fun x -> [ x ]) elt)
+    Xml.node ?a tag (W.singleton elt)
 
   let star tag ?a elts = Xml.node ?a tag elts
-
-  let plus tag ?a elt elts =
-    let l = W.fmap2 (fun x y -> x :: y) elt elts in
-    Xml.node ?a tag l
 
   type altglyphdef_content =
     [ `Ref of (glyphref elt) list
@@ -380,8 +373,6 @@ struct
 
   let a_local = string_attrib "local"
 
-  let a_string = string_attrib "name"
-
   let a_renderingindent x =
     let f = function
       | `Auto -> "auto" | `Perceptual -> "perceptual"
@@ -521,8 +512,6 @@ struct
     user_attrib f "type" x
 
   let a_tablevalues = user_attrib string_of_numbers "tableValues"
-
-  let a_slope = user_attrib string_of_number "slope"
 
   let a_intercept = user_attrib string_of_number "intercept"
 
@@ -835,43 +824,32 @@ struct
 
   let a_name = string_attrib "name"
 
+
+  (** Javascript events *)
+
   let a_onabort = Xml.event_handler_attrib "onabort"
-
   let a_onactivate = Xml.event_handler_attrib "onactivate"
-
   let a_onbegin = Xml.event_handler_attrib "onbegin"
-
-  let a_onclick = Xml.event_handler_attrib "onclick"
-
   let a_onend = Xml.event_handler_attrib "onend"
-
   let a_onerror = Xml.event_handler_attrib "onerror"
-
   let a_onfocusin = Xml.event_handler_attrib "onfocusin"
-
   let a_onfocusout = Xml.event_handler_attrib "onfocusout"
-
   let a_onload = Xml.event_handler_attrib "onload"
-
-  let a_onmousedown = Xml.event_handler_attrib "onmousdown"
-
-  let a_onmouseup = Xml.event_handler_attrib "onmouseup"
-
-  let a_onmouseover = Xml.event_handler_attrib "onmouseover"
-
-  let a_onmouseout = Xml.event_handler_attrib "onmouseout"
-
-  let a_onmousemove = Xml.event_handler_attrib "onmousemove"
-
   let a_onrepeat = Xml.event_handler_attrib "onrepeat"
-
   let a_onresize = Xml.event_handler_attrib "onresize"
-
   let a_onscroll = Xml.event_handler_attrib "onscroll"
-
   let a_onunload = Xml.event_handler_attrib "onunload"
-
   let a_onzoom = Xml.event_handler_attrib "onzoom"
+
+  (** Javascript mouse events *)
+
+  let a_onclick = Xml.mouse_event_handler_attrib "onclick"
+  let a_onmousedown = Xml.mouse_event_handler_attrib "onmousdown"
+  let a_onmouseup = Xml.mouse_event_handler_attrib "onmouseup"
+  let a_onmouseover = Xml.mouse_event_handler_attrib "onmouseover"
+  let a_onmouseout = Xml.mouse_event_handler_attrib "onmouseout"
+  let a_onmousemove = Xml.mouse_event_handler_attrib "onmousemove"
+
 
   let a_stopcolor = user_attrib string_of_color "stop-color"
 
@@ -957,7 +935,7 @@ struct
 
   let altglyphdef = unary "altGlyphDef"
 
-  let altglyphitem = plus "altGlyphItem"
+  let altglyphitem = star "altGlyphItem"
 
   let glyphref = nullary "glyphRef"
 
@@ -1087,8 +1065,6 @@ struct
     let space_sep_attrib = Xml.space_sep_attrib
 
     let comma_sep_attrib = Xml.comma_sep_attrib
-
-    let event_handler_attrib = Xml.event_handler_attrib
 
   end
 

@@ -1,4 +1,4 @@
-/* $Id: netsys_c_event.c 1738 2012-02-21 17:59:02Z gerd $ */
+/* $Id: netsys_c_event.c 2008 2014-08-31 12:49:27Z gerd $ */
 
 #include "netsys_c.h"
 
@@ -72,8 +72,10 @@ struct not_event *netsys_not_event_of_value(value nev)
 
 void netsys_not_event_signal(struct not_event *ne)
 {
+#ifndef HAVE_GCC_COMPARE_AND_SWAP
 #ifdef HAVE_POSIX_SIGNALS
     sigset_t set, oldset;
+#endif
 #endif
 
 #ifdef HAVE_POLL
@@ -87,8 +89,11 @@ void netsys_not_event_signal(struct not_event *ne)
 	*/
 	if (__sync_bool_compare_and_swap(&(ne->state), 0, 1)) {
 	    if (ne->fd2 >= 0) {
-		int code;
-		code = write(ne->fd2, "X", 1);
+                int n;
+		n = write(ne->fd2, "X", 1);
+                if (n == -1) {
+                    fprintf(stderr, "Cannot write to signaling pipe [netsys_c_event.c]\n");
+                }
 	    }
 	}
 
@@ -142,11 +147,14 @@ void netsys_not_event_signal(struct not_event *ne)
 
     case NE_EVENTFD:
 	{
-	    int64 buf;
+	    int64_t buf;
 	    buf = 1;
 	    if (ne->fd1 >= 0) {
-		int code;
-		code = write(ne->fd1, (char *) &buf, 8);
+                int n;
+		n = write(ne->fd1, (char *) &buf, 8);
+                if (n == -1) {
+                    fprintf(stderr, "Cannot write to signaling pipe [netsys_c_event.c]\n");
+                }
 	    };
 	    break;
 	}
@@ -391,7 +399,7 @@ CAMLprim value netsys_consume_not_event(value nev)
 {
 #ifdef HAVE_POLL
     struct not_event *ne;
-    int64 n;
+    int64_t n;
     char buf[1];
     int code, ok, e;
     CAMLparam1(nev);

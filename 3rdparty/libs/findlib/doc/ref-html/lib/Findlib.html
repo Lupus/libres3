@@ -177,7 +177,7 @@ If <code class="code">Some d</code>, duplicate packages below <code class="code"
  cyclic dependency.<br>
 </div>
 
-<pre><span id="VALresolve_path"><span class="keyword">val</span> resolve_path</span> : <code class="type">?base:string -> string -> string</code></pre><div class="info ">
+<pre><span id="VALresolve_path"><span class="keyword">val</span> resolve_path</span> : <code class="type">?base:string -> ?explicit:bool -> string -> string</code></pre><div class="info ">
 Resolves findlib notation in filename paths. The notation 
  <code class="code"> +name/path </code> can be used to refer to the subdirectory <code class="code">name</code>
  of the standard library directory; the continuation <code class="code"> /path </code> is
@@ -191,6 +191,8 @@ Resolves findlib notation in filename paths. The notation
 <div class="param_info"><code class="code">base</code> : When the function is applied on a relative path, the
    <code class="code">base</code> path is prepended. Otherwise, the path is returned as
    it is.</div>
+<div class="param_info"><code class="code">explicit</code> : Changes the meaning of <code class="code">base</code> so that only paths
+   count as relative that include at least one slash.</div>
 
 <pre><span id="VALlist_packages"><span class="keyword">val</span> list_packages</span> : <code class="type">?tab:int -> ?descr:bool -> Pervasives.out_channel -> unit</code></pre><div class="info ">
 Prints the list of available packages to the <code class="code">out_channel</code>.

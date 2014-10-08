@@ -17,7 +17,7 @@ TITLE="Commands"
 HREF="p15.html"><LINK
 REL="NEXT"
 TITLE="Files"
-HREF="p685.html"></HEAD
+HREF="p698.html"></HEAD
 ><BODY
 CLASS="REFENTRY"
 BGCOLOR="#FFFFFF"
@@ -59,7 +59,7 @@ WIDTH="10%"
 ALIGN="right"
 VALIGN="bottom"
 ><A
-HREF="p685.html"
+HREF="p698.html"
 ACCESSKEY="N"
 >Next</A
 ></TD
@@ -284,6 +284,7 @@ CLASS="REPLACEABLE"
 >s</I
 ></TT
 > |
+                  -pp |
                   -descendants | -d |
                   -recursive  | -r ] <TT
 CLASS="REPLACEABLE"
@@ -395,7 +396,7 @@ linker backend are printed.</P
 >-a-format</DT
 ><DD
 ><P
->Same as -format "%a", i.e. archive file names are printed.</P
+>Same as -format "%+a", i.e. archive file names are printed.</P
 ></DD
 ><DT
 >-o-format</DT
@@ -464,13 +465,24 @@ CLASS="LITERAL"
 >-recursive</TT
 >.</P
 ></DD
+><DT
+>-pp</DT
+><DD
+><P
+>Query preprocessor packages (camlp4 syntax extensions). Normally
+it is not needed to set -predicates, except you need the archives (then add
+-predicates byte). This option implies <TT
+CLASS="LITERAL"
+>-recursive</TT
+>.</P
+></DD
 ></DL
 ></DIV
 ></DIV
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN138"
+NAME="AEN143"
 ></A
 ><H3
 >Placeholders meaningful in the -format option</H3
@@ -517,10 +529,24 @@ CLASS="VARIABLELIST"
   than one archive, a separate output record is printed for every archive.</P
 ></DD
 ><DT
+>%+a</DT
+><DD
+><P
+>Like %a, but the filenames are converted to absolute
+  paths ("+" and "@" notations are resolved)</P
+></DD
+><DT
 >%A</DT
 ><DD
 ><P
 >Replaced by the list of archive filenames.</P
+></DD
+><DT
+>%+A</DT
+><DD
+><P
+>Like %A, but the filenames are converted to absolute
+  paths ("+" and "@" notations are resolved)</P
 ></DD
 ><DT
 >%o</DT
@@ -554,7 +580,7 @@ or the empty string if not defined.</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN182"
+NAME="AEN195"
 ></A
 ><H2
 ><A
@@ -577,7 +603,7 @@ NAME="OCAMLFIND.OCAMLMKTOP"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN188"
+NAME="AEN201"
 ></A
 ><H3
 >Synopsis</H3
@@ -662,7 +688,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN203"
+NAME="AEN216"
 ></A
 ><H3
 >Description</H3
@@ -714,7 +740,7 @@ stage.</P
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN214"
+NAME="AEN227"
 ></A
 ><H3
 >Options for compiling and linking</H3
@@ -897,7 +923,7 @@ fixup of the dependency graph (see below).</P
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN282"
+NAME="AEN295"
 ></A
 ><H3
 >Options for preprocessing</H3
@@ -957,7 +983,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN302"
+NAME="AEN315"
 ></A
 ><H3
 >Predicates for compiling and linking</H3
@@ -1059,7 +1085,7 @@ CLASS="LITERAL"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN346"
+NAME="AEN359"
 ></A
 ><H3
 >Predicates for preprocessing</H3
@@ -1116,7 +1142,7 @@ CLASS="LITERAL"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN368"
+NAME="AEN381"
 ></A
 ><H3
 >Special behaviour of "ocamlmktop"</H3
@@ -1133,7 +1159,7 @@ linked packages.  </P
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN372"
+NAME="AEN385"
 ></A
 ><H3
 >Fixup of the dependency graph for multi-threading</H3
@@ -1149,7 +1175,7 @@ package list.</P
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN375"
+NAME="AEN388"
 ></A
 ><H3
 >Extended file naming</H3
@@ -1192,7 +1218,7 @@ CLASS="LITERAL"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN384"
+NAME="AEN397"
 ></A
 ><H3
 >How to set the names of the compiler executables</H3
@@ -1264,7 +1290,7 @@ export OCAMLFIND_COMMANDS</PRE
 ><P
 >Alternatively, you can change the configuration file
 <A
-HREF="r783.html#FINDLIB.CONF"
+HREF="r796.html#FINDLIB.CONF"
 >findlib.conf</A
 >.</P
 ></DIV
@@ -1272,7 +1298,7 @@ HREF="r783.html#FINDLIB.CONF"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN404"
+NAME="AEN417"
 ></A
 ><H2
 ><A
@@ -1283,7 +1309,7 @@ NAME="OCAMLFIND.OCAMLMKLIB"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN407"
+NAME="AEN420"
 ></A
 ><H3
 >Synopsis</H3
@@ -1337,7 +1363,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN417"
+NAME="AEN430"
 ></A
 ><H3
 >Description</H3
@@ -1353,7 +1379,7 @@ the wrapper does not know whether this is about byte or native code linking.</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN421"
+NAME="AEN434"
 ></A
 ><H2
 ><A
@@ -1364,7 +1390,7 @@ NAME="OCAMLFIND.OCAMLDEP"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN424"
+NAME="AEN437"
 ></A
 ><H3
 >Synopsis</H3
@@ -1416,7 +1442,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN434"
+NAME="AEN447"
 ></A
 ><H3
 >Description</H3
@@ -1435,7 +1461,7 @@ CLASS="LITERAL"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN439"
+NAME="AEN452"
 ></A
 ><H3
 >Options</H3
@@ -1534,7 +1560,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN476"
+NAME="AEN489"
 ></A
 ><H3
 >Example</H3
@@ -1564,7 +1590,7 @@ in revised syntax.</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN483"
+NAME="AEN496"
 ></A
 ><H2
 ><A
@@ -1575,7 +1601,7 @@ NAME="OCAMLFIND.OCAMLBROWSER"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN486"
+NAME="AEN499"
 ></A
 ><H3
 >Synopsis</H3
@@ -1599,7 +1625,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN491"
+NAME="AEN504"
 ></A
 ><H3
 >Description</H3
@@ -1635,7 +1661,7 @@ CLASS="LITERAL"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN501"
+NAME="AEN514"
 ></A
 ><H2
 ><A
@@ -1646,7 +1672,7 @@ NAME="OCAMLFIND.OCAMLDOC"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN504"
+NAME="AEN517"
 ></A
 ><H3
 >Synopsis</H3
@@ -1693,7 +1719,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN513"
+NAME="AEN526"
 ></A
 ><H3
 >Description</H3
@@ -1706,7 +1732,7 @@ syntax options are translated into camlp4 options.</P
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN516"
+NAME="AEN529"
 ></A
 ><H3
 >Options</H3
@@ -1790,7 +1816,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN543"
+NAME="AEN556"
 ></A
 ><H2
 ><A
@@ -1801,7 +1827,7 @@ NAME="OCAMLFIND.INSTALL"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN546"
+NAME="AEN559"
 ></A
 ><H3
 >Synopsis</H3
@@ -1855,7 +1881,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN556"
+NAME="AEN569"
 ></A
 ><H3
 >Description</H3
@@ -1866,7 +1892,7 @@ CLASS="LITERAL"
 >destdir</TT
 > of
 <A
-HREF="r783.html#FINDLIB.CONF"
+HREF="r796.html#FINDLIB.CONF"
 >findlib.conf</A
 >), or in the directory
 specified by the -destdir option. This
@@ -1888,7 +1914,7 @@ CLASS="LITERAL"
 >metadir</TT
 > of 
 <A
-HREF="r783.html#FINDLIB.CONF"
+HREF="r796.html#FINDLIB.CONF"
 >findlib.conf</A
 >, or to specify the
 -metadir option. In this case, the file called META is copied to the
@@ -1966,7 +1992,7 @@ packages.</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN580"
+NAME="AEN593"
 ></A
 ><H2
 ><A
@@ -1977,7 +2003,7 @@ NAME="OCAMLFIND.REMOVE"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN583"
+NAME="AEN596"
 ></A
 ><H3
 >Synopsis</H3
@@ -2011,7 +2037,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN590"
+NAME="AEN603"
 ></A
 ><H3
 >Description</H3
@@ -2022,7 +2048,7 @@ CLASS="LITERAL"
 >destdir</TT
 > of
 <A
-HREF="r783.html#FINDLIB.CONF"
+HREF="r796.html#FINDLIB.CONF"
 >findlib.conf</A
 >). If the package
 resides at a different location, it will not be removed by default;
@@ -2039,7 +2065,7 @@ CLASS="LITERAL"
 >metadir</TT
 > variable
 of <A
-HREF="r783.html#FINDLIB.CONF"
+HREF="r796.html#FINDLIB.CONF"
 >findlib.conf</A
 >, or by specifying
 the -metadir option.</P
@@ -2065,7 +2091,7 @@ be deleted.</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN603"
+NAME="AEN616"
 ></A
 ><H2
 ><A
@@ -2076,7 +2102,7 @@ NAME="OCAMLFIND.LIST"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN606"
+NAME="AEN619"
 ></A
 ><H3
 >Synopsis</H3
@@ -2087,7 +2113,7 @@ CLASS="PROGRAMLISTING"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN609"
+NAME="AEN622"
 ></A
 ><H3
 >Description</H3
@@ -2099,7 +2125,7 @@ outputs the package descriptions, too.</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN612"
+NAME="AEN625"
 ></A
 ><H2
 ><A
@@ -2110,7 +2136,7 @@ NAME="OCAMLFIND.PRINTCONF"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN615"
+NAME="AEN628"
 ></A
 ><H3
 >Synopsis</H3
@@ -2121,7 +2147,7 @@ CLASS="PROGRAMLISTING"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN618"
+NAME="AEN631"
 ></A
 ><H3
 >Description</H3
@@ -2202,7 +2228,7 @@ CLASS="LITERAL"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN652"
+NAME="AEN665"
 ></A
 ><H2
 ><A
@@ -2213,7 +2239,7 @@ NAME="OCAMLFIND.PKGCMD"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN655"
+NAME="AEN668"
 ></A
 ><H3
 >Synopsis</H3
@@ -2239,7 +2265,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN661"
+NAME="AEN674"
 ></A
 ><H3
 >Description</H3
@@ -2274,7 +2300,7 @@ CLASS="PROGRAMLISTING"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN669"
+NAME="AEN682"
 ></A
 ><H2
 >  CONFIGURATION FILE, ENVIRONMENT VARIABLES</H2
@@ -2282,14 +2308,14 @@ NAME="AEN669"
 > The configuration file and environment variables are documented
 in the manual page for
  <A
-HREF="r783.html#FINDLIB.CONF"
+HREF="r796.html#FINDLIB.CONF"
 >findlib.conf</A
 >.</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN673"
+NAME="AEN686"
 ></A
 ><H2
 ><A
@@ -2300,7 +2326,7 @@ NAME="OCAMLFIND.TOOLCHAIN"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN676"
+NAME="AEN689"
 ></A
 ><H3
 >Synopsis</H3
@@ -2316,7 +2342,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT2"
 ><A
-NAME="AEN680"
+NAME="AEN693"
 ></A
 ><H3
 >Description</H3
@@ -2331,7 +2357,7 @@ compiles file.ml with toolchain "foo". By selecting toolchains one
 can switch to different command sets. For instance, the toolchain
 "foo" may consist of a patched ocamlc compiler. 
 See <A
-HREF="r783.html#FINDLIB.CONF"
+HREF="r796.html#FINDLIB.CONF"
 >findlib.conf</A
 > how to
 configure toolchains.</P
@@ -2371,7 +2397,7 @@ WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
 ><A
-HREF="p685.html"
+HREF="p698.html"
 ACCESSKEY="N"
 >Next</A
 ></TD

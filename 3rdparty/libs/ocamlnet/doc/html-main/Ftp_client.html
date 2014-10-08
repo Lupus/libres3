@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -207,7 +207,8 @@
 &nbsp;<a class="post" href="Http_fs.html" title="Http_fs">Next</a>
 </div>
 <h1>Module <a href="type_Ftp_client.html">Ftp_client</a></h1>
-<pre><span class="keyword">module</span> Ftp_client: <code class="code">sig</code> <a href="Ftp_client.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Ftp_client: <code class="code">sig</code> <a href="Ftp_client.html">..</a> <code class="code">end</code></pre><div class="info module top">
 FTP client
 <p>
 
@@ -230,20 +231,24 @@ FTP client
  have been added (e.g. <code class="code">STOR</code> support).<br>
 </div>
 <hr width="100%">
+
 <pre><span id="EXCEPTIONFTP_error"><span class="keyword">exception</span> FTP_error</span> <span class="keyword">of</span> <code class="type">exn</code></pre>
-<div class="info">
+<div class="info ">
 Something went wrong, often on socket level<br>
 </div>
+
 <pre><span id="EXCEPTIONFTP_protocol_violation"><span class="keyword">exception</span> FTP_protocol_violation</span> <span class="keyword">of</span> <code class="type">string</code></pre>
-<div class="info">
+<div class="info ">
 The server violates the FTP specification<br>
 </div>
+
 <pre><span id="EXCEPTIONFTP_timeout"><span class="keyword">exception</span> FTP_timeout</span> <span class="keyword">of</span> <code class="type">string</code></pre>
-<div class="info">
+<div class="info ">
 A timeout on the control or data connection (this is a fatal error)<br>
 </div>
+
 <pre><span id="TYPEcmd_state"><span class="keyword">type</span> <code class="type"></code>cmd_state</span> = <code class="type">[ `Init<br>       | `Not_connected<br>       | `Pass_acct_seq<br>       | `Perm_failure<br>       | `Preliminary<br>       | `Proto_error<br>       | `Rename_seq<br>       | `Restart_seq<br>       | `Success<br>       | `Temp_failure<br>       | `User_acct_seq<br>       | `User_pass_seq ]</code> </pre>
-<div class="info">
+<div class="info ">
 The command state:<ul>
 <li><code class="code">`Not_connected</code>: Not connected.</li>
 <li><code class="code">`Init</code>: Just connected, no greeting message arrived yet</li>
@@ -267,8 +272,9 @@ The command state:<ul>
 <br>
 </div>
 
+
 <pre><span id="TYPEport"><span class="keyword">type</span> <code class="type"></code>port</span> = <code class="type">[ `Active of string * int * Unix.file_descr<br>       | `Ext_active of string * int * Unix.file_descr<br>       | `Ext_passive of int<br>       | `Passive of string * int<br>       | `Unspecified ]</code> </pre>
-<div class="info">
+<div class="info ">
 The port of the data connection: <code class="code">`Active</code> means that the server 
  initiates the data connection to the listening client, and in the
  case of <code class="code">`Passive</code> the client initiates the data connection to the
@@ -277,8 +283,9 @@ The port of the data connection: <code class="code">`Active</code> means that th
  is the listening master socket.<br>
 </div>
 
+
 <pre><span id="TYPEform_code"><span class="keyword">type</span> <code class="type"></code>form_code</span> = <code class="type">[ `ASA | `Non_print | `Telnet ]</code> </pre>
-<div class="info">
+<div class="info ">
 The <code class="code">form_code</code> has a meaning when FTP is used to print files:<ul>
 <li><code class="code">`Non_print</code>: This is not the case.</li>
 <li><code class="code">`Telnet</code>: Telnet control codes are used for vertical movement</li>
@@ -287,8 +294,9 @@ The <code class="code">form_code</code> has a meaning when FTP is used to print 
 <br>
 </div>
 
+
 <pre><span id="TYPErepresentation"><span class="keyword">type</span> <code class="type"></code>representation</span> = <code class="type">[ `ASCII of <a href="Ftp_client.html#TYPEform_code">form_code</a> option<br>       | `EBCDIC of <a href="Ftp_client.html#TYPEform_code">form_code</a> option<br>       | `Image ]</code> </pre>
-<div class="info">
+<div class="info ">
 The representation of the transferred file:<ul>
 <li><code class="code">`ASCII</code>: An ASCII variant is used, i.e. the server sends files in
    ASCII encoding with CR/LF as end-of-line marker. Supported by all
@@ -313,8 +321,9 @@ The representation of the transferred file:<ul>
  as default.<br>
 </div>
 
+
 <pre><span id="TYPEstructure"><span class="keyword">type</span> <code class="type"></code>structure</span> = <code class="type">[ `File_structure | `Record_structure ]</code> </pre>
-<div class="info">
+<div class="info ">
 The client supports two structures:<ul>
 <li><code class="code">`File_structure</code>: Files are simply contiguous streams of bytes</li>
 <li><code class="code">`Record_structure</code>: Files are sequences of records. FTP does
@@ -338,8 +347,9 @@ The client supports two structures:<ul>
  as default.<br>
 </div>
 
+
 <pre><span id="TYPEtransmission_mode"><span class="keyword">type</span> <code class="type"></code>transmission_mode</span> = <code class="type">[ `Block_mode | `Stream_mode ]</code> </pre>
-<div class="info">
+<div class="info ">
 The transmission mode selects how the data are encoded in the data
  connection.<ul>
 <li><code class="code">`Stream_mode</code>: This is the simple format that is responsible for
@@ -361,89 +371,90 @@ The transmission mode selects how the data are encoded in the data
  files, and block mode for record files.<br>
 </div>
 
+
 <pre><code><span id="TYPEftp_state"><span class="keyword">type</span> <code class="type"></code>ftp_state</span> = {</code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTftp_state.cmd_state">cmd_state</span>&nbsp;:<code class="type"><a href="Ftp_client.html#TYPEcmd_state">cmd_state</a></code>;</code></td>
+<code><span id="TYPEELTftp_state.cmd_state">cmd_state</span>&nbsp;: <code class="type"><a href="Ftp_client.html#TYPEcmd_state">cmd_state</a></code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >the command state</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTftp_state.ftp_connected">ftp_connected</span>&nbsp;:<code class="type">bool</code>;</code></td>
+<code><span id="TYPEELTftp_state.ftp_connected">ftp_connected</span>&nbsp;: <code class="type">bool</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >whether connected with the server</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTftp_state.ftp_data_conn">ftp_data_conn</span>&nbsp;:<code class="type">bool</code>;</code></td>
+<code><span id="TYPEELTftp_state.ftp_data_conn">ftp_data_conn</span>&nbsp;: <code class="type">bool</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >whether there is a clean data conn</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTftp_state.ftp_user">ftp_user</span>&nbsp;:<code class="type">string option</code>;</code></td>
+<code><span id="TYPEELTftp_state.ftp_user">ftp_user</span>&nbsp;: <code class="type">string option</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >successfully sent user identifier</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTftp_state.ftp_password">ftp_password</span>&nbsp;:<code class="type">string option</code>;</code></td>
+<code><span id="TYPEELTftp_state.ftp_password">ftp_password</span>&nbsp;: <code class="type">string option</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >successfully sent password</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTftp_state.ftp_account">ftp_account</span>&nbsp;:<code class="type">string option</code>;</code></td>
+<code><span id="TYPEELTftp_state.ftp_account">ftp_account</span>&nbsp;: <code class="type">string option</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >successfully sent account identifier</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTftp_state.ftp_logged_in">ftp_logged_in</span>&nbsp;:<code class="type">bool</code>;</code></td>
+<code><span id="TYPEELTftp_state.ftp_logged_in">ftp_logged_in</span>&nbsp;: <code class="type">bool</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >whether the user is logged in</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTftp_state.ftp_port">ftp_port</span>&nbsp;:<code class="type"><a href="Ftp_client.html#TYPEport">port</a></code>;</code></td>
+<code><span id="TYPEELTftp_state.ftp_port">ftp_port</span>&nbsp;: <code class="type"><a href="Ftp_client.html#TYPEport">port</a></code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >the selected port</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTftp_state.ftp_repr">ftp_repr</span>&nbsp;:<code class="type"><a href="Ftp_client.html#TYPErepresentation">representation</a></code>;</code></td>
+<code><span id="TYPEELTftp_state.ftp_repr">ftp_repr</span>&nbsp;: <code class="type"><a href="Ftp_client.html#TYPErepresentation">representation</a></code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >the selected representation</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTftp_state.ftp_structure">ftp_structure</span>&nbsp;:<code class="type"><a href="Ftp_client.html#TYPEstructure">structure</a></code>;</code></td>
+<code><span id="TYPEELTftp_state.ftp_structure">ftp_structure</span>&nbsp;: <code class="type"><a href="Ftp_client.html#TYPEstructure">structure</a></code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >the selected structure</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTftp_state.ftp_trans">ftp_trans</span>&nbsp;:<code class="type"><a href="Ftp_client.html#TYPEtransmission_mode">transmission_mode</a></code>;</code></td>
+<code><span id="TYPEELTftp_state.ftp_trans">ftp_trans</span>&nbsp;: <code class="type"><a href="Ftp_client.html#TYPEtransmission_mode">transmission_mode</a></code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >the selected trans mode</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTftp_state.ftp_dir">ftp_dir</span>&nbsp;:<code class="type">string list</code>;</code></td>
+<code><span id="TYPEELTftp_state.ftp_dir">ftp_dir</span>&nbsp;: <code class="type">string list</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >The current directory, expressed as list of CWD changes minus
  CDUP changes. This is only reasonable if CWD does not include
  slashes. The list is in reverse order, i.e. deepest directory
@@ -453,7 +464,7 @@ The transmission mode selects how the data are encoded in the data
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTftp_state.ftp_features">ftp_features</span>&nbsp;:<code class="type">(string * string option) list option</code>;</code></td>
+<code><span id="TYPEELTftp_state.ftp_features">ftp_features</span>&nbsp;: <code class="type">(string * string option) list option</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >The list of features returned by the last FEAT command.
  <code class="code">None</code> means that no FEAT command was yet tried. 
  <code class="code">Some []</code> means that there are no features (either FEAT
@@ -467,7 +478,7 @@ The transmission mode selects how the data are encoded in the data
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTftp_state.ftp_options">ftp_options</span>&nbsp;:<code class="type">(string * string option) list</code>;</code></td>
+<code><span id="TYPEELTftp_state.ftp_options">ftp_options</span>&nbsp;: <code class="type">(string * string option) list</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >Remembers the OPTS commands sent to the server. The list
  enumerates pairs <code class="code">(command,optionparam)</code>, where <code class="code">command</code>
  is the uppercase command name the option refers to. Only
@@ -475,50 +486,61 @@ The transmission mode selects how the data are encoded in the data
 </tr></table>
 }
 
-<div class="info">
+<div class="info ">
 The ftp_state reflects the knowledge of the client about what has been
  agreed upon with the server.<br>
 </div>
 
+
 <pre><span id="TYPEcmd"><span class="keyword">type</span> <code class="type"></code>cmd</span> = <code class="type">[ `ACCT of string<br>       | `ALLO of int * int option<br>       | `APPE of string * (<a href="Ftp_client.html#TYPEftp_state">ftp_state</a> -> <a href="Ftp_data_endpoint.html#TYPElocal_sender">Ftp_data_endpoint.local_sender</a>)<br>       | `CDUP<br>       | `CWD of string<br>       | `Connect of string * int<br>       | `DELE of string<br>       | `Disconnect<br>       | `Dummy<br>       | `EPRT<br>       | `EPSV of [ `AF of Unix.socket_domain | `ALL ] option<br>       | `FEAT<br>       | `HELP of string option<br>       | `LANG of string option<br>       | `LIST of<br>           string option *<br>           (<a href="Ftp_client.html#TYPEftp_state">ftp_state</a> -> <a href="Ftp_data_endpoint.html#TYPElocal_receiver">Ftp_data_endpoint.local_receiver</a>)<br>       | `MDTM of string<br>       | `MKD of string<br>       | `MLSD of<br>           string option *<br>           (<a href="Ftp_client.html#TYPEftp_state">ftp_state</a> -> <a href="Ftp_data_endpoint.html#TYPElocal_receiver">Ftp_data_endpoint.local_receiver</a>)<br>       | `MLST of string option<br>       | `MODE of <a href="Ftp_client.html#TYPEtransmission_mode">transmission_mode</a><br>       | `NLST of<br>           string option *<br>           (<a href="Ftp_client.html#TYPEftp_state">ftp_state</a> -> <a href="Ftp_data_endpoint.html#TYPElocal_receiver">Ftp_data_endpoint.local_receiver</a>)<br>       | `NOOP<br>       | `OPTS of string * string option<br>       | `PASS of string<br>       | `PASV<br>       | `PORT<br>       | `PWD<br>       | `QUIT<br>       | `REIN<br>       | `REST of string<br>       | `RETR of<br>           string * (<a href="Ftp_client.html#TYPEftp_state">ftp_state</a> -> <a href="Ftp_data_endpoint.html#TYPElocal_receiver">Ftp_data_endpoint.local_receiver</a>)<br>       | `RMD of string<br>       | `RNFR of string<br>       | `RNTO of string<br>       | `SITE of string<br>       | `SIZE of string<br>       | `SMNT of string<br>       | `STAT of string option<br>       | `STOR of string * (<a href="Ftp_client.html#TYPEftp_state">ftp_state</a> -> <a href="Ftp_data_endpoint.html#TYPElocal_sender">Ftp_data_endpoint.local_sender</a>)<br>       | `STOU of <a href="Ftp_client.html#TYPEftp_state">ftp_state</a> -> <a href="Ftp_data_endpoint.html#TYPElocal_sender">Ftp_data_endpoint.local_sender</a><br>       | `STRU of <a href="Ftp_client.html#TYPEstructure">structure</a><br>       | `SYST<br>       | `TYPE of <a href="Ftp_client.html#TYPErepresentation">representation</a><br>       | `USER of string ]</code> </pre>
-<div class="info">
+<div class="info ">
 An FTP command. Not all commands are implemented by all servers.<br>
 </div>
 
+
 <pre><span id="TYPEreply"><span class="keyword">type</span> <code class="type"></code>reply</span> = <code class="type">int * string</code> </pre>
-<div class="info">
+<div class="info ">
 Reply code plus text<br>
 </div>
+
 
 <pre><span id="TYPEftp_client_pi"><span class="keyword">class type</span> <a href="Ftp_client.ftp_client_pi-c.html">ftp_client_pi</a></span> = <code class="code">object</code> <a href="Ftp_client.ftp_client_pi-c.html">..</a> <code class="code">end</code></pre><div class="info">
 The client protocol interpreter...
 </div>
+
 <pre><span id="TYPEftp_method"><span class="keyword">type</span> <code class="type"></code>ftp_method</span> = <code class="type"><a href="Ftp_client.ftp_client_pi-c.html">ftp_client_pi</a> -> unit <a href="Uq_engines.engine-c.html">Uq_engines.engine</a></code> </pre>
-<div class="info">
+<div class="info ">
 An <code class="code">ftp_method</code> is a small procedure doing some task<br>
 </div>
 
+
 <pre><span id="EXCEPTIONFTP_method_temp_failure"><span class="keyword">exception</span> FTP_method_temp_failure</span> <span class="keyword">of</span> <code class="type">int * string</code></pre>
+
 <pre><span id="EXCEPTIONFTP_method_perm_failure"><span class="keyword">exception</span> FTP_method_perm_failure</span> <span class="keyword">of</span> <code class="type">int * string</code></pre>
+
 <pre><span id="EXCEPTIONFTP_method_unexpected_reply"><span class="keyword">exception</span> FTP_method_unexpected_reply</span> <span class="keyword">of</span> <code class="type">int * string</code></pre>
-<div class="info">
+<div class="info ">
 These exceptions may be raised during execution by the FTP method.
  The int is the unexpected FTP control code and the string the
  corresponding text. A temporary failure has a code between 400 and
  499, and a permanent failure has a code between 500 and 599.<br>
 </div>
-<pre><span id="VALconnect_method"><span class="keyword">val</span> connect_method</span> : <code class="type">host:string -> ?port:int -> unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALconnect_method"><span class="keyword">val</span> connect_method</span> : <code class="type">host:string -> ?port:int -> unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 This method connects to the <code class="code">host</code><br>
 </div>
-<pre><span id="VALlogin_method"><span class="keyword">val</span> login_method</span> : <code class="type">user:string -><br>       get_password:(unit -> string) -><br>       get_account:(unit -> string) -> unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALlogin_method"><span class="keyword">val</span> login_method</span> : <code class="type">user:string -><br>       get_password:(unit -> string) -><br>       get_account:(unit -> string) -> unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 This FTP method logs the <code class="code">user</code> in. <code class="code">get_password</code> is called when
  the FTP server asks for the password (may be skipped). <code class="code">get_account</code>
  is called when the server asks for the account ID (may be skipped).<br>
 </div>
-<pre><span id="VALquit_method"><span class="keyword">val</span> quit_method</span> : <code class="type">unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALquit_method"><span class="keyword">val</span> quit_method</span> : <code class="type">unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 Quits and disconnects<br>
 </div>
-<pre><span id="VALwalk_method"><span class="keyword">val</span> walk_method</span> : <code class="type">[ `Dir of string | `File of string | `Stay ] -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALwalk_method"><span class="keyword">val</span> walk_method</span> : <code class="type">[ `Dir of string | `File of string | `Stay ] -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 This FTP method walks to the target directory:
 <p>
 <ul>
@@ -532,8 +554,9 @@ This FTP method walks to the target directory:
 </ul>
 <br>
 </div>
+
 <pre><span id="TYPEfilename"><span class="keyword">type</span> <code class="type"></code>filename</span> = <code class="type">[ `NVFS of string | `TVFS of string | `Verbatim of string ]</code> </pre>
-<div class="info">
+<div class="info ">
 There are several methods how to specify filenames:<ul>
 <li><code class="code">`NVFS name</code>: The "Network Virtual File System" is the normal way
    of accessing FTP files. The client walks into the directory containing
@@ -553,13 +576,15 @@ There are several methods how to specify filenames:<ul>
 <br>
 </div>
 
-<pre><span id="VALget_method"><span class="keyword">val</span> get_method</span> : <code class="type">file:<a href="Ftp_client.html#TYPEfilename">filename</a> -><br>       representation:<a href="Ftp_client.html#TYPErepresentation">representation</a> -><br>       store:(<a href="Ftp_client.html#TYPEftp_state">ftp_state</a> -> <a href="Ftp_data_endpoint.html#TYPElocal_receiver">Ftp_data_endpoint.local_receiver</a>) -><br>       unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALget_method"><span class="keyword">val</span> get_method</span> : <code class="type">file:<a href="Ftp_client.html#TYPEfilename">filename</a> -><br>       representation:<a href="Ftp_client.html#TYPErepresentation">representation</a> -><br>       store:(<a href="Ftp_client.html#TYPEftp_state">ftp_state</a> -> <a href="Ftp_data_endpoint.html#TYPElocal_receiver">Ftp_data_endpoint.local_receiver</a>) -><br>       unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 This FTP method walks to the right directory and gets <code class="code">file</code> from
  the server. The file is stored in the <code class="code">local_receiver</code> that can be
  obtained by calling the <code class="code">store</code> function. The selected <code class="code">representation</code>
  remains unchanged.<br>
 </div>
-<pre><span id="VALput_method"><span class="keyword">val</span> put_method</span> : <code class="type">?meth:[ `APPE | `STOR ] -><br>       file:<a href="Ftp_client.html#TYPEfilename">filename</a> -><br>       representation:<a href="Ftp_client.html#TYPErepresentation">representation</a> -><br>       store:(<a href="Ftp_client.html#TYPEftp_state">ftp_state</a> -> <a href="Ftp_data_endpoint.html#TYPElocal_sender">Ftp_data_endpoint.local_sender</a>) -><br>       unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALput_method"><span class="keyword">val</span> put_method</span> : <code class="type">?meth:[ `APPE | `STOR ] -><br>       file:<a href="Ftp_client.html#TYPEfilename">filename</a> -><br>       representation:<a href="Ftp_client.html#TYPErepresentation">representation</a> -><br>       store:(<a href="Ftp_client.html#TYPEftp_state">ftp_state</a> -> <a href="Ftp_data_endpoint.html#TYPElocal_sender">Ftp_data_endpoint.local_sender</a>) -><br>       unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 This FTP method walks to the right directory and puts <code class="code">file</code> to
  the server. The file is taken from the <code class="code">local_sender</code> that can be
  obtained by calling the <code class="code">store</code> function. The selected <code class="code">representation</code>
@@ -568,72 +593,90 @@ This FTP method walks to the right directory and puts <code class="code">file</c
 
  <code class="code">meth</code> selects the method to use (default <code class="code">`STOR</code>).<br>
 </div>
-<pre><span id="VALinvoke_method"><span class="keyword">val</span> invoke_method</span> : <code class="type">command:<a href="Ftp_client.html#TYPEcmd">cmd</a> -> unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALinvoke_method"><span class="keyword">val</span> invoke_method</span> : <code class="type">command:<a href="Ftp_client.html#TYPEcmd">cmd</a> -> unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 This FTP method simply invokes <code class="code">command</code>.<br>
 </div>
-<pre><span id="VALset_structure_method"><span class="keyword">val</span> set_structure_method</span> : <code class="type"><a href="Ftp_client.html#TYPEstructure">structure</a> -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALset_structure_method"><span class="keyword">val</span> set_structure_method</span> : <code class="type"><a href="Ftp_client.html#TYPEstructure">structure</a> -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 Requests a certain structure for future file transfers<br>
 </div>
-<pre><span id="VALset_mode_method"><span class="keyword">val</span> set_mode_method</span> : <code class="type"><a href="Ftp_client.html#TYPEtransmission_mode">transmission_mode</a> -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALset_mode_method"><span class="keyword">val</span> set_mode_method</span> : <code class="type"><a href="Ftp_client.html#TYPEtransmission_mode">transmission_mode</a> -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 Requests a certain mode for future file transfers<br>
 </div>
-<pre><span id="VALrename_method"><span class="keyword">val</span> rename_method</span> : <code class="type">file_from:<a href="Ftp_client.html#TYPEfilename">filename</a> -><br>       file_to:<a href="Ftp_client.html#TYPEfilename">filename</a> -> unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALrename_method"><span class="keyword">val</span> rename_method</span> : <code class="type">file_from:<a href="Ftp_client.html#TYPEfilename">filename</a> -><br>       file_to:<a href="Ftp_client.html#TYPEfilename">filename</a> -> unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 Renames the <code class="code">file_from</code> into <code class="code">file_to</code>.
 <p>
 
  Both file names must be of the same type, either <code class="code">`NVFS</code> or <code class="code">`Verbatim</code>.
  If <code class="code">`NVFS</code>, both names must be in the same directory.<br>
 </div>
-<pre><span id="VALmkdir_method"><span class="keyword">val</span> mkdir_method</span> : <code class="type"><a href="Ftp_client.html#TYPEfilename">filename</a> -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALmkdir_method"><span class="keyword">val</span> mkdir_method</span> : <code class="type"><a href="Ftp_client.html#TYPEfilename">filename</a> -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 Creates the named directory<br>
 </div>
-<pre><span id="VALrmdir_method"><span class="keyword">val</span> rmdir_method</span> : <code class="type"><a href="Ftp_client.html#TYPEfilename">filename</a> -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALrmdir_method"><span class="keyword">val</span> rmdir_method</span> : <code class="type"><a href="Ftp_client.html#TYPEfilename">filename</a> -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 Deletes the named directory<br>
 </div>
-<pre><span id="VALdelete_method"><span class="keyword">val</span> delete_method</span> : <code class="type"><a href="Ftp_client.html#TYPEfilename">filename</a> -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALdelete_method"><span class="keyword">val</span> delete_method</span> : <code class="type"><a href="Ftp_client.html#TYPEfilename">filename</a> -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 Deletes the named file<br>
 </div>
-<pre><span id="VALlist_method"><span class="keyword">val</span> list_method</span> : <code class="type">dir:<a href="Ftp_client.html#TYPEfilename">filename</a> -><br>       representation:<a href="Ftp_client.html#TYPErepresentation">representation</a> -><br>       store:(<a href="Ftp_client.html#TYPEftp_state">ftp_state</a> -> <a href="Ftp_data_endpoint.html#TYPElocal_receiver">Ftp_data_endpoint.local_receiver</a>) -><br>       unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALlist_method"><span class="keyword">val</span> list_method</span> : <code class="type">dir:<a href="Ftp_client.html#TYPEfilename">filename</a> -><br>       representation:<a href="Ftp_client.html#TYPErepresentation">representation</a> -><br>       store:(<a href="Ftp_client.html#TYPEftp_state">ftp_state</a> -> <a href="Ftp_data_endpoint.html#TYPElocal_receiver">Ftp_data_endpoint.local_receiver</a>) -><br>       unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 Lists the contents of the directory <code class="code">dir</code> using the LIST command.
  The <code class="code">representation</code> must not be <code class="code">`Image</code>.<br>
 </div>
-<pre><span id="VALnlst_method"><span class="keyword">val</span> nlst_method</span> : <code class="type">dir:<a href="Ftp_client.html#TYPEfilename">filename</a> -><br>       representation:<a href="Ftp_client.html#TYPErepresentation">representation</a> -><br>       store:(<a href="Ftp_client.html#TYPEftp_state">ftp_state</a> -> <a href="Ftp_data_endpoint.html#TYPElocal_receiver">Ftp_data_endpoint.local_receiver</a>) -><br>       unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALnlst_method"><span class="keyword">val</span> nlst_method</span> : <code class="type">dir:<a href="Ftp_client.html#TYPEfilename">filename</a> -><br>       representation:<a href="Ftp_client.html#TYPErepresentation">representation</a> -><br>       store:(<a href="Ftp_client.html#TYPEftp_state">ftp_state</a> -> <a href="Ftp_data_endpoint.html#TYPElocal_receiver">Ftp_data_endpoint.local_receiver</a>) -><br>       unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 Lists the contents of the directory <code class="code">dir</code> using the NLST command
  The <code class="code">representation</code> must not be <code class="code">`Image</code>.<br>
 </div>
-<pre><span id="VALparse_nlst_document"><span class="keyword">val</span> parse_nlst_document</span> : <code class="type">string -> string list</code></pre><div class="info">
+
+<pre><span id="VALparse_nlst_document"><span class="keyword">val</span> parse_nlst_document</span> : <code class="type">string -> string list</code></pre><div class="info ">
 Returns the filenames contained in the output of <code class="code">`NLST</code><br>
 </div>
-<pre><span id="VALmdtm_method"><span class="keyword">val</span> mdtm_method</span> : <code class="type">file:<a href="Ftp_client.html#TYPEfilename">filename</a> -><br>       process_result:(float -> unit) -> unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALmdtm_method"><span class="keyword">val</span> mdtm_method</span> : <code class="type">file:<a href="Ftp_client.html#TYPEfilename">filename</a> -><br>       process_result:(float -> unit) -> unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 Determines the date and time of the last modification of <code class="code">file</code>.
  On success, <code class="code">process_result</code> is called.<br>
 </div>
-<pre><span id="VALsize_method"><span class="keyword">val</span> size_method</span> : <code class="type">file:<a href="Ftp_client.html#TYPEfilename">filename</a> -><br>       representation:<a href="Ftp_client.html#TYPErepresentation">representation</a> -><br>       process_result:(int64 -> unit) -> unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALsize_method"><span class="keyword">val</span> size_method</span> : <code class="type">file:<a href="Ftp_client.html#TYPEfilename">filename</a> -><br>       representation:<a href="Ftp_client.html#TYPErepresentation">representation</a> -><br>       process_result:(int64 -> unit) -> unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 Determines the size of <code class="code">file</code>. On success, <code class="code">process_result</code> is called.
     The size depends on <code class="code">representation</code>.<br>
 </div>
-<pre><span id="VALfeat_method"><span class="keyword">val</span> feat_method</span> : <code class="type">?process_result:((string * string option) list -> unit) -><br>       unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALfeat_method"><span class="keyword">val</span> feat_method</span> : <code class="type">?process_result:((string * string option) list -> unit) -><br>       unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 Get the list of feature tokens (see also
       <a href="Ftp_client.html#TYPEELTftp_state.ftp_features"><code class="code">Ftp_client.ftp_state.ftp_features</code></a>)<br>
 </div>
+
 <pre><span id="TYPEentry"><span class="keyword">type</span> <code class="type"></code>entry</span> = <code class="type">string * (string * string) list</code> </pre>
-<div class="info">
+<div class="info ">
 A file entry <code class="code">(name, facts)</code>. The facts are given as pairs
 	<code class="code">(factname,value)</code> where <code class="code">factname</code> is always lowercase.
 	For parsers for common facts see below.<br>
 </div>
 
-<pre><span id="VALmlst_method"><span class="keyword">val</span> mlst_method</span> : <code class="type">file:<a href="Ftp_client.html#TYPEfilename">filename</a> -><br>       process_result:(<a href="Ftp_client.html#TYPEentry">entry</a> list -> unit) -><br>       unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALmlst_method"><span class="keyword">val</span> mlst_method</span> : <code class="type">file:<a href="Ftp_client.html#TYPEfilename">filename</a> -><br>       process_result:(<a href="Ftp_client.html#TYPEentry">entry</a> list -> unit) -><br>       unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 Get the file entry for <code class="code">file</code>.<br>
 </div>
-<pre><span id="VALmlsd_method"><span class="keyword">val</span> mlsd_method</span> : <code class="type">dir:<a href="Ftp_client.html#TYPEfilename">filename</a> -><br>       store:(<a href="Ftp_client.html#TYPEftp_state">ftp_state</a> -> <a href="Ftp_data_endpoint.html#TYPElocal_receiver">Ftp_data_endpoint.local_receiver</a>) -><br>       unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info">
+
+<pre><span id="VALmlsd_method"><span class="keyword">val</span> mlsd_method</span> : <code class="type">dir:<a href="Ftp_client.html#TYPEfilename">filename</a> -><br>       store:(<a href="Ftp_client.html#TYPEftp_state">ftp_state</a> -> <a href="Ftp_data_endpoint.html#TYPElocal_receiver">Ftp_data_endpoint.local_receiver</a>) -><br>       unit -> <a href="Ftp_client.html#TYPEftp_method">ftp_method</a></code></pre><div class="info ">
 Gets the entries for this directory.<br>
 </div>
-<pre><span id="VALparse_mlsd_document"><span class="keyword">val</span> parse_mlsd_document</span> : <code class="type">string -> <a href="Ftp_client.html#TYPEentry">entry</a> list</code></pre><div class="info">
+
+<pre><span id="VALparse_mlsd_document"><span class="keyword">val</span> parse_mlsd_document</span> : <code class="type">string -> <a href="Ftp_client.html#TYPEentry">entry</a> list</code></pre><div class="info ">
 Returns the entries contained in the output of <code class="code">`MLSD</code><br>
 </div>
+
 <pre><span id="TYPEentry_type"><span class="keyword">type</span> <code class="type"></code>entry_type</span> = <code class="type">[ `Cdir | `Dir | `File | `Other | `Pdir ]</code> </pre>
-<div class="info">
+<div class="info ">
 Types:<ul>
 <li><code class="code">`File</code>: entry refers to file</li>
 <li><code class="code">`Cdir</code>: entry refers to the directory being listed</li>
@@ -644,8 +687,9 @@ Types:<ul>
 <br>
 </div>
 
+
 <pre><span id="TYPEentry_perm"><span class="keyword">type</span> <code class="type"></code>entry_perm</span> = <code class="type">[ `Append<br>       | `Create<br>       | `Delete<br>       | `Delete_member<br>       | `Enter<br>       | `List<br>       | `Mkdir<br>       | `Read<br>       | `Rename<br>       | `Write ]</code> </pre>
-<div class="info">
+<div class="info ">
 Permissions:<ul>
 <li><code class="code">`Append</code>: append to file possible</li>
 <li><code class="code">`Create</code>: file can be created in this dir</li>
@@ -664,7 +708,21 @@ Permissions:<ul>
 <br>
 The following functions extract commonly used facts from entries.
     They may raise <code class="code">Not_found</code>.<br>
-<pre><span id="VALget_name"><span class="keyword">val</span> get_name</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> string</code></pre><pre><span id="VALget_size"><span class="keyword">val</span> get_size</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> int64</code></pre><pre><span id="VALget_modify"><span class="keyword">val</span> get_modify</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> float</code></pre><pre><span id="VALget_create"><span class="keyword">val</span> get_create</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> float</code></pre><pre><span id="VALget_type"><span class="keyword">val</span> get_type</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> <a href="Ftp_client.html#TYPEentry_type">entry_type</a></code></pre><pre><span id="VALget_unique"><span class="keyword">val</span> get_unique</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> string</code></pre><pre><span id="VALget_perm"><span class="keyword">val</span> get_perm</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> <a href="Ftp_client.html#TYPEentry_perm">entry_perm</a> list</code></pre><pre><span id="VALget_lang"><span class="keyword">val</span> get_lang</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> string</code></pre><pre><span id="VALget_media_type"><span class="keyword">val</span> get_media_type</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> string</code></pre><pre><span id="VALget_charset"><span class="keyword">val</span> get_charset</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> string</code></pre><pre><span id="VALget_unix_mode"><span class="keyword">val</span> get_unix_mode</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> int</code></pre><pre><span id="VALget_unix_uid"><span class="keyword">val</span> get_unix_uid</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> string</code></pre><pre><span id="VALget_unix_gid"><span class="keyword">val</span> get_unix_gid</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> string</code></pre><pre><span name="TYPEftp_client"><span class="keyword">class</span> <a href="Ftp_client.ftp_client-c.html">ftp_client</a></span> : <code class="type">?event_system:<a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -> unit -> </code><code class="code">object</code> <a href="Ftp_client.ftp_client-c.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span id="VALget_name"><span class="keyword">val</span> get_name</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> string</code></pre>
+<pre><span id="VALget_size"><span class="keyword">val</span> get_size</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> int64</code></pre>
+<pre><span id="VALget_modify"><span class="keyword">val</span> get_modify</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> float</code></pre>
+<pre><span id="VALget_create"><span class="keyword">val</span> get_create</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> float</code></pre>
+<pre><span id="VALget_type"><span class="keyword">val</span> get_type</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> <a href="Ftp_client.html#TYPEentry_type">entry_type</a></code></pre>
+<pre><span id="VALget_unique"><span class="keyword">val</span> get_unique</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> string</code></pre>
+<pre><span id="VALget_perm"><span class="keyword">val</span> get_perm</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> <a href="Ftp_client.html#TYPEentry_perm">entry_perm</a> list</code></pre>
+<pre><span id="VALget_lang"><span class="keyword">val</span> get_lang</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> string</code></pre>
+<pre><span id="VALget_media_type"><span class="keyword">val</span> get_media_type</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> string</code></pre>
+<pre><span id="VALget_charset"><span class="keyword">val</span> get_charset</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> string</code></pre>
+<pre><span id="VALget_unix_mode"><span class="keyword">val</span> get_unix_mode</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> int</code></pre>
+<pre><span id="VALget_unix_uid"><span class="keyword">val</span> get_unix_uid</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> string</code></pre>
+<pre><span id="VALget_unix_gid"><span class="keyword">val</span> get_unix_gid</span> : <code class="type"><a href="Ftp_client.html#TYPEentry">entry</a> -> string</code></pre>
+<pre><span name="TYPEftp_client"><span class="keyword">class</span> <a href="Ftp_client.ftp_client-c.html">ftp_client</a></span> : <code class="type">?event_system:<a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -> unit -> </code><code class="code">object</code> <a href="Ftp_client.ftp_client-c.html">..</a> <code class="code">end</code></pre><div class="info">
 The ftp client is a user session that may even span several connections.
 </div>
 <br>
@@ -731,4 +789,5 @@ The ftp client is a user session that may even span several connections.
  <code class="code">Netconversion.conversion_pipe</code>.<br>
 <br>
 <h1 id="1_Debugging">Debugging</h1><br>
+
 <pre><span class="keyword">module</span> <a href="Ftp_client.Debug.html">Debug</a>: <code class="code">sig</code> <a href="Ftp_client.Debug.html">..</a> <code class="code">end</code></pre></body></html>

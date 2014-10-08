@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -213,7 +213,8 @@
 &nbsp;<a class="post" href="Netplex_semaphore.html" title="Netplex_semaphore">Next</a>
 </div>
 <h1>Module <a href="type_Netplex_cenv.html">Netplex_cenv</a></h1>
-<pre><span class="keyword">module</span> Netplex_cenv: <code class="code">sig</code> <a href="Netplex_cenv.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Netplex_cenv: <code class="code">sig</code> <a href="Netplex_cenv.html">..</a> <code class="code">end</code></pre><div class="info module top">
 Container environment
 <p>
 
@@ -228,8 +229,9 @@ Container environment
  thread.<br>
 </div>
 <hr width="100%">
+
 <pre><span id="EXCEPTIONNot_in_container_thread"><span class="keyword">exception</span> Not_in_container_thread</span></pre>
-<div class="info">
+<div class="info ">
 Raised when the caller's thread is not a container thread<br>
 </div>
 <br>
@@ -237,13 +239,16 @@ Raised when the caller's thread is not a container thread<br>
 <br>
 Logging functions can be invoked from both container and controller 
     contexts.<br>
-<pre><span id="VALlog"><span class="keyword">val</span> log</span> : <code class="type"><a href="Netplex_types.html#TYPElevel">Netplex_types.level</a> -> string -> unit</code></pre><div class="info">
+
+<pre><span id="VALlog"><span class="keyword">val</span> log</span> : <code class="type"><a href="Netplex_types.html#TYPElevel">Netplex_types.level</a> -> string -> unit</code></pre><div class="info ">
 Writes a log message<br>
 </div>
-<pre><span id="VALlogf"><span class="keyword">val</span> logf</span> : <code class="type"><a href="Netplex_types.html#TYPElevel">Netplex_types.level</a> -> ('a, unit, string, unit) Pervasives.format4 -> 'a</code></pre><div class="info">
+
+<pre><span id="VALlogf"><span class="keyword">val</span> logf</span> : <code class="type"><a href="Netplex_types.html#TYPElevel">Netplex_types.level</a> -> ('a, unit, string, unit) Pervasives.format4 -> 'a</code></pre><div class="info ">
 Writes a log message like <code class="code">printf</code><br>
 </div>
-<pre><span id="VALreport_connection_string"><span class="keyword">val</span> report_connection_string</span> : <code class="type">Unix.file_descr -> string -> string</code></pre><div class="info">
+
+<pre><span id="VALreport_connection_string"><span class="keyword">val</span> report_connection_string</span> : <code class="type">Unix.file_descr -> string -> string</code></pre><div class="info ">
 Output a log line for the <code class="code">netplex.connections</code> admin message.
       The string is the detail to report.<br>
 </div>
@@ -252,12 +257,14 @@ Output a log line for the <code class="code">netplex.connections</code> admin me
 <br>
 Timer functions can only be invoked from container contexts. 
     More documentation is available in <a href="Netplex_advanced.html#timers"><i>Running timers in containers</i></a>.<br>
+
 <pre><span id="TYPEtimer"><span class="keyword">type</span> <code class="type"></code>timer</span> </pre>
-<div class="info">
+<div class="info ">
 A timer<br>
 </div>
 
-<pre><span id="VALcreate_timer"><span class="keyword">val</span> create_timer</span> : <code class="type">(<a href="Netplex_cenv.html#TYPEtimer">timer</a> -> bool) -> float -> <a href="Netplex_cenv.html#TYPEtimer">timer</a></code></pre><div class="info">
+
+<pre><span id="VALcreate_timer"><span class="keyword">val</span> create_timer</span> : <code class="type">(<a href="Netplex_cenv.html#TYPEtimer">timer</a> -> bool) -> float -> <a href="Netplex_cenv.html#TYPEtimer">timer</a></code></pre><div class="info ">
 <code class="code">create_timer f tmo</code>: Creates a timer with timeout value <code class="code">tmo</code>:
       In <code class="code">tmo</code> seconds <code class="code">f</code> is called, and if this function returns <code class="code">true</code>,
       the timer remains active, and another round of timing is arranged.
@@ -272,13 +279,16 @@ A timer<br>
       if this event system runs. Also note that <code class="code">f</code> is always called from
       the main thread of the container.<br>
 </div>
-<pre><span id="VALcancel_timer"><span class="keyword">val</span> cancel_timer</span> : <code class="type"><a href="Netplex_cenv.html#TYPEtimer">timer</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALcancel_timer"><span class="keyword">val</span> cancel_timer</span> : <code class="type"><a href="Netplex_cenv.html#TYPEtimer">timer</a> -> unit</code></pre><div class="info ">
 Cancels the timer: The callback function is not called any longer<br>
 </div>
-<pre><span id="VALcancel_all_timers"><span class="keyword">val</span> cancel_all_timers</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="VALcancel_all_timers"><span class="keyword">val</span> cancel_all_timers</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Cancels all active timers<br>
 </div>
-<pre><span id="VALtimer_id"><span class="keyword">val</span> timer_id</span> : <code class="type"><a href="Netplex_cenv.html#TYPEtimer">timer</a> -> int</code></pre><div class="info">
+
+<pre><span id="VALtimer_id"><span class="keyword">val</span> timer_id</span> : <code class="type"><a href="Netplex_cenv.html#TYPEtimer">timer</a> -> int</code></pre><div class="info ">
 Returns an ID, e.g. useful for debugging<br>
 </div>
 <br>
@@ -293,22 +303,33 @@ Container variables exist once per container. Primary access is
 <p>
 
     More documentation: <a href="Netplex_advanced.html#contvars"><i>Container variables</i></a><br>
+
 <pre><span id="EXCEPTIONContainer_variable_not_found"><span class="keyword">exception</span> Container_variable_not_found</span> <span class="keyword">of</span> <code class="type">string</code></pre>
-<div class="info">
+<div class="info ">
 The variable does not exist<br>
 </div>
+
 <pre><span id="EXCEPTIONContainer_variable_type_mismatch"><span class="keyword">exception</span> Container_variable_type_mismatch</span> <span class="keyword">of</span> <code class="type">string</code></pre>
-<div class="info">
+<div class="info ">
 The (dynamically typed) variable has the wrong type<br>
 </div>
-<pre><span id="VALint_var"><span class="keyword">val</span> int_var</span> : <code class="type">string -> int</code></pre><pre><span id="VALstring_var"><span class="keyword">val</span> string_var</span> : <code class="type">string -> string</code></pre><pre><span id="VALfloat_var"><span class="keyword">val</span> float_var</span> : <code class="type">string -> float</code></pre><pre><span id="VALbool_var"><span class="keyword">val</span> bool_var</span> : <code class="type">string -> bool</code></pre><div class="info">
+
+<pre><span id="VALint_var"><span class="keyword">val</span> int_var</span> : <code class="type">string -> int</code></pre>
+<pre><span id="VALstring_var"><span class="keyword">val</span> string_var</span> : <code class="type">string -> string</code></pre>
+<pre><span id="VALfloat_var"><span class="keyword">val</span> float_var</span> : <code class="type">string -> float</code></pre>
+<pre><span id="VALbool_var"><span class="keyword">val</span> bool_var</span> : <code class="type">string -> bool</code></pre><div class="info ">
 Access a variable with simple type. May raise 
       <code class="code">Container_variable_not_found</code> or <code class="code">Container_variable_type_mismatch</code><br>
 </div>
-<pre><span id="VALset_int_var"><span class="keyword">val</span> set_int_var</span> : <code class="type">string -> int -> unit</code></pre><pre><span id="VALset_string_var"><span class="keyword">val</span> set_string_var</span> : <code class="type">string -> string -> unit</code></pre><pre><span id="VALset_float_var"><span class="keyword">val</span> set_float_var</span> : <code class="type">string -> float -> unit</code></pre><pre><span id="VALset_bool_var"><span class="keyword">val</span> set_bool_var</span> : <code class="type">string -> bool -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_int_var"><span class="keyword">val</span> set_int_var</span> : <code class="type">string -> int -> unit</code></pre>
+<pre><span id="VALset_string_var"><span class="keyword">val</span> set_string_var</span> : <code class="type">string -> string -> unit</code></pre>
+<pre><span id="VALset_float_var"><span class="keyword">val</span> set_float_var</span> : <code class="type">string -> float -> unit</code></pre>
+<pre><span id="VALset_bool_var"><span class="keyword">val</span> set_bool_var</span> : <code class="type">string -> bool -> unit</code></pre><div class="info ">
 Set a variable with simple type<br>
 </div>
-<pre><span id="VALmake_var_type"><span class="keyword">val</span> make_var_type</span> : <code class="type">('a -> <a href="Netplex_types.html#TYPEencap">Netplex_types.encap</a>) -><br>       (<a href="Netplex_types.html#TYPEencap">Netplex_types.encap</a> -> 'a) -> (string -> 'a) * (string -> 'a -> unit)</code></pre><div class="info">
+
+<pre><span id="VALmake_var_type"><span class="keyword">val</span> make_var_type</span> : <code class="type">('a -> <a href="Netplex_types.html#TYPEencap">Netplex_types.encap</a>) -><br>       (<a href="Netplex_types.html#TYPEencap">Netplex_types.encap</a> -> 'a) -> (string -> 'a) * (string -> 'a -> unit)</code></pre><div class="info ">
 Create get and set functions for any (monomorphic) type. For example,
       to create such function for a type <code class="code">foo</code>, do
 <p>
@@ -322,13 +343,16 @@ Create get and set functions for any (monomorphic) type. For example,
 
       Read on for using functors to create <code class="code">get</code> and <code class="code">set</code>.<br>
 </div>
+
 <pre><span class="keyword">module type</span> <a href="Netplex_cenv.TYPE.html">TYPE</a> = <code class="code">sig</code> <a href="Netplex_cenv.TYPE.html">..</a> <code class="code">end</code></pre><div class="info">
 Just a (monomorphic) type <code class="code">t</code>
 </div>
+
 <pre><span class="keyword">module type</span> <a href="Netplex_cenv.VAR_TYPE.html">VAR_TYPE</a> = <code class="code">sig</code> <a href="Netplex_cenv.VAR_TYPE.html">..</a> <code class="code">end</code></pre><div class="info">
 A (monomorphic) type <code class="code">t</code> with two functions <code class="code">get</code> and <code class="code">set</code>
       accessing the container variables
 </div>
+
 <pre><span class="keyword">module</span> <a href="Netplex_cenv.Make_var_type.html">Make_var_type</a>: <div class="sig_block"><code class="code">functor (</code><code class="code">T</code><code class="code"> : </code><code class="type"><a href="Netplex_cenv.TYPE.html">TYPE</a></code><code class="code">) -&gt; </code><code class="type"><a href="Netplex_cenv.VAR_TYPE.html">VAR_TYPE</a></code><code class="type">  with type t = T.t</code></div></pre><div class="info">
 Creates <code class="code">get</code> and <code class="code">set</code> like <code class="code">make_var_type</code>.
 </div>
@@ -337,11 +361,13 @@ Creates <code class="code">get</code> and <code class="code">set</code> like <co
 <br>
 System control functions can be invoked from both container and controller 
     contexts.<br>
-<pre><span id="VALsystem_shutdown"><span class="keyword">val</span> system_shutdown</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="VALsystem_shutdown"><span class="keyword">val</span> system_shutdown</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Initiates a system shutdown (like the <code class="code">shutdown</code> method of the
       controller)<br>
 </div>
-<pre><span id="VALsystem_restart"><span class="keyword">val</span> system_restart</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="VALsystem_restart"><span class="keyword">val</span> system_restart</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Initiates a system restart (like the <code class="code">restart</code> method of the
       controller)<br>
 </div>
@@ -350,7 +376,8 @@ Initiates a system restart (like the <code class="code">restart</code> method of
 <br>
 These functions can only be invoked from container contexts, 
     except <code class="code">send_message</code>.<br>
-<pre><span id="VALsend_message"><span class="keyword">val</span> send_message</span> : <code class="type">string -> string -> string array -> unit</code></pre><div class="info">
+
+<pre><span id="VALsend_message"><span class="keyword">val</span> send_message</span> : <code class="type">string -> string -> string array -> unit</code></pre><div class="info ">
 <code class="code">send_message service_pattern msg_name msg_arguments</code>: Sends
        a message to all services and message receivers matching
        <code class="code">service_pattern</code>. The pattern may include the wildcard <code class="code">*</code>.
@@ -363,7 +390,8 @@ These functions can only be invoked from container contexts,
        This function can be invoked from both container and controller
        contexts.<br>
 </div>
-<pre><span id="VALlookup"><span class="keyword">val</span> lookup</span> : <code class="type">string -> string -> string option</code></pre><div class="info">
+
+<pre><span id="VALlookup"><span class="keyword">val</span> lookup</span> : <code class="type">string -> string -> string option</code></pre><div class="info ">
 <code class="code">lookup service_name protocol_name</code> tries to find a Unix domain
       socket for the service and returns it.
 <p>
@@ -372,7 +400,8 @@ These functions can only be invoked from container contexts,
       IPC mechanism. Use <a href="Netplex_sockserv.html#VALany_file_client_connector"><code class="code">Netplex_sockserv.any_file_client_connector</code></a>
       to convert the path into an RPC connector.<br>
 </div>
-<pre><span id="VALlookup_container_sockets"><span class="keyword">val</span> lookup_container_sockets</span> : <code class="type">string -> string -> string array</code></pre><div class="info">
+
+<pre><span id="VALlookup_container_sockets"><span class="keyword">val</span> lookup_container_sockets</span> : <code class="type">string -> string -> string array</code></pre><div class="info ">
 <code class="code">lookup_container_sockets service_name protocol_name</code>: returns
       the Unix Domain paths of all container sockets for this service and
       protocol. These are the sockets declared with address type
@@ -389,21 +418,25 @@ These functions can only be invoked from container contexts,
 </div>
 <br>
 <h2 id="2_Directcontainerandadmininterfaceaccess">Direct container and admin interface access</h2><br>
-<pre><span id="VALself_cont"><span class="keyword">val</span> self_cont</span> : <code class="type">unit -> <a href="Netplex_types.container-c.html">Netplex_types.container</a></code></pre><div class="info">
+
+<pre><span id="VALself_cont"><span class="keyword">val</span> self_cont</span> : <code class="type">unit -> <a href="Netplex_types.container-c.html">Netplex_types.container</a></code></pre><div class="info ">
 Returns the container running the code of the caller,
       or raise <code class="code">Not_in_container_thread</code> if called from outside a 
       container context.<br>
 </div>
-<pre><span id="VALself_obj"><span class="keyword">val</span> self_obj</span> : <code class="type">unit -><br>       [ `Container of <a href="Netplex_types.container-c.html">Netplex_types.container</a><br>       | `Controller of <a href="Netplex_types.controller-c.html">Netplex_types.controller</a> ]</code></pre><div class="info">
+
+<pre><span id="VALself_obj"><span class="keyword">val</span> self_obj</span> : <code class="type">unit -><br>       [ `Container of <a href="Netplex_types.container-c.html">Netplex_types.container</a><br>       | `Controller of <a href="Netplex_types.controller-c.html">Netplex_types.controller</a> ]</code></pre><div class="info ">
 Returns the container or the controller running the code of the
       caller, or raise <code class="code">Not_found</code> if called from
       neither a container not a controller thread.<br>
 </div>
-<pre><span id="VALcurrent_sys_id"><span class="keyword">val</span> current_sys_id</span> : <code class="type">unit -> [ `Process of int | `Thread of int ]</code></pre><div class="info">
+
+<pre><span id="VALcurrent_sys_id"><span class="keyword">val</span> current_sys_id</span> : <code class="type">unit -> [ `Process of int | `Thread of int ]</code></pre><div class="info ">
 Returns the system-dependent thread identifier of the caller
       (which must be in container or controller context)<br>
 </div>
-<pre><span id="VALadmin_connector"><span class="keyword">val</span> admin_connector</span> : <code class="type">unit -> <a href="Rpc_client.html#TYPEmode2">Rpc_client.mode2</a></code></pre><div class="info">
+
+<pre><span id="VALadmin_connector"><span class="keyword">val</span> admin_connector</span> : <code class="type">unit -> <a href="Rpc_client.html#TYPEmode2">Rpc_client.mode2</a></code></pre><div class="info ">
 Determines the admin socket of the controller, and returns an RPC
       client connector suitable for connecting with the admin interface
       of the controller. For instance to initiate a system shutdown from
@@ -423,7 +456,8 @@ Determines the admin socket of the controller, and returns an RPC
 
       This function must be called from container context.<br>
 </div>
-<pre><span id="VALrun_in_controller_context"><span class="keyword">val</span> run_in_controller_context</span> : <code class="type"><a href="Netplex_types.controller-c.html">Netplex_types.controller</a> -> (unit -> unit) -> unit</code></pre><div class="info">
+
+<pre><span id="VALrun_in_controller_context"><span class="keyword">val</span> run_in_controller_context</span> : <code class="type"><a href="Netplex_types.controller-c.html">Netplex_types.controller</a> -> (unit -> unit) -> unit</code></pre><div class="info ">
 <code class="code">run_in_controller_context ctrl f</code>: Arranges that <code class="code">f()</code> is executed
       in the context of the controller. <b>This is only possible for
       multi-threading but not for multi-processing style!</b> For
@@ -444,7 +478,8 @@ Determines the admin socket of the controller, and returns an RPC
 
       An example can be found here: <a href="Netplex_advanced.html#levers"><i>Levers - calling controller functions from containers</i></a><br>
 </div>
-<pre><span id="VALrun_in_container_context"><span class="keyword">val</span> run_in_container_context</span> : <code class="type"><a href="Netplex_types.container-c.html">Netplex_types.container</a> -> (unit -> unit) -> unit</code></pre><div class="info">
+
+<pre><span id="VALrun_in_container_context"><span class="keyword">val</span> run_in_container_context</span> : <code class="type"><a href="Netplex_types.container-c.html">Netplex_types.container</a> -> (unit -> unit) -> unit</code></pre><div class="info ">
 <code class="code">run_in_container_context cont f</code>: Arranges that <code class="code">f()</code> is executed
       in the context of the container <code class="code">cont</code>. <b>This is only possible for
       multi-threading but not for multi-processing style!</b>
@@ -468,16 +503,20 @@ Levers are a way to send messages to the controller, and to effectively
 <p>
 
     More documentation: <a href="Netplex_advanced.html#levers"><i>Levers - calling controller functions from containers</i></a><br>
+
 <pre><span class="keyword">module type</span> <a href="Netplex_cenv.FUN_TYPE.html">FUN_TYPE</a> = <code class="code">sig</code> <a href="Netplex_cenv.FUN_TYPE.html">..</a> <code class="code">end</code></pre><div class="info">
 Abstraction for function types <code class="code">s-&gt;t</code>
 </div>
-<pre><span class="keyword">module type</span> <a href="Netplex_cenv.LEVER.html">LEVER</a> = <code class="code">sig</code> <a href="Netplex_cenv.LEVER.html">..</a> <code class="code">end</code></pre><pre><span class="keyword">module</span> <a href="Netplex_cenv.Make_lever.html">Make_lever</a>: <div class="sig_block"><code class="code">functor (</code><code class="code">T</code><code class="code"> : </code><code class="type"><a href="Netplex_cenv.FUN_TYPE.html">FUN_TYPE</a></code><code class="code">) -&gt; </code><code class="type"><a href="Netplex_cenv.LEVER.html">LEVER</a></code><code class="type">  with type s=T.s and type r=T.r</code></div></pre><div class="info">
+
+<pre><span class="keyword">module type</span> <a href="Netplex_cenv.LEVER.html">LEVER</a> = <code class="code">sig</code> <a href="Netplex_cenv.LEVER.html">..</a> <code class="code">end</code></pre>
+<pre><span class="keyword">module</span> <a href="Netplex_cenv.Make_lever.html">Make_lever</a>: <div class="sig_block"><code class="code">functor (</code><code class="code">T</code><code class="code"> : </code><code class="type"><a href="Netplex_cenv.FUN_TYPE.html">FUN_TYPE</a></code><code class="code">) -&gt; </code><code class="type"><a href="Netplex_cenv.LEVER.html">LEVER</a></code><code class="type">  with type s=T.s and type r=T.r</code></div></pre><div class="info">
 Creates a <code class="code">LEVER</code> module from a function type as specified in
       <code class="code">FUN_TYPE</code>
 </div>
 <br>
 <h2 id="2_Persistentkernelobjects">Persistent kernel objects</h2><br>
-<pre><span id="VALpmanage"><span class="keyword">val</span> pmanage</span> : <code class="type">unit -> <a href="Netsys_pmanage.pmanage-c.html">Netsys_pmanage.pmanage</a></code></pre><div class="info">
+
+<pre><span id="VALpmanage"><span class="keyword">val</span> pmanage</span> : <code class="type">unit -> <a href="Netsys_pmanage.pmanage-c.html">Netsys_pmanage.pmanage</a></code></pre><div class="info ">
 Access the manager for persistent kernel objects with limited
       lifetime. Among these objects there are shared memory objects,
       and named semaphores. These objects can usually be deleted when
@@ -489,4 +528,5 @@ Access the manager for persistent kernel objects with limited
 </div>
 <br>
 <h1 id="1_Debugging">Debugging</h1><br>
+
 <pre><span class="keyword">module</span> <a href="Netplex_cenv.Debug.html">Debug</a>: <code class="code">sig</code> <a href="Netplex_cenv.Debug.html">..</a> <code class="code">end</code></pre></body></html>

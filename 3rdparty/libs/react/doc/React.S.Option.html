@@ -32,17 +32,17 @@
 </div>
 
 <pre><span id="VALvalue"><span class="keyword">val</span> value</span> : <code class="type">?eq:('a -> 'a -> bool) -><br>       default:[ `Always of 'a <a href="React.html#TYPEsignal">React.signal</a> | `Init of 'a <a href="React.html#TYPEsignal">React.signal</a> ] -><br>       'a option <a href="React.html#TYPEsignal">React.signal</a> -> 'a <a href="React.html#TYPEsignal">React.signal</a></code></pre><div class="info ">
-<code class="code">value default s</code> is <code class="code">s</code> with only its <code class="code"><span class="constructor">Some</span> v</code> values. 
-        Whenever <code class="code">s</code> is <code class="code"><span class="constructor">None</span></code>, if <code class="code">default</code> is <code class="code"><span class="keywordsign">`</span><span class="constructor">Always</span> dv</code> then 
+<code class="code">value default s</code> is <code class="code">s</code> with only its <code class="code"><span class="constructor">Some</span> v</code> values.
+        Whenever <code class="code">s</code> is <code class="code"><span class="constructor">None</span></code>, if <code class="code">default</code> is <code class="code"><span class="keywordsign">`</span><span class="constructor">Always</span> dv</code> then
         the current value of <code class="code">dv</code> is used instead. If <code class="code">default</code>
         is <code class="code"><span class="keywordsign">`</span><span class="constructor">Init</span> dv</code> the current value of <code class="code">dv</code> is only used
         if there's no value at creation time, otherwise the last
         <code class="code"><span class="constructor">Some</span> v</code> value of <code class="code">s</code> is used.
         <ul>
 <li>[<code class="code">value ~default s</code>]<sub class="subscript">t</sub> <code class="code">= v</code> if [<code class="code">s</code>]<sub class="subscript">t</sub> <code class="code">= <span class="constructor">Some</span> v</code></li>
-<li>[<code class="code">value ~default:(<span class="keywordsign">`</span><span class="constructor">Always</span> d) s</code>]<sub class="subscript">t</sub> <code class="code">=</code> [<code class="code">d</code>]<sub class="subscript">t</sub> 
+<li>[<code class="code">value ~default:(<span class="keywordsign">`</span><span class="constructor">Always</span> d) s</code>]<sub class="subscript">t</sub> <code class="code">=</code> [<code class="code">d</code>]<sub class="subscript">t</sub>
           if [<code class="code">s</code>]<sub class="subscript">t</sub> <code class="code">= <span class="constructor">None</span></code></li>
-<li>[<code class="code">value ~default:(<span class="keywordsign">`</span><span class="constructor">Init</span> d) s</code>]<sub class="subscript">0</sub> <code class="code">=</code> [<code class="code">d</code>]<sub class="subscript">0</sub> 
+<li>[<code class="code">value ~default:(<span class="keywordsign">`</span><span class="constructor">Init</span> d) s</code>]<sub class="subscript">0</sub> <code class="code">=</code> [<code class="code">d</code>]<sub class="subscript">0</sub>
           if [<code class="code">s</code>]<sub class="subscript">0</sub> <code class="code">= <span class="constructor">None</span></code></li>
 <li>[<code class="code">value ~default:(<span class="keywordsign">`</span><span class="constructor">Init</span> d) s</code>]<sub class="subscript">t</sub> <code class="code">=</code>
            [<code class="code">value ~default:(<span class="keywordsign">`</span><span class="constructor">Init</span> d) s</code>]<sub class="subscript">t'</sub>

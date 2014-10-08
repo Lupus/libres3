@@ -1,9 +1,10 @@
-/* $Id: netsys_c_htab.c 1497 2010-11-28 22:13:46Z gerd $ */
+/* $Id: netsys_c_htab.c 2012 2014-08-31 14:10:41Z gerd $ */
 
 #include "netsys_c_htab.h"
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <stdint.h>
 
 /* Define an FNV-1 hash function
    (see http://en.wikipedia.org/wiki/Fowler_Noll_Vo_hash)
@@ -35,12 +36,12 @@
 
 static void netsys_htab_add_1(struct htab *t, void *a1, void *a2)
 {
-    unsigned long i1, h1, size;
+    uintptr_t i1, h1, size;
     struct htab_cell *table;
 
     table = t->table;
     size = t->table_size;
-    i1 = (unsigned long) a1;
+    i1 = (uintptr_t) a1;
     h1 = H(i1, size);
     while (table[h1].orig_addr != NULL) {
         h1++;
@@ -105,7 +106,7 @@ int netsys_htab_init(struct htab *t, unsigned long n)
 
 void netsys_htab_clear(struct htab *t) 
 {
-    unsigned long k, size;
+    unsigned long size;
     struct htab_cell *table;
 
     size = t->table_size;
@@ -134,12 +135,12 @@ int netsys_htab_add(struct htab *t, void *a1, void *a2)
 int netsys_htab_lookup(struct htab *t, 
                        void *a1, void **a2p)
 {
-    unsigned long i1, h1, size;
+    uintptr_t i1, h1, size;
     struct htab_cell *table;
 
     table = t->table;
     size = t->table_size;
-    i1 = (unsigned long) a1;
+    i1 = (uintptr_t) a1;
     h1 = H(i1, size);
     while (table[h1].orig_addr != NULL && table[h1].orig_addr != a1) {
         h1++;

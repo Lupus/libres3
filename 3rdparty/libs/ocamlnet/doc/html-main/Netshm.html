@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -208,29 +208,36 @@
 &nbsp;<a class="post" href="Netshm_data.html" title="Netshm_data">Next</a>
 </div>
 <h1>Module <a href="type_Netshm.html">Netshm</a></h1>
-<pre><span class="keyword">module</span> Netshm: <code class="code">sig</code> <a href="Netshm.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Netshm: <code class="code">sig</code> <a href="Netshm.html">..</a> <code class="code">end</code></pre><div class="info module top">
 Shared memory for O'Caml programs using multi-processing<br>
 </div>
 <hr width="100%">
 <br>
 <h1 id="1_SharedMemoryDescriptors">Shared Memory Descriptors</h1><br>
+
 <pre><span id="TYPEshm_descr"><span class="keyword">type</span> <code class="type"></code>shm_descr</span> </pre>
-<div class="info">
+<div class="info ">
 A shared memory descriptor refers to a shared memory object.
  Such a descriptor must only be opened once for every process.<br>
 </div>
 
+
 <pre><span id="TYPEshm_type"><span class="keyword">type</span> <code class="type"></code>shm_type</span> = <code class="type">[ `File | `POSIX ]</code> </pre>
 
-<pre><span id="VALsupported_types"><span class="keyword">val</span> supported_types</span> : <code class="type"><a href="Netshm.html#TYPEshm_type">shm_type</a> list</code></pre><div class="info">
+
+<pre><span id="VALsupported_types"><span class="keyword">val</span> supported_types</span> : <code class="type"><a href="Netshm.html#TYPEshm_type">shm_type</a> list</code></pre><div class="info ">
 The types supported for this OS<br>
 </div>
+
 <pre><span id="TYPEshm_name"><span class="keyword">type</span> <code class="type"></code>shm_name</span> = <code class="type">[ `File of string | `POSIX of string ]</code> </pre>
-<div class="info">
+<div class="info ">
 A <code class="code">shm_name</code> is a name for a shared memory object.<br>
 </div>
 
-<pre><span id="VALshm_type_of_name"><span class="keyword">val</span> shm_type_of_name</span> : <code class="type"><a href="Netshm.html#TYPEshm_name">shm_name</a> -> <a href="Netshm.html#TYPEshm_type">shm_type</a></code></pre><pre><span id="VALopen_shm"><span class="keyword">val</span> open_shm</span> : <code class="type"><a href="Netshm.html#TYPEshm_name">shm_name</a> -> Unix.open_flag list -> int -> <a href="Netshm.html#TYPEshm_descr">shm_descr</a></code></pre><div class="info">
+
+<pre><span id="VALshm_type_of_name"><span class="keyword">val</span> shm_type_of_name</span> : <code class="type"><a href="Netshm.html#TYPEshm_name">shm_name</a> -> <a href="Netshm.html#TYPEshm_type">shm_type</a></code></pre>
+<pre><span id="VALopen_shm"><span class="keyword">val</span> open_shm</span> : <code class="type"><a href="Netshm.html#TYPEshm_name">shm_name</a> -> Unix.open_flag list -> int -> <a href="Netshm.html#TYPEshm_descr">shm_descr</a></code></pre><div class="info ">
 Opens the shared memory object.
 <p>
 
@@ -238,7 +245,8 @@ Opens the shared memory object.
  are limited to <code class="code">O_RDONLY</code>, <code class="code">O_RDWR</code>, <code class="code">O_CREAT</code>, <code class="code">O_EXCL</code> and
  <code class="code">O_TRUNC</code>.<br>
 </div>
-<pre><span id="VALcreate_unique_shm"><span class="keyword">val</span> create_unique_shm</span> : <code class="type"><a href="Netshm.html#TYPEshm_name">shm_name</a> -> int -> <a href="Netshm.html#TYPEshm_descr">shm_descr</a></code></pre><div class="info">
+
+<pre><span id="VALcreate_unique_shm"><span class="keyword">val</span> create_unique_shm</span> : <code class="type"><a href="Netshm.html#TYPEshm_name">shm_name</a> -> int -> <a href="Netshm.html#TYPEshm_descr">shm_descr</a></code></pre><div class="info ">
 Create a shared memory object under a name that is derived
  from the passed <code class="code">shm_name</code>. The actual name can be queried with
  <code class="code">name_of_shm</code> (below).
@@ -253,21 +261,27 @@ Create a shared memory object under a name that is derived
 
  The integer is the file permission.<br>
 </div>
-<pre><span id="VALname_of_shm"><span class="keyword">val</span> name_of_shm</span> : <code class="type"><a href="Netshm.html#TYPEshm_descr">shm_descr</a> -> <a href="Netshm.html#TYPEshm_name">shm_name</a></code></pre><div class="info">
+
+<pre><span id="VALname_of_shm"><span class="keyword">val</span> name_of_shm</span> : <code class="type"><a href="Netshm.html#TYPEshm_descr">shm_descr</a> -> <a href="Netshm.html#TYPEshm_name">shm_name</a></code></pre><div class="info ">
 Returns the name of an object<br>
 </div>
-<pre><span id="VALclose_shm"><span class="keyword">val</span> close_shm</span> : <code class="type"><a href="Netshm.html#TYPEshm_descr">shm_descr</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALclose_shm"><span class="keyword">val</span> close_shm</span> : <code class="type"><a href="Netshm.html#TYPEshm_descr">shm_descr</a> -> unit</code></pre><div class="info ">
 Closes the object. The object remains existent and can be
  opened again.<br>
 </div>
-<pre><span id="VALunlink_shm"><span class="keyword">val</span> unlink_shm</span> : <code class="type"><a href="Netshm.html#TYPEshm_name">shm_name</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALunlink_shm"><span class="keyword">val</span> unlink_shm</span> : <code class="type"><a href="Netshm.html#TYPEshm_name">shm_name</a> -> unit</code></pre><div class="info ">
 Removes the name permanently from the system<br>
 </div>
-<pre><span id="VALchmod_shm"><span class="keyword">val</span> chmod_shm</span> : <code class="type"><a href="Netshm.html#TYPEshm_descr">shm_descr</a> -> int -> unit</code></pre><pre><span id="VALchown_shm"><span class="keyword">val</span> chown_shm</span> : <code class="type"><a href="Netshm.html#TYPEshm_descr">shm_descr</a> -> int -> int -> unit</code></pre><div class="info">
+
+<pre><span id="VALchmod_shm"><span class="keyword">val</span> chmod_shm</span> : <code class="type"><a href="Netshm.html#TYPEshm_descr">shm_descr</a> -> int -> unit</code></pre>
+<pre><span id="VALchown_shm"><span class="keyword">val</span> chown_shm</span> : <code class="type"><a href="Netshm.html#TYPEshm_descr">shm_descr</a> -> int -> int -> unit</code></pre><div class="info ">
 Set file permission bits, user and group ownership of the object<br>
 </div>
+
 <pre><span id="TYPElocking_method"><span class="keyword">type</span> <code class="type"></code>locking_method</span> = <code class="type">[ `No_locking | `Record_locking ]</code> </pre>
-<div class="info">
+<div class="info ">
 The locking method is used to ensure that parallel read and write
  operations to the memory object do not interfer with each other.
  If <code class="code">No_locking</code> is selected, such protection is not done - this
@@ -276,7 +290,8 @@ The locking method is used to ensure that parallel read and write
  The locking method must be compatible with the type of shared memory.<br>
 </div>
 
-<pre><span id="VALbest_locking_method"><span class="keyword">val</span> best_locking_method</span> : <code class="type"><a href="Netshm.html#TYPEshm_type">shm_type</a> -> <a href="Netshm.html#TYPElocking_method">locking_method</a></code></pre><div class="info">
+
+<pre><span id="VALbest_locking_method"><span class="keyword">val</span> best_locking_method</span> : <code class="type"><a href="Netshm.html#TYPEshm_type">shm_type</a> -> <a href="Netshm.html#TYPElocking_method">locking_method</a></code></pre><div class="info ">
 Return the best locking method other than <code class="code">No_locking</code><br>
 </div>
 <br>
@@ -287,20 +302,25 @@ This is a quite basic data structure implemented for shared memory:
  bigarray as values.<br>
 <br>
 The semantics resembles the <code class="code">Hashtbl</code> of stdlib<br>
+
 <pre><span id="TYPEshm_table"><span class="keyword">type</span> <code class="type"></code>shm_table</span> </pre>
+
 
 <pre><span id="TYPEint32_array"><span class="keyword">type</span> <code class="type"></code>int32_array</span> = <code class="type">(int32, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array1.t</code> </pre>
 
+
 <pre><span id="EXCEPTIONCorrupt_file"><span class="keyword">exception</span> Corrupt_file</span> <span class="keyword">of</span> <code class="type">string</code></pre>
-<div class="info">
+<div class="info ">
 Raised when a violation of the object format is detected<br>
 </div>
+
 <pre><span id="EXCEPTIONDeadlock"><span class="keyword">exception</span> Deadlock</span></pre>
-<div class="info">
+<div class="info ">
 Raised when a deadlock situation was detected. Deadlocks can occur
  when the <code class="code">group</code> function is used<br>
 </div>
-<pre><span id="VALmanage"><span class="keyword">val</span> manage</span> : <code class="type">?pagesize:int -><br>       ?init:int -> <a href="Netshm.html#TYPElocking_method">locking_method</a> -> <a href="Netshm.html#TYPEshm_descr">shm_descr</a> -> <a href="Netshm.html#TYPEshm_table">shm_table</a></code></pre><div class="info">
+
+<pre><span id="VALmanage"><span class="keyword">val</span> manage</span> : <code class="type">?pagesize:int -><br>       ?init:int -> <a href="Netshm.html#TYPElocking_method">locking_method</a> -> <a href="Netshm.html#TYPEshm_descr">shm_descr</a> -> <a href="Netshm.html#TYPEshm_table">shm_table</a></code></pre><div class="info ">
 Starts managing an open shared memory object as <code class="code">shm_table</code>. If
  the object is empty, it is automatically enlarged to the 
  minimum size and initialized. If the object is non-empty it is
@@ -333,7 +353,8 @@ Starts managing an open shared memory object as <code class="code">shm_table</co
  <code class="code">shm_descr</code> or <code class="code">shm_table</code> in the subprocess. (This doesn't work
  because the underlying file descriptor would be shared.)<br>
 </div>
-<pre><span id="VALgroup"><span class="keyword">val</span> group</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> ('a -> 'b) -> 'a -> 'b</code></pre><div class="info">
+
+<pre><span id="VALgroup"><span class="keyword">val</span> group</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> ('a -> 'b) -> 'a -> 'b</code></pre><div class="info ">
 Execute a sequence of operations in a group:
 <p>
 
@@ -377,34 +398,41 @@ Execute a sequence of operations in a group:
  another process also modifies the same value between <code class="code">find</code> and
  <code class="code">replace</code>.<br>
 </div>
-<pre><span id="VALadd"><span class="keyword">val</span> add</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> int32 -> <a href="Netshm.html#TYPEint32_array">int32_array</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALadd"><span class="keyword">val</span> add</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> int32 -> <a href="Netshm.html#TYPEint32_array">int32_array</a> -> unit</code></pre><div class="info ">
 <code class="code">add tbl key value</code>: Adds the binding of <code class="code">key</code> to <code class="code">value</code> to the
  table. Previous bindings are not removed, but simply hidden.<br>
 </div>
-<pre><span id="VALfind"><span class="keyword">val</span> find</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> int32 -> <a href="Netshm.html#TYPEint32_array">int32_array</a></code></pre><div class="info">
+
+<pre><span id="VALfind"><span class="keyword">val</span> find</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> int32 -> <a href="Netshm.html#TYPEint32_array">int32_array</a></code></pre><div class="info ">
 <code class="code">find tbl key</code>: Finds the current binding of <code class="code">key</code> in <code class="code">tbl</code> or
  raises <code class="code">Not_found</code> if no such binding exists.<br>
 </div>
-<pre><span id="VALfind_all"><span class="keyword">val</span> find_all</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> int32 -> <a href="Netshm.html#TYPEint32_array">int32_array</a> list</code></pre><div class="info">
+
+<pre><span id="VALfind_all"><span class="keyword">val</span> find_all</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> int32 -> <a href="Netshm.html#TYPEint32_array">int32_array</a> list</code></pre><div class="info ">
 <code class="code">find_all tbl key</code> returns the list of all data
  associated with <code class="code">key</code> in <code class="code">tbl</code>.
  The current binding is returned first, then the previous
  bindings, in reverse order of introduction in the table.<br>
 </div>
-<pre><span id="VALmem"><span class="keyword">val</span> mem</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> int32 -> bool</code></pre><div class="info">
+
+<pre><span id="VALmem"><span class="keyword">val</span> mem</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> int32 -> bool</code></pre><div class="info ">
 <code class="code">mem tbl key</code> checks if <code class="code">key</code> is bound in <code class="code">tbl</code>.<br>
 </div>
-<pre><span id="VALremove"><span class="keyword">val</span> remove</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> int32 -> unit</code></pre><div class="info">
+
+<pre><span id="VALremove"><span class="keyword">val</span> remove</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> int32 -> unit</code></pre><div class="info ">
 <code class="code">remove tbl key</code> removes the current binding of <code class="code">key</code> in <code class="code">tbl</code>,
  restoring the previous binding if it exists.
  It does nothing if <code class="code">key</code> is not bound in <code class="code">tbl</code>.<br>
 </div>
-<pre><span id="VALreplace"><span class="keyword">val</span> replace</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> int32 -> <a href="Netshm.html#TYPEint32_array">int32_array</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALreplace"><span class="keyword">val</span> replace</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> int32 -> <a href="Netshm.html#TYPEint32_array">int32_array</a> -> unit</code></pre><div class="info ">
 <code class="code">replace tbl key value</code> replaces the current binding of <code class="code">key</code>
  in <code class="code">tbl</code> by a binding of <code class="code">key</code> to <code class="code">value</code>.  If <code class="code">key</code> is unbound in <code class="code">tbl</code>,
  a binding of <code class="code">key</code> to <code class="code">value</code> is added to <code class="code">tbl</code>.<br>
 </div>
-<pre><span id="VALiter"><span class="keyword">val</span> iter</span> : <code class="type">(int32 -> <a href="Netshm.html#TYPEint32_array">int32_array</a> -> unit) -> <a href="Netshm.html#TYPEshm_table">shm_table</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALiter"><span class="keyword">val</span> iter</span> : <code class="type">(int32 -> <a href="Netshm.html#TYPEint32_array">int32_array</a> -> unit) -> <a href="Netshm.html#TYPEshm_table">shm_table</a> -> unit</code></pre><div class="info ">
 <code class="code">iter f tbl</code> applies <code class="code">f</code> to all bindings in table <code class="code">tbl</code>.
  <code class="code">f</code> receives the key as first argument, and the associated value
  as second argument. Each binding is presented exactly once to <code class="code">f</code>.
@@ -417,7 +445,8 @@ Execute a sequence of operations in a group:
  While the iteration is in progress, the table is read-locked.
  That means you cannot modify it during the iteration.<br>
 </div>
-<pre><span id="VALiter_keys"><span class="keyword">val</span> iter_keys</span> : <code class="type">(int32 -> unit) -> <a href="Netshm.html#TYPEshm_table">shm_table</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALiter_keys"><span class="keyword">val</span> iter_keys</span> : <code class="type">(int32 -> unit) -> <a href="Netshm.html#TYPEshm_table">shm_table</a> -> unit</code></pre><div class="info ">
 <code class="code">iter_keys f tbl</code> applies <code class="code">f</code> to all keys in table <code class="code">tbl</code>. If there
  are several bindings for a key, <code class="code">f</code> is only called once.
 <p>
@@ -425,7 +454,8 @@ Execute a sequence of operations in a group:
  While the iteration is in progress, the table is locked.
  That means you cannot modify it during the iteration.<br>
 </div>
-<pre><span id="VALfold"><span class="keyword">val</span> fold</span> : <code class="type">(int32 -> <a href="Netshm.html#TYPEint32_array">int32_array</a> -> 'a -> 'a) -> <a href="Netshm.html#TYPEshm_table">shm_table</a> -> 'a -> 'a</code></pre><div class="info">
+
+<pre><span id="VALfold"><span class="keyword">val</span> fold</span> : <code class="type">(int32 -> <a href="Netshm.html#TYPEint32_array">int32_array</a> -> 'a -> 'a) -> <a href="Netshm.html#TYPEshm_table">shm_table</a> -> 'a -> 'a</code></pre><div class="info ">
 <code class="code">fold f tbl init</code> computes
  <code class="code">(f kN dN ... (f k1 d1 init)...)</code>,
  where <code class="code">k1 ... kN</code> are the keys of all bindings in <code class="code">tbl</code>,
@@ -440,16 +470,20 @@ Execute a sequence of operations in a group:
  While the iteration is in progress, the table is locked.
  That means you cannot modify it during the iteration.<br>
 </div>
-<pre><span id="VALlength"><span class="keyword">val</span> length</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> int</code></pre><div class="info">
+
+<pre><span id="VALlength"><span class="keyword">val</span> length</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> int</code></pre><div class="info ">
 <code class="code">length tbl</code> returns the number of bindings in <code class="code">tbl</code>.
  Multiple bindings are counted multiply, so <code class="code">length</code>
  gives the number of times <code class="code">iter</code> calls its first argument.<br>
 </div>
 <br>
 <h1 id="1_EnhancedAPItosharedmemorytables">Enhanced API to shared memory tables</h1><br>
+
 <pre><span id="EXCEPTIONNext"><span class="keyword">exception</span> Next</span></pre>
+
 <pre><span id="EXCEPTIONBreak"><span class="keyword">exception</span> Break</span></pre>
-<pre><span id="VALread_blocks"><span class="keyword">val</span> read_blocks</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> int32 -> (<a href="Netshm.html#TYPEint32_array">int32_array</a> option -> unit) -> unit</code></pre><div class="info">
+
+<pre><span id="VALread_blocks"><span class="keyword">val</span> read_blocks</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> int32 -> (<a href="Netshm.html#TYPEint32_array">int32_array</a> option -> unit) -> unit</code></pre><div class="info ">
 <code class="code">find_blocks tbl key f</code>: The values may be stored in several
  disk blocks. This interface allows one to access the values block by
  block. As <code class="code">find_all</code>, all bindings for <code class="code">key</code> in <code class="code">tbl</code> are determined
@@ -468,11 +502,14 @@ Execute a sequence of operations in a group:
  The binding is at that time, however, only read-locked, so this
  should be avoided.<br>
 </div>
+
 <pre><span id="TYPEwrite_op"><span class="keyword">type</span> <code class="type"></code>write_op</span> = <code class="type">[ `Remove_binding ]</code> </pre>
+
 
 <pre><span id="TYPEctrl_op"><span class="keyword">type</span> <code class="type"></code>ctrl_op</span> = <code class="type">[ `Nop | `Remove_binding ]</code> </pre>
 
-<pre><span id="VALwrite_blocks"><span class="keyword">val</span> write_blocks</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -><br>       <a href="Netshm.html#TYPEwrite_op">write_op</a> list -><br>       int32 -> (<a href="Netshm.html#TYPEint32_array">int32_array</a> option -> <a href="Netshm.html#TYPEctrl_op">ctrl_op</a>) -> unit</code></pre><div class="info">
+
+<pre><span id="VALwrite_blocks"><span class="keyword">val</span> write_blocks</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -><br>       <a href="Netshm.html#TYPEwrite_op">write_op</a> list -><br>       int32 -> (<a href="Netshm.html#TYPEint32_array">int32_array</a> option -> <a href="Netshm.html#TYPEctrl_op">ctrl_op</a>) -> unit</code></pre><div class="info ">
 <code class="code">write_blocks tbl ops key f</code>: Like <code class="code">read_blocks</code> this function iterates
  over the blocks of all bindings for <code class="code">key</code>. For every binding <code class="code">value</code>,
  the function <code class="code">f</code> is invoked in a sequence
@@ -503,4 +540,7 @@ Execute a sequence of operations in a group:
  The binding is at that time write-locked, so such assignments
  are protected against concurrent writes.<br>
 </div>
-<pre><span id="VALdump"><span class="keyword">val</span> dump</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> unit</code></pre><pre><span id="VALbigarray"><span class="keyword">val</span> bigarray</span> : <code class="type">int array -> <a href="Netshm.html#TYPEint32_array">int32_array</a></code></pre><pre><span id="VALmemory"><span class="keyword">val</span> memory</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -><br>       (int32, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array2.t</code></pre></body></html>
+
+<pre><span id="VALdump"><span class="keyword">val</span> dump</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -> unit</code></pre>
+<pre><span id="VALbigarray"><span class="keyword">val</span> bigarray</span> : <code class="type">int array -> <a href="Netshm.html#TYPEint32_array">int32_array</a></code></pre>
+<pre><span id="VALmemory"><span class="keyword">val</span> memory</span> : <code class="type"><a href="Netshm.html#TYPEshm_table">shm_table</a> -><br>       (int32, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array2.t</code></pre></body></html>

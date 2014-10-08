@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -206,7 +206,8 @@
 &nbsp;<a class="post" href="Ftp_data_endpoint.html" title="Ftp_data_endpoint">Next</a>
 </div>
 <h1>Module <a href="type_Telnet_client.html">Telnet_client</a></h1>
-<pre><span class="keyword">module</span> Telnet_client: <code class="code">sig</code> <a href="Telnet_client.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Telnet_client: <code class="code">sig</code> <a href="Telnet_client.html">..</a> <code class="code">end</code></pre><div class="info module top">
 Telnet client
 <p>
 
@@ -215,10 +216,12 @@ Telnet client
  negotiation of Telnet options, but it does not implement any option.<br>
 </div>
 <hr width="100%">
+
 <pre><span id="EXCEPTIONTelnet_protocol"><span class="keyword">exception</span> Telnet_protocol</span> <span class="keyword">of</span> <code class="type">exn</code></pre>
-<div class="info">
+<div class="info ">
 Wrapper for exceptions that already passed the exception handler.<br>
 </div>
+
 <pre><code><span id="TYPEtelnet_command"><span class="keyword">type</span> <code class="type"></code>telnet_command</span> = </code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
@@ -354,7 +357,7 @@ Wrapper for exceptions that already passed the exception handler.<br>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >Timeout event</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr></table>
 
-<div class="info">
+<div class="info ">
 A <code class="code">telnet_command</code> is the interpretation of the octets in a Telnet
  session, i.e. it is one level above the octet stream. See RFC 854
  for an explanation what the commands mean. <code class="code">Telnet_data</code> represents
@@ -368,31 +371,32 @@ A <code class="code">telnet_command</code> is the interpretation of the octets i
  of time.<br>
 </div>
 
+
 <pre><code><span id="TYPEtelnet_options"><span class="keyword">type</span> <code class="type"></code>telnet_options</span> = {</code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTtelnet_options.connection_timeout">connection_timeout</span>&nbsp;:<code class="type">float</code>;</code></td>
+<code><span id="TYPEELTtelnet_options.connection_timeout">connection_timeout</span>&nbsp;: <code class="type">float</code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTtelnet_options.verbose_input">verbose_input</span>&nbsp;:<code class="type">bool</code>;</code></td>
+<code><span id="TYPEELTtelnet_options.verbose_input">verbose_input</span>&nbsp;: <code class="type">bool</code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTtelnet_options.verbose_output">verbose_output</span>&nbsp;:<code class="type">bool</code>;</code></td>
+<code><span id="TYPEELTtelnet_options.verbose_output">verbose_output</span>&nbsp;: <code class="type">bool</code>;</code></td>
 
 </tr></table>
 }
 
-<div class="info">
+<div class="info ">
 <code class="code">telnet_options</code>: modifies the behaviour of the client. Do not mix these
  options up with the options negotiated with the remote side.
 <p>
@@ -406,6 +410,7 @@ A <code class="code">telnet_command</code> is the interpretation of the octets i
 </ul>
 <br>
 </div>
+
 
 <pre><code><span id="TYPEtelnet_negotiated_option"><span class="keyword">type</span> <code class="type"></code>telnet_negotiated_option</span> = </code></pre><table class="typetable">
 <tr>
@@ -521,10 +526,11 @@ A <code class="code">telnet_command</code> is the interpretation of the octets i
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >all other options</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr></table>
 
-<div class="info">
+<div class="info ">
 <code class="code">telnet_negotiated_option</code>: names for the most common options, and
  the generic name <code class="code">Telnet_option</code> for other options.<br>
 </div>
+
 
 <pre><code><span id="TYPEtelnet_option_state"><span class="keyword">type</span> <code class="type"></code>telnet_option_state</span> = </code></pre><table class="typetable">
 <tr>
@@ -549,7 +555,7 @@ A <code class="code">telnet_command</code> is the interpretation of the octets i
 
 </tr></table>
 
-<div class="info">
+<div class="info ">
 An option has one of three states:<ul>
 <li><code class="code">Not_negotiated</code>: There was no negotiation about the option. This means
    that the option is turned off (but this client is allowed to reject
@@ -562,14 +568,17 @@ An option has one of three states:<ul>
 <br>
 </div>
 
-<pre><span id="VALchar_of_option"><span class="keyword">val</span> char_of_option</span> : <code class="type"><a href="Telnet_client.html#TYPEtelnet_negotiated_option">telnet_negotiated_option</a> -> char</code></pre><div class="info">
+
+<pre><span id="VALchar_of_option"><span class="keyword">val</span> char_of_option</span> : <code class="type"><a href="Telnet_client.html#TYPEtelnet_negotiated_option">telnet_negotiated_option</a> -> char</code></pre><div class="info ">
 Converts the option name to the character representing it on the
  octet-stream level.<br>
 </div>
-<pre><span id="VALoption_of_char"><span class="keyword">val</span> option_of_char</span> : <code class="type">char -> <a href="Telnet_client.html#TYPEtelnet_negotiated_option">telnet_negotiated_option</a></code></pre><div class="info">
+
+<pre><span id="VALoption_of_char"><span class="keyword">val</span> option_of_char</span> : <code class="type">char -> <a href="Telnet_client.html#TYPEtelnet_negotiated_option">telnet_negotiated_option</a></code></pre><div class="info ">
 Converts a character representing an option to the internal option
  name.<br>
 </div>
+
 <pre><code><span id="TYPEtelnet_connector"><span class="keyword">type</span> <code class="type"></code>telnet_connector</span> = </code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
@@ -586,7 +595,7 @@ Converts a character representing an option to the internal option
 
 </tr></table>
 
-<div class="info">
+<div class="info ">
 Connectors:<ul>
 <li><code class="code">Telnet_connect(host,port)</code>: The client connects to this port.</li>
 <li><code class="code">Telnet_socket s</code>: The client uses an already connected socket.</li>
@@ -601,9 +610,11 @@ Connectors:<ul>
  these connections over to a <code class="code">telnet_session</code> object via <code class="code">Telnet_socket</code>.<br>
 </div>
 
+
 <pre><span name="TYPEtelnet_session"><span class="keyword">class</span> <a href="Telnet_client.telnet_session-c.html">telnet_session</a></span> : <code class="type"></code><code class="code">object</code> <a href="Telnet_client.telnet_session-c.html">..</a> <code class="code">end</code></pre><div class="info">
 A telnet session
 </div>
 <br>
 <h1 id="1_Debugging">Debugging</h1><br>
+
 <pre><span class="keyword">module</span> <a href="Telnet_client.Debug.html">Debug</a>: <code class="code">sig</code> <a href="Telnet_client.Debug.html">..</a> <code class="code">end</code></pre></body></html>

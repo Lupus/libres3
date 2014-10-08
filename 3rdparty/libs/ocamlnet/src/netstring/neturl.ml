@@ -1,4 +1,4 @@
-(* $Id: neturl.ml 1662 2011-08-29 23:05:06Z gerd $
+(* $Id: neturl.ml 1998 2014-08-24 20:41:09Z gerd $
  * ----------------------------------------------------------------------
  *
  *)
@@ -278,7 +278,7 @@ let extract_url_scheme s =
 ;;
 
 
-let ( => ) a b = not a or b;;   (* implication *)
+let ( => ) a b = not a || b;;   (* implication *)
 
 let ( <=> ) (a:bool) b = ( a = b );;  (* equivalence *)
 
@@ -1523,7 +1523,7 @@ let norm_path l =
 
 
 let apply_relative_url baseurl relurl =
-  if not (baseurl.url_validity) or not (relurl.url_validity) then
+  if not (baseurl.url_validity) || not (relurl.url_validity) then
     failwith "Neturl.apply_relative_url: URL not flagged as valid";
 
   if relurl.url_scheme <> None then

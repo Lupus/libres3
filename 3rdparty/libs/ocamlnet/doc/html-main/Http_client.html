@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -213,7 +213,8 @@
 &nbsp;<a class="post" href="Telnet_client.html" title="Telnet_client">Next</a>
 </div>
 <h1>Module <a href="type_Http_client.html">Http_client</a></h1>
-<pre><span class="keyword">module</span> Http_client: <code class="code">sig</code> <a href="Http_client.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Http_client: <code class="code">sig</code> <a href="Http_client.html">..</a> <code class="code">end</code></pre><div class="info module top">
 HTTP 1.1 client<br>
 </div>
 <hr width="100%">
@@ -281,57 +282,68 @@ HTTP 1.1 client<br>
 <br>
 <br>
 <h1 id="1_TypesandExceptions">Types and Exceptions</h1><br>
+
 <pre><span id="EXCEPTIONBad_message"><span class="keyword">exception</span> Bad_message</span> <span class="keyword">of</span> <code class="type">string</code></pre>
-<div class="info">
+<div class="info ">
 The server sent a message which cannot be interpreted. The string
  indicates the reason.<br>
 </div>
+
 <pre><span id="EXCEPTIONNo_reply"><span class="keyword">exception</span> No_reply</span></pre>
-<div class="info">
+<div class="info ">
 There was no response to the request because some other request failed
  earlier and it was not allowed to send the request again.<br>
 </div>
+
 <pre><span id="EXCEPTIONToo_many_redirections"><span class="keyword">exception</span> Too_many_redirections</span></pre>
-<div class="info">
+<div class="info ">
 While following redirections the limit has been reached<br>
 </div>
+
 <pre><span id="EXCEPTIONName_resolution_error"><span class="keyword">exception</span> Name_resolution_error</span> <span class="keyword">of</span> <code class="type">string</code></pre>
-<div class="info">
+<div class="info ">
 Could not resolve this name - same as <code class="code">Uq_engines.Host_not_found</code><br>
 </div>
+
 <pre><span id="EXCEPTIONURL_syntax_error"><span class="keyword">exception</span> URL_syntax_error</span> <span class="keyword">of</span> <code class="type">string</code></pre>
-<div class="info">
+<div class="info ">
 This URL cannot be parsed after a redirection has been followed.<br>
 </div>
+
 <pre><span id="EXCEPTIONTimeout"><span class="keyword">exception</span> Timeout</span> <span class="keyword">of</span> <code class="type">string</code></pre>
-<div class="info">
+<div class="info ">
 A timeout. The string explains which connection is affected.
       <b>New since Ocamlnet-3.3.</b><br>
 </div>
+
 <pre><span id="EXCEPTIONProxy_error"><span class="keyword">exception</span> Proxy_error</span> <span class="keyword">of</span> <code class="type">int</code></pre>
-<div class="info">
+<div class="info ">
 An error status from a proxy. This is only used when extra proxy messages
       are used to configure the proxy (e.g. the CONNECT message).<br>
 </div>
+
 <pre><span id="EXCEPTIONResponse_too_large"><span class="keyword">exception</span> Response_too_large</span></pre>
-<div class="info">
+<div class="info ">
 The length of the response exceeds the configured maximum<br>
 </div>
+
 <pre><span id="EXCEPTIONHttp_protocol"><span class="keyword">exception</span> Http_protocol</span> <span class="keyword">of</span> <code class="type">exn</code></pre>
-<div class="info">
+<div class="info ">
 The request could not be processed because the exception condition 
  was raised. The inner exception is one of the above defined.<br>
 </div>
+
 <pre><span id="EXCEPTIONHttp_error"><span class="keyword">exception</span> Http_error</span> <span class="keyword">of</span> <code class="type">(int * string)</code></pre>
-<div class="info">
+<div class="info ">
 <b>Deprecated.</b> 
  The server sent an error message. The left component of the pair is
  the error code, the right component is the error text.
  This exception is only used by <code class="code">get_resp_body</code>, and by the
  <a href="Http_client.Convenience.html"><code class="code">Http_client.Convenience</code></a> module.<br>
 </div>
+
 <pre><span id="TYPEstatus"><span class="keyword">type</span> <code class="type"></code>status</span> = <code class="type">[ `Client_error<br>       | `Http_protocol_error of exn<br>       | `Redirection<br>       | `Server_error<br>       | `Successful<br>       | `Unserved ]</code> </pre>
-<div class="info">
+<div class="info ">
 Condensed status information of a HTTP call:<ul>
 <li><code class="code">`Unserved</code>: The call has not yet been finished</li>
 <li><code class="code">`HTTP_protocol_error e</code>: An error on HTTP level occurred. Corresponds
@@ -346,6 +358,7 @@ Condensed status information of a HTTP call:<ul>
 </ul>
 <br>
 </div>
+
 
 <pre><code><span id="TYPEhow_to_reconnect"><span class="keyword">type</span> <code class="type">'message_class</code> how_to_reconnect</span> = </code></pre><table class="typetable">
 <tr>
@@ -379,10 +392,11 @@ Condensed status information of a HTTP call:<ul>
  methods (GET, HEAD), <code class="code">Request_fails</code> for the rest</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr></table>
 
-<div class="info">
+<div class="info ">
 How to deal with automatic reconnections, especially when the
  connection crashes.<br>
 </div>
+
 
 <pre><code><span id="TYPEhow_to_redirect"><span class="keyword">type</span> <code class="type">'message_class</code> how_to_redirect</span> = </code></pre><table class="typetable">
 <tr>
@@ -419,13 +433,15 @@ How to deal with automatic reconnections, especially when the
 </tr></table>
 
 
+
 <pre><span id="TYPEprivate_api"><span class="keyword">type</span> <code class="type"></code>private_api</span> </pre>
-<div class="info">
+<div class="info ">
 The private part of the <code class="code">http_call</code> class type<br>
 </div>
 
+
 <pre><span id="TYPEresponse_body_storage"><span class="keyword">type</span> <code class="type"></code>response_body_storage</span> = <code class="type">[ `Body of unit -> <a href="Netmime.mime_body-c.html">Netmime.mime_body</a><br>       | `Device of unit -> <a href="Uq_io.html#TYPEout_device">Uq_io.out_device</a><br>       | `File of unit -> string<br>       | `Memory ]</code> </pre>
-<div class="info">
+<div class="info ">
 How to create the response body:<ul>
 <li><code class="code">`Memory</code>: The response body is in-memory</li>
 <li><code class="code">`File f</code>: The response body is stored into the file whose name
@@ -442,6 +458,7 @@ How to create the response body:<ul>
  <code class="code">response_status_code</code>, and <code class="code">response_status</code> return meaningful
  values.<br>
 </div>
+
 
 <pre><code><span id="TYPEsynchronization"><span class="keyword">type</span> <code class="type"></code>synchronization</span> = </code></pre><table class="typetable">
 <tr>
@@ -470,7 +487,7 @@ How to create the response body:<ul>
  Values &gt; 8 are interpreted as 8.</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr></table>
 
-<div class="info">
+<div class="info ">
 This type determines whether to keep requests and responses 
  synchronized or not.
 <p>
@@ -487,8 +504,9 @@ This type determines whether to keep requests and responses
  <code class="code">Expect</code> header is set).<br>
 </div>
 
+
 <pre><span id="TYPEresolver"><span class="keyword">type</span> <code class="type"></code>resolver</span> = <code class="type"><a href="Unixqueue.unix_event_system-c.html">Unixqueue.unix_event_system</a> -><br>       string -> (Unix.inet_addr option -> unit) -> unit</code> </pre>
-<div class="info">
+<div class="info ">
 A name resolver is a function <code class="code">r</code> called as <code class="code">r esys name reply</code>.
  As <code class="code">name</code> the name to resolve is passed. The resolver must 
  finally call <code class="code">reply</code> with either the resolved address or
@@ -500,8 +518,9 @@ A name resolver is a function <code class="code">r</code> called as <code class=
  Only 1:1 resolution is supported, 1:n resolution not.<br>
 </div>
 
+
 <pre><span id="TYPEchannel_binding_id"><span class="keyword">type</span> <code class="type"></code>channel_binding_id</span> = <code class="type">int</code> </pre>
-<div class="info">
+<div class="info ">
 A channel binding identifies a requirement for the transport
 	channel, especially whether plain HTTP is sufficient, or HTTPS
 	needs to be used, and if so, whether there are further requirements
@@ -517,19 +536,20 @@ A channel binding identifies a requirement for the transport
 <br>
 </div>
 
+
 <pre><code><span id="TYPEhttp_options"><span class="keyword">type</span> <code class="type"></code>http_options</span> = {</code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELThttp_options.synchronization">synchronization</span>&nbsp;:<code class="type"><a href="Http_client.html#TYPEsynchronization">synchronization</a></code>;</code></td>
+<code><span id="TYPEELThttp_options.synchronization">synchronization</span>&nbsp;: <code class="type"><a href="Http_client.html#TYPEsynchronization">synchronization</a></code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >Default: <code class="code">Pipeline 5</code>.</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELThttp_options.maximum_connection_failures">maximum_connection_failures</span>&nbsp;:<code class="type">int</code>;</code></td>
+<code><span id="TYPEELThttp_options.maximum_connection_failures">maximum_connection_failures</span>&nbsp;: <code class="type">int</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >This option limits the number of connection attempts.
  Default: 2</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
@@ -537,7 +557,7 @@ A channel binding identifies a requirement for the transport
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELThttp_options.maximum_message_errors">maximum_message_errors</span>&nbsp;:<code class="type">int</code>;</code></td>
+<code><span id="TYPEELThttp_options.maximum_message_errors">maximum_message_errors</span>&nbsp;: <code class="type">int</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >This option limits the number of protocol errors tolerated per
  request. If a request leads to a protocol error, the connection
  is shut down, the server is connected again, and the request is
@@ -550,7 +570,7 @@ A channel binding identifies a requirement for the transport
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELThttp_options.inhibit_persistency">inhibit_persistency</span>&nbsp;:<code class="type">bool</code>;</code></td>
+<code><span id="TYPEELThttp_options.inhibit_persistency">inhibit_persistency</span>&nbsp;: <code class="type">bool</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >This option turns persistent connections off.
  Default: <code class="code">false</code>
  It is normally not necessary to change this option.</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
@@ -559,7 +579,7 @@ A channel binding identifies a requirement for the transport
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELThttp_options.connection_timeout">connection_timeout</span>&nbsp;:<code class="type">float</code>;</code></td>
+<code><span id="TYPEELThttp_options.connection_timeout">connection_timeout</span>&nbsp;: <code class="type">float</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >If there is no network transmission for this period of time,
  the connection is shut down, and tried again.
  Default: 300.0 (seconds)
@@ -570,7 +590,7 @@ A channel binding identifies a requirement for the transport
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELThttp_options.number_of_parallel_connections">number_of_parallel_connections</span>&nbsp;:<code class="type">int</code>;</code></td>
+<code><span id="TYPEELThttp_options.number_of_parallel_connections">number_of_parallel_connections</span>&nbsp;: <code class="type">int</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >The client keeps up to this number of parallel connections to
  a single content server or proxy.
  Default: 2
@@ -581,35 +601,35 @@ A channel binding identifies a requirement for the transport
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELThttp_options.maximum_redirections">maximum_redirections</span>&nbsp;:<code class="type">int</code>;</code></td>
+<code><span id="TYPEELThttp_options.maximum_redirections">maximum_redirections</span>&nbsp;: <code class="type">int</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >The maximum number of redirections per message</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELThttp_options.handshake_timeout">handshake_timeout</span>&nbsp;:<code class="type">float</code>;</code></td>
+<code><span id="TYPEELThttp_options.handshake_timeout">handshake_timeout</span>&nbsp;: <code class="type">float</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >The timeout when waiting for "100 Continue". Default: 1.0</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELThttp_options.resolver">resolver</span>&nbsp;:<code class="type"><a href="Http_client.html#TYPEresolver">resolver</a></code>;</code></td>
+<code><span id="TYPEELThttp_options.resolver">resolver</span>&nbsp;: <code class="type"><a href="Http_client.html#TYPEresolver">resolver</a></code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >The function for name resolution</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELThttp_options.configure_socket">configure_socket</span>&nbsp;:<code class="type">Unix.file_descr -> unit</code>;</code></td>
+<code><span id="TYPEELThttp_options.configure_socket">configure_socket</span>&nbsp;: <code class="type">Unix.file_descr -> unit</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >A function to configure socket options</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELThttp_options.schemes">schemes</span>&nbsp;:<code class="type">(string * <a href="Neturl.html#TYPEurl_syntax">Neturl.url_syntax</a> * int option * <a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a>)<br>       list</code>;</code></td>
+<code><span id="TYPEELThttp_options.schemes">schemes</span>&nbsp;: <code class="type">(string * <a href="Neturl.html#TYPEurl_syntax">Neturl.url_syntax</a> * int option * <a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a>)<br>       list</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >The list of supported URL schemes. The tuples mean
 	    <code class="code">(scheme, syntax, default_port, cb)</code>. By default, the
 	    schemes "http", "https", and "ipp" are supported.</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
@@ -618,49 +638,49 @@ A channel binding identifies a requirement for the transport
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELThttp_options.verbose_status">verbose_status</span>&nbsp;:<code class="type">bool</code>;</code></td>
+<code><span id="TYPEELThttp_options.verbose_status">verbose_status</span>&nbsp;: <code class="type">bool</code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELThttp_options.verbose_request_header">verbose_request_header</span>&nbsp;:<code class="type">bool</code>;</code></td>
+<code><span id="TYPEELThttp_options.verbose_request_header">verbose_request_header</span>&nbsp;: <code class="type">bool</code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELThttp_options.verbose_response_header">verbose_response_header</span>&nbsp;:<code class="type">bool</code>;</code></td>
+<code><span id="TYPEELThttp_options.verbose_response_header">verbose_response_header</span>&nbsp;: <code class="type">bool</code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELThttp_options.verbose_request_contents">verbose_request_contents</span>&nbsp;:<code class="type">bool</code>;</code></td>
+<code><span id="TYPEELThttp_options.verbose_request_contents">verbose_request_contents</span>&nbsp;: <code class="type">bool</code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELThttp_options.verbose_response_contents">verbose_response_contents</span>&nbsp;:<code class="type">bool</code>;</code></td>
+<code><span id="TYPEELThttp_options.verbose_response_contents">verbose_response_contents</span>&nbsp;: <code class="type">bool</code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELThttp_options.verbose_connection">verbose_connection</span>&nbsp;:<code class="type">bool</code>;</code></td>
+<code><span id="TYPEELThttp_options.verbose_connection">verbose_connection</span>&nbsp;: <code class="type">bool</code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELThttp_options.verbose_events">verbose_events</span>&nbsp;:<code class="type">bool</code>;</code></td>
+<code><span id="TYPEELThttp_options.verbose_events">verbose_events</span>&nbsp;: <code class="type">bool</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >Enable various debugging message types.<ul>
 <li><code class="code">verbose_status</code>: reports about status of received documents</li>
 <li><code class="code">verbose_request_header</code>: prints the header sent to the server</li>
@@ -678,7 +698,7 @@ A channel binding identifies a requirement for the transport
 </tr></table>
 }
 
-<div class="info">
+<div class="info ">
 Options for the whole pipeline. It is recommended to change options
  the following way:
  <pre class="codepre"><code class="code">    let opts = pipeline # get_options in
@@ -691,86 +711,116 @@ Options for the whole pipeline. It is recommended to change options
  of changing options is transparent to field additions.<br>
 </div>
 
+
 <pre><span id="TYPEheader_kind"><span class="keyword">type</span> <code class="type"></code>header_kind</span> = <code class="type">[ `Base | `Effective ]</code> </pre>
-<div class="info">
+<div class="info ">
 The <code class="code">`Base</code> header is set by the user of <code class="code">http_call</code> and is never
  changed during processing the call. The <code class="code">`Effective</code> header is a copy
  of the base header at the time the request is sent. The effective header
  contains additions like <code class="code">Content-length</code> and authentication info.<br>
 </div>
 
+
 <pre><span id="TYPEhttp_call"><span class="keyword">class type</span> <a href="Http_client.http_call-c.html">http_call</a></span> = <code class="code">object</code> <a href="Http_client.http_call-c.html">..</a> <code class="code">end</code></pre><div class="info">
 The container for HTTP calls
 </div>
+
 <pre><span id="TYPEtransport_channel_type"><span class="keyword">class type</span> <a href="Http_client.transport_channel_type-c.html">transport_channel_type</a></span> = <code class="code">object</code> <a href="Http_client.transport_channel_type-c.html">..</a> <code class="code">end</code></pre><br>
 <h1 id="1_HTTPmethods">HTTP methods</h1><br>
+
 <pre><span name="TYPEgeneric_call"><span class="keyword">class</span> <span class="keyword">virtual</span> <a href="Http_client.generic_call-c.html">generic_call</a></span> : <code class="type"></code><code class="code">object</code> <a href="Http_client.generic_call-c.html">..</a> <code class="code">end</code></pre><div class="info">
 This class is an implementation of <code class="code">http_call</code>.
 </div>
 <br>
 The following classes are implementations for the various HTTP
  methods. These classes do not initialize the call object.<br>
-<pre><span name="TYPEget_call"><span class="keyword">class</span> <a href="Http_client.get_call-c.html">get_call</a></span> : <code class="type"></code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre><pre><span name="TYPEtrace_call"><span class="keyword">class</span> <a href="Http_client.trace_call-c.html">trace_call</a></span> : <code class="type"></code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre><pre><span name="TYPEoptions_call"><span class="keyword">class</span> <a href="Http_client.options_call-c.html">options_call</a></span> : <code class="type"></code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre><pre><span name="TYPEhead_call"><span class="keyword">class</span> <a href="Http_client.head_call-c.html">head_call</a></span> : <code class="type"></code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre><pre><span name="TYPEpost_call"><span class="keyword">class</span> <a href="Http_client.post_call-c.html">post_call</a></span> : <code class="type"></code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre><pre><span name="TYPEput_call"><span class="keyword">class</span> <a href="Http_client.put_call-c.html">put_call</a></span> : <code class="type"></code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre><pre><span name="TYPEdelete_call"><span class="keyword">class</span> <a href="Http_client.delete_call-c.html">delete_call</a></span> : <code class="type"></code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre><br>
+
+<pre><span name="TYPEget_call"><span class="keyword">class</span> <a href="Http_client.get_call-c.html">get_call</a></span> : <code class="type"></code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre>
+<pre><span name="TYPEtrace_call"><span class="keyword">class</span> <a href="Http_client.trace_call-c.html">trace_call</a></span> : <code class="type"></code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre>
+<pre><span name="TYPEoptions_call"><span class="keyword">class</span> <a href="Http_client.options_call-c.html">options_call</a></span> : <code class="type"></code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre>
+<pre><span name="TYPEhead_call"><span class="keyword">class</span> <a href="Http_client.head_call-c.html">head_call</a></span> : <code class="type"></code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre>
+<pre><span name="TYPEpost_call"><span class="keyword">class</span> <a href="Http_client.post_call-c.html">post_call</a></span> : <code class="type"></code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre>
+<pre><span name="TYPEput_call"><span class="keyword">class</span> <a href="Http_client.put_call-c.html">put_call</a></span> : <code class="type"></code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre>
+<pre><span name="TYPEdelete_call"><span class="keyword">class</span> <a href="Http_client.delete_call-c.html">delete_call</a></span> : <code class="type"></code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre><br>
 The following classes initialize the request message of the
  call (header and body). 
  These classes are also backward compatible to the classes
  found in earlier versions of netclient.<br>
+
 <pre><span name="TYPEget"><span class="keyword">class</span> <a href="Http_client.get-c.html">get</a></span> : <code class="type">string -> </code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre><div class="info">
 Argument: URI
 </div>
+
 <pre><span name="TYPEtrace"><span class="keyword">class</span> <a href="Http_client.trace-c.html">trace</a></span> : <code class="type">string -> int -> </code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre><div class="info">
 Arguments: URI, maximum number of hops
 </div>
+
 <pre><span name="TYPEoptions"><span class="keyword">class</span> <a href="Http_client.options-c.html">options</a></span> : <code class="type">string -> </code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre><div class="info">
 Argument: URI or "*"
 </div>
+
 <pre><span name="TYPEhead"><span class="keyword">class</span> <a href="Http_client.head-c.html">head</a></span> : <code class="type">string -> </code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre><div class="info">
 Argument: URI
 </div>
+
 <pre><span name="TYPEpost"><span class="keyword">class</span> <a href="Http_client.post-c.html">post</a></span> : <code class="type">string -> (string * string) list -> </code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre><div class="info">
 Arguments: URI, parameter list to be transferred as
  application/x-www-form-urlencoded body
 </div>
+
 <pre><span name="TYPEpost_raw"><span class="keyword">class</span> <a href="Http_client.post_raw-c.html">post_raw</a></span> : <code class="type">string -> string -> </code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre><div class="info">
 Arguments: URI, body
 </div>
+
 <pre><span name="TYPEput"><span class="keyword">class</span> <a href="Http_client.put-c.html">put</a></span> : <code class="type">string -> string -> </code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre><div class="info">
 Arguments: URI, body
 </div>
+
 <pre><span name="TYPEdelete"><span class="keyword">class</span> <a href="Http_client.delete-c.html">delete</a></span> : <code class="type">string -> </code><code class="type"><a href="Http_client.http_call-c.html">http_call</a></code></pre><div class="info">
 Argument: URI
 </div>
 <br>
 <h1 id="1_Authentication">Authentication</h1><br>
+
 <pre><span id="TYPEkey"><span class="keyword">class type</span> <a href="Http_client.key-c.html">key</a></span> = <code class="code">object</code> <a href="Http_client.key-c.html">..</a> <code class="code">end</code></pre><div class="info">
 A <code class="code">key</code> is a user/password combination for a certain realm
 </div>
-<pre><span id="VALkey"><span class="keyword">val</span> key</span> : <code class="type">user:string -><br>       password:string -> realm:string -> domain:string list -> <a href="Http_client.key-c.html">key</a></code></pre><div class="info">
+
+<pre><span id="VALkey"><span class="keyword">val</span> key</span> : <code class="type">user:string -><br>       password:string -> realm:string -> domain:string list -> <a href="Http_client.key-c.html">key</a></code></pre><div class="info ">
 Create a key object<br>
 </div>
-<pre><span id="TYPEkey_handler"><span class="keyword">class type</span> <a href="Http_client.key_handler-c.html">key_handler</a></span> = <code class="code">object</code> <a href="Http_client.key_handler-c.html">..</a> <code class="code">end</code></pre><pre><span name="TYPEkey_ring"><span class="keyword">class</span> <a href="Http_client.key_ring-c.html">key_ring</a></span> : <code class="type">?uplink:#<a href="Http_client.key_handler-c.html">key_handler</a> -> unit -> </code><code class="code">object</code> <a href="Http_client.key_ring-c.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span id="TYPEkey_handler"><span class="keyword">class type</span> <a href="Http_client.key_handler-c.html">key_handler</a></span> = <code class="code">object</code> <a href="Http_client.key_handler-c.html">..</a> <code class="code">end</code></pre>
+<pre><span name="TYPEkey_ring"><span class="keyword">class</span> <a href="Http_client.key_ring-c.html">key_ring</a></span> : <code class="type">?uplink:#<a href="Http_client.key_handler-c.html">key_handler</a> -> unit -> </code><code class="code">object</code> <a href="Http_client.key_ring-c.html">..</a> <code class="code">end</code></pre><div class="info">
 The <code class="code">key_ring</code> is a cache for keys.
 </div>
+
 <pre><span id="TYPEauth_session"><span class="keyword">class type</span> <a href="Http_client.auth_session-c.html">auth_session</a></span> = <code class="code">object</code> <a href="Http_client.auth_session-c.html">..</a> <code class="code">end</code></pre><div class="info">
 An <code class="code">auth_session</code> represents an authenticated session
 </div>
+
 <pre><span id="TYPEauth_handler"><span class="keyword">class type</span> <a href="Http_client.auth_handler-c.html">auth_handler</a></span> = <code class="code">object</code> <a href="Http_client.auth_handler-c.html">..</a> <code class="code">end</code></pre><div class="info">
 An authentication handler has the capability of adding the necessary
  headers to messages.
 </div>
+
 <pre><span name="TYPEbasic_auth_handler"><span class="keyword">class</span> <a href="Http_client.basic_auth_handler-c.html">basic_auth_handler</a></span> : <code class="type">?enable_auth_in_advance:bool -> ?skip_challenge:string option -> #<a href="Http_client.key_handler-c.html">key_handler</a> -> </code><code class="type"><a href="Http_client.auth_handler-c.html">auth_handler</a></code></pre><div class="info">
 Basic authentication.
 </div>
+
 <pre><span name="TYPEdigest_auth_handler"><span class="keyword">class</span> <a href="Http_client.digest_auth_handler-c.html">digest_auth_handler</a></span> : <code class="type">?enable_auth_in_advance:bool -> #<a href="Http_client.key_handler-c.html">key_handler</a> -> </code><code class="type"><a href="Http_client.auth_handler-c.html">auth_handler</a></code></pre><div class="info">
 Digest authentication.
 </div>
+
 <pre><span name="TYPEunified_auth_handler"><span class="keyword">class</span> <a href="Http_client.unified_auth_handler-c.html">unified_auth_handler</a></span> : <code class="type">#<a href="Http_client.key_handler-c.html">key_handler</a> -> </code><code class="type"><a href="Http_client.auth_handler-c.html">auth_handler</a></code></pre><div class="info">
 Support both digest and basic authentication, with preference to
       digest.
 </div>
+
 <pre><span name="TYPEbasic_auth_method"><span class="keyword">class</span> <a href="Http_client.basic_auth_method-c.html">basic_auth_method</a></span> : <code class="type"></code><code class="code">object</code> <a href="Http_client.basic_auth_method-c.html">..</a> <code class="code">end</code></pre><div class="info">
 <b>Deprecated.</b>
 </div>
+
 <pre><span name="TYPEdigest_auth_method"><span class="keyword">class</span> <a href="Http_client.digest_auth_method-c.html">digest_auth_method</a></span> : <code class="type"></code><code class="type"><a href="Http_client.basic_auth_method-c.html">basic_auth_method</a></code></pre><div class="info">
 <b>Deprecated.</b>
 </div>
@@ -780,43 +830,54 @@ Support both digest and basic authentication, with preference to
 A connection cache is an object that keeps connections open that
  are currently unused. A connection cache can be shared by several
  pipelines.<br>
+
 <pre><span id="TYPEconnection_cache"><span class="keyword">type</span> <code class="type"></code>connection_cache</span> = <code class="type"><a href="Http_client_conncache.connection_cache-c.html">Http_client_conncache.connection_cache</a></code> </pre>
 
-<pre><span id="VALclose_connection_cache"><span class="keyword">val</span> close_connection_cache</span> : <code class="type"><a href="Http_client.html#TYPEconnection_cache">connection_cache</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALclose_connection_cache"><span class="keyword">val</span> close_connection_cache</span> : <code class="type"><a href="Http_client.html#TYPEconnection_cache">connection_cache</a> -> unit</code></pre><div class="info ">
 Closes all descriptors known to the cache<br>
 </div>
-<pre><span id="VALcreate_restrictive_cache"><span class="keyword">val</span> create_restrictive_cache</span> : <code class="type">unit -> <a href="Http_client.html#TYPEconnection_cache">connection_cache</a></code></pre><div class="info">
+
+<pre><span id="VALcreate_restrictive_cache"><span class="keyword">val</span> create_restrictive_cache</span> : <code class="type">unit -> <a href="Http_client.html#TYPEconnection_cache">connection_cache</a></code></pre><div class="info ">
 A restrictive cache closes connections as soon as there are no
  pending requests.<br>
 </div>
-<pre><span id="VALcreate_aggressive_cache"><span class="keyword">val</span> create_aggressive_cache</span> : <code class="type">unit -> <a href="Http_client.html#TYPEconnection_cache">connection_cache</a></code></pre><div class="info">
+
+<pre><span id="VALcreate_aggressive_cache"><span class="keyword">val</span> create_aggressive_cache</span> : <code class="type">unit -> <a href="Http_client.html#TYPEconnection_cache">connection_cache</a></code></pre><div class="info ">
 This type of cache tries to keep connections as long open as
  possible. The consequence is that users are responsible for
  closing the descriptors (by calling <code class="code">close_connection_cache</code>) when the
  cache is no longer in use.<br>
 </div>
-<pre><span id="VALhttp_cb_id"><span class="keyword">val</span> http_cb_id</span> : <code class="type"><a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a></code></pre><div class="info">
+
+<pre><span id="VALhttp_cb_id"><span class="keyword">val</span> http_cb_id</span> : <code class="type"><a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a></code></pre><div class="info ">
 Identifies a channel binding to pure HTTP (without SSL), with or
       without web proxies<br>
 </div>
-<pre><span id="VALhttps_cb_id"><span class="keyword">val</span> https_cb_id</span> : <code class="type"><a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a></code></pre><div class="info">
+
+<pre><span id="VALhttps_cb_id"><span class="keyword">val</span> https_cb_id</span> : <code class="type"><a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a></code></pre><div class="info ">
 Identifies a channel binding to anonymous HTTPS (i.e. no client
       certificates), with or without web proxies.<br>
 </div>
-<pre><span id="VALproxy_only_cb_id"><span class="keyword">val</span> proxy_only_cb_id</span> : <code class="type"><a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a></code></pre><div class="info">
+
+<pre><span id="VALproxy_only_cb_id"><span class="keyword">val</span> proxy_only_cb_id</span> : <code class="type"><a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a></code></pre><div class="info ">
 Identifies a channel binding to web proxy connections. Use this to
       e.g. send an FTP URL to a web proxy via HTTP<br>
 </div>
-<pre><span id="VALnew_cb_id"><span class="keyword">val</span> new_cb_id</span> : <code class="type">unit -> <a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a></code></pre><div class="info">
+
+<pre><span id="VALnew_cb_id"><span class="keyword">val</span> new_cb_id</span> : <code class="type">unit -> <a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a></code></pre><div class="info ">
 Allocates and returns a new ID<br>
 </div>
-<pre><span id="VALhttp_transport_channel_type"><span class="keyword">val</span> http_transport_channel_type</span> : <code class="type"><a href="Http_client.transport_channel_type-c.html">transport_channel_type</a></code></pre><div class="info">
+
+<pre><span id="VALhttp_transport_channel_type"><span class="keyword">val</span> http_transport_channel_type</span> : <code class="type"><a href="Http_client.transport_channel_type-c.html">transport_channel_type</a></code></pre><div class="info ">
 Transport via HTTP<br>
 </div>
+
 <pre><span id="TYPEproxy_type"><span class="keyword">type</span> <code class="type"></code>proxy_type</span> = <code class="type">[ `Http_proxy | `Socks5 ]</code> </pre>
 
 <br>
 <h1 id="1_Pipelines">Pipelines</h1><br>
+
 <pre><span name="TYPEpipeline"><span class="keyword">class</span> <a href="Http_client.pipeline-c.html">pipeline</a></span> : <code class="type"></code><code class="code">object</code> <a href="Http_client.pipeline-c.html">..</a> <code class="code">end</code></pre><div class="info">
 A pipeline is a queue of HTTP calls to perform
 </div>
@@ -834,13 +895,15 @@ A pipeline is a queue of HTTP calls to perform
  </code></pre><br>
 <br>
 <h2 id="2_Auxiliarypipelinefunctions">Auxiliary pipeline functions</h2><br>
-<pre><span id="VALparse_proxy_setting"><span class="keyword">val</span> parse_proxy_setting</span> : <code class="type">string -> string * int * (string * string) option</code></pre><div class="info">
+
+<pre><span id="VALparse_proxy_setting"><span class="keyword">val</span> parse_proxy_setting</span> : <code class="type">string -> string * int * (string * string) option</code></pre><div class="info ">
 Parses the value of an environment variable like <code class="code">http_proxy</code>,
       i.e. an HTTP URL. The argument is the URL.
       Returns <code class="code">(host,port,auth)</code> where <code class="code">auth</code> may include user name and
       password.<br>
 </div>
-<pre><span id="VALparse_no_proxy"><span class="keyword">val</span> parse_no_proxy</span> : <code class="type">string -> string list</code></pre><div class="info">
+
+<pre><span id="VALparse_no_proxy"><span class="keyword">val</span> parse_no_proxy</span> : <code class="type">string -> string list</code></pre><div class="info ">
 Parses the value of an environment variable like <code class="code">no_proxy</code>. Returns
       the list of domains.<br>
 </div>
@@ -848,6 +911,8 @@ Parses the value of an environment variable like <code class="code">no_proxy</co
 <h1 id="1_Conveniencemoduleforsimpleapplications">Convenience module for simple applications</h1><br>
 <br>
 Do <code class="code">open Http_client.Convenience</code> for simple applications.<br>
+
 <pre><span class="keyword">module</span> <a href="Http_client.Convenience.html">Convenience</a>: <code class="code">sig</code> <a href="Http_client.Convenience.html">..</a> <code class="code">end</code></pre><br>
 <h1 id="1_Debugging">Debugging</h1><br>
+
 <pre><span class="keyword">module</span> <a href="Http_client.Debug.html">Debug</a>: <code class="code">sig</code> <a href="Http_client.Debug.html">..</a> <code class="code">end</code></pre></body></html>

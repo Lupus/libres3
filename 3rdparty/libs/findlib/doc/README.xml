@@ -110,6 +110,21 @@ configuration files, and library routines in detail.</p>
     <ul>
 
     <li>
+      <p><em>1.5.3:</em> The installation of "bytes" respects now $prefix and
+        the configured destination.</p>
+      <p>New option -pp for "ocamlfind query", to get preprocessor packages.</p>
+      <p>Updated the compatibility Bytes module to support extend, init, mapi,
+         blit_string (Gabriel Scherer).</p>
+    </li>
+
+    <li>
+      <p><em>1.5.2:</em> support for the query formats "%+a" and "%+A".</p>
+      <p>Fix: the "ppx" property is now also path-expanded when interpreted
+in a toploop.</p>
+      <p>Fix: implicit "ppx" is not path-expanded anymore.</p>
+      <p>Fix: Build bytes.cmxs only if natdynlink is enabled (Andy Ray).</p>
+    </li>
+    <li>
       <p><em>1.5.1:</em> includes a file that was missing in 1.5</p>
     </li>
     <li>

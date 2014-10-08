@@ -17,12 +17,12 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (** Basic functions for construction and manipulation of XML tree. *)
 
 type 'a wrap = 'a
-
+type 'a list_wrap = 'a list
 type uri = string
 val string_of_uri : uri -> string
 val uri_of_string : string -> uri
@@ -30,6 +30,8 @@ val uri_of_string : string -> uri
 type aname = string
 type separator = Space | Comma
 type event_handler = string
+type mouse_event_handler = string
+type keyboard_event_handler = string
 
 type attrib
 val aname : attrib -> aname
@@ -47,12 +49,8 @@ val string_attrib : aname -> string -> attrib
 val space_sep_attrib : aname -> string list -> attrib
 val comma_sep_attrib : aname -> string list -> attrib
 val event_handler_attrib : aname -> event_handler -> attrib
-
-(**/**)
-(* Deprecated alias. *)
-val event_attrib : aname -> event_handler -> attrib
-(**/**)
-
+val mouse_event_handler_attrib : aname -> event_handler -> attrib
+val keyboard_event_handler_attrib : aname -> event_handler -> attrib
 val uri_attrib : aname -> uri -> attrib
 val uris_attrib : aname -> uri list -> attrib
 
@@ -60,13 +58,13 @@ type ename = string
 
 type elt
 type econtent = private
-		| Empty
-		| Comment of string
-		| EncodedPCDATA of string
-		| PCDATA of string
-		| Entity of string
-		| Leaf of ename * attrib list
-		| Node of ename * attrib list * elt list
+  | Empty
+  | Comment of string
+  | EncodedPCDATA of string
+  | PCDATA of string
+  | Entity of string
+  | Leaf of ename * attrib list
+  | Node of ename * attrib list * elt list
 val content : elt -> econtent
 
 val empty : unit -> elt

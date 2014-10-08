@@ -16,11 +16,12 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02111-1307, USA.
- *)
+*)
 
 module type Wrapped = sig
 
   type 'a wrap
+  type 'a list_wrap
 
   type uri
   val string_of_uri : uri -> string
@@ -28,6 +29,8 @@ module type Wrapped = sig
 
   type aname = string
   type event_handler
+  type mouse_event_handler
+  type keyboard_event_handler
 
   type attrib
 
@@ -37,6 +40,8 @@ module type Wrapped = sig
   val space_sep_attrib : aname -> string list wrap -> attrib
   val comma_sep_attrib : aname -> string list wrap -> attrib
   val event_handler_attrib : aname -> event_handler -> attrib
+  val mouse_event_handler_attrib : aname -> mouse_event_handler -> attrib
+  val keyboard_event_handler_attrib : aname -> keyboard_event_handler -> attrib
   val uri_attrib : aname -> uri wrap -> attrib
   val uris_attrib : aname -> uri list wrap -> attrib
 
@@ -51,7 +56,7 @@ module type Wrapped = sig
   val entity : string -> elt
 
   val leaf : ?a:(attrib list) -> ename -> elt
-  val node : ?a:(attrib list) -> ename -> elt list wrap -> elt
+  val node : ?a:(attrib list) -> ename -> elt list_wrap -> elt
 
   val cdata : string -> elt
   val cdata_script : string -> elt
@@ -60,7 +65,7 @@ module type Wrapped = sig
 end
 
 module type T = Wrapped with type 'a wrap = 'a
-
+                         and type 'a list_wrap = 'a list
 module type Iterable = sig
 
   include T

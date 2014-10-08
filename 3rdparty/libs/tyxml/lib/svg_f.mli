@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (** Typesafe constructors for SVG documents (Functorial interface) *)
 
@@ -80,29 +80,17 @@ val string_of_transform : transform -> string
 val string_of_transforms : transforms -> string
 *)
 
-
 module Make(Xml : Xml_sigs.T)
-  : Svg_sigs.T with type Xml.uri = Xml.uri
-               and type Xml.event_handler = Xml.event_handler
-               and type Xml.attrib = Xml.attrib
-               and type Xml.elt = Xml.elt
-	       and type +'a elt = Xml.elt
-               and type 'a Xml.wrap = 'a
-               and type 'a wrap = 'a
-	       and type 'a attrib = Xml.attrib
-	       and type uri = Xml.uri
+  : Svg_sigs.Make(Xml).T
+    with type +'a elt = Xml.elt
+     and type +'a attrib = Xml.attrib
 
 (** Like the {! Svg_f.Make } functor, but allows to wrap elements inside a monad described by {! Xml_wrap.T}.
     See the functorial interface documentation for more details. *)
 module MakeWrapped
     (W: Xml_wrap.T)
-    (Xml : Xml_sigs.Wrapped with type 'a wrap = 'a W.t)
-  : Svg_sigs.T with type Xml.uri = Xml.uri
-               and type Xml.event_handler = Xml.event_handler
-               and type Xml.attrib = Xml.attrib
-               and type Xml.elt = Xml.elt
-	       and type +'a elt = Xml.elt
-               and type 'a Xml.wrap = 'a W.t
-               and type 'a wrap = 'a W.t
-	       and type 'a attrib = Xml.attrib
-	       and type uri = Xml.uri
+    (Xml : Xml_sigs.Wrapped with type 'a wrap = 'a W.t
+                             and type 'a list_wrap = 'a W.tlist)
+  : Svg_sigs.MakeWrapped(W)(Xml).T
+    with type +'a elt = Xml.elt
+     and type +'a attrib = Xml.attrib

@@ -16,6 +16,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -29,12 +32,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -45,7 +46,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -107,6 +107,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -142,7 +143,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -167,6 +167,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -184,8 +186,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -212,7 +212,8 @@
 &nbsp;<a class="post" href="Http_client.transport_channel_type-c.html" title="Http_client.transport_channel_type">Next</a>
 </div>
 <h1>Class type <a href="type_Http_client.http_call.html">Http_client.http_call</a></h1>
-<pre><span id="TYPEhttp_call"><span class="keyword">class type</span> http_call</span> = <code class="code">object</code> <a href="Http_client.http_call-c.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span id="TYPEhttp_call"><span class="keyword">class type</span> http_call</span> = <code class="code">object</code> <a href="Http_client.http_call-c.html">..</a> <code class="code">end</code></pre><div class="info classtype top">
 The container for HTTP calls<br>
 </div>
 <hr width="100%">
@@ -237,21 +238,26 @@ The container for HTTP calls<br>
    that it is possible to use external files as body containers.</li>
 <li>There are two request headers, <code class="code">`Base</code> and <code class="code">`Effective</code>.</li>
 </ul>
-<h2 id="2_CallState">Call State</h2><pre><span id="METHODis_served"><span class="keyword">method</span> is_served</span> : <code class="type">bool</code></pre><div class="info">
+<h2 id="2_CallState">Call State</h2>
+<pre><span id="METHODis_served"><span class="keyword">method</span> is_served</span> : <code class="type">bool</code></pre><div class="info ">
 <code class="code">true</code> if request/response cycle(s) have been finished, i.e. the
  call was successful, or a final error state has been reached.<br>
 </div>
-<pre><span id="METHODstatus"><span class="keyword">method</span> status</span> : <code class="type"><a href="Http_client.html#TYPEstatus">status</a></code></pre><div class="info">
+
+<pre><span id="METHODstatus"><span class="keyword">method</span> status</span> : <code class="type"><a href="Http_client.html#TYPEstatus">status</a></code></pre><div class="info ">
 The condensed status<br>
 </div>
-<h2 id="2_Accessingtherequestmessagenewstyle">Accessing the request message (new style) </h2><pre><span id="METHODrequest_method"><span class="keyword">method</span> request_method</span> : <code class="type">string</code></pre><div class="info">
+<h2 id="2_Accessingtherequestmessagenewstyle">Accessing the request message (new style) </h2>
+<pre><span id="METHODrequest_method"><span class="keyword">method</span> request_method</span> : <code class="type">string</code></pre><div class="info ">
 The HTTP method as string<br>
 </div>
-<pre><span id="METHODrequest_uri"><span class="keyword">method</span> request_uri</span> : <code class="type">string</code></pre><div class="info">
+
+<pre><span id="METHODrequest_uri"><span class="keyword">method</span> request_uri</span> : <code class="type">string</code></pre><div class="info ">
 The request URI as string. This is always an absolute URI in the
  form "http://server/path" or "https://server/path".<br>
 </div>
-<pre><span id="METHODset_request_uri"><span class="keyword">method</span> set_request_uri</span> : <code class="type">string -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_request_uri"><span class="keyword">method</span> set_request_uri</span> : <code class="type">string -> unit</code></pre><div class="info ">
 Sets the request URI. This implicitly also sets the channel binding
 	ID (see below).	
 <p>
@@ -261,7 +267,8 @@ Sets the request URI. This implicitly also sets the channel binding
 	parsing errors will first be reported by the <code class="code">add</code> method. The
 	background is that parsing now depends on pipeline options.<br>
 </div>
-<pre><span id="METHODrequest_header"><span class="keyword">method</span> request_header</span> : <code class="type"><a href="Http_client.html#TYPEheader_kind">header_kind</a> -> <a href="Netmime.mime_header-c.html">Netmime.mime_header</a></code></pre><div class="info">
+
+<pre><span id="METHODrequest_header"><span class="keyword">method</span> request_header</span> : <code class="type"><a href="Http_client.html#TYPEheader_kind">header_kind</a> -> <a href="Netmime.mime_header-c.html">Netmime.mime_header</a></code></pre><div class="info ">
 The whole header of the request. Users of this class should only
  modify the <code class="code">`Base</code> header. After the call has been processed,
  the <code class="code">`Effective</code> header contains the version of the header that has
@@ -287,38 +294,46 @@ The whole header of the request. Users of this class should only
 </ul>
 <br>
 </div>
-<pre><span id="METHODset_request_header"><span class="keyword">method</span> set_request_header</span> : <code class="type"><a href="Netmime.mime_header-c.html">Netmime.mime_header</a> -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_request_header"><span class="keyword">method</span> set_request_header</span> : <code class="type"><a href="Netmime.mime_header-c.html">Netmime.mime_header</a> -> unit</code></pre><div class="info ">
 Replaces the whole <code class="code">`Base</code> header object<br>
 </div>
-<pre><span id="METHODset_expect_handshake"><span class="keyword">method</span> set_expect_handshake</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_expect_handshake"><span class="keyword">method</span> set_expect_handshake</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Configures that a handshake is done before sending the request body.
 	This is useful when the request body can be large, and
 	authentication or response indirections are possible.
 	<b>New since Ocamlnet-3.3.</b><br>
 </div>
-<pre><span id="METHODset_chunked_request"><span class="keyword">method</span> set_chunked_request</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_chunked_request"><span class="keyword">method</span> set_chunked_request</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Configures that the request is transmitted using chunked encoding.
 	This has advantages when the size of the request is not known
 	in advance. However, this works only for true HTTP/1.1 servers.
 	<b>New since Ocamlnet-3.3.</b><br>
 </div>
-<pre><span id="METHODeffective_request_uri"><span class="keyword">method</span> effective_request_uri</span> : <code class="type">string</code></pre><div class="info">
+
+<pre><span id="METHODeffective_request_uri"><span class="keyword">method</span> effective_request_uri</span> : <code class="type">string</code></pre><div class="info ">
 The URI actually sent to the server in the request line of the
  protocol.<br>
 </div>
-<pre><span id="METHODrequest_body"><span class="keyword">method</span> request_body</span> : <code class="type"><a href="Netmime.mime_body-c.html">Netmime.mime_body</a></code></pre><div class="info">
+
+<pre><span id="METHODrequest_body"><span class="keyword">method</span> request_body</span> : <code class="type"><a href="Netmime.mime_body-c.html">Netmime.mime_body</a></code></pre><div class="info ">
 The whole body of the request. This method fails after
 	<code class="code">set_request_device</code> has been called (no body then).<br>
 </div>
-<pre><span id="METHODset_request_body"><span class="keyword">method</span> set_request_body</span> : <code class="type"><a href="Netmime.mime_body-c.html">Netmime.mime_body</a> -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_request_body"><span class="keyword">method</span> set_request_body</span> : <code class="type"><a href="Netmime.mime_body-c.html">Netmime.mime_body</a> -> unit</code></pre><div class="info ">
 Replaces the whole body object<br>
 </div>
-<pre><span id="METHODset_request_device"><span class="keyword">method</span> set_request_device</span> : <code class="type">(unit -> <a href="Uq_io.html#TYPEin_device">Uq_io.in_device</a>) -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_request_device"><span class="keyword">method</span> set_request_device</span> : <code class="type">(unit -> <a href="Uq_io.html#TYPEin_device">Uq_io.in_device</a>) -> unit</code></pre><div class="info ">
 Sets that the request data is read from the passed device instead
 	of taking it from a body object.  The device must be connected with
 	the same event loop as the HTTP client.<br>
 </div>
-<pre><span id="METHODset_accept_encoding"><span class="keyword">method</span> set_accept_encoding</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_accept_encoding"><span class="keyword">method</span> set_accept_encoding</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Sets the <code class="code">Accept-Encoding</code> field in the request header, and 
 	includes all decompression algorithms registered in
 	<a href="Netcompression.html"><code class="code">Netcompression</code></a>. Additionally, the automatic decompression of
@@ -339,25 +354,31 @@ Sets the <code class="code">Accept-Encoding</code> field in the request header, 
  exception <code class="code">Http_protocol</code> is raised. When the server only
  sent an error code, no exception is raised - but the user can
  manually test for such codes (e.g. with <code class="code">repsonse_status</code> or
- <code class="code">status</code>).<pre><span id="METHODresponse_status_code"><span class="keyword">method</span> response_status_code</span> : <code class="type">int</code></pre><div class="info">
+ <code class="code">status</code>).
+<pre><span id="METHODresponse_status_code"><span class="keyword">method</span> response_status_code</span> : <code class="type">int</code></pre><div class="info ">
 The three-digit status code<br>
 </div>
-<pre><span id="METHODresponse_status_text"><span class="keyword">method</span> response_status_text</span> : <code class="type">string</code></pre><div class="info">
+
+<pre><span id="METHODresponse_status_text"><span class="keyword">method</span> response_status_text</span> : <code class="type">string</code></pre><div class="info ">
 The text transmitted along with the code<br>
 </div>
-<pre><span id="METHODresponse_status"><span class="keyword">method</span> response_status</span> : <code class="type"><a href="Nethttp.html#TYPEhttp_status">Nethttp.http_status</a></code></pre><div class="info">
+
+<pre><span id="METHODresponse_status"><span class="keyword">method</span> response_status</span> : <code class="type"><a href="Nethttp.html#TYPEhttp_status">Nethttp.http_status</a></code></pre><div class="info ">
 The decoded code. Unknown codes are mapped to the generic status
  values <code class="code">`Ok</code>, <code class="code">`Multiple_choices</code>, <code class="code">`Bad_request</code>, and 
  <code class="code">`Internal_server_error</code>.<br>
 </div>
-<pre><span id="METHODresponse_protocol"><span class="keyword">method</span> response_protocol</span> : <code class="type">string</code></pre><div class="info">
+
+<pre><span id="METHODresponse_protocol"><span class="keyword">method</span> response_protocol</span> : <code class="type">string</code></pre><div class="info ">
 The HTTP version indicated in the response<br>
 </div>
-<pre><span id="METHODresponse_header"><span class="keyword">method</span> response_header</span> : <code class="type"><a href="Netmime.mime_header-c.html">Netmime.mime_header</a></code></pre><div class="info">
+
+<pre><span id="METHODresponse_header"><span class="keyword">method</span> response_header</span> : <code class="type"><a href="Netmime.mime_header-c.html">Netmime.mime_header</a></code></pre><div class="info ">
 The whole header of the response. If the call has not succeeded, 
  <code class="code">Http_protocol</code> will be raised.<br>
 </div>
-<pre><span id="METHODresponse_body"><span class="keyword">method</span> response_body</span> : <code class="type"><a href="Netmime.mime_body-c.html">Netmime.mime_body</a></code></pre><div class="info">
+
+<pre><span id="METHODresponse_body"><span class="keyword">method</span> response_body</span> : <code class="type"><a href="Netmime.mime_body-c.html">Netmime.mime_body</a></code></pre><div class="info ">
 The whole body of the response. If the call has not succeeded, 
  <code class="code">Http_protocol</code> will be raised. If the call has succeeded, 
  but no body has been transmitted, the empty body is substituted.
@@ -367,68 +388,85 @@ The whole body of the response. If the call has not succeeded,
  calling <code class="code">set_response_body_storage (`Device d)</code>), there is
  no accessible response body, and this method will fail.<br>
 </div>
-<h2 id="2_Options">Options</h2><pre><span id="METHODresponse_body_storage"><span class="keyword">method</span> response_body_storage</span> : <code class="type"><a href="Http_client.html#TYPEresponse_body_storage">response_body_storage</a></code></pre><div class="info">
+<h2 id="2_Options">Options</h2>
+<pre><span id="METHODresponse_body_storage"><span class="keyword">method</span> response_body_storage</span> : <code class="type"><a href="Http_client.html#TYPEresponse_body_storage">response_body_storage</a></code></pre><div class="info ">
 How to create the response body. Defaults to <code class="code">`Memory</code>.<br>
 </div>
-<pre><span id="METHODset_response_body_storage"><span class="keyword">method</span> set_response_body_storage</span> : <code class="type"><a href="Http_client.html#TYPEresponse_body_storage">response_body_storage</a> -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_response_body_storage"><span class="keyword">method</span> set_response_body_storage</span> : <code class="type"><a href="Http_client.html#TYPEresponse_body_storage">response_body_storage</a> -> unit</code></pre><div class="info ">
 Sets how to create the response body<br>
 </div>
-<pre><span id="METHODmax_response_body_length"><span class="keyword">method</span> max_response_body_length</span> : <code class="type">int64</code></pre><div class="info">
+
+<pre><span id="METHODmax_response_body_length"><span class="keyword">method</span> max_response_body_length</span> : <code class="type">int64</code></pre><div class="info ">
 Returns the current maximum length (initially <code class="code">Int64.max_int</code>)<br>
 </div>
-<pre><span id="METHODset_max_response_body_length"><span class="keyword">method</span> set_max_response_body_length</span> : <code class="type">int64 -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_max_response_body_length"><span class="keyword">method</span> set_max_response_body_length</span> : <code class="type">int64 -> unit</code></pre><div class="info ">
 Sets a new maximum length. When the body exceeds this maximum
 	by more than the size of the internal buffer, the reception of
 	the response is interrupted, and the error is set to
 	<code class="code">Response_too_large</code>.<br>
 </div>
-<pre><span id="METHODget_reconnect_mode"><span class="keyword">method</span> get_reconnect_mode</span> : <code class="type"><a href="Http_client.http_call-c.html">http_call</a> <a href="Http_client.html#TYPEhow_to_reconnect">how_to_reconnect</a></code></pre><div class="info">
+
+<pre><span id="METHODget_reconnect_mode"><span class="keyword">method</span> get_reconnect_mode</span> : <code class="type"><a href="Http_client.http_call-c.html">http_call</a> <a href="Http_client.html#TYPEhow_to_reconnect">how_to_reconnect</a></code></pre><div class="info ">
 Get what to do if the server needs to be reconnected, i.e.
  if the request must be sent repeatedly.
  By default, this is <code class="code">Send_again_if_idem</code>.<br>
 </div>
-<pre><span id="METHODset_reconnect_mode"><span class="keyword">method</span> set_reconnect_mode</span> : <code class="type"><a href="Http_client.http_call-c.html">http_call</a> <a href="Http_client.html#TYPEhow_to_reconnect">how_to_reconnect</a> -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_reconnect_mode"><span class="keyword">method</span> set_reconnect_mode</span> : <code class="type"><a href="Http_client.http_call-c.html">http_call</a> <a href="Http_client.html#TYPEhow_to_reconnect">how_to_reconnect</a> -> unit</code></pre><div class="info ">
 Sets the reconnect mode<br>
 </div>
-<pre><span id="METHODget_redirect_mode"><span class="keyword">method</span> get_redirect_mode</span> : <code class="type"><a href="Http_client.http_call-c.html">http_call</a> <a href="Http_client.html#TYPEhow_to_redirect">how_to_redirect</a></code></pre><div class="info">
+
+<pre><span id="METHODget_redirect_mode"><span class="keyword">method</span> get_redirect_mode</span> : <code class="type"><a href="Http_client.http_call-c.html">http_call</a> <a href="Http_client.html#TYPEhow_to_redirect">how_to_redirect</a></code></pre><div class="info ">
 By default, the redirect mode is <code class="code">Redirect_if_idem</code>.<br>
 </div>
-<pre><span id="METHODset_redirect_mode"><span class="keyword">method</span> set_redirect_mode</span> : <code class="type"><a href="Http_client.http_call-c.html">http_call</a> <a href="Http_client.html#TYPEhow_to_redirect">how_to_redirect</a> -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_redirect_mode"><span class="keyword">method</span> set_redirect_mode</span> : <code class="type"><a href="Http_client.http_call-c.html">http_call</a> <a href="Http_client.html#TYPEhow_to_redirect">how_to_redirect</a> -> unit</code></pre><div class="info ">
 Sets the redirect mode<br>
 </div>
-<pre><span id="METHODproxy_enabled"><span class="keyword">method</span> proxy_enabled</span> : <code class="type">bool</code></pre><div class="info">
+
+<pre><span id="METHODproxy_enabled"><span class="keyword">method</span> proxy_enabled</span> : <code class="type">bool</code></pre><div class="info ">
 Returns the proxy mode<br>
 </div>
-<pre><span id="METHODset_proxy_enabled"><span class="keyword">method</span> set_proxy_enabled</span> : <code class="type">bool -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_proxy_enabled"><span class="keyword">method</span> set_proxy_enabled</span> : <code class="type">bool -> unit</code></pre><div class="info ">
 Sets the proxy mode<br>
 </div>
-<pre><span id="METHODno_proxy"><span class="keyword">method</span> no_proxy</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="METHODno_proxy"><span class="keyword">method</span> no_proxy</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Same as <code class="code">set_proxy_enabled false</code><br>
 </div>
-<pre><span id="METHODis_proxy_allowed"><span class="keyword">method</span> is_proxy_allowed</span> : <code class="type">unit -> bool</code></pre><div class="info">
+
+<pre><span id="METHODis_proxy_allowed"><span class="keyword">method</span> is_proxy_allowed</span> : <code class="type">unit -> bool</code></pre><div class="info ">
 <b>Deprecated.</b> Same as <code class="code">proxy_enabled</code><br>
 </div>
 <h2 id="2_Methodcharacteristics">Method characteristics</h2>
 <p>
 
- These properties describe the HTTP method<pre><span id="METHODproxy_use_connect"><span class="keyword">method</span> proxy_use_connect</span> : <code class="type">bool</code></pre><div class="info">
+ These properties describe the HTTP method
+<pre><span id="METHODproxy_use_connect"><span class="keyword">method</span> proxy_use_connect</span> : <code class="type">bool</code></pre><div class="info ">
 Whether to use the CONNECT method if the connection is made via a
 	web proxy. This is normally true if the channel binding is
 	<a href="Http_client.html#VALhttps_cb_id"><code class="code">Http_client.https_cb_id</code></a><br>
 </div>
-<pre><span id="METHODempty_path_replacement"><span class="keyword">method</span> empty_path_replacement</span> : <code class="type">string</code></pre><div class="info">
+
+<pre><span id="METHODempty_path_replacement"><span class="keyword">method</span> empty_path_replacement</span> : <code class="type">string</code></pre><div class="info ">
 The string to substitute in the request line for the empty
  path. This is usually "/", and for OPTIONS it is "*".<br>
 </div>
-<pre><span id="METHODis_idempotent"><span class="keyword">method</span> is_idempotent</span> : <code class="type">bool</code></pre><div class="info">
+
+<pre><span id="METHODis_idempotent"><span class="keyword">method</span> is_idempotent</span> : <code class="type">bool</code></pre><div class="info ">
 Whether the method is to be considered as idempotent ( = repeated
  invocations have the same result and no side effect). This is
  true for GET and HEAD.<br>
 </div>
-<pre><span id="METHODhas_req_body"><span class="keyword">method</span> has_req_body</span> : <code class="type">bool</code></pre><div class="info">
+
+<pre><span id="METHODhas_req_body"><span class="keyword">method</span> has_req_body</span> : <code class="type">bool</code></pre><div class="info ">
 Whether the method allows to send a request body<br>
 </div>
-<pre><span id="METHODhas_resp_body"><span class="keyword">method</span> has_resp_body</span> : <code class="type">bool</code></pre><div class="info">
+
+<pre><span id="METHODhas_resp_body"><span class="keyword">method</span> has_resp_body</span> : <code class="type">bool</code></pre><div class="info ">
 Whether the method allows to reply with a body. This is true
  except for HEAD.<br>
 </div>
@@ -454,11 +492,13 @@ Whether the method allows to reply with a body. This is true
 <p>
 
       The method <code class="code">channel_binding</code> is gone from this object type.
-      It is now available as part of <code class="code">pipeline</code>.<pre><span id="METHODset_channel_binding"><span class="keyword">method</span> set_channel_binding</span> : <code class="type"><a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a> -> unit</code></pre><div class="info">
+      It is now available as part of <code class="code">pipeline</code>.
+<pre><span id="METHODset_channel_binding"><span class="keyword">method</span> set_channel_binding</span> : <code class="type"><a href="Http_client.html#TYPEchannel_binding_id">channel_binding_id</a> -> unit</code></pre><div class="info ">
 Sets the channel binding. Note that <code class="code">set_request_uri</code> also sets
 	the channel binding, but always to the default for the type of URL.<br>
 </div>
-<h2 id="2_Repeatingcalls">Repeating calls</h2><pre><span id="METHODsame_call"><span class="keyword">method</span> same_call</span> : <code class="type">unit -> <a href="Http_client.http_call-c.html">http_call</a></code></pre><div class="info">
+<h2 id="2_Repeatingcalls">Repeating calls</h2>
+<pre><span id="METHODsame_call"><span class="keyword">method</span> same_call</span> : <code class="type">unit -> <a href="Http_client.http_call-c.html">http_call</a></code></pre><div class="info ">
 This method returns a new object that will perform the same call
  as this object (this function is called "reload" in browsers).
  The new object is initialized as follows:<ul>
@@ -479,39 +519,46 @@ This method returns a new object that will perform the same call
 
  These method were introduced in previous versions of netclient,
  but are quite limited. Some questionable methods are now deprecated
- and will be removed in future versions of netclient.<pre><span id="METHODget_req_method"><span class="keyword">method</span> get_req_method</span> : <code class="type">unit -> string</code></pre><div class="info">
+ and will be removed in future versions of netclient.
+<pre><span id="METHODget_req_method"><span class="keyword">method</span> get_req_method</span> : <code class="type">unit -> string</code></pre><div class="info ">
 Get the name of the request method. Same as <code class="code">request_method</code>.<br>
 </div>
-<pre><span id="METHODget_host"><span class="keyword">method</span> get_host</span> : <code class="type">unit -> string</code></pre><div class="info">
+
+<pre><span id="METHODget_host"><span class="keyword">method</span> get_host</span> : <code class="type">unit -> string</code></pre><div class="info ">
 The host name of the content server, extracted from the URI.
 <p>
 
 	<b>Changed in Ocamlnet-3.3:</b> The host can first be extracted after
 	the call is submitted to a pipeline.<br>
 </div>
-<pre><span id="METHODget_port"><span class="keyword">method</span> get_port</span> : <code class="type">unit -> int</code></pre><div class="info">
+
+<pre><span id="METHODget_port"><span class="keyword">method</span> get_port</span> : <code class="type">unit -> int</code></pre><div class="info ">
 The port number of the content server, extracted from the URI.
 <p>
 
 	<b>Changed in Ocamlnet-3.3:</b> The port can first be extracted after
 	the call is submitted to a pipeline.<br>
 </div>
-<pre><span id="METHODget_path"><span class="keyword">method</span> get_path</span> : <code class="type">unit -> string</code></pre><div class="info">
+
+<pre><span id="METHODget_path"><span class="keyword">method</span> get_path</span> : <code class="type">unit -> string</code></pre><div class="info ">
 The path (incl. query, if any) extracted from the URI.
 <p>
 
 	<b>Changed in Ocamlnet-3.3:</b> The path can first be extracted after
 	the call is submitted to a pipeline.<br>
 </div>
-<pre><span id="METHODget_uri"><span class="keyword">method</span> get_uri</span> : <code class="type">unit -> string</code></pre><div class="info">
+
+<pre><span id="METHODget_uri"><span class="keyword">method</span> get_uri</span> : <code class="type">unit -> string</code></pre><div class="info ">
 the full URI of this message: http://server:port/path. If the
  path is empty, it is omitted. - Same as <code class="code">request_uri</code>.<br>
 </div>
-<pre><span id="METHODget_req_body"><span class="keyword">method</span> get_req_body</span> : <code class="type">unit -> string</code></pre><div class="info">
+
+<pre><span id="METHODget_req_body"><span class="keyword">method</span> get_req_body</span> : <code class="type">unit -> string</code></pre><div class="info ">
 What has been sent as body in the (last) request. Same as
  <code class="code">request_body # value</code>.<br>
 </div>
-<pre><span id="METHODget_req_header"><span class="keyword">method</span> get_req_header</span> : <code class="type">unit -> (string * string) list</code></pre><div class="info">
+
+<pre><span id="METHODget_req_header"><span class="keyword">method</span> get_req_header</span> : <code class="type">unit -> (string * string) list</code></pre><div class="info ">
 <b>Deprecated.</b>
  What has been sent as header in the (last) request. Returns
  (key, value) pairs, where the keys are all in lowercase.
@@ -519,28 +566,35 @@ What has been sent as body in the (last) request. Same as
 
  In new code, the <code class="code">request_header</code> object should be accessed instead.<br>
 </div>
-<pre><span id="METHODassoc_req_header"><span class="keyword">method</span> assoc_req_header</span> : <code class="type">string -> string</code></pre><div class="info">
+
+<pre><span id="METHODassoc_req_header"><span class="keyword">method</span> assoc_req_header</span> : <code class="type">string -> string</code></pre><div class="info ">
 Query a specific header entry, or raise <code class="code">Not_found</code><br>
 </div>
-<pre><span id="METHODassoc_multi_req_header"><span class="keyword">method</span> assoc_multi_req_header</span> : <code class="type">string -> string list</code></pre><div class="info">
+
+<pre><span id="METHODassoc_multi_req_header"><span class="keyword">method</span> assoc_multi_req_header</span> : <code class="type">string -> string list</code></pre><div class="info ">
 Return all header values for a given field name (header entries
  which allow several values separated by commas can also be 
  transmitted by several header lines with the same name).<br>
 </div>
-<pre><span id="METHODset_req_header"><span class="keyword">method</span> set_req_header</span> : <code class="type">string -> string -> unit</code></pre><pre><span id="METHODget_resp_header"><span class="keyword">method</span> get_resp_header</span> : <code class="type">unit -> (string * string) list</code></pre><div class="info">
+
+<pre><span id="METHODset_req_header"><span class="keyword">method</span> set_req_header</span> : <code class="type">string -> string -> unit</code></pre>
+<pre><span id="METHODget_resp_header"><span class="keyword">method</span> get_resp_header</span> : <code class="type">unit -> (string * string) list</code></pre><div class="info ">
 <b>Deprecated.</b>
  Get the header of the last response. The keys are in lowercase 
  characters again.<br>
 </div>
-<pre><span id="METHODassoc_resp_header"><span class="keyword">method</span> assoc_resp_header</span> : <code class="type">string -> string</code></pre><div class="info">
+
+<pre><span id="METHODassoc_resp_header"><span class="keyword">method</span> assoc_resp_header</span> : <code class="type">string -> string</code></pre><div class="info ">
 Query a specific header entry of the response.<br>
 </div>
-<pre><span id="METHODassoc_multi_resp_header"><span class="keyword">method</span> assoc_multi_resp_header</span> : <code class="type">string -> string list</code></pre><div class="info">
+
+<pre><span id="METHODassoc_multi_resp_header"><span class="keyword">method</span> assoc_multi_resp_header</span> : <code class="type">string -> string list</code></pre><div class="info ">
 Return all response header values for a given field name (header 
  entries which allow several values separated by commas can also be 
  transmitted by several header lines with the same name).<br>
 </div>
-<pre><span id="METHODget_resp_body"><span class="keyword">method</span> get_resp_body</span> : <code class="type">unit -> string</code></pre><div class="info">
+
+<pre><span id="METHODget_resp_body"><span class="keyword">method</span> get_resp_body</span> : <code class="type">unit -> string</code></pre><div class="info ">
 <b>Deprecated.</b>
  Returns the body of the last response if the response status
  is OK (i.e. the code is in the range 200 to 299).
@@ -550,9 +604,11 @@ Return all response header values for a given field name (header
  the response code and 'body' is the body of the (errorneous)
  response.<br>
 </div>
-<pre><span id="METHODdest_status"><span class="keyword">method</span> dest_status</span> : <code class="type">unit -> string * int * string</code></pre><div class="info">
+
+<pre><span id="METHODdest_status"><span class="keyword">method</span> dest_status</span> : <code class="type">unit -> string * int * string</code></pre><div class="info ">
 Returns the status line of the last response (but status lines
  with code 100 are ignored).
  The returned triple is (http_string, code, text)<br>
 </div>
-<h2 id="2_Private">Private</h2><pre><span id="METHODprivate_api"><span class="keyword">method</span> private_api</span> : <code class="type"><a href="Http_client.html#TYPEprivate_api">private_api</a></code></pre></body></html>
+<h2 id="2_Private">Private</h2>
+<pre><span id="METHODprivate_api"><span class="keyword">method</span> private_api</span> : <code class="type"><a href="Http_client.html#TYPEprivate_api">private_api</a></code></pre></body></html>

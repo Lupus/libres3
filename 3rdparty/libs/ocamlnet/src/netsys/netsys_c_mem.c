@@ -1,4 +1,4 @@
-/* $Id: netsys_c_mem.c 1826 2013-01-13 17:57:16Z gerd $ */
+/* $Id: netsys_c_mem.c 2008 2014-08-31 12:49:27Z gerd $ */
 
 #include "netsys_c.h"
 #include "netsys_c_htab.h"
@@ -182,7 +182,7 @@ CAMLprim value netsys_map_file(value fdv,
     void *addr, *eff_addr;
     intnat size;
     uintnat basize;
-    int64 pos0;
+    int64_t pos0;
     uintnat pagesize, delta;
 
     /* Avoid here seeking at all costs. On some systems, shared memory
@@ -190,7 +190,7 @@ CAMLprim value netsys_map_file(value fdv,
     */
     fd = Int_val(fdv);
     pos0 = Int64_val(posv);
-    if (((int64) ((off_t) pos0)) != pos0)
+    if (((int64_t) ((off_t) pos0)) != pos0)
 	failwith("Netsys_mem: large files not supported on this OS");
     pos = pos0;
     addr = (void *) Nativeint_val(addrv);
@@ -555,10 +555,9 @@ CAMLprim value netsys_value_area_remove(value memv)
 {
 #ifdef FANCY_PAGE_TABLES
     struct caml_bigarray *b = Bigarray_val(memv);
-    int code;
-    code = caml_page_table_remove(In_static_data,
-				  b->data,
-				  b->data + b->dim[0]);
+    caml_page_table_remove(In_static_data,
+                           b->data,
+                           b->data + b->dim[0]);
     /* Silently ignore errors... */
     return Val_unit;
 #else
@@ -913,8 +912,8 @@ int netsys_init_value_1(struct htab *t,
 				    caml_id = 'b';
 				    break;
 				}
-			    case 'i': /* int32 */
-			    case 'j': /* int64 */
+			    case 'i': /* int32_t */
+			    case 'j': /* int64_t */
 			    case 'n': /* nativeint */
 				if (!enable_customs) {
 #ifdef DEBUG

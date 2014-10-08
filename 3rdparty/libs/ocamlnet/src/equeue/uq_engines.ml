@@ -1,5 +1,5 @@
 (* 
- * $Id: uq_engines.ml 1840 2013-03-29 10:54:01Z gerd $
+ * $Id: uq_engines.ml 1997 2014-08-24 20:21:33Z gerd $
  *)
 
 open Printf
@@ -3780,8 +3780,10 @@ object(self)
 	  Netsys_win32.pipe_listen psrv backlog;
 	  let fd = Netsys_win32.pipe_server_descr psrv in
 	  accept fd
+(*
       | _ ->
 	  raise Addressing_method_not_supported
+ *)
 end
 ;;
 

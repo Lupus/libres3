@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -212,7 +212,8 @@
 &nbsp;<a class="post" href="Netmime.html" title="Netmime">Next</a>
 </div>
 <h1>Module <a href="type_Mimestring.html">Mimestring</a></h1>
-<pre><span class="keyword">module</span> Mimestring: <code class="code">sig</code> <a href="Mimestring.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Mimestring: <code class="code">sig</code> <a href="Mimestring.html">..</a> <code class="code">end</code></pre><div class="info module top">
 Low-level functions to parse and print mail and MIME messages 
 <p>
 
@@ -239,34 +240,39 @@ Low-level functions to parse and print mail and MIME messages
 <br>
 These functions are all CR/LF-aware, i.e. lines can be terminated
     by either LF or CR/LF.<br>
-<pre><span id="VALfind_line_end"><span class="keyword">val</span> find_line_end</span> : <code class="type">string -> int -> int -> int</code></pre><div class="info">
+
+<pre><span id="VALfind_line_end"><span class="keyword">val</span> find_line_end</span> : <code class="type">string -> int -> int -> int</code></pre><div class="info ">
 <code class="code">find_line_end s pos len</code>: Searches the next line end (CR/LF or
       only LF), and returns the position. The search starts at position
       <code class="code">pos</code>, and covers the next <code class="code">len</code> bytes. Raises <code class="code">Not_found</code>
       if there is no line end.<br>
 </div>
-<pre><span id="VALfind_line_start"><span class="keyword">val</span> find_line_start</span> : <code class="type">string -> int -> int -> int</code></pre><div class="info">
+
+<pre><span id="VALfind_line_start"><span class="keyword">val</span> find_line_start</span> : <code class="type">string -> int -> int -> int</code></pre><div class="info ">
 <code class="code">find_line_start s pos len</code>: Searches the next start, and returns its
       position. The line start is the position after the next line end
       (CR/LF or only LF). The search starts at position
       <code class="code">pos</code>, and covers the next <code class="code">len</code> bytes. Raises <code class="code">Not_found</code>
       if there is no line end.<br>
 </div>
-<pre><span id="VALfind_double_line_start"><span class="keyword">val</span> find_double_line_start</span> : <code class="type">string -> int -> int -> int</code></pre><div class="info">
+
+<pre><span id="VALfind_double_line_start"><span class="keyword">val</span> find_double_line_start</span> : <code class="type">string -> int -> int -> int</code></pre><div class="info ">
 <code class="code">find_double_line_start s pos len</code>: Searches two adjacent line ends
       (each may be a CR/LF combination or a single LF), and returns the
       position after the second line end.  The search starts at position
       <code class="code">pos</code>, and covers the next <code class="code">len</code> bytes. Raises <code class="code">Not_found</code>
       if the mentioned pattern is not found.<br>
 </div>
-<pre><span id="VALskip_line_ends"><span class="keyword">val</span> skip_line_ends</span> : <code class="type">string -> int -> int -> int</code></pre><div class="info">
+
+<pre><span id="VALskip_line_ends"><span class="keyword">val</span> skip_line_ends</span> : <code class="type">string -> int -> int -> int</code></pre><div class="info ">
 <code class="code">skip_line_ends s pos len</code>: Skips over adjacent line ends (terminated
       by CR/LF or plain LF), and returns the position after the last
       line end. The search starts at position
       <code class="code">pos</code>, and covers the next <code class="code">len</code> bytes. Note that this function
       cannot raise <code class="code">Not_found</code>.<br>
 </div>
-<pre><span id="VALfold_lines_p"><span class="keyword">val</span> fold_lines_p</span> : <code class="type">('a -> int -> int -> int -> bool -> 'a) -> 'a -> string -> int -> int -> 'a</code></pre><div class="info">
+
+<pre><span id="VALfold_lines_p"><span class="keyword">val</span> fold_lines_p</span> : <code class="type">('a -> int -> int -> int -> bool -> 'a) -> 'a -> string -> int -> int -> 'a</code></pre><div class="info ">
 <code class="code">fold_lines_p f acc0 s pos len</code>: Splits the substring of <code class="code">s</code> 
       from <code class="code">pos</code>
       to <code class="code">pos+len</code> into lines, and folds over these lines like 
@@ -285,7 +291,8 @@ These functions are all CR/LF-aware, i.e. lines can be terminated
 
       The function is tail-recursive.<br>
 </div>
-<pre><span id="VALfold_lines"><span class="keyword">val</span> fold_lines</span> : <code class="type">('a -> string -> 'a) -> 'a -> string -> int -> int -> 'a</code></pre><div class="info">
+
+<pre><span id="VALfold_lines"><span class="keyword">val</span> fold_lines</span> : <code class="type">('a -> string -> 'a) -> 'a -> string -> int -> int -> 'a</code></pre><div class="info ">
 <code class="code">fold_lines f acc0 s pos len</code>: Splits the substring of <code class="code">s</code> 
       from <code class="code">pos</code>
       to <code class="code">pos+len</code> into lines, and folds over these lines like 
@@ -305,7 +312,8 @@ These functions are all CR/LF-aware, i.e. lines can be terminated
       <pre class="codepre"><code class="code">         List.rev(fold_lines (fun l acc -&gt; acc::l) [] s pos len)
       </code></pre><br>
 </div>
-<pre><span id="VALiter_lines"><span class="keyword">val</span> iter_lines</span> : <code class="type">(string -> unit) -> string -> int -> int -> unit</code></pre><div class="info">
+
+<pre><span id="VALiter_lines"><span class="keyword">val</span> iter_lines</span> : <code class="type">(string -> unit) -> string -> int -> int -> unit</code></pre><div class="info ">
 <code class="code">iter_lines f s pos len</code>: Splits the substring of <code class="code">s</code> 
       from <code class="code">pos</code>
       to <code class="code">pos+len</code> into lines, and calls <code class="code">f line</code> for each
@@ -314,14 +322,16 @@ These functions are all CR/LF-aware, i.e. lines can be terminated
 
       The lines can be terminated with CR/LF or LF.<br>
 </div>
-<pre><span id="VALskip_whitespace_left"><span class="keyword">val</span> skip_whitespace_left</span> : <code class="type">string -> int -> int -> int</code></pre><div class="info">
+
+<pre><span id="VALskip_whitespace_left"><span class="keyword">val</span> skip_whitespace_left</span> : <code class="type">string -> int -> int -> int</code></pre><div class="info ">
 <code class="code">skip_whitespace_left s pos len</code>: Returns the smallest
       <code class="code">p</code> with <code class="code">p &gt;= pos &amp;&amp; p &lt; pos+len</code> so that <code class="code">s.[p]</code> is not
       a whitesapce character (space, TAB, CR, LF), and 
       <code class="code">s.[q]</code> is a whitespace character for all <code class="code">q&lt;p</code>.
       If this is not possible <code class="code">Not_found</code> will be raised.<br>
 </div>
-<pre><span id="VALskip_whitespace_right"><span class="keyword">val</span> skip_whitespace_right</span> : <code class="type">string -> int -> int -> int</code></pre><div class="info">
+
+<pre><span id="VALskip_whitespace_right"><span class="keyword">val</span> skip_whitespace_right</span> : <code class="type">string -> int -> int -> int</code></pre><div class="info ">
 <code class="code">skip_whitespace_right s pos len</code>: Returns the biggest
       <code class="code">p</code> with <code class="code">p &gt;= pos &amp;&amp; p &lt; pos+len</code> so that <code class="code">s.[p]</code> is not
       a whitesapce character (space, TAB, CR, LF), and
@@ -400,7 +410,8 @@ These functions are all CR/LF-aware, i.e. lines can be terminated
     that a CRLF sequence is semantically meant as line break. As this
     function normally deletes CRLFs, it is not possible to recognize such
     indicators in the result of the function.<br>
-<pre><span id="VALfold_header"><span class="keyword">val</span> fold_header</span> : <code class="type">?downcase:bool -><br>       ?unfold:bool -><br>       ?strip:bool -><br>       ('a -> string -> string -> 'a) -> 'a -> string -> int -> int -> 'a</code></pre><div class="info">
+
+<pre><span id="VALfold_header"><span class="keyword">val</span> fold_header</span> : <code class="type">?downcase:bool -><br>       ?unfold:bool -><br>       ?strip:bool -><br>       ('a -> string -> string -> 'a) -> 'a -> string -> int -> int -> 'a</code></pre><div class="info ">
 <code class="code">fold_header f acc0 s pos len</code>:
       Parses a MIME header in the string <code class="code">s</code> from <code class="code">pos</code> to exactly
       <code class="code">pos+len</code>. The MIME header must be terminated by an empty line.
@@ -430,14 +441,16 @@ These functions are all CR/LF-aware, i.e. lines can be terminated
 </ul>
 <br>
 </div>
-<pre><span id="VALlist_header"><span class="keyword">val</span> list_header</span> : <code class="type">?downcase:bool -><br>       ?unfold:bool -> ?strip:bool -> string -> int -> int -> (string * string) list</code></pre><div class="info">
+
+<pre><span id="VALlist_header"><span class="keyword">val</span> list_header</span> : <code class="type">?downcase:bool -><br>       ?unfold:bool -> ?strip:bool -> string -> int -> int -> (string * string) list</code></pre><div class="info ">
 <code class="code">list_header s pos len</code>: Returns the headers as list of pairs
       <code class="code">(name,value)</code>.
 <p>
 
       For the meaning of the arguments see <code class="code">fold_header</code> above.<br>
 </div>
-<pre><span id="VALscan_header"><span class="keyword">val</span> scan_header</span> : <code class="type">?downcase:bool -><br>       ?unfold:bool -><br>       ?strip:bool -><br>       string -> start_pos:int -> end_pos:int -> (string * string) list * int</code></pre><div class="info">
+
+<pre><span id="VALscan_header"><span class="keyword">val</span> scan_header</span> : <code class="type">?downcase:bool -><br>       ?unfold:bool -><br>       ?strip:bool -><br>       string -> start_pos:int -> end_pos:int -> (string * string) list * int</code></pre><div class="info ">
 <code class="code">let params, header_end_pos = scan_header s start_pos end_pos</code>:
 <p>
 
@@ -466,7 +479,8 @@ These functions are all CR/LF-aware, i.e. lines can be terminated
      Also, this function is different because <code class="code">downcase</code> and <code class="code">unfold</code> are
      enabled by default, and only <code class="code">strip</code> is not enabled.<br>
 </div>
-<pre><span id="VALread_header"><span class="keyword">val</span> read_header</span> : <code class="type">?downcase:bool -><br>       ?unfold:bool -><br>       ?strip:bool -> <a href="Netstream.in_obj_stream-c.html">Netstream.in_obj_stream</a> -> (string * string) list</code></pre><div class="info">
+
+<pre><span id="VALread_header"><span class="keyword">val</span> read_header</span> : <code class="type">?downcase:bool -><br>       ?unfold:bool -><br>       ?strip:bool -> <a href="Netstream.in_obj_stream-c.html">Netstream.in_obj_stream</a> -> (string * string) list</code></pre><div class="info ">
 This function expects that the current position of the passed
  <code class="code">in_obj_stream</code> is the first byte of the header. The function scans the
  header and returns it. After that, the stream position is after
@@ -490,7 +504,8 @@ This function expects that the current position of the passed
  stream#close_in()  (* no need to close ch *)
  </code></pre><br>
 </div>
-<pre><span id="VALwrite_header"><span class="keyword">val</span> write_header</span> : <code class="type">?soft_eol:string -><br>       ?eol:string -> <a href="Netchannels.out_obj_channel-c.html">Netchannels.out_obj_channel</a> -> (string * string) list -> unit</code></pre><div class="info">
+
+<pre><span id="VALwrite_header"><span class="keyword">val</span> write_header</span> : <code class="type">?soft_eol:string -><br>       ?eol:string -> <a href="Netchannels.out_obj_channel-c.html">Netchannels.out_obj_channel</a> -> (string * string) list -> unit</code></pre><div class="info ">
 This function writes the header to the passed <code class="code">out_obj_channel</code>. The
  empty line following the header is also written.
 <p>
@@ -790,6 +805,7 @@ The following types and functions allow it to build scanners for
  </code></pre></li>
 </ul>
 <br>
+
 <pre><code><span id="TYPEs_token"><span class="keyword">type</span> <code class="type"></code>s_token</span> = </code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
@@ -848,7 +864,7 @@ The following types and functions allow it to build scanners for
 
 </tr></table>
 
-<div class="info">
+<div class="info ">
 A token may be one of:<ul>
 <li><code class="code">QString s</code>: The quoted string <code class="code">s</code>, i.e a string between double
    quotes. Quoted pairs are already decoded in <code class="code">s</code>.</li>
@@ -873,6 +889,7 @@ A token may be one of:<ul>
 </ul>
 <br>
 </div>
+
 
 <pre><code><span id="TYPEs_option"><span class="keyword">type</span> <code class="type"></code>s_option</span> = </code></pre><table class="typetable">
 <tr>
@@ -908,8 +925,9 @@ A token may be one of:<ul>
 </tr></table>
 
 
+
 <pre><span id="TYPEs_extended_token"><span class="keyword">type</span> <code class="type"></code>s_extended_token</span> </pre>
-<div class="info">
+<div class="info ">
 An opaque type containing the information of <code class="code">s_token</code> plus:<ul>
 <li>where the token occurs</li>
 <li>RFC-2047 access functions</li>
@@ -917,10 +935,13 @@ An opaque type containing the information of <code class="code">s_token</code> p
 <br>
 </div>
 
-<pre><span id="VALget_token"><span class="keyword">val</span> get_token</span> : <code class="type"><a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> -> <a href="Mimestring.html#TYPEs_token">s_token</a></code></pre><div class="info">
+
+<pre><span id="VALget_token"><span class="keyword">val</span> get_token</span> : <code class="type"><a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> -> <a href="Mimestring.html#TYPEs_token">s_token</a></code></pre><div class="info ">
 Return the <code class="code">s_token</code> within the <code class="code">s_extended_token</code><br>
 </div>
-<pre><span id="VALget_decoded_word"><span class="keyword">val</span> get_decoded_word</span> : <code class="type"><a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> -> string</code></pre><pre><span id="VALget_charset"><span class="keyword">val</span> get_charset</span> : <code class="type"><a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALget_decoded_word"><span class="keyword">val</span> get_decoded_word</span> : <code class="type"><a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> -> string</code></pre>
+<pre><span id="VALget_charset"><span class="keyword">val</span> get_charset</span> : <code class="type"><a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> -> string</code></pre><div class="info ">
 Return the decoded word (the contents of the word after decoding the
  "Q" or "B" representation), and the character set of the decoded word
  (uppercase).
@@ -940,26 +961,32 @@ Return the decoded word (the contents of the word after decoding the
 
  The function <code class="code">get_charset</code> returns <code class="code">"US-ASCII"</code> for them.<br>
 </div>
-<pre><span id="VALget_language"><span class="keyword">val</span> get_language</span> : <code class="type"><a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALget_language"><span class="keyword">val</span> get_language</span> : <code class="type"><a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> -> string</code></pre><div class="info ">
 Returns the language if the token is an <code class="code">EncodedWord</code>, and <code class="code">""</code> for
  all other tokens.<br>
 </div>
-<pre><span id="VALget_pos"><span class="keyword">val</span> get_pos</span> : <code class="type"><a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> -> int</code></pre><div class="info">
+
+<pre><span id="VALget_pos"><span class="keyword">val</span> get_pos</span> : <code class="type"><a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> -> int</code></pre><div class="info ">
 Return the byte position where the token starts in the string 
  (the first byte has position 0)<br>
 </div>
-<pre><span id="VALget_line"><span class="keyword">val</span> get_line</span> : <code class="type"><a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> -> int</code></pre><div class="info">
+
+<pre><span id="VALget_line"><span class="keyword">val</span> get_line</span> : <code class="type"><a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> -> int</code></pre><div class="info ">
 Return the line number where the token starts (numbering begins
  usually with 1)<br>
 </div>
-<pre><span id="VALget_column"><span class="keyword">val</span> get_column</span> : <code class="type"><a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> -> int</code></pre><div class="info">
+
+<pre><span id="VALget_column"><span class="keyword">val</span> get_column</span> : <code class="type"><a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> -> int</code></pre><div class="info ">
 Return the column of the line where the token starts (first column
  is number 0)<br>
 </div>
-<pre><span id="VALget_length"><span class="keyword">val</span> get_length</span> : <code class="type"><a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> -> int</code></pre><div class="info">
+
+<pre><span id="VALget_length"><span class="keyword">val</span> get_length</span> : <code class="type"><a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> -> int</code></pre><div class="info ">
 Return the length of the token in bytes<br>
 </div>
-<pre><span id="VALseparates_adjacent_encoded_words"><span class="keyword">val</span> separates_adjacent_encoded_words</span> : <code class="type"><a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> -> bool</code></pre><div class="info">
+
+<pre><span id="VALseparates_adjacent_encoded_words"><span class="keyword">val</span> separates_adjacent_encoded_words</span> : <code class="type"><a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> -> bool</code></pre><div class="info ">
 True iff the current token is white space (i.e. <code class="code">Special ' '</code>, 
  <code class="code">Special '\t'</code>, <code class="code">Special '\r'</code> or <code class="code">Special '\n'</code>) and the last
  non-white space token was <code class="code">EncodedWord</code> and the next non-white
@@ -970,12 +997,14 @@ True iff the current token is white space (i.e. <code class="code">Special ' '</
  encoded words does not have a meaning, and must be ignored
  by any application interpreting encoded words.<br>
 </div>
+
 <pre><span id="TYPEmime_scanner"><span class="keyword">type</span> <code class="type"></code>mime_scanner</span> </pre>
-<div class="info">
+<div class="info ">
 The opaque type of a scanner for structured values<br>
 </div>
 
-<pre><span id="VALcreate_mime_scanner"><span class="keyword">val</span> create_mime_scanner</span> : <code class="type">specials:char list -><br>       scan_options:<a href="Mimestring.html#TYPEs_option">s_option</a> list -><br>       ?pos:int -> ?line:int -> ?column:int -> string -> <a href="Mimestring.html#TYPEmime_scanner">mime_scanner</a></code></pre><div class="info">
+
+<pre><span id="VALcreate_mime_scanner"><span class="keyword">val</span> create_mime_scanner</span> : <code class="type">specials:char list -><br>       scan_options:<a href="Mimestring.html#TYPEs_option">s_option</a> list -><br>       ?pos:int -> ?line:int -> ?column:int -> string -> <a href="Mimestring.html#TYPEmime_scanner">mime_scanner</a></code></pre><div class="info ">
 Creates a new <code class="code">mime_scanner</code> scanning the passed string.
 <p>
 
@@ -1000,7 +1029,10 @@ Note for <code class="code">create_mime_scanner</code>:
  ...
  let my_scanner = my_scanner_spec my_string in 
  ...</code></pre><br>
-<pre><span id="VALget_pos_of_scanner"><span class="keyword">val</span> get_pos_of_scanner</span> : <code class="type"><a href="Mimestring.html#TYPEmime_scanner">mime_scanner</a> -> int</code></pre><pre><span id="VALget_line_of_scanner"><span class="keyword">val</span> get_line_of_scanner</span> : <code class="type"><a href="Mimestring.html#TYPEmime_scanner">mime_scanner</a> -> int</code></pre><pre><span id="VALget_column_of_scanner"><span class="keyword">val</span> get_column_of_scanner</span> : <code class="type"><a href="Mimestring.html#TYPEmime_scanner">mime_scanner</a> -> int</code></pre><div class="info">
+
+<pre><span id="VALget_pos_of_scanner"><span class="keyword">val</span> get_pos_of_scanner</span> : <code class="type"><a href="Mimestring.html#TYPEmime_scanner">mime_scanner</a> -> int</code></pre>
+<pre><span id="VALget_line_of_scanner"><span class="keyword">val</span> get_line_of_scanner</span> : <code class="type"><a href="Mimestring.html#TYPEmime_scanner">mime_scanner</a> -> int</code></pre>
+<pre><span id="VALget_column_of_scanner"><span class="keyword">val</span> get_column_of_scanner</span> : <code class="type"><a href="Mimestring.html#TYPEmime_scanner">mime_scanner</a> -> int</code></pre><div class="info ">
 Return the current position, line, and column of a <code class="code">mime_scanner</code>.
  The primary purpose of these functions is to simplify switching
  from one <code class="code">mime_scanner</code> to another within a string:
@@ -1026,14 +1058,17 @@ Return the current position, line, and column of a <code class="code">mime_scann
  create scanner specs in advance (see the example <code class="code">my_scanner_spec</code>
  above).<br>
 </div>
-<pre><span id="VALscan_token"><span class="keyword">val</span> scan_token</span> : <code class="type"><a href="Mimestring.html#TYPEmime_scanner">mime_scanner</a> -> <a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> * <a href="Mimestring.html#TYPEs_token">s_token</a></code></pre><div class="info">
+
+<pre><span id="VALscan_token"><span class="keyword">val</span> scan_token</span> : <code class="type"><a href="Mimestring.html#TYPEmime_scanner">mime_scanner</a> -> <a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> * <a href="Mimestring.html#TYPEs_token">s_token</a></code></pre><div class="info ">
 Returns the next token, or <code class="code">End</code> if there is no more token. The 
  token is returned both as extended and as normal token.<br>
 </div>
-<pre><span id="VALscan_token_list"><span class="keyword">val</span> scan_token_list</span> : <code class="type"><a href="Mimestring.html#TYPEmime_scanner">mime_scanner</a> -><br>       (<a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> * <a href="Mimestring.html#TYPEs_token">s_token</a>) list</code></pre><div class="info">
+
+<pre><span id="VALscan_token_list"><span class="keyword">val</span> scan_token_list</span> : <code class="type"><a href="Mimestring.html#TYPEmime_scanner">mime_scanner</a> -><br>       (<a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> * <a href="Mimestring.html#TYPEs_token">s_token</a>) list</code></pre><div class="info ">
 Returns all following tokens as a list (excluding <code class="code">End</code>)<br>
 </div>
-<pre><span id="VALscan_structured_value"><span class="keyword">val</span> scan_structured_value</span> : <code class="type">string -> char list -> <a href="Mimestring.html#TYPEs_option">s_option</a> list -> <a href="Mimestring.html#TYPEs_token">s_token</a> list</code></pre><div class="info">
+
+<pre><span id="VALscan_structured_value"><span class="keyword">val</span> scan_structured_value</span> : <code class="type">string -> char list -> <a href="Mimestring.html#TYPEs_option">s_option</a> list -> <a href="Mimestring.html#TYPEs_token">s_token</a> list</code></pre><div class="info ">
 This function is included for backwards compatibility, and for all
  cases not requiring extended tokens.
 <p>
@@ -1041,12 +1076,15 @@ This function is included for backwards compatibility, and for all
  It scans the passed string according to the list of special characters
  and the list of options, and returns the list of all tokens.<br>
 </div>
-<pre><span id="VALspecials_rfc822"><span class="keyword">val</span> specials_rfc822</span> : <code class="type">char list</code></pre><pre><span id="VALspecials_rfc2045"><span class="keyword">val</span> specials_rfc2045</span> : <code class="type">char list</code></pre><div class="info">
+
+<pre><span id="VALspecials_rfc822"><span class="keyword">val</span> specials_rfc822</span> : <code class="type">char list</code></pre>
+<pre><span id="VALspecials_rfc2045"><span class="keyword">val</span> specials_rfc2045</span> : <code class="type">char list</code></pre><div class="info ">
 The sets of special characters defined by the RFCs 822 and 2045.<br>
 </div>
 <br>
 <h1 id="parsers_for_structured_values">Parsing Certain Forms of Structured Values</h1><br>
-<pre><span id="VALscan_encoded_text_value"><span class="keyword">val</span> scan_encoded_text_value</span> : <code class="type">string -> <a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> list</code></pre><div class="info">
+
+<pre><span id="VALscan_encoded_text_value"><span class="keyword">val</span> scan_encoded_text_value</span> : <code class="type">string -> <a href="Mimestring.html#TYPEs_extended_token">s_extended_token</a> list</code></pre><div class="info ">
 Scans a "text" value. The returned token list contains only
  <code class="code">Special</code>, <code class="code">Atom</code> and <code class="code">EncodedWord</code> tokens. 
  Spaces, TABs, CRs, LFs are returned (as <code class="code">Special</code>) unless
@@ -1058,7 +1096,8 @@ Scans a "text" value. The returned token list contains only
  For instance, this function can be used to scan the "Subject"
  field of mail messages.<br>
 </div>
-<pre><span id="VALscan_value_with_parameters"><span class="keyword">val</span> scan_value_with_parameters</span> : <code class="type">string -> <a href="Mimestring.html#TYPEs_option">s_option</a> list -> string * (string * string) list</code></pre><div class="info">
+
+<pre><span id="VALscan_value_with_parameters"><span class="keyword">val</span> scan_value_with_parameters</span> : <code class="type">string -> <a href="Mimestring.html#TYPEs_option">s_option</a> list -> string * (string * string) list</code></pre><div class="info ">
 <code class="code">let name, params = scan_value_with_parameters s options</code>:
  Scans values with annotations like
     <code class="code">name ; p1=v1 ; p2=v2 ; ...</code>
@@ -1097,25 +1136,32 @@ Scans a "text" value. The returned token list contains only
 
  Raises <code class="code">Failure</code> on syntax errors.<br>
 </div>
+
 <pre><span id="TYPEs_param"><span class="keyword">type</span> <code class="type"></code>s_param</span> </pre>
-<div class="info">
+<div class="info ">
 The type of encoded parameters (RFC 2231)<br>
 </div>
 
-<pre><span id="VALparam_value"><span class="keyword">val</span> param_value</span> : <code class="type"><a href="Mimestring.html#TYPEs_param">s_param</a> -> string</code></pre><pre><span id="VALparam_charset"><span class="keyword">val</span> param_charset</span> : <code class="type"><a href="Mimestring.html#TYPEs_param">s_param</a> -> string</code></pre><pre><span id="VALparam_language"><span class="keyword">val</span> param_language</span> : <code class="type"><a href="Mimestring.html#TYPEs_param">s_param</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALparam_value"><span class="keyword">val</span> param_value</span> : <code class="type"><a href="Mimestring.html#TYPEs_param">s_param</a> -> string</code></pre>
+<pre><span id="VALparam_charset"><span class="keyword">val</span> param_charset</span> : <code class="type"><a href="Mimestring.html#TYPEs_param">s_param</a> -> string</code></pre>
+<pre><span id="VALparam_language"><span class="keyword">val</span> param_language</span> : <code class="type"><a href="Mimestring.html#TYPEs_param">s_param</a> -> string</code></pre><div class="info ">
 Return the decoded value of the parameter, the charset (uppercase),
  and the language.
  If the charset is not available, <code class="code">""</code> will be returned. 
  If the language is not available, <code class="code">""</code> will be returned.<br>
 </div>
-<pre><span id="VALmk_param"><span class="keyword">val</span> mk_param</span> : <code class="type">?charset:string -> ?language:string -> string -> <a href="Mimestring.html#TYPEs_param">s_param</a></code></pre><div class="info">
+
+<pre><span id="VALmk_param"><span class="keyword">val</span> mk_param</span> : <code class="type">?charset:string -> ?language:string -> string -> <a href="Mimestring.html#TYPEs_param">s_param</a></code></pre><div class="info ">
 Creates a parameter from a value (in decoded form). The parameter
  may have a charset and a language.<br>
 </div>
-<pre><span id="VALprint_s_param"><span class="keyword">val</span> print_s_param</span> : <code class="type">Format.formatter -> <a href="Mimestring.html#TYPEs_param">s_param</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALprint_s_param"><span class="keyword">val</span> print_s_param</span> : <code class="type">Format.formatter -> <a href="Mimestring.html#TYPEs_param">s_param</a> -> unit</code></pre><div class="info ">
 Prints a parameter to the formatter (as toploop printer)<br>
 </div>
-<pre><span id="VALscan_value_with_parameters_ep"><span class="keyword">val</span> scan_value_with_parameters_ep</span> : <code class="type">string -><br>       <a href="Mimestring.html#TYPEs_option">s_option</a> list -> string * (string * <a href="Mimestring.html#TYPEs_param">s_param</a>) list</code></pre><div class="info">
+
+<pre><span id="VALscan_value_with_parameters_ep"><span class="keyword">val</span> scan_value_with_parameters_ep</span> : <code class="type">string -><br>       <a href="Mimestring.html#TYPEs_option">s_option</a> list -> string * (string * <a href="Mimestring.html#TYPEs_param">s_param</a>) list</code></pre><div class="info ">
 <code class="code">let name, params = scan_value_with_parameters_ep s options</code>:
  This version of the scanner copes with encoded parameters according
  to RFC 2231.
@@ -1135,7 +1181,8 @@ Prints a parameter to the formatter (as toploop printer)<br>
 
  Raises <code class="code">Failure</code> on syntax errors.<br>
 </div>
-<pre><span id="VALscan_mime_type"><span class="keyword">val</span> scan_mime_type</span> : <code class="type">string -> <a href="Mimestring.html#TYPEs_option">s_option</a> list -> string * (string * string) list</code></pre><div class="info">
+
+<pre><span id="VALscan_mime_type"><span class="keyword">val</span> scan_mime_type</span> : <code class="type">string -> <a href="Mimestring.html#TYPEs_option">s_option</a> list -> string * (string * string) list</code></pre><div class="info ">
 <code class="code">let name, params = scan_mime_type s options</code>:
  Scans MIME types like
     <code class="code">text/plain; charset=iso-8859-1</code>
@@ -1145,14 +1192,16 @@ Prints a parameter to the formatter (as toploop printer)<br>
 
  Raises <code class="code">Failure</code> on syntax errors.<br>
 </div>
-<pre><span id="VALscan_mime_type_ep"><span class="keyword">val</span> scan_mime_type_ep</span> : <code class="type">string -><br>       <a href="Mimestring.html#TYPEs_option">s_option</a> list -> string * (string * <a href="Mimestring.html#TYPEs_param">s_param</a>) list</code></pre><div class="info">
+
+<pre><span id="VALscan_mime_type_ep"><span class="keyword">val</span> scan_mime_type_ep</span> : <code class="type">string -><br>       <a href="Mimestring.html#TYPEs_option">s_option</a> list -> string * (string * <a href="Mimestring.html#TYPEs_param">s_param</a>) list</code></pre><div class="info ">
 <code class="code">let name, params = scan_mime_type_ep s options</code>:
  This version copes with RFC-2231-encoded parameters.
 <p>
 
  Raises <code class="code">Failure</code> on syntax errors.<br>
 </div>
-<pre><span id="VALsplit_mime_type"><span class="keyword">val</span> split_mime_type</span> : <code class="type">string -> string * string</code></pre><div class="info">
+
+<pre><span id="VALsplit_mime_type"><span class="keyword">val</span> split_mime_type</span> : <code class="type">string -> string * string</code></pre><div class="info ">
 <code class="code">let (main_type, sub_type) = split_mime_type content_type</code>:
  Splits the MIME type into main and sub type, for example
  <code class="code"> split_mime_type "text/plain" = ("text", "plain") </code>.
@@ -1163,11 +1212,13 @@ Prints a parameter to the formatter (as toploop printer)<br>
 </div>
 <br>
 <h1 id="printers_for_structured_values">Printing Structured Values</h1><br>
+
 <pre><span id="EXCEPTIONLine_too_long"><span class="keyword">exception</span> Line_too_long</span></pre>
-<div class="info">
+<div class="info ">
 Raised when the hard limit of the line length is exceeded<br>
 </div>
-<pre><span id="VALwrite_value"><span class="keyword">val</span> write_value</span> : <code class="type">?maxlen1:int -><br>       ?maxlen:int -><br>       ?hardmaxlen1:int -><br>       ?hardmaxlen:int -><br>       ?fold_qstring:bool -><br>       ?fold_literal:bool -><br>       ?unused:int Pervasives.ref -><br>       ?hardunused:int Pervasives.ref -><br>       <a href="Netchannels.out_obj_channel-c.html">Netchannels.out_obj_channel</a> -> <a href="Mimestring.html#TYPEs_token">s_token</a> list -> unit</code></pre><div class="info">
+
+<pre><span id="VALwrite_value"><span class="keyword">val</span> write_value</span> : <code class="type">?maxlen1:int -><br>       ?maxlen:int -><br>       ?hardmaxlen1:int -><br>       ?hardmaxlen:int -><br>       ?fold_qstring:bool -><br>       ?fold_literal:bool -><br>       ?unused:int Pervasives.ref -><br>       ?hardunused:int Pervasives.ref -><br>       <a href="Netchannels.out_obj_channel-c.html">Netchannels.out_obj_channel</a> -> <a href="Mimestring.html#TYPEs_token">s_token</a> list -> unit</code></pre><div class="info ">
 Writes the list of <code class="code">s_token</code> to the <code class="code">out_obj_channel</code>. The value
  is optionally folded into several lines while writing, but this
  is off by default. To enable folding, pass <b>both</b> <code class="code">maxlen1</code> and
@@ -1290,7 +1341,8 @@ Writes the list of <code class="code">s_token</code> to the <code class="code">o
 </ul>
 <br>
 </div>
-<pre><span id="VALparam_tokens"><span class="keyword">val</span> param_tokens</span> : <code class="type">?maxlen:int -> (string * <a href="Mimestring.html#TYPEs_param">s_param</a>) list -> <a href="Mimestring.html#TYPEs_token">s_token</a> list</code></pre><div class="info">
+
+<pre><span id="VALparam_tokens"><span class="keyword">val</span> param_tokens</span> : <code class="type">?maxlen:int -> (string * <a href="Mimestring.html#TYPEs_param">s_param</a>) list -> <a href="Mimestring.html#TYPEs_token">s_token</a> list</code></pre><div class="info ">
 Formats a parameter list. For example, 
  <code class="code">[ "a", "b"; "c", "d" ]</code> is transformed to the token sequence
  corresponding to <code class="code">; a=b; c=d</code>.
@@ -1302,14 +1354,16 @@ Formats a parameter list. For example,
  set or language, the encoding of RFC 2231 will be applied. If these
  conditions are not met, the parameters will be encoded traditionally.<br>
 </div>
-<pre><span id="VALsplit_uri"><span class="keyword">val</span> split_uri</span> : <code class="type">string -> <a href="Mimestring.html#TYPEs_token">s_token</a> list</code></pre><div class="info">
+
+<pre><span id="VALsplit_uri"><span class="keyword">val</span> split_uri</span> : <code class="type">string -> <a href="Mimestring.html#TYPEs_token">s_token</a> list</code></pre><div class="info ">
 Splits a long URI according to the algorithm of RFC 2017.
  The input string must only contain 7 bit characters, and
  must be, if necessary, already be URL-encoded.<br>
 </div>
 <br>
 <h1 id="scanning_mime">Scanning MIME Messages</h1><br>
-<pre><span id="VALscan_multipart_body"><span class="keyword">val</span> scan_multipart_body</span> : <code class="type">string -><br>       start_pos:int -><br>       end_pos:int -> boundary:string -> ((string * string) list * string) list</code></pre><div class="info">
+
+<pre><span id="VALscan_multipart_body"><span class="keyword">val</span> scan_multipart_body</span> : <code class="type">string -><br>       start_pos:int -><br>       end_pos:int -> boundary:string -> ((string * string) list * string) list</code></pre><div class="info ">
 <code class="code">let [params1, value1; params2, value2; ...]
    = scan_multipart_body s start_pos end_pos boundary</code>:
 <p>
@@ -1391,12 +1445,14 @@ Splits a long URI according to the algorithm of RFC 2017.
  Please read RFC 2046 if want to know the gory details of this
  brain-dead format.<br>
 </div>
-<pre><span id="VALscan_multipart_body_and_decode"><span class="keyword">val</span> scan_multipart_body_and_decode</span> : <code class="type">string -><br>       start_pos:int -><br>       end_pos:int -> boundary:string -> ((string * string) list * string) list</code></pre><div class="info">
+
+<pre><span id="VALscan_multipart_body_and_decode"><span class="keyword">val</span> scan_multipart_body_and_decode</span> : <code class="type">string -><br>       start_pos:int -><br>       end_pos:int -> boundary:string -> ((string * string) list * string) list</code></pre><div class="info ">
 Same as <code class="code">scan_multipart_body</code>, but decodes the bodies of the parts
  if they are encoded using the methods "base64" or "quoted printable".
  Fails, if an unknown encoding is used.<br>
 </div>
-<pre><span id="VALscan_multipart_body_from_netstream"><span class="keyword">val</span> scan_multipart_body_from_netstream</span> : <code class="type"><a href="Netstream.in_obj_stream-c.html">Netstream.in_obj_stream</a> -><br>       boundary:string -><br>       create:((string * string) list -> 'a) -><br>       add:('a -> <a href="Netstream.in_obj_stream-c.html">Netstream.in_obj_stream</a> -> int -> int -> unit) -><br>       stop:('a -> unit) -> unit</code></pre><div class="info">
+
+<pre><span id="VALscan_multipart_body_from_netstream"><span class="keyword">val</span> scan_multipart_body_from_netstream</span> : <code class="type"><a href="Netstream.in_obj_stream-c.html">Netstream.in_obj_stream</a> -><br>       boundary:string -><br>       create:((string * string) list -> 'a) -><br>       add:('a -> <a href="Netstream.in_obj_stream-c.html">Netstream.in_obj_stream</a> -> int -> int -> unit) -><br>       stop:('a -> unit) -> unit</code></pre><div class="info ">
 <code class="code">scan_multipart_body_from_netstream s boundary create add stop</code>:
 <p>
 
@@ -1448,7 +1504,8 @@ Same as <code class="code">scan_multipart_body</code>, but decodes the bodies of
 </ul>
 <br>
 </div>
-<pre><span id="VALread_multipart_body"><span class="keyword">val</span> read_multipart_body</span> : <code class="type">(<a href="Netstream.in_obj_stream-c.html">Netstream.in_obj_stream</a> -> 'a) -><br>       string -> <a href="Netstream.in_obj_stream-c.html">Netstream.in_obj_stream</a> -> 'a list</code></pre><div class="info">
+
+<pre><span id="VALread_multipart_body"><span class="keyword">val</span> read_multipart_body</span> : <code class="type">(<a href="Netstream.in_obj_stream-c.html">Netstream.in_obj_stream</a> -> 'a) -><br>       string -> <a href="Netstream.in_obj_stream-c.html">Netstream.in_obj_stream</a> -> 'a list</code></pre><div class="info ">
 This is the "next generation" multipart message parser. It is 
  called as follows:
 <p>
@@ -1476,7 +1533,8 @@ This is the "next generation" multipart message parser. It is
 </div>
 <br>
 <h1 id="helpers_mime">Helpers for MIME Messages</h1><br>
-<pre><span id="VALcreate_boundary"><span class="keyword">val</span> create_boundary</span> : <code class="type">?random:string list -> ?nr:int -> unit -> string</code></pre><div class="info">
+
+<pre><span id="VALcreate_boundary"><span class="keyword">val</span> create_boundary</span> : <code class="type">?random:string list -> ?nr:int -> unit -> string</code></pre><div class="info ">
 Creates a boundary string that can be used to separate multipart
  messages.
  The string is 63 characters long and has the following "features":<ul>

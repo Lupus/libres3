@@ -911,13 +911,9 @@ let pkg_optcomp = ocaml_dependency "optcomp" ~cmi:("optcomp","pa_optcomp.cmi","o
   build_oasis "3rdparty/libs/optcomp" ~findlibnames:["optcomp"] ~flags:[]))
   ~deps:[dep_ocamlbuild; camlp4_dep]
 
-let pkg_base_bytes = ocaml_dependency "bytes" (Build (fun _ ->
-  build_confgnumake "3rdparty/libs/ocaml-bytes" ~findlibnames:["bytes"]))
-  ~deps:[dep_ocamlbuild]
-
 let pkg_ocplib_endian = ocaml_dependency "ocplib-endian" ~cmi:("ocplib-endian","endianString.cmi","ocplib_endian.cmxa") (Build (fun _ ->
   build_oasis "3rdparty/libs/ocplib-endian" ~findlibnames:["ocplib-endian"] ~flags:[]))
-  ~deps:[dep_ocamlbuild; pkg_base_bytes; pkg_optcomp; camlp4_dep]
+~deps:[dep_ocamlbuild; pkg_findlib; pkg_optcomp; camlp4_dep]
 
 let pkg_cstruct = ocaml_dependency "cstruct" (Build (fun _ ->
   build_oasis "3rdparty/libs/ocaml-cstruct" ~findlibnames:["cstruct";"cstruct.lwt"] ~flags:["--enable-lwt"]))

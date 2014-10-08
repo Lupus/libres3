@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (* Comet extension for Ocsigen server
  * ``Comet'' is a set of <strike>hacks</strike> techniques providing basic
@@ -26,18 +26,11 @@
  *
  * This implementation is to evolve and will change a lot with HTML5's
  * WebSockets support.
- *)
+*)
 
 open Ocsigen_lib
 
 (*** PREAMBLE ***)
-
-(* Shortening names of modules *)
-module OFrame  = Ocsigen_http_frame
-module OStream = Ocsigen_stream
-module OX      = Ocsigen_extensions
-module OConf   = Ocsigen_config
-module OMsg    = Ocsigen_messages
 
 (* infix monad binders *)
 let ( >>= ) = Lwt.( >>= )
@@ -48,13 +41,13 @@ let map_rev_accu_split func lst accu1 accu2 =
   let rec aux accu1 accu2 = function
     | [] -> (accu1, accu2)
     | x :: xs -> match func x with
-        | Left y -> aux (y :: accu1) accu2 xs
-        | Right y -> aux accu1 (y :: accu2) xs
+      | Left y -> aux (y :: accu1) accu2 xs
+      | Right y -> aux accu1 (y :: accu2) xs
   in
-    aux accu1 accu2 lst
+  aux accu1 accu2 lst
 
 let section = Lwt_log.Section.make "Comet"
-let () = OMsg.register_section section
+let () = Ocsigen_messages.register_section section
 
 (*** EXTENSION OPTIONS ***)
 
@@ -73,10 +66,10 @@ let get_max_virtual_channels () = !max_virtual_channels_ref
 let rec parse_options = function
   | [] -> ()
   | ("max_virtual_channels", "") :: tl ->
-        max_virtual_channels_ref := None ; parse_options tl
+    max_virtual_channels_ref := None ; parse_options tl
   | ("max_virtual_channels", s) :: tl ->
-        max_virtual_channels_ref := Some (int_of_string s) ; parse_options tl
-  | _ :: _ -> raise (OX.Error_in_config_file "Unexpected data in config file")
+    max_virtual_channels_ref := Some (int_of_string s) ; parse_options tl
+  | _ :: _ -> raise (Ocsigen_extensions.Error_in_config_file "Unexpected data in config file")
 
 
 
@@ -86,34 +79,34 @@ module Channels :
 sig
 
   exception Too_many_virtual_channels
-    (* raised when calling [create] while [max_virtual_channels] is [Some x] and
-     * creating a new channel would make the virtual channel count greater than
-     * [x]. *)
+  (* raised when calling [create] while [max_virtual_channels] is [Some x] and
+   * creating a new channel would make the virtual channel count greater than
+   * [x]. *)
   exception Non_unique_channel_name
-    (* raised when creating a channel with a name already associated. *)
+  (* raised when creating a channel with a name already associated. *)
 
   type t
-    (* the type of channels :
-     * channels can be written on or read from using the following functions
-     *)
+  (* the type of channels :
+   * channels can be written on or read from using the following functions
+  *)
   type chan_id = string
 
   val create : ?name:string -> unit -> t
-  val read : t -> (string * OStream.outcome Lwt.u option) Lwt.t
-  val write : t -> (string * OStream.outcome Lwt.u option) -> unit
+  val read : t -> (string * Ocsigen_stream.outcome Lwt.u option) Lwt.t
+  val write : t -> (string * Ocsigen_stream.outcome Lwt.u option) -> unit
 
   val listeners : t -> int
-    (* The up-to-date count of registered clients *)
+  (* The up-to-date count of registered clients *)
   val send_listeners : t -> int -> unit
-    (* [send_listeners c i] adds [i] to [listeners c]. [i] may be negative. *)
+  (* [send_listeners c i] adds [i] to [listeners c]. [i] may be negative. *)
 
   val find_channel : chan_id -> t
-    (* may raise Not_found if the channel was collected or never created.
-     * Basically ids are meant for clients to tell a server to start listening
-     * to it. *)
+  (* may raise Not_found if the channel was collected or never created.
+   * Basically ids are meant for clients to tell a server to start listening
+   * to it. *)
   val get_id : t -> chan_id
-    (* [find_channel (get_id ch)] returns [ch] if the channel wasn't destroyed
-     * that is. *)
+  (* [find_channel (get_id ch)] returns [ch] if the channel wasn't destroyed
+   * that is. *)
 
 end = struct
 
@@ -121,13 +114,13 @@ end = struct
   exception Non_unique_channel_name
 
   type chan_id = string
-    type t =
-        {
-                  ch_id : chan_id ;
-          mutable ch_read  : (string * OStream.outcome Lwt.u option) Lwt.t ;
-          mutable ch_write : (string * OStream.outcome Lwt.u option) Lwt.u;
-          mutable ch_listeners : int ;
-        }
+  type t =
+    {
+      ch_id : chan_id ;
+      mutable ch_read  : (string * Ocsigen_stream.outcome Lwt.u option) Lwt.t ;
+      mutable ch_write : (string * Ocsigen_stream.outcome Lwt.u option) Lwt.u;
+      mutable ch_listeners : int ;
+    }
   module Dummy = struct
     (*module added to avoid Ctbl.t cyclicity*)
     type tt = t
@@ -140,10 +133,10 @@ end = struct
   module CTbl =
     Weak.Make
       (struct
-         type t = Dummy.tt
-         let equal { ch_id = i } { ch_id = j } = i = j
-         let hash { ch_id = c } = Hashtbl.hash c
-       end)
+        type t = Dummy.tt
+        let equal { ch_id = i } { ch_id = j } = i = j
+        let hash { ch_id = c } = Hashtbl.hash c
+      end)
 
   (* storage and ID manipulation *)
   let ctbl = CTbl.create tbl_initial_size
@@ -179,7 +172,7 @@ end = struct
   let do_create name =
     if maxed_out_virtual_channels ()
     then begin
-      OMsg.warning
+      Ocsigen_messages.warning
         ~section
         "Too many virtual channels, associated exception raised";
       raise Too_many_virtual_channels
@@ -193,10 +186,10 @@ end = struct
           ch_listeners = 0 ;
         }
       in
-        incr_chan_count ();
-        CTbl.add ctbl ch;
-        Gc.finalise decr_chan_count ch;
-        ch
+      incr_chan_count ();
+      CTbl.add ctbl ch;
+      Gc.finalise decr_chan_count ch;
+      ch
 
   let write ch x =
     let (read, write) = Lwt.task () in
@@ -208,8 +201,8 @@ end = struct
   let create ?name () = match name with
     | None -> do_create (new_id ())
     | Some n ->
-        try ignore (find_channel n) ; raise Non_unique_channel_name
-        with Not_found -> do_create n
+      try ignore (find_channel n) ; raise Non_unique_channel_name
+      with Not_found -> do_create n
 
   (* reading a channel : just getting a hang on the reader thread *)
   let read ch = ch.ch_read
@@ -235,17 +228,17 @@ module Messages :
 sig
 
   val decode_upcomming :
-    OX.request -> (Channels.t list * Channels.chan_id list) Lwt.t
-    (* decode incomming message : the result is the list of channels to listen
-       to (on the left) or to signal non existence (on the right). *)
+    Ocsigen_extensions.request -> (Channels.t list * Channels.chan_id list) Lwt.t
+  (* decode incomming message : the result is the list of channels to listen
+     to (on the left) or to signal non existence (on the right). *)
 
   val encode_downgoing :
-       Channels.chan_id list
-    -> (Channels.t * string * OStream.outcome Lwt.u option) list option
-    -> string OStream.t
-    (* Encode outgoing messages : the first argument is the list of channels
-     * that have already been collected.
-     * The results is the stream to send to the client*)
+    Channels.chan_id list
+    -> (Channels.t * string * Ocsigen_stream.outcome Lwt.u option) list option
+    -> string Ocsigen_stream.t
+  (* Encode outgoing messages : the first argument is the list of channels
+   * that have already been collected.
+   * The results is the stream to send to the client*)
 
   val encode_ended : Channels.chan_id list -> string
 
@@ -274,29 +267,33 @@ end = struct
       | ("registration", s) :: tl -> aux (decode_string s tmp_reg tmp_end) tl
       | _ :: tl -> aux tmp tl
     in
-      aux ([], []) params
+    aux ([], []) params
 
   let decode_upcomming r =
     (* RRR This next line makes it fail with Ocsigen_unsupported_media, hence
      * the http_frame low level version *)
-    (* r.OX.request_info.OX.ri_post_params r.OX.request_config *)
+    (* r.Ocsigen_extensions.request_info
+     * .Ocsigen_extensions
+     * .ri_post_params r.Ocsigen_extensions.request_config *)
     Lwt.catch
       (fun () ->
-         match r.OX.request_info.OX.ri_http_frame.OFrame.frame_content with
-           | None ->
-               Lwt.return []
-           | Some body ->
-               Lwt.return (OStream.get body) >>=
-               OStream.string_of_stream
-                 (OConf.get_maxrequestbodysizeinmemory ()) >|=
-               Url.fixup_url_string >|=
-               Netencoding.Url.dest_url_encoded_parameters
+         match (Ocsigen_request_info.http_frame
+                  r.Ocsigen_extensions.request_info)
+               .Ocsigen_http_frame.frame_content with
+         | None ->
+           Lwt.return []
+         | Some body ->
+           Lwt.return (Ocsigen_stream.get body) >>=
+           Ocsigen_stream.string_of_stream
+             (Ocsigen_config.get_maxrequestbodysizeinmemory ()) >|=
+           Url.fixup_url_string >|=
+           Netencoding.Url.dest_url_encoded_parameters
       )
       (function
-         | OStream.String_too_large -> Lwt.fail Input_is_too_large
-         | e -> Lwt.fail e
+        | Ocsigen_stream.String_too_large -> Lwt.fail Input_is_too_large
+        | e -> Lwt.fail e
       )
-      >|= decode_param_list
+    >|= decode_param_list
 
   let encode1 (c, s, _) =
     Channels.get_id c ^ field_separator ^ url_encode s
@@ -311,27 +308,27 @@ end = struct
   let stream_result_notification s outcome =
     Lwt_list.iter_p
       (function
-         (*when write has been made with outcome notifier*)
-         | (c, _, Some x) -> (Lwt.wakeup x outcome ; Lwt.return ())
-         (*when it hasn't*)
-         | (_, _, None) -> Lwt.return ()
+        (*when write has been made with outcome notifier*)
+        | (c, _, Some x) -> (Lwt.wakeup x outcome ; Lwt.return ())
+        (*when it hasn't*)
+        | (_, _, None) -> Lwt.return ()
       )
       s
 
   let encode_downgoing e = function
-    | None -> OStream.of_string (encode_ended e)
+    | None -> Ocsigen_stream.of_string (encode_ended e)
     | Some s ->
-        let stream =
-          OStream.of_string
-            (match e with
-               | [] -> encode s
-               | e ->   encode_ended e
-                      ^ field_separator
-                      ^ encode s
-            )
-        in
-        OStream.add_finalizer stream (stream_result_notification s) ;
-        stream
+      let stream =
+        Ocsigen_stream.of_string
+          (match e with
+           | [] -> encode s
+           | e ->   encode_ended e
+                    ^ field_separator
+                    ^ encode s
+          )
+      in
+      Ocsigen_stream.add_finalizer stream (stream_result_notification s) ;
+      stream
 
 end
 
@@ -339,23 +336,23 @@ module Security :
 sig
 
   val set_timeout : ?reset:bool -> float -> unit
-    (* Set the [timeout] constant for new connections. Existing connections are
-     * not affected unless [?reset] is [Some true] *)
+  (* Set the [timeout] constant for new connections. Existing connections are
+   * not affected unless [?reset] is [Some true] *)
 
   val deactivate : unit -> unit
-    (* Stop serving comet connections and kill all current connections. *)
+  (* Stop serving comet connections and kill all current connections. *)
 
   val activate : unit -> unit
-    (* (Re)start serving connections *)
+  (* (Re)start serving connections *)
 
   val activated : unit -> bool
-    (* activation state *)
+  (* activation state *)
 
   val kill : unit React.E.t
-    (* The event reflecting willingness to kill connections *)
+  (* The event reflecting willingness to kill connections *)
 
   val command_function : string -> string list -> unit Lwt.t
-    (* To be registered with Ocsigen_extension.register_command_function *)
+  (* To be registered with Ocsigen_extension.register_command_function *)
 
 end = struct
 
@@ -363,28 +360,28 @@ end = struct
 
   let activated, activate, deactivate =
     let activated = ref true in
-      ((fun () -> !activated),
-       (fun () ->
-         if !activated then
-           ()
-         else begin
-           OMsg.warning ~section "Comet is being activated";
-           activated := true
-         end
-       ),
-       (fun () ->
-         if !activated then begin
-           OMsg.warning ~section "Comet is being deactivated";
-           activated := false;
-           kill_all_connections ()
-         end else
-           ()
-       )
-      )
+    ((fun () -> !activated),
+     (fun () ->
+        if !activated then
+          ()
+        else begin
+          Ocsigen_messages.warning ~section "Comet is being activated";
+          activated := true
+        end
+     ),
+     (fun () ->
+        if !activated then begin
+          Ocsigen_messages.warning ~section "Comet is being deactivated";
+          activated := false;
+          kill_all_connections ()
+        end else
+          ()
+     )
+    )
 
   let warn_kill =
     React.E.map
-     (fun () -> OMsg.warning "Comet connections kill notice is being sent.")
+      (fun () -> Ocsigen_messages.warning "Comet connections kill notice is being sent.")
       kill
   let `R _ = React.E.retain kill (fun () -> ignore warn_kill)
 
@@ -398,16 +395,16 @@ end = struct
     | ["deactivate"] -> deactivate ()
     | ["activate"]   -> activate ()
     | "set_timeout" :: f :: tl ->
-        (try
-           set_timeout
-             ~reset:(match tl with
-                       | ["KILL"] -> true
-                       | [] -> false
-                       | _ -> raise OX.Unknown_command
+      (try
+         set_timeout
+           ~reset:(match tl with
+               | ["KILL"] -> true
+               | [] -> false
+               | _ -> raise Ocsigen_extensions.Unknown_command
              )
-             (float_of_string f)
-         with Failure _ -> raise OX.Unknown_command)
-    | _ -> raise OX.Unknown_command
+           (float_of_string f)
+       with Failure _ -> raise Ocsigen_extensions.Unknown_command)
+    | _ -> raise Ocsigen_extensions.Unknown_command
 
   let command_function x y = command_function_ x y; Lwt.return ()
 
@@ -418,7 +415,7 @@ module Main :
    * is registered and return with the first result. *)
 sig
 
-  val main : OX.request -> unit -> OFrame.result Lwt.t
+  val main : Ocsigen_extensions.request -> unit -> Ocsigen_http_frame.result Lwt.t
   (* treat an incoming request from a client. The unit part is for partial
    * application in Ext_found parameter. *)
 
@@ -426,12 +423,11 @@ end = struct
 
   let frame_503 () =
     Lwt.return
-      { (OFrame.default_result ()) with
-            OFrame.res_stream = (OStream.of_string "", None);
-            OFrame.res_code = 503; (*Service Unavailable*)
-            OFrame.res_content_length = None;
-            OFrame.res_content_type = Some "text/plain";
-      }
+      (Ocsigen_http_frame.Result.update (Ocsigen_http_frame.Result.default ())
+         ~stream:(Ocsigen_stream.of_string "", None)
+         ~code:503 (*Service Unavailable*)
+         ~content_length:None
+         ~content_type:(Some "text/plain") ())
 
   exception Kill
 
@@ -439,71 +435,67 @@ end = struct
    * terminates when one of the channel is written upon. *)
   let treat_decoded = function
     | [], [] -> (* error : empty request *)
-        OMsg.debug (fun () -> "Incorrect or empty Comet request");
-        Lwt.return
-          { (OFrame.default_result ()) with
-               OFrame.res_stream =
-                 (OStream.of_string "Empty or incorrect registration", None) ;
-               OFrame.res_code = 400 ;(* BAD REQUEST *)
-               OFrame.res_content_type = Some "text/plain" ;
-               OFrame.res_content_length = None ;
-          }
-
+      Ocsigen_messages.debug (fun () -> "Incorrect or empty Comet request");
+      Lwt.return
+        (Ocsigen_http_frame.Result.update (Ocsigen_http_frame.Result.default ())
+           ~stream:
+             (Ocsigen_stream.of_string "Empty or incorrect registration", None)
+           ~code:400(* BAD REQUEST *)
+           ~content_type:(Some "text/plain")
+           ~content_length:None ())
     | [], (_::_ as ended) -> (* All channels are closed *)
-        let end_notice = Messages.encode_ended ended in
-        OMsg.debug (fun () -> "Comet request served");
-        Lwt.return
-          { (OFrame.default_result ()) with
-               OFrame.res_stream = (OStream.of_string end_notice, None) ;
-               OFrame.res_content_length = None ;
-               OFrame.res_content_type = Some "text/plain" ;
-          }
-
+      let end_notice = Messages.encode_ended ended in
+      Ocsigen_messages.debug (fun () -> "Comet request served");
+      Lwt.return
+        (Ocsigen_http_frame.Result.update (Ocsigen_http_frame.Result.default ())
+           ~stream:(Ocsigen_stream.of_string end_notice, None)
+           ~content_length:None
+           ~content_type:(Some "text/plain") ())
     | (_::_ as active), ended -> (* generic case *)
-        let choosed =
-          let readings =
-            (List.map
-               (fun c -> Channels.read c >|= fun (v,x) -> (c, v, x))
-               active
-            )
-          in
-          (*wait for one thread to terminate and get all terminated threads  *)
-          Lwt.choose readings >>= fun _ -> Lwt.nchoose readings
+      let choosed =
+        let readings =
+          (List.map
+             (fun c -> Channels.read c >|= fun (v,x) -> (c, v, x))
+             active
+          )
         in
-        List.iter (fun c -> Channels.send_listeners c 1) active ;
-        Lwt.catch
-          (fun () ->
-             Lwt.choose
-               [ (choosed >|= fun x -> Some x);
-                 (Lwt_unix.sleep (get_timeout ()) >|= fun () -> None);
-                 (Lwt_event.next Security.kill >>= fun () -> Lwt.fail Kill);
-               ] >|= fun x ->
-             List.iter (fun c -> Channels.send_listeners c (-1)) active ;
-             let s = Messages.encode_downgoing ended x in
-             OMsg.debug (fun () -> "Comet request served");
-             { (OFrame.default_result ()) with
-                   OFrame.res_stream = (s, None) ;
-                   OFrame.res_content_length = None ;
-                   OFrame.res_content_type = Some "text/plain" ;
-             }
-          )
-          (function
-             | Kill -> (* Comet stopped for security *)
-                 List.iter (fun c -> Channels.send_listeners c (-1)) active ;
-                 OMsg.debug (fun () -> "Killed Comet request handling");
-                 frame_503 ()
-             | e -> Lwt.fail e
-          )
+        (*wait for one thread to terminate and get all terminated threads  *)
+        Lwt.choose readings >>= fun _ -> Lwt.nchoose readings
+      in
+      List.iter (fun c -> Channels.send_listeners c 1) active ;
+      Lwt.catch
+        (fun () ->
+           Lwt.choose
+             [ (choosed >|= fun x -> Some x);
+               (Lwt_unix.sleep (get_timeout ()) >|= fun () -> None);
+               (Lwt_event.next Security.kill >>= fun () -> Lwt.fail Kill);
+             ] >|= fun x ->
+           List.iter (fun c -> Channels.send_listeners c (-1)) active ;
+           let s = Messages.encode_downgoing ended x in
+           Ocsigen_messages.debug (fun () -> "Comet request served");
+
+           (Ocsigen_http_frame.Result.update (Ocsigen_http_frame.Result.default ())
+              ~stream:(s, None)
+              ~content_length:None
+              ~content_type:(Some "text/plain") ())
+        )
+        (function
+          | Kill -> (* Comet stopped for security *)
+            List.iter (fun c -> Channels.send_listeners c (-1)) active ;
+            Ocsigen_messages.debug (fun () -> "Killed Comet request handling");
+            frame_503 ()
+          | e -> Lwt.fail e
+        )
 
 
   (* This is just a mashup of the other functions in the module. *)
   let main r () =
     if Security.activated ()
     then
-      (OMsg.debug (fun () -> "Serving Comet request");
+      (Ocsigen_messages.debug (fun () -> "Serving Comet request");
        Messages.decode_upcomming r >>= treat_decoded)
     else
-      (OMsg.debug (fun () -> "Refusing Comet request (Comet deactivated)");
+      (Ocsigen_messages.debug (fun () -> "Refusing Comet request (Comet deactivated)");
        frame_503 ())
 
 end
@@ -524,22 +516,23 @@ let rec debug_content_type = function
 
 let main = function
 
-  | OX.Req_not_found (_, rq) -> (* Else check for content type *)
-      begin match rq.OX.request_info.OX.ri_content_type with
-        | Some (hd, tl) when has_comet_content_type (hd :: tl) ->
-            OMsg.debug (fun () -> "Comet message: " ^ debug_content_type (hd :: tl));
-            Lwt.return (OX.Ext_found (Main.main rq))
+  | Ocsigen_extensions.Req_not_found (_, rq) -> (* Else check for content type *)
+    begin match (Ocsigen_request_info.content_type
+                   rq.Ocsigen_extensions.request_info) with
+    | Some (hd, tl) when has_comet_content_type (hd :: tl) ->
+      Ocsigen_messages.debug (fun () -> "Comet message: " ^ debug_content_type (hd :: tl));
+      Lwt.return (Ocsigen_extensions.Ext_found (Main.main rq))
 
-        | Some (hd, tl) ->
-            OMsg.debug (fun () -> "Non comet message: " ^ debug_content_type (hd :: tl));
-            Lwt.return OX.Ext_do_nothing
-        | None ->
-            OMsg.debug (fun () -> "Non comet message: no content type");
-            Lwt.return OX.Ext_do_nothing
-      end
+    | Some (hd, tl) ->
+      Ocsigen_messages.debug (fun () -> "Non comet message: " ^ debug_content_type (hd :: tl));
+      Lwt.return Ocsigen_extensions.Ext_do_nothing
+    | None ->
+      Ocsigen_messages.debug (fun () -> "Non comet message: no content type");
+      Lwt.return Ocsigen_extensions.Ext_do_nothing
+    end
 
-  | OX.Req_found _ -> (* If recognized by some other extension... *)
-      Lwt.return OX.Ext_do_nothing (* ...do nothing *)
+  | Ocsigen_extensions.Req_found _ -> (* If recognized by some other extension... *)
+    Lwt.return Ocsigen_extensions.Ext_do_nothing (* ...do nothing *)
 
 
 
@@ -549,21 +542,21 @@ let main = function
 (* registering extension and the such *)
 let parse_config _ _ _ = function
   | Simplexmlparser.Element ("comet", attrs, []) ->
-      parse_options attrs ;
-      main
+    parse_options attrs ;
+    main
   | Simplexmlparser.Element (t, _, _) ->
-      raise (OX.Bad_config_tag_for_extension t)
+    raise (Ocsigen_extensions.Bad_config_tag_for_extension t)
   | _ ->
-      raise (OX.Error_in_config_file "Unexpected data in config file")
-let site_creator (_ : OX.virtual_hosts) _ = parse_config
-let user_site_creator (_ : OX.userconf_info) = site_creator
+    raise (Ocsigen_extensions.Error_in_config_file "Unexpected data in config file")
+let site_creator (_ : Ocsigen_extensions.virtual_hosts) _ = parse_config
+let user_site_creator (_ : Ocsigen_extensions.userconf_info) = site_creator
 
 (* registering extension *)
-let () = OX.register_extension
-  ~name:"comet"
-  ~fun_site:site_creator
-  ~user_fun_site:user_site_creator
-  ()
-let () = OX.register_command_function
-           ~prefix:"comet"
-           Security.command_function
+let () = Ocsigen_extensions.register_extension
+    ~name:"comet"
+    ~fun_site:site_creator
+    ~user_fun_site:user_site_creator
+    ()
+let () = Ocsigen_extensions.register_command_function
+    ~prefix:"comet"
+    Security.command_function

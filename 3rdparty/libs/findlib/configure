@@ -1,5 +1,5 @@
 #! /bin/sh
-# $Id: configure 220 2014-06-25 10:22:58Z gerd $
+# $Id: configure 237 2014-09-16 11:21:09Z gerd $
 # ----------------------------------------------------------------------
 #
 
@@ -7,7 +7,7 @@
 
 #set -x
 
-version="1.5.1"
+version="1.5.3"
 
 # Remember the old IFS value:
 oldifs="$IFS"

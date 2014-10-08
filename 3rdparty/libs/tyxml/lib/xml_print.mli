@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (** Printer for XML. *)
 
@@ -42,22 +42,62 @@ val compose_decl : ?version:string -> ?encoding:string -> unit -> string
 
 val compose_doctype : string -> string list -> string
 
-module Make(Xml : Xml_sigs.Iterable)
-           (I : sig val emptytags : string list end)
-           (O : Xml_sigs.Output)
-     : Xml_sigs.Printer with type out := O.out and type xml_elt := Xml.elt
+val string_of_number : float -> string
+(** Convert a float to a string using a compact representation compatible with Javascript norme. *)
 
-module Make_typed(Xml : Xml_sigs.Iterable)
-                (Typed_xml : Xml_sigs.Typed_xml with module Xml := Xml)
-                (O : Xml_sigs.Output)
-     : Xml_sigs.Typed_printer with type out := O.out
-                              and type 'a elt := 'a Typed_xml.elt
-                              and type doc := Typed_xml.doc
+(** Utf8 normalizer and encoder for HTML.
 
-module Make_simple(Xml : Xml_sigs.Iterable)(F : sig val emptytags : string list end)
-     : Xml_sigs.Simple_printer with type xml_elt := Xml.elt
+Given a module [Htmlprinter] produced by one of the functors in {!Xml_print}, this modules is used as following:
+  {[
+    let encode x = fst (Utf8.normalize_html x) in
+    Htmlprinter.print ~encode document
+  ]} *)
+module Utf8 : sig
 
-module Make_typed_simple(Xml : Xml_sigs.Iterable)
-                      (Typed_xml : Xml_sigs.Typed_xml with  module Xml := Xml)
-     : Xml_sigs.Typed_simple_printer with type 'a elt := 'a Typed_xml.elt
-                                    and type doc := Typed_xml.doc
+  type utf8 = string
+  (** [normalize str] take a possibly invalid utf-8 string
+      and return a valid utf-8 string
+      where invalid bytes have been replaced by
+      the replacement character [U+FFFD].
+      The returned boolean is true if invalid bytes were found *)
+  val normalize : string -> utf8 * bool
+
+  (** Same as [normalize] plus some extra work :
+      It encode '<' , '>' , '"' , '&' characters with
+      corresponding entities and replaced invalid html
+      character by [U+FFFD] *)
+  val normalize_html : string -> utf8 * bool
+
+  type encoding = [ `UTF_16 | `UTF_16BE | `UTF_16LE | `UTF_8 | `US_ASCII | `ISO_8859_1]
+
+  (** [normalize_from ~encoding str] convert the string [str] into an uft-8 string.
+      It assumes the [encoding] encoding and replace invalid bytes by
+      the replacement character [U+FFFD].
+      The returned boolean is true if invalid bytes were found *)
+  val normalize_from : encoding:[<encoding] -> string -> utf8 * bool
+end
+
+module Make
+    (Xml : Xml_sigs.Iterable)
+    (I : sig val emptytags : string list end)
+    (O : Xml_sigs.Output)
+  : Xml_sigs.Printer with type out := O.out and type xml_elt := Xml.elt
+
+module Make_typed
+    (Xml : Xml_sigs.Iterable)
+    (Typed_xml : Xml_sigs.Typed_xml with module Xml := Xml)
+    (O : Xml_sigs.Output)
+  : Xml_sigs.Typed_printer with type out := O.out
+                            and type 'a elt := 'a Typed_xml.elt
+                            and type doc := Typed_xml.doc
+
+module Make_simple
+    (Xml : Xml_sigs.Iterable)
+    (F : sig val emptytags : string list end)
+  : Xml_sigs.Simple_printer with type xml_elt := Xml.elt
+
+module Make_typed_simple
+    (Xml : Xml_sigs.Iterable)
+    (Typed_xml : Xml_sigs.Typed_xml with module Xml := Xml)
+  : Xml_sigs.Typed_simple_printer with type 'a elt := 'a Typed_xml.elt
+                                   and type doc := Typed_xml.doc

@@ -15,6 +15,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -28,12 +31,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -44,7 +45,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -106,6 +106,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -141,7 +142,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -166,6 +166,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -183,8 +185,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -201,7 +201,8 @@
 <div class="navbar">&nbsp;<a class="up" href="Unixqueue.html" title="Unixqueue">Up</a>
 &nbsp;</div>
 <h1>Class type <a href="type_Unixqueue.event_system.html">Unixqueue.event_system</a></h1>
-<pre><span id="TYPEevent_system"><span class="keyword">class type</span> event_system</span> = <code class="code">object</code> <a href="Unixqueue.event_system-c.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span id="TYPEevent_system"><span class="keyword">class type</span> event_system</span> = <code class="code">object</code> <a href="Unixqueue.event_system-c.html">..</a> <code class="code">end</code></pre><div class="info classtype top">
 The <code class="code">event_system</code> manages events, handlers, resources, groups,
  etc. It is now a class type, and you may invoke the operations directly
  for the class. The operations are still available as functions (below).
@@ -260,4 +261,18 @@ The <code class="code">event_system</code> manages events, handlers, resources, 
 <br>
 </div>
 <hr width="100%">
-<pre><span id="METHODnew_group"><span class="keyword">method</span> new_group</span> : <code class="type">unit -> <a href="Unixqueue.html#TYPEgroup">group</a></code></pre><pre><span id="METHODnew_wait_id"><span class="keyword">method</span> new_wait_id</span> : <code class="type">unit -> <a href="Unixqueue.html#TYPEwait_id">wait_id</a></code></pre><pre><span id="METHODexists_resource"><span class="keyword">method</span> exists_resource</span> : <code class="type"><a href="Unixqueue.html#TYPEoperation">operation</a> -> bool</code></pre><pre><span id="METHODadd_resource"><span class="keyword">method</span> add_resource</span> : <code class="type"><a href="Unixqueue.html#TYPEgroup">group</a> -> <a href="Unixqueue.html#TYPEoperation">operation</a> * float -> unit</code></pre><pre><span id="METHODadd_weak_resource"><span class="keyword">method</span> add_weak_resource</span> : <code class="type"><a href="Unixqueue.html#TYPEgroup">group</a> -> <a href="Unixqueue.html#TYPEoperation">operation</a> * float -> unit</code></pre><pre><span id="METHODadd_close_action"><span class="keyword">method</span> add_close_action</span> : <code class="type"><a href="Unixqueue.html#TYPEgroup">group</a> -> Unix.file_descr * (Unix.file_descr -> unit) -> unit</code></pre><pre><span id="METHODadd_abort_action"><span class="keyword">method</span> add_abort_action</span> : <code class="type"><a href="Unixqueue.html#TYPEgroup">group</a> -> (<a href="Unixqueue.html#TYPEgroup">group</a> -> exn -> unit) -> unit</code></pre><pre><span id="METHODremove_resource"><span class="keyword">method</span> remove_resource</span> : <code class="type"><a href="Unixqueue.html#TYPEgroup">group</a> -> <a href="Unixqueue.html#TYPEoperation">operation</a> -> unit</code></pre><pre><span id="METHODadd_handler"><span class="keyword">method</span> add_handler</span> : <code class="type"><a href="Unixqueue.html#TYPEgroup">group</a> -><br>       (<a href="Unixqueue.event_system-c.html">event_system</a> -><br>        <a href="Unixqueue.html#TYPEevent">event</a> <a href="Equeue.html#TYPEt">Equeue.t</a> -> <a href="Unixqueue.html#TYPEevent">event</a> -> unit) -><br>       unit</code></pre><pre><span id="METHODadd_event"><span class="keyword">method</span> add_event</span> : <code class="type"><a href="Unixqueue.html#TYPEevent">event</a> -> unit</code></pre><pre><span id="METHODclear"><span class="keyword">method</span> clear</span> : <code class="type"><a href="Unixqueue.html#TYPEgroup">group</a> -> unit</code></pre><pre><span id="METHODrun"><span class="keyword">method</span> run</span> : <code class="type">unit -> unit</code></pre><pre><span id="METHODis_running"><span class="keyword">method</span> is_running</span> : <code class="type">bool</code></pre><pre><span id="METHODwhen_blocking"><span class="keyword">method</span> when_blocking</span> : <code class="type">(unit -> unit) -> unit</code></pre></body></html>
+
+<pre><span id="METHODnew_group"><span class="keyword">method</span> new_group</span> : <code class="type">unit -> <a href="Unixqueue.html#TYPEgroup">group</a></code></pre>
+<pre><span id="METHODnew_wait_id"><span class="keyword">method</span> new_wait_id</span> : <code class="type">unit -> <a href="Unixqueue.html#TYPEwait_id">wait_id</a></code></pre>
+<pre><span id="METHODexists_resource"><span class="keyword">method</span> exists_resource</span> : <code class="type"><a href="Unixqueue.html#TYPEoperation">operation</a> -> bool</code></pre>
+<pre><span id="METHODadd_resource"><span class="keyword">method</span> add_resource</span> : <code class="type"><a href="Unixqueue.html#TYPEgroup">group</a> -> <a href="Unixqueue.html#TYPEoperation">operation</a> * float -> unit</code></pre>
+<pre><span id="METHODadd_weak_resource"><span class="keyword">method</span> add_weak_resource</span> : <code class="type"><a href="Unixqueue.html#TYPEgroup">group</a> -> <a href="Unixqueue.html#TYPEoperation">operation</a> * float -> unit</code></pre>
+<pre><span id="METHODadd_close_action"><span class="keyword">method</span> add_close_action</span> : <code class="type"><a href="Unixqueue.html#TYPEgroup">group</a> -> Unix.file_descr * (Unix.file_descr -> unit) -> unit</code></pre>
+<pre><span id="METHODadd_abort_action"><span class="keyword">method</span> add_abort_action</span> : <code class="type"><a href="Unixqueue.html#TYPEgroup">group</a> -> (<a href="Unixqueue.html#TYPEgroup">group</a> -> exn -> unit) -> unit</code></pre>
+<pre><span id="METHODremove_resource"><span class="keyword">method</span> remove_resource</span> : <code class="type"><a href="Unixqueue.html#TYPEgroup">group</a> -> <a href="Unixqueue.html#TYPEoperation">operation</a> -> unit</code></pre>
+<pre><span id="METHODadd_handler"><span class="keyword">method</span> add_handler</span> : <code class="type"><a href="Unixqueue.html#TYPEgroup">group</a> -><br>       (<a href="Unixqueue.event_system-c.html">event_system</a> -><br>        <a href="Unixqueue.html#TYPEevent">event</a> <a href="Equeue.html#TYPEt">Equeue.t</a> -> <a href="Unixqueue.html#TYPEevent">event</a> -> unit) -><br>       unit</code></pre>
+<pre><span id="METHODadd_event"><span class="keyword">method</span> add_event</span> : <code class="type"><a href="Unixqueue.html#TYPEevent">event</a> -> unit</code></pre>
+<pre><span id="METHODclear"><span class="keyword">method</span> clear</span> : <code class="type"><a href="Unixqueue.html#TYPEgroup">group</a> -> unit</code></pre>
+<pre><span id="METHODrun"><span class="keyword">method</span> run</span> : <code class="type">unit -> unit</code></pre>
+<pre><span id="METHODis_running"><span class="keyword">method</span> is_running</span> : <code class="type">bool</code></pre>
+<pre><span id="METHODwhen_blocking"><span class="keyword">method</span> when_blocking</span> : <code class="type">(unit -> unit) -> unit</code></pre></body></html>

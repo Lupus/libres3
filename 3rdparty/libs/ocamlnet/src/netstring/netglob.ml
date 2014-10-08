@@ -1,4 +1,4 @@
-(* $Id: netglob.ml 1659 2011-08-23 17:28:03Z gerd $ *)
+(* $Id: netglob.ml 1998 2014-08-24 20:41:09Z gerd $ *)
 
 open Netglob_lex
 open Printf
@@ -259,7 +259,7 @@ type eff_set =
     }
 
 let to_eset set =
-  let ascii = Array.create 128 false in
+  let ascii = Array.make 128 false in
   let non_ascii = Hashtbl.create 13 in
   List.iter
     (fun (k0,k1) ->

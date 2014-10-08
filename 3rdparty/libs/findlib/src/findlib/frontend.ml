@@ -1,4 +1,4 @@
-(* $Id: frontend.ml 215 2014-06-23 20:32:41Z gerd $
+(* $Id: frontend.ml 231 2014-09-06 18:03:16Z gerd $
  * ----------------------------------------------------------------------
  *
  *)
@@ -16,8 +16,12 @@ type mode =
 
 type psubst =
     Const of string
-  | Percent of string
-  | Lookup of string
+  | Percent of string * modifier
+  | Lookup of string * modifier
+
+and modifier =
+  | Plain
+  | Plus
 ;;
 
 
@@ -62,7 +66,7 @@ let out_path ?(prefix="") s =
 
 
 
-let percent_subst spec lookup s =
+let percent_subst ?base spec lookup s =
   (* spec = [ "%c", [ "ctext1"; "ctext2"; ... ];
    *          "%d", [ "dtext1"; "dtext2"; ... ] ]
    * All occurrences of %c in the string s are replaced as specified in spec.
@@ -74,14 +78,31 @@ let percent_subst spec lookup s =
    * key for the [lookup] function, which either returns the string value
    * or raises Not_found.
    *
+   * "+" modifier: A "+" after "%" causes that Findlib.resolve_path is
+   * called for the substitution string (e.g. %+c, %+(name)).
+   *
    * Example:
    * spec = [ "%a", [ "file1" ] ]
    * lookup = function "archive" -> "file2" | _ -> raise Not_found
    * Here, %a is substituted by file1, and %(archive) is substituted by
    * file2.
+   *
+   * ?base: The base parameter for Findlib.resolve_path.
    *)
-
   let l = String.length s in
+
+  let fail() =
+    failwith "bad format string" in
+
+  let parenthesized_name j =
+    try		  
+      if j+1>=l then raise Not_found;
+      let k = String.index_from s (j+1) ')' in
+      let name = String.sub s (j+1) (k-j-1) in
+      (name, k+1)
+    with Not_found ->
+      fail() in
+
   let rec preprocess i j =
     if j<l then begin
       match s.[j] with
@@ -92,20 +113,27 @@ let percent_subst spec lookup s =
 	    match c with
 		'%' -> 
 		  prev :: Const "%" :: preprocess (j+2) (j+2)
-	      | '(' -> (
-		  try		  
-		    if j+2>=l then raise Not_found;
-		    let k = String.index_from s (j+2) ')' in
-		    let name = String.sub s (j+2) (k-j-2) in
-		    prev :: Lookup name :: preprocess (k+1) (k+1)
-		  with Not_found ->
-		    failwith "bad format string";
-		)
+	      | '(' ->
+                  let name, j_next = parenthesized_name (j+1) in
+                  prev :: Lookup(name,Plain) :: preprocess j_next j_next
+              | '+' ->
+                  if j+2<l then begin
+                    let c = s.[j+2] in
+                    match c with
+                      | '%' | '+' -> fail()
+                      | '(' ->
+                           let name, j_next = parenthesized_name (j+2) in
+                           prev :: Lookup(name,Plus) :: preprocess j_next j_next
+                      | _ ->
+		           let name = "%" ^ String.make 1 c in
+	                   prev :: Percent(name,Plus) :: preprocess (j+3) (j+3)
+                  end
+                  else fail()
 	      | _ ->
 		  let name = "%" ^ String.make 1 c in
-		  prev :: Percent name :: preprocess (j+2) (j+2)
+		  prev :: Percent(name,Plain) :: preprocess (j+2) (j+2)
 	  end
-	  else failwith "bad format string"
+	  else fail()
       |	_ ->
 	  preprocess i (j+1)
     end
@@ -116,24 +144,40 @@ let percent_subst spec lookup s =
 	[]
   in
 
+  let plus_subst u =
+    String.concat
+      " "
+      (List.map
+         (Findlib.resolve_path ?base)
+         (Fl_split.in_words u)) in
+
+  let any_subst modi u =
+    match modi with
+      | Plain -> u
+      | Plus -> plus_subst u in
+
   let rec subst prefix l =
     match l with
       [] -> [prefix]
     | Const s :: l' ->
 	subst (prefix ^ s) l'
-    | Percent name :: l' ->
-	let replacements =
+    | Percent(name,modi) :: l' ->
+	let replacements0 =
 	  try List.assoc name spec
 	  with Not_found -> failwith "bad format string" in
+        let replacements =
+          List.map (any_subst modi) replacements0 in
 	List.flatten
 	  (List.map
 	     (fun replacement ->
 	       subst (prefix ^ replacement) l')
 	     replacements)
-    | Lookup name :: l' ->
-	let replacement =
+    | Lookup(name,modi) :: l' ->
+	let replacement0 =
 	  try lookup name
 	  with Not_found -> "" in
+        let replacement =
+          any_subst modi replacement0 in
 	subst (prefix ^ replacement) l'
   in
 
@@ -385,197 +429,22 @@ let run_command ?filter verbose cmd args =
 ;;
 
 
-(**************** Generic argument processing *************************)
-
-let merge_native_arguments native_spec f_unit f_string f_special_list =
-  List.map
-    (fun (switch_name, switch_has_arg, help_text) ->
-       let f =
-	 try
-	   List.assoc switch_name f_special_list
-	 with
-	     Not_found ->
-	       if switch_has_arg then 
-		 f_string switch_name 
-	       else 
-		 f_unit switch_name in
-       (switch_name, f, help_text)
-    )
-    native_spec
-;;
-
-
-let parse_args
-      ?(current = Arg.current) ?(args = Sys.argv) 
-      ?(align = true)
-      spec anon usage =
-  try
-    Arg.parse_argv
-      ~current
-      args
-      (if align then Arg.align spec else spec)
-      anon
-      usage
-  with
-    | Arg.Help text ->
-        print_string text;
-        exit 0
-    | Arg.Bad text ->
-        prerr_string text;
-        exit 2  
-
-
-(************************* format expansion *************************)
-
-
-let expand predicates eff_packages format =
-  (* may raise No_such_package *)
-
-    (* format:
-     * %p         package name
-     * %d         package directory
-     * %D         description
-     * %v         version
-     * %a         archive file(s)
-     * %A         archive files as single string
-     * %o         link option(s)
-     * %O         link options as single string
-     *)
-
-  List.flatten
-    (List.map
-       (fun pkg ->
-	 let dir = package_directory pkg in
-	    (* May raise No_such_package *)
-	 let spec =
-	   [ "%p",  [pkg];
-             "%d",  [out_path dir];
-	     "%D",  [try package_property predicates pkg "description"
-		     with Not_found -> "[n/a]"];
-	     "%v",  [try package_property predicates pkg "version"
-	             with Not_found -> "[unspecified]"];
-	     "%a",  Fl_split.in_words
-	              (try package_property predicates pkg "archive"
-		       with Not_found -> "");
-	     "%A",  [String.concat " "
-		       (Fl_split.in_words
-		          (try package_property predicates pkg "archive"
-			   with Not_found -> ""))];
-	     "%o",  Fl_split.in_words_ws
-	             (try package_property predicates pkg "linkopts"
-		      with Not_found -> "");
-	     "%O",  [String.concat " "
-		       (Fl_split.in_words_ws
-		          (try package_property predicates pkg "linkopts"
-			   with Not_found -> ""))];
-	   ]
-	 in
-	 let lookup = package_property predicates pkg in
-	 percent_subst spec lookup format)
-       eff_packages)
-;;
-
-
-(************************** QUERY SUBCOMMAND ***************************)
-
-let query_package () =
-
-  let long_format =
-    "package:     %p\ndescription: %D\nversion:     %v\narchive(s):  %A\nlinkopts:    %O\nlocation:    %d\n" in
-  let i_format =
-    "-I %d" in
-  let l_format =
-    if Findlib_config.system = "win32" || Findlib_config.system = "win64" then
-      (* Microsoft toolchain *)
-      "-ccopt \"/link /libpath:%d\""
-    else
-      "-ccopt -L%d" in
-  let a_format =
-    "%a" in
-  let o_format =
-    "%o" in
-  let p_format =
-    "%p" in
-
-  let predicates = ref [] in
-  let format = ref "%d" in
-  let separator = ref "\n" in
-  let prefix = ref "" in
-  let suffix = ref "\n" in
-  let recursive = ref false in
-  let descendants = ref false in
-
-  let packages = ref [] in
-
-  let append_predicate s =
-    let pl = Fl_split.in_words s in
-    predicates := !predicates @ pl
-  in
-
-
-  parse_args
-    [ "-predicates", Arg.String append_predicate,
-                  "      specifies comma-separated list of assumed predicates";
-      "-format", Arg.String (fun s -> format := s),
-              "<fmt>      specifies the output format";
-      "-separator", Arg.String (fun s -> separator := s),
-                 "       specifies the string that separates multiple answers";
-      "-prefix", Arg.String (fun s -> prefix := s),
-              "<p>        a string printed before the first answer";
-      "-suffix", Arg.String (fun s -> suffix := s),
-              "<s>        a string printed after the last answer";
-      "-recursive", Arg.Set recursive,
-                 "       select direct and indirect ancestors/descendants, too";
-      "-r", Arg.Set recursive,
-         "               same as -recursive";
-      "-descendants", Arg.Unit (fun () ->  descendants := true; recursive := true),
-                   "     query descendants instead of ancestors; implies -recursive";
-      "-d", Arg.Unit (fun () ->  descendants := true; recursive := true),
-         "               same as -descendants";
-      "-long-format", Arg.Unit (fun () -> format := long_format),
-                   "     specifies long output format";
-      "-l", Arg.Unit (fun () -> format := long_format),
-         "               same as -long-format";
-      "-i-format", Arg.Unit (fun () -> format := i_format),
-                "        prints -I options for ocamlc";
-      "-l-format", Arg.Unit (fun () -> format := l_format),
-                "        prints -ccopt -L options for ocamlc";
-      "-a-format", Arg.Unit (fun () -> format := a_format),
-                "        prints names of archives to be linked in for ocamlc";
-      "-o-format", Arg.Unit (fun () -> format := o_format),
-                "        prints link options for ocamlc";
-      "-p-format", Arg.Unit (fun () -> format := p_format),
-                "        prints package names";
-    ]
-    (fun p -> packages := !packages @ [p])
-"usage: ocamlfind query [ -predicates <p>  | -format <f> |
-                         -long-format     | -i-format   |
-                         -l-format        | -a-format   |
-			 -o-format        | -p-format   |
-                         -prefix <p>      | -suffix <s> |
-                         -separator <s>   |
-                         -descendants     | -recursive  ] package ...";
-
-  let eff_packages =
-    if !recursive then begin
-      if !descendants then
-	Fl_package_base.package_users !predicates !packages
-      else
-	package_deep_ancestors !predicates !packages
-    end
-    else
-      !packages
-  in
-  
-  let answers = expand !predicates eff_packages !format in
-  
-  print_string !prefix;
-  print_string (String.concat !separator answers);
-  print_string !suffix;
-;;
-
-
 (**************** preprocessor ******************************************)
+
+let select_pp_packages syntax_preds packages =
+  if syntax_preds = [] then
+    (* No syntax predicates, no preprocessor! *)
+    []
+  else
+    List.filter
+      (fun pkg ->
+         let al = try package_property syntax_preds pkg "archive"
+	          with Not_found -> "" in
+         let w = Fl_split.in_words al in
+	 w <> []
+      )
+      packages
+
 
 let process_pp_spec syntax_preds packages pp_opts =
   (* Returns: pp_command *)
@@ -599,24 +468,10 @@ let process_pp_spec syntax_preds packages pp_opts =
    * [syntax_preds] + "byte".
    *)
 
-  let cl_pp_packages =
-    if syntax_preds = [] then
-      (* No syntax predicates, no preprocessor! *)
-      []
-    else
-      List.filter
-	(fun pkg ->
-	   let al = try package_property syntax_preds pkg "archive"
-	            with Not_found -> "" in
-	   let w = Fl_split.in_words al in
-	   w <> []
-	)
-	packages in
-
+  (* One packages must now have the variable "preprocessor", usually camlp4 *)
+  let cl_pp_packages = select_pp_packages syntax_preds packages in
   let pp_packages =
     package_deep_ancestors syntax_preds cl_pp_packages in
-
-  (* One packages must now have the variable "preprocessor", usually camlp4 *)
 
   let preprocessor_cmds =
     List.flatten
@@ -626,7 +481,7 @@ let process_pp_spec syntax_preds packages pp_opts =
 		       package_property syntax_preds pname "preprocessor"
 		     ]
 		   with
-		       Not_found -> []
+ 		       Not_found -> []
 		)
 	        pp_packages
       )
@@ -721,11 +576,241 @@ let process_ppx_spec predicates packages ppx_opts =
             with Not_found -> [] in
           try
             let preprocessor =
-              resolve_path ~base (package_property predicates pname "ppx") in
+              resolve_path
+                ~base ~explicit:true 
+                (package_property predicates pname "ppx") in
             ["-ppx"; String.concat " " (preprocessor :: options)]
           with Not_found -> []
        )
        ppx_packages)
+
+(**************** Generic argument processing *************************)
+
+let merge_native_arguments native_spec f_unit f_string f_special_list =
+  List.map
+    (fun (switch_name, switch_has_arg, help_text) ->
+       let f =
+	 try
+	   List.assoc switch_name f_special_list
+	 with
+	     Not_found ->
+	       if switch_has_arg then 
+		 f_string switch_name 
+	       else 
+		 f_unit switch_name in
+       (switch_name, f, help_text)
+    )
+    native_spec
+;;
+
+
+let parse_args
+      ?(current = Arg.current) ?(args = Sys.argv) 
+      ?(align = true)
+      spec anon usage =
+  try
+    Arg.parse_argv
+      ~current
+      args
+      (if align then Arg.align spec else spec)
+      anon
+      usage
+  with
+    | Arg.Help text ->
+        print_string text;
+        exit 0
+    | Arg.Bad text ->
+        prerr_string text;
+        exit 2  
+
+
+(************************* format expansion *************************)
+
+
+let expand predicates eff_packages format =
+  (* may raise No_such_package *)
+
+    (* format:
+     * %p         package name
+     * %d         package directory
+     * %D         description
+     * %v         version
+     * %a         archive file(s)
+     * %A         archive files as single string
+     * %o         link option(s)
+     * %O         link options as single string
+     *)
+
+  List.flatten
+    (List.map
+       (fun pkg ->
+	 let dir = package_directory pkg in
+	    (* May raise No_such_package *)
+	 let spec =
+	   [ "%p",  [pkg];
+             "%d",  [out_path dir];
+	     "%D",  [try package_property predicates pkg "description"
+		     with Not_found -> "[n/a]"];
+	     "%v",  [try package_property predicates pkg "version"
+	             with Not_found -> "[unspecified]"];
+	     "%a",  Fl_split.in_words
+	              (try package_property predicates pkg "archive"
+		       with Not_found -> "");
+	     "%A",  [String.concat " "
+		       (Fl_split.in_words
+		          (try package_property predicates pkg "archive"
+			   with Not_found -> ""))];
+	     "%o",  Fl_split.in_words_ws
+	             (try package_property predicates pkg "linkopts"
+		      with Not_found -> "");
+	     "%O",  [String.concat " "
+		       (Fl_split.in_words_ws
+		          (try package_property predicates pkg "linkopts"
+			   with Not_found -> ""))];
+	   ]
+	 in
+	 let lookup = package_property predicates pkg in
+	 percent_subst ~base:dir spec lookup format)
+       eff_packages)
+;;
+
+
+let help_format() =
+  print_endline
+    "Formats for -format strings:
+
+    %p         package name
+    %d         package directory
+    %D         description
+    %v         version
+    %a         archive file(s)
+    %+a        archive file(s), converted to absolute paths
+    %A         archive files as single string
+    %+A        archive files as single string, converted to absolute paths
+    %o         link option(s)
+    %O         link options as single string
+    %(name)    the value of the property <name>
+    %+(name)   the value of the property <name>, converted to absolute paths
+               (like <archive>)";
+  flush stdout
+
+
+
+(************************** QUERY SUBCOMMAND ***************************)
+
+let query_package () =
+
+  let long_format =
+    "package:     %p\ndescription: %D\nversion:     %v\narchive(s):  %A\nlinkopts:    %O\nlocation:    %d\n" in
+  let i_format =
+    "-I %d" in
+  let l_format =
+    if Findlib_config.system = "win32" || Findlib_config.system = "win64" then
+      (* Microsoft toolchain *)
+      "-ccopt \"/link /libpath:%d\""
+    else
+      "-ccopt -L%d" in
+  let a_format =
+    "%+a" in
+  let o_format =
+    "%o" in
+  let p_format =
+    "%p" in
+
+  let predicates = ref [] in
+  let format = ref "%d" in
+  let separator = ref "\n" in
+  let prefix = ref "" in
+  let suffix = ref "\n" in
+  let recursive = ref false in
+  let descendants = ref false in
+  let pp = ref false in
+
+  let packages = ref [] in
+
+  let append_predicate s =
+    let pl = Fl_split.in_words s in
+    predicates := !predicates @ pl
+  in
+
+
+  parse_args
+    [ "-predicates", Arg.String append_predicate,
+                  "      specifies comma-separated list of assumed predicates";
+      "-format", Arg.String (fun s -> format := s),
+              "<fmt>      specifies the output format";
+      "-separator", Arg.String (fun s -> separator := s),
+                 "       specifies the string that separates multiple answers";
+      "-prefix", Arg.String (fun s -> prefix := s),
+              "<p>        a string printed before the first answer";
+      "-suffix", Arg.String (fun s -> suffix := s),
+              "<s>        a string printed after the last answer";
+      "-recursive", Arg.Set recursive,
+                 "       select direct and indirect ancestors/descendants, too";
+      "-r", Arg.Set recursive,
+         "               same as -recursive";
+      "-descendants", Arg.Unit (fun () ->  descendants := true; recursive := true),
+                   "     query descendants instead of ancestors; implies -recursive";
+      "-d", Arg.Unit (fun () ->  descendants := true; recursive := true),
+         "               same as -descendants";
+      "-pp", Arg.Unit (fun () -> pp := true; recursive := true),
+          "              get preprocessor pkgs (predicates are taken as syntax preds)";
+      "-long-format", Arg.Unit (fun () -> format := long_format),
+                   "     specifies long output format";
+      "-l", Arg.Unit (fun () -> format := long_format),
+         "               same as -long-format";
+      "-i-format", Arg.Unit (fun () -> format := i_format),
+                "        prints -I options for ocamlc";
+      "-l-format", Arg.Unit (fun () -> format := l_format),
+                "        prints -ccopt -L options for ocamlc";
+      "-a-format", Arg.Unit (fun () -> format := a_format),
+                "        prints names of archives to be linked in for ocamlc";
+      "-o-format", Arg.Unit (fun () -> format := o_format),
+                "        prints link options for ocamlc";
+      "-p-format", Arg.Unit (fun () -> format := p_format),
+                "        prints package names";
+      "-help-format", Arg.Unit help_format,
+                   "     lists the supported formats for -format";
+    ]
+    (fun p -> packages := !packages @ [p])
+"usage: ocamlfind query [ -predicates <p>  | -format <f> |
+                         -long-format     | -i-format   |
+                         -l-format        | -a-format   |
+			 -o-format        | -p-format   |
+                         -prefix <p>      | -suffix <s> |
+                         -separator <s>   |
+                         -descendants     | -recursive  ] package ...";
+
+  let predicates1 =
+    if !pp then
+      "preprocessor" :: "syntax" :: !predicates
+    else
+      !predicates in
+  let packages1 =
+    if !pp then
+      let predicates2 =
+        List.filter (fun p -> p <> "byte" && p <> "native") predicates1 in
+      select_pp_packages predicates2 !packages
+    else
+      !packages in
+  let eff_packages =
+    if !recursive then begin
+      if !descendants then
+	Fl_package_base.package_users predicates1 packages1
+      else
+	package_deep_ancestors predicates1 packages1
+    end
+    else
+      packages1
+  in
+  
+  let answers = expand predicates1 eff_packages !format in
+  
+  print_string !prefix;
+  print_string (String.concat !separator answers);
+  print_string !suffix;
+;;
+
 
 (**************** OCAMLC/OCAMLMKTOP/OCAMLOPT subcommands ****************)
 

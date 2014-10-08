@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -207,7 +207,8 @@
 &nbsp;<a class="post" href="Rpc_simple_client.html" title="Rpc_simple_client">Next</a>
 </div>
 <h1>Module <a href="type_Rpc_client.html">Rpc_client</a></h1>
-<pre><span class="keyword">module</span> Rpc_client: <code class="code">sig</code> <a href="Rpc_client.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Rpc_client: <code class="code">sig</code> <a href="Rpc_client.html">..</a> <code class="code">end</code></pre><div class="info module top">
 RPC clients<br>
 </div>
 <hr width="100%">
@@ -260,48 +261,57 @@ This module implements an RPC client, i.e. provides means to connect
  <b>Multi-threading:</b> Only a single thread may use an RPC client at a
  time. There is a way so that several threads can share the same client
  without giving up concurrency, see <a href="Uq_mt.html#rpc_client"><i>Example: Threads sharing an RPC client</i></a> for details.<br>
+
 <pre><span id="EXCEPTIONMessage_lost"><span class="keyword">exception</span> Message_lost</span></pre>
-<div class="info">
+<div class="info ">
 got EOF when some pending procedure calls were not replied or even sent<br>
 </div>
+
 <pre><span id="EXCEPTIONMessage_timeout"><span class="keyword">exception</span> Message_timeout</span></pre>
-<div class="info">
+<div class="info ">
 After all retransmissions, there was still no reply<br>
 </div>
+
 <pre><span id="EXCEPTIONResponse_dropped"><span class="keyword">exception</span> Response_dropped</span></pre>
-<div class="info">
+<div class="info ">
 Drop reason: The response exceeded the configured maximum message size<br>
 </div>
+
 <pre><span id="EXCEPTIONCommunication_error"><span class="keyword">exception</span> Communication_error</span> <span class="keyword">of</span> <code class="type">exn</code></pre>
-<div class="info">
+<div class="info ">
 an I/O error happened<br>
 </div>
+
 <pre><span id="EXCEPTIONClient_is_down"><span class="keyword">exception</span> Client_is_down</span></pre>
-<div class="info">
+<div class="info ">
 The RPC call cannot be performed because the client has been shut down
  in the meantime. You can get this exception if you begin a new call,
  but the connection is closed now.<br>
 </div>
+
 <pre><span id="EXCEPTIONKeep_call"><span class="keyword">exception</span> Keep_call</span></pre>
-<div class="info">
+<div class="info ">
 This exception can be raised by the callback function that is invoked
  when the server response arrives. It causes that the RPC call record
  is kept in the housekeeping structure of the client. If the server
  sends another response, the callback function will be invoked again.
  I.e. one call can be replied several times (server-driven batching).<br>
 </div>
+
 <pre><span id="EXCEPTIONUnbound_exception"><span class="keyword">exception</span> Unbound_exception</span> <span class="keyword">of</span> <code class="type">exn</code></pre>
-<div class="info">
+<div class="info ">
 This exception can be raised by the callback function that is invoked
  when the server response arrives. It simply causes that the inner
  exception bypasses the exception handler, and falls through to the 
  caller of <code class="code">Unixqueue.run</code>. This is useful to jump out of the running RPC
  routines.<br>
 </div>
+
 <pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> </pre>
-<div class="info">
+<div class="info ">
 The type of RPC clients<br>
 </div>
+
 
 <pre><code><span id="TYPEconnector"><span class="keyword">type</span> <code class="type"></code>connector</span> = </code></pre><table class="typetable">
 <tr>
@@ -359,13 +369,16 @@ The type of RPC clients<br>
 </tr></table>
 
 
-<pre><span id="VALconnector_of_sockaddr"><span class="keyword">val</span> connector_of_sockaddr</span> : <code class="type">Unix.sockaddr -> <a href="Rpc_client.html#TYPEconnector">connector</a></code></pre><div class="info">
+
+<pre><span id="VALconnector_of_sockaddr"><span class="keyword">val</span> connector_of_sockaddr</span> : <code class="type">Unix.sockaddr -> <a href="Rpc_client.html#TYPEconnector">connector</a></code></pre><div class="info ">
 Converts the socket address into a connector<br>
 </div>
-<pre><span id="VALconnector_of_socksymbol"><span class="keyword">val</span> connector_of_socksymbol</span> : <code class="type"><a href="Netsockaddr.html#TYPEsocksymbol">Netsockaddr.socksymbol</a> -> <a href="Rpc_client.html#TYPEconnector">connector</a></code></pre><div class="info">
+
+<pre><span id="VALconnector_of_socksymbol"><span class="keyword">val</span> connector_of_socksymbol</span> : <code class="type"><a href="Netsockaddr.html#TYPEsocksymbol">Netsockaddr.socksymbol</a> -> <a href="Rpc_client.html#TYPEconnector">connector</a></code></pre><div class="info ">
 Converts the <a href="Netsockaddr.html#TYPEsocksymbol"><code class="code">Netsockaddr.socksymbol</code></a> into a connector<br>
 </div>
-<pre><span id="VALshutdown_connector"><span class="keyword">val</span> shutdown_connector</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -><br>       <a href="Rpc_transport.rpc_multiplex_controller-c.html">Rpc_transport.rpc_multiplex_controller</a> -> (unit -> unit) -> unit</code></pre><div class="info">
+
+<pre><span id="VALshutdown_connector"><span class="keyword">val</span> shutdown_connector</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -><br>       <a href="Rpc_transport.rpc_multiplex_controller-c.html">Rpc_transport.rpc_multiplex_controller</a> -> (unit -> unit) -> unit</code></pre><div class="info ">
 The default implementation to shut down the connector. Actions are
  triggered that will take the connector down at some time in the future.
  At this time, the callback function is invoked.
@@ -375,23 +388,29 @@ The default implementation to shut down the connector. Actions are
  For the other connector types the socket is also closed. 
  Win32 named pipes are shut down.<br>
 </div>
+
 <pre><span id="TYPEsocket_config"><span class="keyword">class type</span> <a href="Rpc_client.socket_config-c.html">socket_config</a></span> = <code class="code">object</code> <a href="Rpc_client.socket_config-c.html">..</a> <code class="code">end</code></pre><div class="info">
 Configuration for <code class="code">`Socket</code> (see below).
 </div>
-<pre><span id="VALdefault_socket_config"><span class="keyword">val</span> default_socket_config</span> : <code class="type"><a href="Rpc_client.socket_config-c.html">socket_config</a></code></pre><div class="info">
+
+<pre><span id="VALdefault_socket_config"><span class="keyword">val</span> default_socket_config</span> : <code class="type"><a href="Rpc_client.socket_config-c.html">socket_config</a></code></pre><div class="info ">
 Default configuration with <code class="code">non_blocking_connect</code> = true<br>
 </div>
+
 <pre><span name="TYPEdefault_socket_config"><span class="keyword">class</span> <a href="Rpc_client.default_socket_config-c.html">default_socket_config</a></span> : <code class="type"></code><code class="type"><a href="Rpc_client.socket_config-c.html">socket_config</a></code></pre><div class="info">
 Default configuration as class
 </div>
-<pre><span id="VALblocking_socket_config"><span class="keyword">val</span> blocking_socket_config</span> : <code class="type"><a href="Rpc_client.socket_config-c.html">socket_config</a></code></pre><div class="info">
+
+<pre><span id="VALblocking_socket_config"><span class="keyword">val</span> blocking_socket_config</span> : <code class="type"><a href="Rpc_client.socket_config-c.html">socket_config</a></code></pre><div class="info ">
 Configuration with <code class="code">non_blocking_connect</code> = false<br>
 </div>
+
 <pre><span name="TYPEblocking_socket_config"><span class="keyword">class</span> <a href="Rpc_client.blocking_socket_config-c.html">blocking_socket_config</a></span> : <code class="type"></code><code class="type"><a href="Rpc_client.socket_config-c.html">socket_config</a></code></pre><div class="info">
 blocking <code class="code">connect</code> configuration as class
 </div>
+
 <pre><span id="TYPEmode2"><span class="keyword">type</span> <code class="type"></code>mode2</span> = <code class="type">[ `Multiplexer_endpoint of <a href="Rpc_transport.rpc_multiplex_controller-c.html">Rpc_transport.rpc_multiplex_controller</a><br>       | `Socket of <a href="Rpc.html#TYPEprotocol">Rpc.protocol</a> * <a href="Rpc_client.html#TYPEconnector">connector</a> * <a href="Rpc_client.socket_config-c.html">socket_config</a><br>       | `Socket_endpoint of <a href="Rpc.html#TYPEprotocol">Rpc.protocol</a> * Unix.file_descr ]</code> </pre>
-<div class="info">
+<div class="info ">
 Determines the type of the client for <code class="code">create2</code>:
 <p>
 <ul>
@@ -413,7 +432,8 @@ Determines the type of the client for <code class="code">create2</code>:
 <br>
 </div>
 
-<pre><span id="VALcreate2"><span class="keyword">val</span> create2</span> : <code class="type">?program_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -><br>       ?version_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -><br>       ?initial_xid:int -><br>       ?shutdown:(<a href="Rpc_client.html#TYPEt">t</a> -><br>                  <a href="Rpc_transport.rpc_multiplex_controller-c.html">Rpc_transport.rpc_multiplex_controller</a> -> (unit -> unit) -> unit) -><br>       <a href="Rpc_client.html#TYPEmode2">mode2</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> -> <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -> <a href="Rpc_client.html#TYPEt">t</a></code></pre><div class="info">
+
+<pre><span id="VALcreate2"><span class="keyword">val</span> create2</span> : <code class="type">?program_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -><br>       ?version_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -><br>       ?initial_xid:int -><br>       ?shutdown:(<a href="Rpc_client.html#TYPEt">t</a> -><br>                  <a href="Rpc_transport.rpc_multiplex_controller-c.html">Rpc_transport.rpc_multiplex_controller</a> -> (unit -> unit) -> unit) -><br>       <a href="Rpc_client.html#TYPEmode2">mode2</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> -> <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -> <a href="Rpc_client.html#TYPEt">t</a></code></pre><div class="info ">
 New style clients:
  Opens a connection to the server specified by <code class="code">mode2</code>.
  The server is assumed to implement an RPC program as specified by
@@ -452,7 +472,8 @@ New style clients:
 <div class="param_info"><code class="code">shutdown</code> : This function is called when the client is shut down
    to close the client socket. By default, <code class="code">shutdown_connector</code> is
    called.</div>
-<pre><span id="VALunbound_create"><span class="keyword">val</span> unbound_create</span> : <code class="type">?initial_xid:int -><br>       ?shutdown:(<a href="Rpc_client.html#TYPEt">t</a> -><br>                  <a href="Rpc_transport.rpc_multiplex_controller-c.html">Rpc_transport.rpc_multiplex_controller</a> -> (unit -> unit) -> unit) -><br>       <a href="Rpc_client.html#TYPEmode2">mode2</a> -> <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -> <a href="Rpc_client.html#TYPEt">t</a></code></pre><div class="info">
+
+<pre><span id="VALunbound_create"><span class="keyword">val</span> unbound_create</span> : <code class="type">?initial_xid:int -><br>       ?shutdown:(<a href="Rpc_client.html#TYPEt">t</a> -><br>                  <a href="Rpc_transport.rpc_multiplex_controller-c.html">Rpc_transport.rpc_multiplex_controller</a> -> (unit -> unit) -> unit) -><br>       <a href="Rpc_client.html#TYPEmode2">mode2</a> -> <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -> <a href="Rpc_client.html#TYPEt">t</a></code></pre><div class="info ">
 Creates an unbound client. This is like <code class="code">create2</code>, but the client is
       not restricted to a particular RPC program.
 <p>
@@ -465,10 +486,12 @@ Creates an unbound client. This is like <code class="code">create2</code>, but t
 
       This function does not support <code class="code">Portmapped</code> connectors.<br>
 </div>
-<pre><span id="VALbind"><span class="keyword">val</span> bind</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALbind"><span class="keyword">val</span> bind</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> -> unit</code></pre><div class="info ">
 Binds this program additionally<br>
 </div>
-<pre><span id="VALuse"><span class="keyword">val</span> use</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALuse"><span class="keyword">val</span> use</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> -> unit</code></pre><div class="info ">
 If there are no bound programs, this is a no-op. Otherwise it is 
       checked whether the passed program is bound. If not, an exception
       is raised.
@@ -479,7 +502,8 @@ If there are no bound programs, this is a no-op. Otherwise it is
       <a href="Rpc_program.html#VALupdate"><code class="code">Rpc_program.update</code></a> it in the meantime, i.e. to change program
       and version numbers.<br>
 </div>
-<pre><span id="VALconfigure"><span class="keyword">val</span> configure</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> int -> float -> unit</code></pre><div class="info">
+
+<pre><span id="VALconfigure"><span class="keyword">val</span> configure</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> int -> float -> unit</code></pre><div class="info ">
 <code class="code">configure client retransmissions timeout</code>:
  sets the number of retransmissions and the timeout for the next calls.
  (These values are defaults; the actual values are stored with each
@@ -526,10 +550,12 @@ If there are no bound programs, this is a no-op. Otherwise it is
  is that TCP timeouts are usually set to catch total service failures
  rather than packet losses, and this behaviour is best for this purpose.<br>
 </div>
-<pre><span id="VALconfigure_next_call"><span class="keyword">val</span> configure_next_call</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> int -> float -> unit</code></pre><div class="info">
+
+<pre><span id="VALconfigure_next_call"><span class="keyword">val</span> configure_next_call</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> int -> float -> unit</code></pre><div class="info ">
 Same as <code class="code">configure</code>, but it only affects the next call<br>
 </div>
-<pre><span id="VALset_dgram_destination"><span class="keyword">val</span> set_dgram_destination</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> Unix.sockaddr option -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_dgram_destination"><span class="keyword">val</span> set_dgram_destination</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> Unix.sockaddr option -> unit</code></pre><div class="info ">
 <code class="code">set_dgram_destination client addr_opt</code>: This function is required
  for using the client in conjunction with unconnected UDP sockets.
  For connected sockets, the destination of datagrams is implicitly
@@ -545,7 +571,8 @@ Same as <code class="code">configure</code>, but it only affects the next call<b
  The current destination is used for all following calls. It is
  not automatically reset to <code class="code">None</code> after the next call.<br>
 </div>
-<pre><span id="VALset_batch_call"><span class="keyword">val</span> set_batch_call</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_batch_call"><span class="keyword">val</span> set_batch_call</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> unit</code></pre><div class="info ">
 The next call will be a batch call. The client does not wait for the
       response of a batch call. Instead, the client immediately fakes the
       response of a "void" return value.
@@ -557,18 +584,21 @@ The next call will be a batch call. The client does not wait for the
 
       This setting only affects the next call.<br>
 </div>
-<pre><span id="VALset_user_name"><span class="keyword">val</span> set_user_name</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> string option -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_user_name"><span class="keyword">val</span> set_user_name</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> string option -> unit</code></pre><div class="info ">
 Sets the user name, or <code class="code">None</code> (the default user name). This is only
       meaningful for authentication.<br>
 </div>
-<pre><span id="VALset_max_response_length"><span class="keyword">val</span> set_max_response_length</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> int -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_max_response_length"><span class="keyword">val</span> set_max_response_length</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> int -> unit</code></pre><div class="info ">
 Sets the maximum length of responses. By default, there is only the
       implicit maximum of <code class="code">Sys.max_string_length</code>.
 <p>
 
       If the maximum is exceeded, the exception <code class="code">Response_dropped</code> is raised.<br>
 </div>
-<pre><span id="VALset_exception_handler"><span class="keyword">val</span> set_exception_handler</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> (exn -> unit) -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_exception_handler"><span class="keyword">val</span> set_exception_handler</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> (exn -> unit) -> unit</code></pre><div class="info ">
 sets an exception handler (the default prints the exception 
  with <code class="code">`Crit</code> level to the logger set in <a href="Netlog.html"><code class="code">Netlog</code></a>).
  Only exceptions resulting from invocations of a
@@ -579,32 +609,41 @@ sets an exception handler (the default prints the exception
  Exceptions occuring in the handler itself are not caught, and will
  fall through.<br>
 </div>
-<pre><span id="VALset_mstring_factories"><span class="keyword">val</span> set_mstring_factories</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Xdr_mstring.html#TYPEnamed_mstring_factories">Xdr_mstring.named_mstring_factories</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_mstring_factories"><span class="keyword">val</span> set_mstring_factories</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Xdr_mstring.html#TYPEnamed_mstring_factories">Xdr_mstring.named_mstring_factories</a> -> unit</code></pre><div class="info ">
 Sets the mstring factory configuration that is used for decoding
       responses containing managed strings.<br>
 </div>
-<pre><span id="VALevent_system"><span class="keyword">val</span> event_system</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a></code></pre><div class="info">
+
+<pre><span id="VALevent_system"><span class="keyword">val</span> event_system</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a></code></pre><div class="info ">
 Returns the unixqueue to which the client is attached<br>
 </div>
-<pre><span id="VALprograms"><span class="keyword">val</span> programs</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> list</code></pre><div class="info">
+
+<pre><span id="VALprograms"><span class="keyword">val</span> programs</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> list</code></pre><div class="info ">
 Returns the list of all bound programs<br>
 </div>
-<pre><span id="VALget_socket_name"><span class="keyword">val</span> get_socket_name</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> Unix.sockaddr</code></pre><pre><span id="VALget_peer_name"><span class="keyword">val</span> get_peer_name</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> Unix.sockaddr</code></pre><div class="info">
+
+<pre><span id="VALget_socket_name"><span class="keyword">val</span> get_socket_name</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> Unix.sockaddr</code></pre>
+<pre><span id="VALget_peer_name"><span class="keyword">val</span> get_peer_name</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> Unix.sockaddr</code></pre><div class="info ">
 Return the addresses of the client socket and the server socket, resp.
  Note that these are only available when the client is already connected.
  The function calls fail otherwise. It is also possible that the
  underlying transport mechanism does not know these data.<br>
 </div>
-<pre><span id="VALget_sender_of_last_response"><span class="keyword">val</span> get_sender_of_last_response</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> Unix.sockaddr</code></pre><div class="info">
+
+<pre><span id="VALget_sender_of_last_response"><span class="keyword">val</span> get_sender_of_last_response</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> Unix.sockaddr</code></pre><div class="info ">
 Return the address of the sender of the last received response.<br>
 </div>
-<pre><span id="VALget_xid_of_last_call"><span class="keyword">val</span> get_xid_of_last_call</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a></code></pre><div class="info">
+
+<pre><span id="VALget_xid_of_last_call"><span class="keyword">val</span> get_xid_of_last_call</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a></code></pre><div class="info ">
 Returns the session identifier used in the just made call<br>
 </div>
-<pre><span id="VALget_protocol"><span class="keyword">val</span> get_protocol</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Rpc.html#TYPEprotocol">Rpc.protocol</a></code></pre><div class="info">
+
+<pre><span id="VALget_protocol"><span class="keyword">val</span> get_protocol</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Rpc.html#TYPEprotocol">Rpc.protocol</a></code></pre><div class="info ">
 Get the protocol flavour<br>
 </div>
-<pre><span id="VALabandon_call"><span class="keyword">val</span> abandon_call</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALabandon_call"><span class="keyword">val</span> abandon_call</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -> unit</code></pre><div class="info ">
 To be used in conjunction with <a href="Rpc_client.html#EXCEPTIONKeep_call"><code class="code">Rpc_client.Keep_call</code></a>: The call
       with this session identifier is no longer expected, and removed
       from the internal data structures.
@@ -612,15 +651,18 @@ To be used in conjunction with <a href="Rpc_client.html#EXCEPTIONKeep_call"><cod
 
       Restriction: for now, this does not work when there is authentication.<br>
 </div>
-<pre><span id="VALis_up"><span class="keyword">val</span> is_up</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> bool</code></pre><div class="info">
+
+<pre><span id="VALis_up"><span class="keyword">val</span> is_up</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> bool</code></pre><div class="info ">
 Return whether the client is up<br>
 </div>
-<pre><span id="VALunbound_sync_call"><span class="keyword">val</span> unbound_sync_call</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> -> string -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><div class="info">
+
+<pre><span id="VALunbound_sync_call"><span class="keyword">val</span> unbound_sync_call</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> -> string -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><div class="info ">
 <code class="code">unbound_sync_call client pgm proc arg</code>: Invoke the remote procedure
       <code class="code">proc</code> of the program <code class="code">pgm</code> via <code class="code">client</code>. The input arguments are
       <code class="code">arg</code>. The result arguments are returned (or an error is raised)<br>
 </div>
-<pre><span id="VALunbound_async_call"><span class="keyword">val</span> unbound_async_call</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -><br>       <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> -><br>       string -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> ((unit -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a>) -> unit) -> unit</code></pre><div class="info">
+
+<pre><span id="VALunbound_async_call"><span class="keyword">val</span> unbound_async_call</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -><br>       <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> -><br>       string -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> ((unit -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a>) -> unit) -> unit</code></pre><div class="info ">
 <code class="code">unbound_ssync_call client pgm proc arg emit</code>: Invoke the remote 
       procedure
       <code class="code">proc</code> of the program <code class="code">pgm</code> via <code class="code">client</code>. The input arguments are
@@ -628,13 +670,16 @@ Return whether the client is up<br>
       <code class="code">emit (fun () -&gt; r)</code> back. When an exception <code class="code">e</code> is available, the
       client will call <code class="code">emit (fun () -&gt; raise e)</code> back.<br>
 </div>
+
 <pre><span name="TYPEunbound_async_call"><span class="keyword">class</span> <a href="Rpc_client.unbound_async_call-c.html">unbound_async_call</a></span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> -> string -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> </code><code class="type">[<a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a>]</code> <code class="type"><a href="Uq_engines.engine-c.html">Uq_engines.engine</a></code></pre><div class="info">
 Same as <code class="code">unbound_async_call</code>, but with an engine API.
 </div>
-<pre><span id="VALsynchronize"><span class="keyword">val</span> synchronize</span> : <code class="type"><a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -> ('a -> ((unit -> 'b) -> unit) -> unit) -> 'a -> 'b</code></pre><div class="info">
+
+<pre><span id="VALsynchronize"><span class="keyword">val</span> synchronize</span> : <code class="type"><a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -> ('a -> ((unit -> 'b) -> unit) -> unit) -> 'a -> 'b</code></pre><div class="info ">
 Turns an async call into a synchronous call<br>
 </div>
-<pre><span id="VALshut_down"><span class="keyword">val</span> shut_down</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALshut_down"><span class="keyword">val</span> shut_down</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> unit</code></pre><div class="info ">
 Shuts down the connection. Any unprocessed calls get the exception
  <code class="code">Message_lost</code>. It is no error to shut down a client that is already
  down - nothing happens in this case.
@@ -661,7 +706,8 @@ Shuts down the connection. Any unprocessed calls get the exception
 
  The following functions allow more fine grained control of the shutdown.<br>
 </div>
-<pre><span id="VALsync_shutdown"><span class="keyword">val</span> sync_shutdown</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALsync_shutdown"><span class="keyword">val</span> sync_shutdown</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> unit</code></pre><div class="info ">
 Enforces a synchronous shutdown of the connection. This is only
  possible if called from outside the event loop. This function fails
  if called from within the event loop.
@@ -670,7 +716,8 @@ Enforces a synchronous shutdown of the connection. This is only
  You can be sure that the shutdown is completely done when this
  function returns normally.<br>
 </div>
-<pre><span id="VALtrigger_shutdown"><span class="keyword">val</span> trigger_shutdown</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> (unit -> unit) -> unit</code></pre><div class="info">
+
+<pre><span id="VALtrigger_shutdown"><span class="keyword">val</span> trigger_shutdown</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> (unit -> unit) -> unit</code></pre><div class="info ">
 Triggers the shutdown, and calls the passed function back when it is
  done.
 <p>
@@ -678,8 +725,9 @@ Triggers the shutdown, and calls the passed function back when it is
  The function is not only called when the client has to be taken
  down, but also if the client is already down.<br>
 </div>
+
 <pre><span id="TYPEreject_code"><span class="keyword">type</span> <code class="type"></code>reject_code</span> = <code class="type">[ `Fail | `Next | `Renew | `Retry ]</code> </pre>
-<div class="info">
+<div class="info ">
 Reaction on authentication problems:<ul>
 <li><code class="code">`Fail</code>: Stop here, and report to user</li>
 <li><code class="code">`Retry</code>: Just try again with current session</li>
@@ -690,20 +738,25 @@ Reaction on authentication problems:<ul>
 <br>
 </div>
 
+
 <pre><span id="TYPEauth_session"><span class="keyword">class type</span> <a href="Rpc_client.auth_session-c.html">auth_session</a></span> = <code class="code">object</code> <a href="Rpc_client.auth_session-c.html">..</a> <code class="code">end</code></pre><div class="info">
 An <code class="code">auth_session</code> object is normally created for every client instance.
 </div>
+
 <pre><span id="TYPEauth_protocol"><span class="keyword">class type</span> <a href="Rpc_client.auth_protocol-c.html">auth_protocol</a></span> = <code class="code">object</code> <a href="Rpc_client.auth_protocol-c.html">..</a> <code class="code">end</code></pre><div class="info">
 An authentication protocol is used for creating an authentication
       session.
 </div>
+
 <pre><span id="TYPEauth_method"><span class="keyword">class type</span> <a href="Rpc_client.auth_method-c.html">auth_method</a></span> = <code class="code">object</code> <a href="Rpc_client.auth_method-c.html">..</a> <code class="code">end</code></pre><div class="info">
 An <code class="code">auth_method</code> object represents a method of authentication.
 </div>
-<pre><span id="VALauth_none"><span class="keyword">val</span> auth_none</span> : <code class="type"><a href="Rpc_client.auth_method-c.html">auth_method</a></code></pre><div class="info">
+
+<pre><span id="VALauth_none"><span class="keyword">val</span> auth_none</span> : <code class="type"><a href="Rpc_client.auth_method-c.html">auth_method</a></code></pre><div class="info ">
 The authentication method that does not perform authentication.<br>
 </div>
-<pre><span id="VALset_auth_methods"><span class="keyword">val</span> set_auth_methods</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Rpc_client.auth_method-c.html">auth_method</a> list -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_auth_methods"><span class="keyword">val</span> set_auth_methods</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Rpc_client.auth_method-c.html">auth_method</a> list -> unit</code></pre><div class="info ">
 Set the authentication methods for this client. The passed methods
  are tried in turn until a method is accepted by the server.
  The default is <code class="code"> auth_none </code>
@@ -713,13 +766,15 @@ Set the authentication methods for this client. The passed methods
  are continued with the old method. First new calls are ensured to
  use the new list.<br>
 </div>
+
 <pre><span class="keyword">module type</span> <a href="Rpc_client.USE_CLIENT.html">USE_CLIENT</a> = <code class="code">sig</code> <a href="Rpc_client.USE_CLIENT.html">..</a> <code class="code">end</code></pre><div class="info">
 This module type is what the generated "clnt" module assumes about the
     client interface
 </div>
 <br>
 <h2 id="2_DeprecatedInterfaces">Deprecated Interfaces</h2><br>
-<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">?program_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -><br>       ?version_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -><br>       ?initial_xid:int -><br>       ?shutdown:(<a href="Rpc_client.html#TYPEt">t</a> -><br>                  <a href="Rpc_transport.rpc_multiplex_controller-c.html">Rpc_transport.rpc_multiplex_controller</a> -> (unit -> unit) -> unit) -><br>       <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -><br>       <a href="Rpc_client.html#TYPEconnector">connector</a> -> <a href="Rpc.html#TYPEprotocol">Rpc.protocol</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> -> <a href="Rpc_client.html#TYPEt">t</a></code></pre><div class="info">
+
+<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">?program_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -><br>       ?version_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -><br>       ?initial_xid:int -><br>       ?shutdown:(<a href="Rpc_client.html#TYPEt">t</a> -><br>                  <a href="Rpc_transport.rpc_multiplex_controller-c.html">Rpc_transport.rpc_multiplex_controller</a> -> (unit -> unit) -> unit) -><br>       <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -><br>       <a href="Rpc_client.html#TYPEconnector">connector</a> -> <a href="Rpc.html#TYPEprotocol">Rpc.protocol</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> -> <a href="Rpc_client.html#TYPEt">t</a></code></pre><div class="info ">
 <span class="warning">Deprecated.</span>This function should not be used any more in new programs.
     Use <code class="code">create2</code> or <code class="code">unbound_create</code>.<br>
 Opens a connection to the server specified by the <code class="code">connector</code>.
@@ -757,11 +812,13 @@ Opens a connection to the server specified by the <code class="code">connector</
 <div class="param_info"><code class="code">shutdown</code> : This function is called when the client is shut down
    to close the client socket. By default, <code class="code">shutdown_connector</code> is
    called.</div>
-<pre><span id="VALprogram"><span class="keyword">val</span> program</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a></code></pre><div class="info">
+
+<pre><span id="VALprogram"><span class="keyword">val</span> program</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a></code></pre><div class="info ">
 <span class="warning">Deprecated.</span>This is the same as <code class="code">List.hd (Rpc_client.programs client)</code><br>
 Returns the program the client represents.<br>
 </div>
-<pre><span id="VALadd_call"><span class="keyword">val</span> add_call</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -><br>       string -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> ((unit -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a>) -> unit) -> unit</code></pre><div class="info">
+
+<pre><span id="VALadd_call"><span class="keyword">val</span> add_call</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -><br>       string -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> ((unit -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a>) -> unit) -> unit</code></pre><div class="info ">
 <span class="warning">Deprecated.</span><code class="code">add_call</code> is restricted to the case that there is only
    one bound program. It will fail in other cases. Use 
    <code class="code">unbound_async_call</code> instead. Note also that there is no longer
@@ -798,6 +855,7 @@ Returns the program the client represents.<br>
 
 <br>
 </div>
+
 <pre><span id="VALsync_call"><span class="keyword">val</span> sync_call</span> : <code class="type"><a href="Rpc_client.html#TYPEt">t</a> -> string -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><br>
 Calls the procedure synchronously.
  Note that this implies that the underlying unixqueue is started and that
@@ -806,10 +864,12 @@ Calls the procedure synchronously.
 <p>
 
 <br>
-<pre><span id="VALverbose"><span class="keyword">val</span> verbose</span> : <code class="type">bool -> unit</code></pre><div class="info">
+
+<pre><span id="VALverbose"><span class="keyword">val</span> verbose</span> : <code class="type">bool -> unit</code></pre><div class="info ">
 set whether you want debug messages or not (same as setting
       <a href="Rpc_client.Debug.html#VALenable"><code class="code">Rpc_client.Debug.enable</code></a>)<br>
 </div>
 <br>
 <h2 id="2_Debugging">Debugging</h2><br>
+
 <pre><span class="keyword">module</span> <a href="Rpc_client.Debug.html">Debug</a>: <code class="code">sig</code> <a href="Rpc_client.Debug.html">..</a> <code class="code">end</code></pre></body></html>

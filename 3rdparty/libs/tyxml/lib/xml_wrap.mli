@@ -15,21 +15,20 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02111-1307, USA.
- *)
+*)
 
 module type T = sig
   type 'a t
-  val bind : 'a t -> ('a -> 'b t) -> 'b t
+  type 'a tlist
   val return : 'a -> 'a t
   val fmap : ('a -> 'b) -> 'a t -> 'b t
-  val fmap2 :
-    ('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
-  val fmap3 :
-    ('a -> 'b -> 'c -> 'd) -> 'a t -> 'b t -> 'c t -> 'd t
-  val fmap4 :
-    ('a -> 'b -> 'c -> 'd -> 'e) -> 'a t -> 'b t -> 'c t -> 'd t -> 'e t
-  val fmap5 :
-    ('a -> 'b -> 'c -> 'd -> 'e -> 'f) -> 'a t -> 'b t -> 'c t -> 'd t -> 'e t -> 'f t
+
+  val nil : unit -> 'a tlist
+  val singleton : 'a t -> 'a tlist
+  val cons : 'a t -> 'a tlist -> 'a tlist
+  val append : 'a tlist -> 'a tlist -> 'a tlist
+  val map : ('a -> 'b ) -> 'a tlist -> 'b tlist
 end
 
 module NoWrap : T with type 'a t = 'a
+                   and type 'a tlist = 'a list

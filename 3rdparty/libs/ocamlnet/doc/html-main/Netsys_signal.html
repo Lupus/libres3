@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -206,7 +206,8 @@
 &nbsp;<a class="post" href="Netsys_oothr.html" title="Netsys_oothr">Next</a>
 </div>
 <h1>Module <a href="type_Netsys_signal.html">Netsys_signal</a></h1>
-<pre><span class="keyword">module</span> Netsys_signal: <code class="code">sig</code> <a href="Netsys_signal.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Netsys_signal: <code class="code">sig</code> <a href="Netsys_signal.html">..</a> <code class="code">end</code></pre><div class="info module top">
 Signal handler framework
 <p>
 
@@ -224,7 +225,8 @@ Signal handler framework
     Registrations for other signal types are accepted but ignored.<br>
 </div>
 <hr width="100%">
-<pre><span id="VALregister_handler"><span class="keyword">val</span> register_handler</span> : <code class="type">?library:string -><br>       ?priority:int -><br>       ?keep_default:bool -><br>       name:string -> signal:int -> callback:(int -> unit) -> unit -> unit</code></pre><div class="info">
+
+<pre><span id="VALregister_handler"><span class="keyword">val</span> register_handler</span> : <code class="type">?library:string -><br>       ?priority:int -><br>       ?keep_default:bool -><br>       name:string -> signal:int -> callback:(int -> unit) -> unit -> unit</code></pre><div class="info ">
 This function registers a handler called <code class="code">name</code> for signal number
       <code class="code">signal</code>. The handler function is <code class="code">callback</code>. The int argument of
       the callback is the signal number.
@@ -267,7 +269,8 @@ This function registers a handler called <code class="code">name</code> for sign
       Any exceptions occuring during the execution of a handler are caught
       and ignored.<br>
 </div>
-<pre><span id="VALregister_exclusive_handler"><span class="keyword">val</span> register_exclusive_handler</span> : <code class="type">name:string -> signal:int -> install:(unit -> unit) -> unit -> unit</code></pre><div class="info">
+
+<pre><span id="VALregister_exclusive_handler"><span class="keyword">val</span> register_exclusive_handler</span> : <code class="type">name:string -> signal:int -> install:(unit -> unit) -> unit -> unit</code></pre><div class="info ">
 An exclusive handler for a signal is the only handler for the signal.
       If it is tried to register another handler when there is already
       an exclusive handler, the second registration fails. Also, an
@@ -282,7 +285,8 @@ An exclusive handler for a signal is the only handler for the signal.
       methods (e.g. use some C wrapper) are also possible. It is assumed
       that <code class="code">install</code> overrides any existing handler.<br>
 </div>
-<pre><span id="VALrestore_management"><span class="keyword">val</span> restore_management</span> : <code class="type">int -> unit</code></pre><div class="info">
+
+<pre><span id="VALrestore_management"><span class="keyword">val</span> restore_management</span> : <code class="type">int -> unit</code></pre><div class="info ">
 <code class="code">restore_management signo</code>: Restores signal handling management for
       <code class="code">signo</code> as defined by
       the handler list for this signal. Calling <code class="code">restore_management</code> makes
@@ -291,7 +295,8 @@ An exclusive handler for a signal is the only handler for the signal.
       some point this module is again responsible for managing the signal
       handling for this signal.<br>
 </div>
-<pre><span id="VALkeep_away_from"><span class="keyword">val</span> keep_away_from</span> : <code class="type">int -> unit</code></pre><div class="info">
+
+<pre><span id="VALkeep_away_from"><span class="keyword">val</span> keep_away_from</span> : <code class="type">int -> unit</code></pre><div class="info ">
 <code class="code">keep_away_from signo</code>: This signal <code class="code">signo</code> is added to the 
       "keep away list". This means that this module will never try to 
       change the signal behavior again for <code class="code">signo</code>. Even <code class="code">restore_management</code>
@@ -305,69 +310,75 @@ An exclusive handler for a signal is the only handler for the signal.
       <code class="code">Sys.set_signal</code> directly to ensure that <code class="code">Netsys_signal</code> will never
       again try to override the handler.<br>
 </div>
+
 <pre><span id="TYPEaction"><span class="keyword">type</span> <code class="type"></code>action</span> = <code class="type">[ `Callback of int -> unit | `Install of unit -> unit ]</code> </pre>
-<div class="info">
+<div class="info ">
 <code class="code">`Callback</code> is used for normal handlers, and <code class="code">`Install</code> for exclusive
       handlers.<br>
 </div>
+
 
 <pre><code><span id="TYPEentry"><span class="keyword">type</span> <code class="type"></code>entry</span> = {</code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTentry.sig_number">sig_number</span>&nbsp;:<code class="type">int</code>;</code></td>
+<code><span id="TYPEELTentry.sig_number">sig_number</span>&nbsp;: <code class="type">int</code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTentry.sig_library">sig_library</span>&nbsp;:<code class="type">string option</code>;</code></td>
+<code><span id="TYPEELTentry.sig_library">sig_library</span>&nbsp;: <code class="type">string option</code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTentry.sig_priority">sig_priority</span>&nbsp;:<code class="type">int</code>;</code></td>
+<code><span id="TYPEELTentry.sig_priority">sig_priority</span>&nbsp;: <code class="type">int</code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTentry.sig_keep_default">sig_keep_default</span>&nbsp;:<code class="type">bool</code>;</code></td>
+<code><span id="TYPEELTentry.sig_keep_default">sig_keep_default</span>&nbsp;: <code class="type">bool</code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTentry.sig_name">sig_name</span>&nbsp;:<code class="type">string</code>;</code></td>
+<code><span id="TYPEELTentry.sig_name">sig_name</span>&nbsp;: <code class="type">string</code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTentry.sig_action">sig_action</span>&nbsp;:<code class="type"><a href="Netsys_signal.html#TYPEaction">action</a></code>;</code></td>
+<code><span id="TYPEELTentry.sig_action">sig_action</span>&nbsp;: <code class="type"><a href="Netsys_signal.html#TYPEaction">action</a></code>;</code></td>
 
 </tr></table>
 }
 
 
-<pre><span id="VALlist"><span class="keyword">val</span> list</span> : <code class="type">unit -> <a href="Netsys_signal.html#TYPEentry">entry</a> list</code></pre><div class="info">
+
+<pre><span id="VALlist"><span class="keyword">val</span> list</span> : <code class="type">unit -> <a href="Netsys_signal.html#TYPEentry">entry</a> list</code></pre><div class="info ">
 Returns the list of signal handlers<br>
 </div>
-<pre><span id="VALkeep_away_list"><span class="keyword">val</span> keep_away_list</span> : <code class="type">unit -> int list</code></pre><div class="info">
+
+<pre><span id="VALkeep_away_list"><span class="keyword">val</span> keep_away_list</span> : <code class="type">unit -> int list</code></pre><div class="info ">
 Returns the "keep away list".<br>
 </div>
-<pre><span id="VALinit"><span class="keyword">val</span> init</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="VALinit"><span class="keyword">val</span> init</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Call this function to ensure that this module is initialized. It is
       also possible to call any other function. After initialization the
       Sigpipe handler is set.<br>
 </div>
 <br>
 <h1 id="1_Debugging">Debugging</h1><br>
+
 <pre><span class="keyword">module</span> <a href="Netsys_signal.Debug.html">Debug</a>: <code class="code">sig</code> <a href="Netsys_signal.Debug.html">..</a> <code class="code">end</code></pre></body></html>

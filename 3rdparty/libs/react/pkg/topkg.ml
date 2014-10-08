@@ -1,7 +1,7 @@
 (*---------------------------------------------------------------------------
    Copyright (c) 2014 Daniel C. Bünzli. All rights reserved.
    Distributed under the BSD3 license, see license at the end of the file.
-   react release 1.1.0
+   react release 1.2.0
   ---------------------------------------------------------------------------*)
 
 (* Public api *) 
@@ -238,7 +238,7 @@ module Pkg : Pkg = struct
   let toplevel = mvs "toplevel"
   let doc = mvs "doc" 
   let misc = mvs "misc" 
-  let stublibs = mvs "stublib"
+  let stublibs = mvs "stublibs"
   let man = mvs "man" 
       
   let bin_drops = if not Env.native then [ ".native" ] else []

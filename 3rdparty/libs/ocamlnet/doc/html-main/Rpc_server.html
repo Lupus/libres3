@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -205,7 +205,8 @@
 &nbsp;<a class="post" href="Rpc_auth_sys.html" title="Rpc_auth_sys">Next</a>
 </div>
 <h1>Module <a href="type_Rpc_server.html">Rpc_server</a></h1>
-<pre><span class="keyword">module</span> Rpc_server: <code class="code">sig</code> <a href="Rpc_server.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Rpc_server: <code class="code">sig</code> <a href="Rpc_server.html">..</a> <code class="code">end</code></pre><div class="info module top">
 RPC servers<br>
 </div>
 <hr width="100%">
@@ -230,28 +231,33 @@ Like the client, the RPC server module is programmed on top of the
  back to the original caller. To do so, the asynchronous RPC function
  invokes 'reply' together with the necessary session IDs that identify
  the answer among all answers.<br>
+
 <pre><span id="EXCEPTIONConnection_lost"><span class="keyword">exception</span> Connection_lost</span></pre>
-<div class="info">
+<div class="info ">
 raised by the 'reply' function if the connection to the original caller
  has been lost in the meantime.<br>
 </div>
+
 <pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> </pre>
-<div class="info">
+<div class="info ">
 represents a server for an RPC program<br>
 </div>
 
+
 <pre><span id="TYPEsession"><span class="keyword">type</span> <code class="type"></code>session</span> </pre>
-<div class="info">
+<div class="info ">
 identifies a pair of a call and a reply<br>
 </div>
 
+
 <pre><span id="TYPEconnection_id"><span class="keyword">type</span> <code class="type"></code>connection_id</span> </pre>
-<div class="info">
+<div class="info ">
 identifies the connection of a session. For connectionless servers,
  every session gets a new connection_id.
  You can compare connection_ids to find out whether two sessions
  belong to the same connection. Use "=" for equality.<br>
 </div>
+
 
 <pre><code><span id="TYPEconnector"><span class="keyword">type</span> <code class="type"></code>connector</span> = </code></pre><table class="typetable">
 <tr>
@@ -316,23 +322,25 @@ identifies the connection of a session. For connectionless servers,
 </tr></table>
 
 
+
 <pre><code><span id="TYPEbinding_sync"><span class="keyword">type</span> <code class="type"></code>binding_sync</span> = {</code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTbinding_sync.sync_name">sync_name</span>&nbsp;:<code class="type">string</code>;</code></td>
+<code><span id="TYPEELTbinding_sync.sync_name">sync_name</span>&nbsp;: <code class="type">string</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >procedure name</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTbinding_sync.sync_proc">sync_proc</span>&nbsp;:<code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code>;</code></td>
+<code><span id="TYPEELTbinding_sync.sync_proc">sync_proc</span>&nbsp;: <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >the function that implements the
  procedure</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr></table>
 }
+
 
 
 <pre><code><span id="TYPEbinding_async"><span class="keyword">type</span> <code class="type"></code>binding_async</span> = {</code></pre><table class="typetable">
@@ -340,17 +348,18 @@ identifies the connection of a session. For connectionless servers,
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTbinding_async.async_name">async_name</span>&nbsp;:<code class="type">string</code>;</code></td>
+<code><span id="TYPEELTbinding_async.async_name">async_name</span>&nbsp;: <code class="type">string</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >procedure name</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTbinding_async.async_invoke">async_invoke</span>&nbsp;:<code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> unit</code>;</code></td>
+<code><span id="TYPEELTbinding_async.async_invoke">async_invoke</span>&nbsp;: <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> unit</code>;</code></td>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >A function that is called when the procedure is called</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr></table>
 }
+
 
 
 <pre><code><span id="TYPEbinding"><span class="keyword">type</span> <code class="type"></code>binding</span> = </code></pre><table class="typetable">
@@ -370,13 +379,16 @@ identifies the connection of a session. For connectionless servers,
 </tr></table>
 
 
-<pre><span id="VALconnector_of_sockaddr"><span class="keyword">val</span> connector_of_sockaddr</span> : <code class="type">Unix.sockaddr -> <a href="Rpc_server.html#TYPEconnector">connector</a></code></pre><div class="info">
+
+<pre><span id="VALconnector_of_sockaddr"><span class="keyword">val</span> connector_of_sockaddr</span> : <code class="type">Unix.sockaddr -> <a href="Rpc_server.html#TYPEconnector">connector</a></code></pre><div class="info ">
 Converts the socket address into a connector<br>
 </div>
-<pre><span id="VALconnector_of_socksymbol"><span class="keyword">val</span> connector_of_socksymbol</span> : <code class="type"><a href="Netsockaddr.html#TYPEsocksymbol">Netsockaddr.socksymbol</a> -> <a href="Rpc_server.html#TYPEconnector">connector</a></code></pre><div class="info">
+
+<pre><span id="VALconnector_of_socksymbol"><span class="keyword">val</span> connector_of_socksymbol</span> : <code class="type"><a href="Netsockaddr.html#TYPEsocksymbol">Netsockaddr.socksymbol</a> -> <a href="Rpc_server.html#TYPEconnector">connector</a></code></pre><div class="info ">
 Converts the <a href="Netsockaddr.html#TYPEsocksymbol"><code class="code">Netsockaddr.socksymbol</code></a> into a connector<br>
 </div>
-<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">?program_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -><br>       ?version_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -><br>       <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -><br>       <a href="Rpc_server.html#TYPEconnector">connector</a> -><br>       <a href="Rpc.html#TYPEprotocol">Rpc.protocol</a> -><br>       <a href="Rpc.html#TYPEmode">Rpc.mode</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> -> <a href="Rpc_server.html#TYPEbinding">binding</a> list -> int -> <a href="Rpc_server.html#TYPEt">t</a></code></pre><div class="info">
+
+<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">?program_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -><br>       ?version_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -><br>       <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -><br>       <a href="Rpc_server.html#TYPEconnector">connector</a> -><br>       <a href="Rpc.html#TYPEprotocol">Rpc.protocol</a> -><br>       <a href="Rpc.html#TYPEmode">Rpc.mode</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> -> <a href="Rpc_server.html#TYPEbinding">binding</a> list -> int -> <a href="Rpc_server.html#TYPEt">t</a></code></pre><div class="info ">
 Deprecated creation of an RPC server. For new programs, use <code class="code">create2</code>
  or one of its variants.
 <p>
@@ -430,8 +442,12 @@ Deprecated creation of an RPC server. For new programs, use <code class="code">c
  <b>Note for UDP servers:</b> Due to limitations of the ocaml runtime
  there is a limit of 16K per message.<br>
 </div>
-<pre><span id="TYPEsocket_config"><span class="keyword">class type</span> <a href="Rpc_server.socket_config-c.html">socket_config</a></span> = <code class="code">object</code> <a href="Rpc_server.socket_config-c.html">..</a> <code class="code">end</code></pre><pre><span id="VALdefault_socket_config"><span class="keyword">val</span> default_socket_config</span> : <code class="type"><a href="Rpc_server.socket_config-c.html">socket_config</a></code></pre><pre><span name="TYPEdefault_socket_config"><span class="keyword">class</span> <a href="Rpc_server.default_socket_config-c.html">default_socket_config</a></span> : <code class="type"></code><code class="type"><a href="Rpc_server.socket_config-c.html">socket_config</a></code></pre><pre><span id="TYPEmode2"><span class="keyword">type</span> <code class="type"></code>mode2</span> = <code class="type">[ `Dummy of <a href="Rpc.html#TYPEprotocol">Rpc.protocol</a><br>       | `Multiplexer_endpoint of <a href="Rpc_transport.rpc_multiplex_controller-c.html">Rpc_transport.rpc_multiplex_controller</a><br>       | `Socket of <a href="Rpc.html#TYPEprotocol">Rpc.protocol</a> * <a href="Rpc_server.html#TYPEconnector">connector</a> * <a href="Rpc_server.socket_config-c.html">socket_config</a><br>       | `Socket_endpoint of <a href="Rpc.html#TYPEprotocol">Rpc.protocol</a> * Unix.file_descr ]</code> </pre>
-<div class="info">
+
+<pre><span id="TYPEsocket_config"><span class="keyword">class type</span> <a href="Rpc_server.socket_config-c.html">socket_config</a></span> = <code class="code">object</code> <a href="Rpc_server.socket_config-c.html">..</a> <code class="code">end</code></pre>
+<pre><span id="VALdefault_socket_config"><span class="keyword">val</span> default_socket_config</span> : <code class="type"><a href="Rpc_server.socket_config-c.html">socket_config</a></code></pre>
+<pre><span name="TYPEdefault_socket_config"><span class="keyword">class</span> <a href="Rpc_server.default_socket_config-c.html">default_socket_config</a></span> : <code class="type"></code><code class="type"><a href="Rpc_server.socket_config-c.html">socket_config</a></code></pre>
+<pre><span id="TYPEmode2"><span class="keyword">type</span> <code class="type"></code>mode2</span> = <code class="type">[ `Dummy of <a href="Rpc.html#TYPEprotocol">Rpc.protocol</a><br>       | `Multiplexer_endpoint of <a href="Rpc_transport.rpc_multiplex_controller-c.html">Rpc_transport.rpc_multiplex_controller</a><br>       | `Socket of <a href="Rpc.html#TYPEprotocol">Rpc.protocol</a> * <a href="Rpc_server.html#TYPEconnector">connector</a> * <a href="Rpc_server.socket_config-c.html">socket_config</a><br>       | `Socket_endpoint of <a href="Rpc.html#TYPEprotocol">Rpc.protocol</a> * Unix.file_descr ]</code> </pre>
+<div class="info ">
 Determines the type of the server for <code class="code">create2</code>:
 <p>
 <ul>
@@ -454,67 +470,86 @@ Determines the type of the server for <code class="code">create2</code>:
  Win32 named pipes.<br>
 </div>
 
-<pre><span id="VALcreate2"><span class="keyword">val</span> create2</span> : <code class="type"><a href="Rpc_server.html#TYPEmode2">mode2</a> -> <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -> <a href="Rpc_server.html#TYPEt">t</a></code></pre><div class="info">
+
+<pre><span id="VALcreate2"><span class="keyword">val</span> create2</span> : <code class="type"><a href="Rpc_server.html#TYPEmode2">mode2</a> -> <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -> <a href="Rpc_server.html#TYPEt">t</a></code></pre><div class="info ">
 Creates a server according to the <code class="code">mode2</code> argument. This kind of server
  does initially not have any bindings.<br>
 </div>
-<pre><span id="VALbind"><span class="keyword">val</span> bind</span> : <code class="type">?program_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -><br>       ?version_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -><br>       <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> -> <a href="Rpc_server.html#TYPEbinding">binding</a> list -> <a href="Rpc_server.html#TYPEt">t</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALbind"><span class="keyword">val</span> bind</span> : <code class="type">?program_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -><br>       ?version_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -><br>       <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> -> <a href="Rpc_server.html#TYPEbinding">binding</a> list -> <a href="Rpc_server.html#TYPEt">t</a> -> unit</code></pre><div class="info ">
 Binds the program as specified by the <code class="code">binding list</code>. If the portmapper
  must be informed, this action is started (and continued in the
  background). One can bind several programs in several versions to the
  same server.<br>
 </div>
-<pre><span id="VALunbind"><span class="keyword">val</span> unbind</span> : <code class="type">?program_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -><br>       ?version_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> -> <a href="Rpc_server.html#TYPEt">t</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALunbind"><span class="keyword">val</span> unbind</span> : <code class="type">?program_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -><br>       ?version_number:<a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> -> <a href="Rpc_server.html#TYPEt">t</a> -> unit</code></pre><div class="info ">
 Unbinds the program if it is bound by the server<br>
 </div>
-<pre><span id="VALbound_programs"><span class="keyword">val</span> bound_programs</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> list</code></pre><div class="info">
+
+<pre><span id="VALbound_programs"><span class="keyword">val</span> bound_programs</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> <a href="Rpc_program.html#TYPEt">Rpc_program.t</a> list</code></pre><div class="info ">
 Returns the bound programs<br>
 </div>
-<pre><span id="VALget_event_system"><span class="keyword">val</span> get_event_system</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a></code></pre><div class="info">
+
+<pre><span id="VALget_event_system"><span class="keyword">val</span> get_event_system</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> <a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a></code></pre><div class="info ">
 Find out the event system that contains the 'session'<br>
 </div>
-<pre><span id="VALget_connection_id"><span class="keyword">val</span> get_connection_id</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> <a href="Rpc_server.html#TYPEconnection_id">connection_id</a></code></pre><div class="info">
+
+<pre><span id="VALget_connection_id"><span class="keyword">val</span> get_connection_id</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> <a href="Rpc_server.html#TYPEconnection_id">connection_id</a></code></pre><div class="info ">
 Get the connection_id<br>
 </div>
-<pre><span id="VALget_xid"><span class="keyword">val</span> get_xid</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> <a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a></code></pre><div class="info">
+
+<pre><span id="VALget_xid"><span class="keyword">val</span> get_xid</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> <a href="Rtypes.html#TYPEuint4">Rtypes.uint4</a></code></pre><div class="info ">
 Returns the session ID.
  Important note: This number identifies the session from the caller's
  view, not from the server's view!<br>
 </div>
-<pre><span id="VALget_socket_name"><span class="keyword">val</span> get_socket_name</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> Unix.sockaddr</code></pre><pre><span id="VALget_peer_name"><span class="keyword">val</span> get_peer_name</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> Unix.sockaddr</code></pre><div class="info">
+
+<pre><span id="VALget_socket_name"><span class="keyword">val</span> get_socket_name</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> Unix.sockaddr</code></pre>
+<pre><span id="VALget_peer_name"><span class="keyword">val</span> get_peer_name</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> Unix.sockaddr</code></pre><div class="info ">
 Return the address of the socket serving the session, and the client
  socket, resp. These functions fail if the server is not running on
  a socket.<br>
 </div>
-<pre><span id="VALget_conn_socket_name"><span class="keyword">val</span> get_conn_socket_name</span> : <code class="type"><a href="Rpc_server.html#TYPEconnection_id">connection_id</a> -> Unix.sockaddr</code></pre><pre><span id="VALget_conn_peer_name"><span class="keyword">val</span> get_conn_peer_name</span> : <code class="type"><a href="Rpc_server.html#TYPEconnection_id">connection_id</a> -> Unix.sockaddr</code></pre><div class="info">
+
+<pre><span id="VALget_conn_socket_name"><span class="keyword">val</span> get_conn_socket_name</span> : <code class="type"><a href="Rpc_server.html#TYPEconnection_id">connection_id</a> -> Unix.sockaddr</code></pre>
+<pre><span id="VALget_conn_peer_name"><span class="keyword">val</span> get_conn_peer_name</span> : <code class="type"><a href="Rpc_server.html#TYPEconnection_id">connection_id</a> -> Unix.sockaddr</code></pre><div class="info ">
 Return the address of the socket serving the connection, and the client
  socket, resp. These functions fail if the server is not running on
  a socket.<br>
 </div>
-<pre><span id="VALget_server"><span class="keyword">val</span> get_server</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> <a href="Rpc_server.html#TYPEt">t</a></code></pre><div class="info">
+
+<pre><span id="VALget_server"><span class="keyword">val</span> get_server</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> <a href="Rpc_server.html#TYPEt">t</a></code></pre><div class="info ">
 Returns the server instance of the session<br>
 </div>
-<pre><span id="VALget_main_socket_name"><span class="keyword">val</span> get_main_socket_name</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> Unix.sockaddr</code></pre><div class="info">
+
+<pre><span id="VALget_main_socket_name"><span class="keyword">val</span> get_main_socket_name</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> Unix.sockaddr</code></pre><div class="info ">
 Returns the address of the server socket, or the address of the
  bidirectional pipe.
  This function fails if the main file descriptor is not a socket.<br>
 </div>
-<pre><span id="VALget_protocol"><span class="keyword">val</span> get_protocol</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> <a href="Rpc.html#TYPEprotocol">Rpc.protocol</a></code></pre><div class="info">
+
+<pre><span id="VALget_protocol"><span class="keyword">val</span> get_protocol</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> <a href="Rpc.html#TYPEprotocol">Rpc.protocol</a></code></pre><div class="info ">
 Return whether Tcp or Udp<br>
 </div>
-<pre><span id="VALget_srv_event_system"><span class="keyword">val</span> get_srv_event_system</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> <a href="Unixqueue.unix_event_system-c.html">Unixqueue.unix_event_system</a></code></pre><div class="info">
+
+<pre><span id="VALget_srv_event_system"><span class="keyword">val</span> get_srv_event_system</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> <a href="Unixqueue.unix_event_system-c.html">Unixqueue.unix_event_system</a></code></pre><div class="info ">
 Returns the event system<br>
 </div>
-<pre><span id="VALget_last_proc_info"><span class="keyword">val</span> get_last_proc_info</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALget_last_proc_info"><span class="keyword">val</span> get_last_proc_info</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> string</code></pre><div class="info ">
 Get a debug string describing the last invoked procedure<br>
 </div>
-<pre><span id="VALis_dummy"><span class="keyword">val</span> is_dummy</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> bool</code></pre><div class="info">
+
+<pre><span id="VALis_dummy"><span class="keyword">val</span> is_dummy</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> bool</code></pre><div class="info ">
 Whether this is a server in <code class="code">`Dummy</code> mode. These servers cannot be
       used for communication<br>
 </div>
+
 <pre><span id="TYPErule"><span class="keyword">type</span> <code class="type"></code>rule</span> = <code class="type">[ `Accept<br>       | `Accept_limit_length of int * <a href="Rpc_server.html#TYPErule">rule</a><br>       | `Deny<br>       | `Drop<br>       | `Reject<br>       | `Reject_with of <a href="Rpc.html#TYPEserver_error">Rpc.server_error</a> ]</code> </pre>
 
-<pre><span id="VALset_session_filter"><span class="keyword">val</span> set_session_filter</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> (<a href="Rpc_transport.html#TYPEsockaddr">Rpc_transport.sockaddr</a> -> <a href="Rpc_server.html#TYPErule">rule</a>) -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_session_filter"><span class="keyword">val</span> set_session_filter</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> (<a href="Rpc_transport.html#TYPEsockaddr">Rpc_transport.sockaddr</a> -> <a href="Rpc_server.html#TYPErule">rule</a>) -> unit</code></pre><div class="info ">
 If set, the filter function is invoked every time the beginning of a new
  RPC call is received, and the result of the filter function determines
  what to do with the call:
@@ -553,15 +588,18 @@ If set, the filter function is invoked every time the beginning of a new
  Note that this is not a protection against distributed denial of service
  attacks.<br>
 </div>
-<pre><span id="VALset_session_filter_2"><span class="keyword">val</span> set_session_filter_2</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -><br>       (<a href="Rpc_transport.html#TYPEsockaddr">Rpc_transport.sockaddr</a> -> <a href="Rpc_server.html#TYPEconnection_id">connection_id</a> -> <a href="Rpc_server.html#TYPErule">rule</a>) -><br>       unit</code></pre><div class="info">
+
+<pre><span id="VALset_session_filter_2"><span class="keyword">val</span> set_session_filter_2</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -><br>       (<a href="Rpc_transport.html#TYPEsockaddr">Rpc_transport.sockaddr</a> -> <a href="Rpc_server.html#TYPEconnection_id">connection_id</a> -> <a href="Rpc_server.html#TYPErule">rule</a>) -><br>       unit</code></pre><div class="info ">
 Same as <code class="code">set_session_filter</code>, but the filter gets as second argument the
  connection ID.<br>
 </div>
-<pre><span id="VALset_mstring_factories"><span class="keyword">val</span> set_mstring_factories</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> <a href="Xdr_mstring.html#TYPEnamed_mstring_factories">Xdr_mstring.named_mstring_factories</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_mstring_factories"><span class="keyword">val</span> set_mstring_factories</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> <a href="Xdr_mstring.html#TYPEnamed_mstring_factories">Xdr_mstring.named_mstring_factories</a> -> unit</code></pre><div class="info ">
 Sets the mstring factories to use for decoding requests containing
       managed strings<br>
 </div>
-<pre><span id="VALreply"><span class="keyword">val</span> reply</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALreply"><span class="keyword">val</span> reply</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> unit</code></pre><div class="info ">
 Asynchronous procedures can reply their results with this function.
 <p>
 
@@ -578,10 +616,12 @@ Asynchronous procedures can reply their results with this function.
 </ul>
 <br>
 </div>
-<pre><span id="VALreply_error"><span class="keyword">val</span> reply_error</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> <a href="Rpc.html#TYPEserver_error">Rpc.server_error</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALreply_error"><span class="keyword">val</span> reply_error</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> <a href="Rpc.html#TYPEserver_error">Rpc.server_error</a> -> unit</code></pre><div class="info ">
 Like <code class="code">reply</code>, but an error condition is sent back to the caller.<br>
 </div>
-<pre><span id="VALset_exception_handler"><span class="keyword">val</span> set_exception_handler</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> (exn -> unit) -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_exception_handler"><span class="keyword">val</span> set_exception_handler</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> (exn -> unit) -> unit</code></pre><div class="info ">
 Sets the exception handler for the server.
  The exception handler gets most exceptions raised by the functions that
  are bound to procedures. The exception handler does not get Abort
@@ -594,7 +634,8 @@ Sets the exception handler for the server.
 </ul>
 <br>
 </div>
-<pre><span id="VALset_onclose_action"><span class="keyword">val</span> set_onclose_action</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> (<a href="Rpc_server.html#TYPEconnection_id">connection_id</a> -> unit) -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_onclose_action"><span class="keyword">val</span> set_onclose_action</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> (<a href="Rpc_server.html#TYPEconnection_id">connection_id</a> -> unit) -> unit</code></pre><div class="info ">
 Every time a connection is closed, the onclose function is called
  with the closed connection.
  The default onclose action is to do nothing. The function is also
@@ -610,10 +651,12 @@ Every time a connection is closed, the onclose function is called
  If several onclose actions are set, they will be executed in reverse
  order.<br>
 </div>
-<pre><span id="VALset_timeout"><span class="keyword">val</span> set_timeout</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> float -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_timeout"><span class="keyword">val</span> set_timeout</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> float -> unit</code></pre><div class="info ">
 Sets the timeout for the transport.<br>
 </div>
-<pre><span id="VALstop_server"><span class="keyword">val</span> stop_server</span> : <code class="type">?graceful:bool -> <a href="Rpc_server.html#TYPEt">t</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALstop_server"><span class="keyword">val</span> stop_server</span> : <code class="type">?graceful:bool -> <a href="Rpc_server.html#TYPEt">t</a> -> unit</code></pre><div class="info ">
 Stops the server: If a TCP server socket is listening, it is immediately
  closed. The shutdown procedure for the connections is initiated.
  Pending result messages are dropped.
@@ -624,13 +667,15 @@ Stops the server: If a TCP server socket is listening, it is immediately
  any responses added to the message queue in the current callback.
  New calls are not accepted.<br>
 </div>
-<pre><span id="VALstop_connection"><span class="keyword">val</span> stop_connection</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> <a href="Rpc_server.html#TYPEconnection_id">connection_id</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALstop_connection"><span class="keyword">val</span> stop_connection</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> <a href="Rpc_server.html#TYPEconnection_id">connection_id</a> -> unit</code></pre><div class="info ">
 Schedules a special event that causes the connection to be stopped in the
  very near future. The function has only an effect for stream-oriented
  servers (mode = Tcp). The connection socket will be closed (unless it
  was passed using <code class="code">Descriptor</code>). Nothing happens for datagram-oriented
  servers (mode = Udp).<br>
 </div>
+
 <pre><code><span id="TYPEauth_result"><span class="keyword">type</span> <code class="type"></code>auth_result</span> = </code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
@@ -672,44 +717,57 @@ Schedules a special event that causes the connection to be stopped in the
 </tr></table>
 
 
+
 <pre><span id="EXCEPTIONLate_drop"><span class="keyword">exception</span> Late_drop</span></pre>
-<div class="info">
+<div class="info ">
 This can be raised in encryption/decryption functions to prevent
       that a response is sent.<br>
 </div>
+
 <pre><span id="TYPEauth_peeker"><span class="keyword">type</span> <code class="type"></code>auth_peeker</span> = <code class="type">[ `None<br>       | `Peek_descriptor of Unix.file_descr -> string option<br>       | `Peek_multiplexer of<br>           <a href="Rpc_transport.rpc_multiplex_controller-c.html">Rpc_transport.rpc_multiplex_controller</a> -> string option ]</code> </pre>
 
-<pre><span id="TYPEauth_details"><span class="keyword">class type</span> <a href="Rpc_server.auth_details-c.html">auth_details</a></span> = <code class="code">object</code> <a href="Rpc_server.auth_details-c.html">..</a> <code class="code">end</code></pre><pre><span id="TYPEauth_method"><span class="keyword">class type</span> <a href="Rpc_server.auth_method-c.html">auth_method</a></span> = <code class="code">object</code> <a href="Rpc_server.auth_method-c.html">..</a> <code class="code">end</code></pre><pre><span id="VALset_auth_methods"><span class="keyword">val</span> set_auth_methods</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> <a href="Rpc_server.auth_method-c.html">auth_method</a> list -> unit</code></pre><div class="info">
+
+<pre><span id="TYPEauth_details"><span class="keyword">class type</span> <a href="Rpc_server.auth_details-c.html">auth_details</a></span> = <code class="code">object</code> <a href="Rpc_server.auth_details-c.html">..</a> <code class="code">end</code></pre>
+<pre><span id="TYPEauth_method"><span class="keyword">class type</span> <a href="Rpc_server.auth_method-c.html">auth_method</a></span> = <code class="code">object</code> <a href="Rpc_server.auth_method-c.html">..</a> <code class="code">end</code></pre>
+<pre><span id="VALset_auth_methods"><span class="keyword">val</span> set_auth_methods</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> <a href="Rpc_server.auth_method-c.html">auth_method</a> list -> unit</code></pre><div class="info ">
 Sets the available authentication methods.
  By default, the list is set to <code class="code"> auth_none </code>.
  If none of the methods apply, the call is rejected (Auth_too_weak).<br>
 </div>
-<pre><span id="VALauth_none"><span class="keyword">val</span> auth_none</span> : <code class="type"><a href="Rpc_server.auth_method-c.html">auth_method</a></code></pre><div class="info">
+
+<pre><span id="VALauth_none"><span class="keyword">val</span> auth_none</span> : <code class="type"><a href="Rpc_server.auth_method-c.html">auth_method</a></code></pre><div class="info ">
 The authentication method "AUTH_NONE", i.e. no user name is passed.
  The function <code class="code">get_user</code> will return "".<br>
 </div>
-<pre><span id="VALauth_too_weak"><span class="keyword">val</span> auth_too_weak</span> : <code class="type"><a href="Rpc_server.auth_method-c.html">auth_method</a></code></pre><div class="info">
+
+<pre><span id="VALauth_too_weak"><span class="keyword">val</span> auth_too_weak</span> : <code class="type"><a href="Rpc_server.auth_method-c.html">auth_method</a></code></pre><div class="info ">
 The method that always rejects.<br>
 </div>
-<pre><span id="VALauth_transport"><span class="keyword">val</span> auth_transport</span> : <code class="type"><a href="Rpc_server.auth_method-c.html">auth_method</a></code></pre><div class="info">
+
+<pre><span id="VALauth_transport"><span class="keyword">val</span> auth_transport</span> : <code class="type"><a href="Rpc_server.auth_method-c.html">auth_method</a></code></pre><div class="info ">
 Authenticate by trusting the transport layer. The user returned by
  the multiplexer's method peer_user_name is taken.<br>
 </div>
-<pre><span id="VALget_user"><span class="keyword">val</span> get_user</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALget_user"><span class="keyword">val</span> get_user</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> string</code></pre><div class="info ">
 Returns the user name as returned by the authentication method. See
  the description of the method for the format of the user name string.<br>
 </div>
-<pre><span id="VALget_auth_method"><span class="keyword">val</span> get_auth_method</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> <a href="Rpc_server.auth_method-c.html">auth_method</a></code></pre><div class="info">
+
+<pre><span id="VALget_auth_method"><span class="keyword">val</span> get_auth_method</span> : <code class="type"><a href="Rpc_server.html#TYPEsession">session</a> -> <a href="Rpc_server.auth_method-c.html">auth_method</a></code></pre><div class="info ">
 Returns the method that was used to authenticate the user.<br>
 </div>
-<pre><span id="VALverbose"><span class="keyword">val</span> verbose</span> : <code class="type">bool -> unit</code></pre><div class="info">
+
+<pre><span id="VALverbose"><span class="keyword">val</span> verbose</span> : <code class="type">bool -> unit</code></pre><div class="info ">
 <b>Deprecated.</b>
       Set whether you want debug messages to stderr or not<br>
 </div>
-<pre><span id="VALdetach"><span class="keyword">val</span> detach</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALdetach"><span class="keyword">val</span> detach</span> : <code class="type"><a href="Rpc_server.html#TYPEt">t</a> -> unit</code></pre><div class="info ">
 <b>Internal function.</b> Cancels all pending I/O operations, and
       deallocates buffers. This function has only one purpose: The
       RPC servers inherited by a Netplex child process return memory.
       The RPC server is unusable after this.<br>
 </div>
+
 <pre><span class="keyword">module</span> <a href="Rpc_server.Debug.html">Debug</a>: <code class="code">sig</code> <a href="Rpc_server.Debug.html">..</a> <code class="code">end</code></pre></body></html>

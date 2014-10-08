@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -205,7 +205,8 @@
 &nbsp;<a class="post" href="Netmcore_tut.html" title="Netmcore_tut">Next</a>
 </div>
 <h1>Module <a href="type_Netmcore_process.html">Netmcore_process</a></h1>
-<pre><span class="keyword">module</span> Netmcore_process: <code class="code">sig</code> <a href="Netmcore_process.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Netmcore_process: <code class="code">sig</code> <a href="Netmcore_process.html">..</a> <code class="code">end</code></pre><div class="info module top">
 Statically typed processes<br>
 </div>
 <hr width="100%">
@@ -218,17 +219,20 @@ This module provides a slightly higher-level view on processes,
     Please read <a href="Netmcore_basics.html"><code class="code">Netmcore_basics</code></a> for an introduction into using
     this module. There is also <a href="Netmcore_tut.html"><code class="code">Netmcore_tut</code></a> with more advanced
     techniques.<br>
+
 <pre><span id="TYPEfork_point"><span class="keyword">type</span> <code class="type">'a</code> fork_point</span> </pre>
-<div class="info">
+<div class="info ">
 A fork point can start a new process with argument <code class="code">'a</code><br>
 </div>
 
+
 <pre><span id="TYPEjoin_point"><span class="keyword">type</span> <code class="type">'b</code> join_point</span> </pre>
-<div class="info">
+<div class="info ">
 A join point can wait until a process finishes with a result <code class="code">'b</code><br>
 </div>
 
-<pre><span id="VALdef_process"><span class="keyword">val</span> def_process</span> : <code class="type">('a -> 'b) -> 'a <a href="Netmcore_process.html#TYPEfork_point">fork_point</a> * 'b <a href="Netmcore_process.html#TYPEjoin_point">join_point</a></code></pre><div class="info">
+
+<pre><span id="VALdef_process"><span class="keyword">val</span> def_process</span> : <code class="type">('a -> 'b) -> 'a <a href="Netmcore_process.html#TYPEfork_point">fork_point</a> * 'b <a href="Netmcore_process.html#TYPEjoin_point">join_point</a></code></pre><div class="info ">
 <code class="code">let (fp,jp) = def_process proc</code>: Defines a process (which must happen
       in the master process), so that:
 <p>
@@ -245,7 +249,8 @@ A join point can wait until a process finishes with a result <code class="code">
       before any process is started. This interface is not designed for
       calling <code class="code">def_process</code> later.<br>
 </div>
-<pre><span id="VALstart"><span class="keyword">val</span> start</span> : <code class="type">?inherit_resources:<a href="Netmcore.html#TYPEinherit_request">Netmcore.inherit_request</a> -><br>       'a <a href="Netmcore_process.html#TYPEfork_point">fork_point</a> -> 'a -> <a href="Netmcore.html#TYPEprocess_id">Netmcore.process_id</a></code></pre><div class="info">
+
+<pre><span id="VALstart"><span class="keyword">val</span> start</span> : <code class="type">?inherit_resources:<a href="Netmcore.html#TYPEinherit_request">Netmcore.inherit_request</a> -><br>       'a <a href="Netmcore_process.html#TYPEfork_point">fork_point</a> -> 'a -> <a href="Netmcore.html#TYPEprocess_id">Netmcore.process_id</a></code></pre><div class="info ">
 <code class="code">let pid = start fp arg</code>: Starts a new process at the fork point
       <code class="code">fp</code> with argument <code class="code">arg</code>. This means that the process is forked
       from the master process, and that the value of <code class="code">arg</code> is sent to it
@@ -260,7 +265,8 @@ A join point can wait until a process finishes with a result <code class="code">
       all inheritable resources, or to <code class="code">`Resources l</code> to only inherit
       the resources of <code class="code">l</code>. By default, no resources are inherited.<br>
 </div>
-<pre><span id="VALjoin"><span class="keyword">val</span> join</span> : <code class="type">'b <a href="Netmcore_process.html#TYPEjoin_point">join_point</a> -> <a href="Netmcore.html#TYPEprocess_id">Netmcore.process_id</a> -> 'b option</code></pre><div class="info">
+
+<pre><span id="VALjoin"><span class="keyword">val</span> join</span> : <code class="type">'b <a href="Netmcore_process.html#TYPEjoin_point">join_point</a> -> <a href="Netmcore.html#TYPEprocess_id">Netmcore.process_id</a> -> 'b option</code></pre><div class="info ">
 <code class="code">let r_opt = join jp pid</code>: Waits until the process <code class="code">pid</code> finishes,
       and uses the join point <code class="code">jp</code> to extract the result. The result
       is returned as <code class="code">Some r</code> on success, and <code class="code">None</code> on error.
@@ -276,7 +282,8 @@ A join point can wait until a process finishes with a result <code class="code">
       This function must not be called from the master process (which is
       not allowed to block until a result is available).<br>
 </div>
-<pre><span id="VALjoin_nowait"><span class="keyword">val</span> join_nowait</span> : <code class="type">'b <a href="Netmcore_process.html#TYPEjoin_point">join_point</a> -> <a href="Netmcore.html#TYPEprocess_id">Netmcore.process_id</a> -> 'b option</code></pre><div class="info">
+
+<pre><span id="VALjoin_nowait"><span class="keyword">val</span> join_nowait</span> : <code class="type">'b <a href="Netmcore_process.html#TYPEjoin_point">join_point</a> -> <a href="Netmcore.html#TYPEprocess_id">Netmcore.process_id</a> -> 'b option</code></pre><div class="info ">
 Like <code class="code">join</code>, but it is not waited for the termination of the process.
        If the process is not yet done, this function returns <code class="code">None</code>.
        It also returns <code class="code">None</code> if the process terminated with an error or did
@@ -285,11 +292,13 @@ Like <code class="code">join</code>, but it is not waited for the termination of
 
        Unlike <code class="code">join</code>, this function can be called in the master process.<br>
 </div>
-<pre><span id="VALrelease_fork_point"><span class="keyword">val</span> release_fork_point</span> : <code class="type">'a <a href="Netmcore_process.html#TYPEfork_point">fork_point</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALrelease_fork_point"><span class="keyword">val</span> release_fork_point</span> : <code class="type">'a <a href="Netmcore_process.html#TYPEfork_point">fork_point</a> -> unit</code></pre><div class="info ">
 Releases a fork point so it is deleted from the internal
       resource table.<br>
 </div>
-<pre><span id="VALrelease_join_point"><span class="keyword">val</span> release_join_point</span> : <code class="type">'b <a href="Netmcore_process.html#TYPEjoin_point">join_point</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALrelease_join_point"><span class="keyword">val</span> release_join_point</span> : <code class="type">'b <a href="Netmcore_process.html#TYPEjoin_point">join_point</a> -> unit</code></pre><div class="info ">
 Releases a join point so it is deleted from the internal
       resource table.<br>
 </div>

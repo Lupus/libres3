@@ -15,6 +15,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -28,12 +31,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -44,7 +45,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -106,6 +106,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -141,7 +142,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -166,6 +166,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -183,8 +185,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -201,39 +201,50 @@
 <div class="navbar">&nbsp;<a class="up" href="Rpc_transport.html" title="Rpc_transport">Up</a>
 &nbsp;</div>
 <h1>Class type <a href="type_Rpc_transport.rpc_multiplex_controller.html">Rpc_transport.rpc_multiplex_controller</a></h1>
+
 <pre><span id="TYPErpc_multiplex_controller"><span class="keyword">class type</span> rpc_multiplex_controller</span> = <code class="code">object</code> <a href="Rpc_transport.rpc_multiplex_controller-c.html">..</a> <code class="code">end</code></pre><hr width="100%">
-<pre><span id="METHODalive"><span class="keyword">method</span> alive</span> : <code class="type">bool</code></pre><div class="info">
+
+<pre><span id="METHODalive"><span class="keyword">method</span> alive</span> : <code class="type">bool</code></pre><div class="info ">
 If the controller is alive, the socket is not yet completely down.<br>
 </div>
-<pre><span id="METHODevent_system"><span class="keyword">method</span> event_system</span> : <code class="type"><a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a></code></pre><div class="info">
+
+<pre><span id="METHODevent_system"><span class="keyword">method</span> event_system</span> : <code class="type"><a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a></code></pre><div class="info ">
 Returns the event system<br>
 </div>
-<pre><span id="METHODgetsockname"><span class="keyword">method</span> getsockname</span> : <code class="type"><a href="Rpc_transport.html#TYPEsockaddr">sockaddr</a></code></pre><div class="info">
+
+<pre><span id="METHODgetsockname"><span class="keyword">method</span> getsockname</span> : <code class="type"><a href="Rpc_transport.html#TYPEsockaddr">sockaddr</a></code></pre><div class="info ">
 The address of this socket<br>
 </div>
-<pre><span id="METHODgetpeername"><span class="keyword">method</span> getpeername</span> : <code class="type"><a href="Rpc_transport.html#TYPEsockaddr">sockaddr</a></code></pre><div class="info">
+
+<pre><span id="METHODgetpeername"><span class="keyword">method</span> getpeername</span> : <code class="type"><a href="Rpc_transport.html#TYPEsockaddr">sockaddr</a></code></pre><div class="info ">
 The address of the peer's socket. Only available if the socket
  is connected. (Fails otherwise.)<br>
 </div>
-<pre><span id="METHODprotocol"><span class="keyword">method</span> protocol</span> : <code class="type"><a href="Rpc.html#TYPEprotocol">Rpc.protocol</a></code></pre><div class="info">
+
+<pre><span id="METHODprotocol"><span class="keyword">method</span> protocol</span> : <code class="type"><a href="Rpc.html#TYPEprotocol">Rpc.protocol</a></code></pre><div class="info ">
 The protocol encapsulation<br>
 </div>
-<pre><span id="METHODpeer_user_name"><span class="keyword">method</span> peer_user_name</span> : <code class="type">string option</code></pre><div class="info">
+
+<pre><span id="METHODpeer_user_name"><span class="keyword">method</span> peer_user_name</span> : <code class="type">string option</code></pre><div class="info ">
 If the transport mechanism provides a way to authenticate the
  peer, it can return the name here.<br>
 </div>
-<pre><span id="METHODfile_descr"><span class="keyword">method</span> file_descr</span> : <code class="type">Unix.file_descr option</code></pre><div class="info">
+
+<pre><span id="METHODfile_descr"><span class="keyword">method</span> file_descr</span> : <code class="type">Unix.file_descr option</code></pre><div class="info ">
 If the transport mechanism is on top of a file descriptor, this
 	is returned here. This can be useful for getting more information
 	about the descriptor (e.g. credentials associated with it).<br>
 </div>
-<pre><span id="METHODreading"><span class="keyword">method</span> reading</span> : <code class="type">bool</code></pre><div class="info">
+
+<pre><span id="METHODreading"><span class="keyword">method</span> reading</span> : <code class="type">bool</code></pre><div class="info ">
 True iff there is a reader<br>
 </div>
-<pre><span id="METHODread_eof"><span class="keyword">method</span> read_eof</span> : <code class="type">bool</code></pre><div class="info">
+
+<pre><span id="METHODread_eof"><span class="keyword">method</span> read_eof</span> : <code class="type">bool</code></pre><div class="info ">
 Whether the EOF marker has been read<br>
 </div>
-<pre><span id="METHODstart_reading"><span class="keyword">method</span> start_reading</span> : <code class="type">?peek:(unit -> unit) -><br>       ?before_record:(int -> <a href="Rpc_transport.html#TYPEsockaddr">sockaddr</a> -> <a href="Rpc_transport.html#TYPEin_rule">in_rule</a>) -><br>       when_done:((<a href="Rpc_transport.html#TYPEin_record">in_record</a> * <a href="Rpc_transport.html#TYPEsockaddr">sockaddr</a>)<br>                  <a href="Rpc_transport.html#TYPEresult_eof">result_eof</a> -> unit) -><br>       unit -> unit</code></pre><div class="info">
+
+<pre><span id="METHODstart_reading"><span class="keyword">method</span> start_reading</span> : <code class="type">?peek:(unit -> unit) -><br>       ?before_record:(int -> <a href="Rpc_transport.html#TYPEsockaddr">sockaddr</a> -> <a href="Rpc_transport.html#TYPEin_rule">in_rule</a>) -><br>       when_done:((<a href="Rpc_transport.html#TYPEin_record">in_record</a> * <a href="Rpc_transport.html#TYPEsockaddr">sockaddr</a>)<br>                  <a href="Rpc_transport.html#TYPEresult_eof">result_eof</a> -> unit) -><br>       unit -> unit</code></pre><div class="info ">
 Start reading from the connection. When a whole message has been
  received, the <code class="code">when_done</code> callback is invoked. The <code class="code">in_record</code>
  passed to <code class="code">when_done</code> is usually <code class="code">`Accept m</code> when <code class="code">m</code> is the
@@ -269,10 +280,12 @@ Start reading from the connection. When a whole message has been
  to <code class="code">when_done</code>.
 <br>
 </div>
-<pre><span id="METHODwriting"><span class="keyword">method</span> writing</span> : <code class="type">bool</code></pre><div class="info">
+
+<pre><span id="METHODwriting"><span class="keyword">method</span> writing</span> : <code class="type">bool</code></pre><div class="info ">
 True iff there is a writer<br>
 </div>
-<pre><span id="METHODstart_writing"><span class="keyword">method</span> start_writing</span> : <code class="type">when_done:(unit <a href="Rpc_transport.html#TYPEresult">result</a> -> unit) -><br>       <a href="Rpc_packer.html#TYPEpacked_value">Rpc_packer.packed_value</a> -> <a href="Rpc_transport.html#TYPEsockaddr">sockaddr</a> -> unit</code></pre><div class="info">
+
+<pre><span id="METHODstart_writing"><span class="keyword">method</span> start_writing</span> : <code class="type">when_done:(unit <a href="Rpc_transport.html#TYPEresult">result</a> -> unit) -><br>       <a href="Rpc_packer.html#TYPEpacked_value">Rpc_packer.packed_value</a> -> <a href="Rpc_transport.html#TYPEsockaddr">sockaddr</a> -> unit</code></pre><div class="info ">
 Starts writing the message. Invoked <code class="code">when_done</code> when it is written,
  or an error condition is reached.
 <p>
@@ -283,12 +296,14 @@ Starts writing the message. Invoked <code class="code">when_done</code> when it 
 
  It is an error to start writing several times at once.<br>
 </div>
-<pre><span id="METHODcancel_rd_polling"><span class="keyword">method</span> cancel_rd_polling</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="METHODcancel_rd_polling"><span class="keyword">method</span> cancel_rd_polling</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Cancels polling for the next input message. This method must not be
  called from the <code class="code">before_record</code> callback function. Polling can be
  resumed by calling <code class="code">start_reading</code> again.<br>
 </div>
-<pre><span id="METHODabort_rw"><span class="keyword">method</span> abort_rw</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="METHODabort_rw"><span class="keyword">method</span> abort_rw</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Aborts the current reader and/or writer forever. Note that there is no
  clean way of resuming reading and/or writing. The readers/writers
  are not notified about cancellation.
@@ -299,7 +314,8 @@ Aborts the current reader and/or writer forever. Note that there is no
 
  It is allowed to go on with the shutdown, and to inactivate.<br>
 </div>
-<pre><span id="METHODstart_shutting_down"><span class="keyword">method</span> start_shutting_down</span> : <code class="type">when_done:(unit <a href="Rpc_transport.html#TYPEresult">result</a> -> unit) -> unit -> unit</code></pre><div class="info">
+
+<pre><span id="METHODstart_shutting_down"><span class="keyword">method</span> start_shutting_down</span> : <code class="type">when_done:(unit <a href="Rpc_transport.html#TYPEresult">result</a> -> unit) -> unit -> unit</code></pre><div class="info ">
 Start shutting down the connection. After going through the shutdown
  procedure, the <code class="code">when_done</code> callback is invoked reporting the success
  or failure.
@@ -312,7 +328,8 @@ Start shutting down the connection. After going through the shutdown
 
  This method also deallocates buffers, so far possible.<br>
 </div>
-<pre><span id="METHODcancel_shutting_down"><span class="keyword">method</span> cancel_shutting_down</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="METHODcancel_shutting_down"><span class="keyword">method</span> cancel_shutting_down</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Cancels the shutdown procedure. After that, the state of the 
  connection is undefined. The <code class="code">when_done</code> callback is invoked with
  the <code class="code">`Cancelled</code>.
@@ -320,11 +337,13 @@ Cancels the shutdown procedure. After that, the state of the
 
  It is no error if no shutdown is in progress.<br>
 </div>
-<pre><span id="METHODset_timeout"><span class="keyword">method</span> set_timeout</span> : <code class="type">notify:(unit -> unit) -> float -> unit</code></pre><div class="info">
+
+<pre><span id="METHODset_timeout"><span class="keyword">method</span> set_timeout</span> : <code class="type">notify:(unit -> unit) -> float -> unit</code></pre><div class="info ">
 If there is no read or write activity for the passed number of
  seconds, the <code class="code">notify</code> callback is invoked.<br>
 </div>
-<pre><span id="METHODinactivate"><span class="keyword">method</span> inactivate</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="METHODinactivate"><span class="keyword">method</span> inactivate</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Inactivates the connection immediately, and releases any resources
  the controller is responsible for (e.g. closes file descriptors). 
  Note that this is more than

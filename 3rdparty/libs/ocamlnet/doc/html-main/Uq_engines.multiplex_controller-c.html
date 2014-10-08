@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -205,7 +205,8 @@
 &nbsp;<a class="post" href="Uq_engines.datagram_multiplex_controller-c.html" title="Uq_engines.datagram_multiplex_controller">Next</a>
 </div>
 <h1>Class type <a href="type_Uq_engines.multiplex_controller.html">Uq_engines.multiplex_controller</a></h1>
-<pre><span id="TYPEmultiplex_controller"><span class="keyword">class type</span> multiplex_controller</span> = <code class="code">object</code> <a href="Uq_engines.multiplex_controller-c.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span id="TYPEmultiplex_controller"><span class="keyword">class type</span> multiplex_controller</span> = <code class="code">object</code> <a href="Uq_engines.multiplex_controller-c.html">..</a> <code class="code">end</code></pre><div class="info classtype top">
 A <code class="code">multiplex_controller</code> is a quite low-level device to abstract
  bidirectional socket connections. It is independent of any real
  device.
@@ -216,19 +217,24 @@ A <code class="code">multiplex_controller</code> is a quite low-level device to 
  one reader and more than more writer.<br>
 </div>
 <hr width="100%">
-<pre><span id="METHODalive"><span class="keyword">method</span> alive</span> : <code class="type">bool</code></pre><div class="info">
+
+<pre><span id="METHODalive"><span class="keyword">method</span> alive</span> : <code class="type">bool</code></pre><div class="info ">
 If the controller is alive, the socket is not yet completely down.<br>
 </div>
-<pre><span id="METHODmem_supported"><span class="keyword">method</span> mem_supported</span> : <code class="type">bool</code></pre><div class="info">
+
+<pre><span id="METHODmem_supported"><span class="keyword">method</span> mem_supported</span> : <code class="type">bool</code></pre><div class="info ">
 Whether <code class="code">start_mem_reading</code> and <code class="code">start_mem_writing</code> are possible<br>
 </div>
-<pre><span id="METHODevent_system"><span class="keyword">method</span> event_system</span> : <code class="type"><a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a></code></pre><div class="info">
+
+<pre><span id="METHODevent_system"><span class="keyword">method</span> event_system</span> : <code class="type"><a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a></code></pre><div class="info ">
 Returns the event system<br>
 </div>
-<pre><span id="METHODreading"><span class="keyword">method</span> reading</span> : <code class="type">bool</code></pre><div class="info">
+
+<pre><span id="METHODreading"><span class="keyword">method</span> reading</span> : <code class="type">bool</code></pre><div class="info ">
 True iff there is a reader<br>
 </div>
-<pre><span id="METHODstart_reading"><span class="keyword">method</span> start_reading</span> : <code class="type">?peek:(unit -> unit) -><br>       when_done:(exn option -> int -> unit) -> string -> int -> int -> unit</code></pre><div class="info">
+
+<pre><span id="METHODstart_reading"><span class="keyword">method</span> start_reading</span> : <code class="type">?peek:(unit -> unit) -><br>       when_done:(exn option -> int -> unit) -> string -> int -> int -> unit</code></pre><div class="info ">
 Start reading from the connection. When data is available, the
  <code class="code">when_done</code> callback is invoked. The int is the number of read
  bytes. It is 0 if an error occurred which is indicated by the
@@ -256,13 +262,15 @@ Start reading from the connection. When data is available, the
  </code></pre>
  Now <code class="code">e</code> will transition to <code class="code">`Done(x0,n)</code> when the read is done.<br>
 </div>
-<pre><span id="METHODstart_mem_reading"><span class="keyword">method</span> start_mem_reading</span> : <code class="type">?peek:(unit -> unit) -><br>       when_done:(exn option -> int -> unit) -><br>       <a href="Netsys_mem.html#TYPEmemory">Netsys_mem.memory</a> -> int -> int -> unit</code></pre><div class="info">
+
+<pre><span id="METHODstart_mem_reading"><span class="keyword">method</span> start_mem_reading</span> : <code class="type">?peek:(unit -> unit) -><br>       when_done:(exn option -> int -> unit) -><br>       <a href="Netsys_mem.html#TYPEmemory">Netsys_mem.memory</a> -> int -> int -> unit</code></pre><div class="info ">
 Same as <code class="code">start_reading</code>, but puts the data into a <code class="code">memory</code> buffer.
         There is an optimization for the case that the descriptor is a
         connected socket, or supports <code class="code">Unix.read</code>. If this is not possible
         the method raises <code class="code">Mem_not_supported</code>.<br>
 </div>
-<pre><span id="METHODcancel_reading"><span class="keyword">method</span> cancel_reading</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="METHODcancel_reading"><span class="keyword">method</span> cancel_reading</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Cancels the read job. The <code class="code">when_done</code> callback is invoked with the
  number of bytes read so far (which may be 0) and the exception
  <code class="code">Cancelled</code>.
@@ -270,10 +278,12 @@ Cancels the read job. The <code class="code">when_done</code> callback is invoke
 
  It is no error if there is no reader.<br>
 </div>
-<pre><span id="METHODwriting"><span class="keyword">method</span> writing</span> : <code class="type">bool</code></pre><div class="info">
+
+<pre><span id="METHODwriting"><span class="keyword">method</span> writing</span> : <code class="type">bool</code></pre><div class="info ">
 True iff there is a writer<br>
 </div>
-<pre><span id="METHODstart_writing"><span class="keyword">method</span> start_writing</span> : <code class="type">when_done:(exn option -> int -> unit) -> string -> int -> int -> unit</code></pre><div class="info">
+
+<pre><span id="METHODstart_writing"><span class="keyword">method</span> start_writing</span> : <code class="type">when_done:(exn option -> int -> unit) -> string -> int -> int -> unit</code></pre><div class="info ">
 Start writing to the connection. When data is written, the
  <code class="code">when_done</code> callback is invoked. The int is the number of written
  bytes. It is 0 if an error occurred which is indicated by the
@@ -291,17 +301,20 @@ Start writing to the connection. When data is written, the
  See the comment for <code class="code">start_reading</code> for how to get an engine-based
  version of this method.<br>
 </div>
-<pre><span id="METHODstart_mem_writing"><span class="keyword">method</span> start_mem_writing</span> : <code class="type">when_done:(exn option -> int -> unit) -><br>       <a href="Netsys_mem.html#TYPEmemory">Netsys_mem.memory</a> -> int -> int -> unit</code></pre><div class="info">
+
+<pre><span id="METHODstart_mem_writing"><span class="keyword">method</span> start_mem_writing</span> : <code class="type">when_done:(exn option -> int -> unit) -><br>       <a href="Netsys_mem.html#TYPEmemory">Netsys_mem.memory</a> -> int -> int -> unit</code></pre><div class="info ">
 Same as <code class="code">start_writing</code>, but takes the data from a <code class="code">memory</code> buffer.
         There is an optimization for the case that the descriptor is a
         connected socket, or supports <code class="code">Unix.write</code>. If this is not possible
         the method raises <code class="code">Mem_not_supported</code>.<br>
 </div>
-<pre><span id="METHODsupports_half_open_connection"><span class="keyword">method</span> supports_half_open_connection</span> : <code class="type">bool</code></pre><div class="info">
+
+<pre><span id="METHODsupports_half_open_connection"><span class="keyword">method</span> supports_half_open_connection</span> : <code class="type">bool</code></pre><div class="info ">
 Whether the underlying transport mechanism can close the write side
  of the connection only (half-open connection).<br>
 </div>
-<pre><span id="METHODstart_writing_eof"><span class="keyword">method</span> start_writing_eof</span> : <code class="type">when_done:(exn option -> unit) -> unit -> unit</code></pre><div class="info">
+
+<pre><span id="METHODstart_writing_eof"><span class="keyword">method</span> start_writing_eof</span> : <code class="type">when_done:(exn option -> unit) -> unit -> unit</code></pre><div class="info ">
 Start writing the EOF marker to the connection. When it is written,
  the <code class="code">when_done</code> callback is invoked. The exception <code class="code">Cancelled</code> indicates
  that writing has been cancelled in the meantime.
@@ -318,7 +331,8 @@ Start writing the EOF marker to the connection. When it is written,
  See the comment for <code class="code">start_reading</code> for how to get an engine-based
  version of this method.<br>
 </div>
-<pre><span id="METHODcancel_writing"><span class="keyword">method</span> cancel_writing</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="METHODcancel_writing"><span class="keyword">method</span> cancel_writing</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Cancels the write job. The <code class="code">when_done</code> callback is invoked with the
  number of bytes read so far (which may be 0) and the exception
  <code class="code">Canelled</code>.
@@ -326,16 +340,20 @@ Cancels the write job. The <code class="code">when_done</code> callback is invok
 
  It is no error if there is no writer.<br>
 </div>
-<pre><span id="METHODread_eof"><span class="keyword">method</span> read_eof</span> : <code class="type">bool</code></pre><div class="info">
+
+<pre><span id="METHODread_eof"><span class="keyword">method</span> read_eof</span> : <code class="type">bool</code></pre><div class="info ">
 Whether the EOF marker has been read<br>
 </div>
-<pre><span id="METHODwrote_eof"><span class="keyword">method</span> wrote_eof</span> : <code class="type">bool</code></pre><div class="info">
+
+<pre><span id="METHODwrote_eof"><span class="keyword">method</span> wrote_eof</span> : <code class="type">bool</code></pre><div class="info ">
 Whether the EOF marker has been written<br>
 </div>
-<pre><span id="METHODshutting_down"><span class="keyword">method</span> shutting_down</span> : <code class="type">bool</code></pre><div class="info">
+
+<pre><span id="METHODshutting_down"><span class="keyword">method</span> shutting_down</span> : <code class="type">bool</code></pre><div class="info ">
 True iff the shutdown is in progress<br>
 </div>
-<pre><span id="METHODstart_shutting_down"><span class="keyword">method</span> start_shutting_down</span> : <code class="type">?linger:float -> when_done:(exn option -> unit) -> unit -> unit</code></pre><div class="info">
+
+<pre><span id="METHODstart_shutting_down"><span class="keyword">method</span> start_shutting_down</span> : <code class="type">?linger:float -> when_done:(exn option -> unit) -> unit -> unit</code></pre><div class="info ">
 Start shutting down the connection. After going through the shutdown
  procedure, the <code class="code">when_done</code> callback is invoked. The exception
  indicates whether an error happened. <code class="code">Cancelled</code> means that the
@@ -356,7 +374,8 @@ Start shutting down the connection. After going through the shutdown
  See the comment for <code class="code">start_reading</code> for how to get an engine-based
  version of this method.<br>
 </div>
-<pre><span id="METHODcancel_shutting_down"><span class="keyword">method</span> cancel_shutting_down</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="METHODcancel_shutting_down"><span class="keyword">method</span> cancel_shutting_down</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Cancels the shutdown procedure. After that, the state of the 
  connection is undefined. The <code class="code">when_done</code> callback is invoked with
  the exception <code class="code">Cancelled</code>.
@@ -364,7 +383,8 @@ Cancels the shutdown procedure. After that, the state of the
 
  It is no error if no shutdown is in progress.<br>
 </div>
-<pre><span id="METHODinactivate"><span class="keyword">method</span> inactivate</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="METHODinactivate"><span class="keyword">method</span> inactivate</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Inactivates the connection immediately, and releases any resources
  the controller is responsible for (e.g. closes file descriptors). 
  Note that this is more than

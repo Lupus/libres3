@@ -1,4 +1,4 @@
-(* $Id: netdb.mli 1003 2006-09-24 15:17:15Z gerd $
+(* $Id: netdb.mli 2001 2014-08-24 21:54:31Z gerd $
  * ----------------------------------------------------------------------
  *
  *)
@@ -37,3 +37,7 @@ val set_db : string -> string -> unit
 val disable_file_db : unit -> unit
   (* Disables file lookup. *)
 
+val override_file_db : string -> unit
+  (* Set in which directory the *.netdb files reside. Defaults to a build-time
+     directory
+   *)

@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -206,7 +206,8 @@
 &nbsp;<a class="post" href="Netaddress.html" title="Netaddress">Next</a>
 </div>
 <h1>Module <a href="type_Neturl.html">Neturl</a></h1>
-<pre><span class="keyword">module</span> Neturl: <code class="code">sig</code> <a href="Neturl.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Neturl: <code class="code">sig</code> <a href="Neturl.html">..</a> <code class="code">end</code></pre><div class="info module top">
 Uniform Resource Locators (URLs)
 <p>
 
@@ -305,17 +306,20 @@ Uniform Resource Locators (URLs)
 
  RFC 3986 introduces IPv6 addresses. These are now supported (but see
  the comments below).<br>
+
 <pre><span id="EXCEPTIONMalformed_URL"><span class="keyword">exception</span> Malformed_URL</span></pre>
-<div class="info">
+<div class="info ">
 Raised by a number of functions when encountering a badly formed
  URL.<br>
 </div>
-<pre><span id="VALextract_url_scheme"><span class="keyword">val</span> extract_url_scheme</span> : <code class="type">string -> string</code></pre><div class="info">
+
+<pre><span id="VALextract_url_scheme"><span class="keyword">val</span> extract_url_scheme</span> : <code class="type">string -> string</code></pre><div class="info ">
 Returns the URL scheme from the string representation of an URL.
  E.g. <code class="code">extract_url_scheme "http://host/path" = "http"</code>.
  The scheme name is always converted to lowercase characters.
  Raises <code class="code">Malformed_URL</code> if the scheme name is not found.<br>
 </div>
+
 <pre><code><span id="TYPEurl_syntax_option"><span class="keyword">type</span> <code class="type"></code>url_syntax_option</span> = </code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
@@ -340,108 +344,109 @@ Returns the URL scheme from the string representation of an URL.
 </tr></table>
 
 
+
 <pre><code><span id="TYPEurl_syntax"><span class="keyword">type</span> <code class="type"></code>url_syntax</span> = {</code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTurl_syntax.url_enable_scheme">url_enable_scheme</span>&nbsp;:<code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
+<code><span id="TYPEELTurl_syntax.url_enable_scheme">url_enable_scheme</span>&nbsp;: <code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTurl_syntax.url_enable_user">url_enable_user</span>&nbsp;:<code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
+<code><span id="TYPEELTurl_syntax.url_enable_user">url_enable_user</span>&nbsp;: <code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTurl_syntax.url_enable_user_param">url_enable_user_param</span>&nbsp;:<code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
+<code><span id="TYPEELTurl_syntax.url_enable_user_param">url_enable_user_param</span>&nbsp;: <code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTurl_syntax.url_enable_password">url_enable_password</span>&nbsp;:<code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
+<code><span id="TYPEELTurl_syntax.url_enable_password">url_enable_password</span>&nbsp;: <code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTurl_syntax.url_enable_host">url_enable_host</span>&nbsp;:<code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
+<code><span id="TYPEELTurl_syntax.url_enable_host">url_enable_host</span>&nbsp;: <code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTurl_syntax.url_enable_port">url_enable_port</span>&nbsp;:<code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
+<code><span id="TYPEELTurl_syntax.url_enable_port">url_enable_port</span>&nbsp;: <code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTurl_syntax.url_enable_path">url_enable_path</span>&nbsp;:<code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
+<code><span id="TYPEELTurl_syntax.url_enable_path">url_enable_path</span>&nbsp;: <code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTurl_syntax.url_enable_param">url_enable_param</span>&nbsp;:<code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
+<code><span id="TYPEELTurl_syntax.url_enable_param">url_enable_param</span>&nbsp;: <code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTurl_syntax.url_enable_query">url_enable_query</span>&nbsp;:<code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
+<code><span id="TYPEELTurl_syntax.url_enable_query">url_enable_query</span>&nbsp;: <code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTurl_syntax.url_enable_fragment">url_enable_fragment</span>&nbsp;:<code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
+<code><span id="TYPEELTurl_syntax.url_enable_fragment">url_enable_fragment</span>&nbsp;: <code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTurl_syntax.url_enable_other">url_enable_other</span>&nbsp;:<code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
+<code><span id="TYPEELTurl_syntax.url_enable_other">url_enable_other</span>&nbsp;: <code class="type"><a href="Neturl.html#TYPEurl_syntax_option">url_syntax_option</a></code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTurl_syntax.url_accepts_8bits">url_accepts_8bits</span>&nbsp;:<code class="type">bool</code>;</code></td>
+<code><span id="TYPEELTurl_syntax.url_accepts_8bits">url_accepts_8bits</span>&nbsp;: <code class="type">bool</code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTurl_syntax.url_is_valid">url_is_valid</span>&nbsp;:<code class="type"><a href="Neturl.html#TYPEurl">url</a> -> bool</code>;</code></td>
+<code><span id="TYPEELTurl_syntax.url_is_valid">url_is_valid</span>&nbsp;: <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> bool</code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTurl_syntax.url_enable_relative">url_enable_relative</span>&nbsp;:<code class="type">bool</code>;</code></td>
+<code><span id="TYPEELTurl_syntax.url_enable_relative">url_enable_relative</span>&nbsp;: <code class="type">bool</code>;</code></td>
 
 </tr></table>
 }
 
-<div class="info">
+<div class="info ">
 Values of type <code class="code">url_syntax</code> describe which components of an URL are
  recognized, which are allowed (and optional), and which are required.
  Not all combinations are valid; the predicate expressed by the
@@ -470,14 +475,16 @@ Values of type <code class="code">url_syntax</code> describe which components of
  the function <code class="code">partial_url_syntax</code> checks this flag.<br>
 </div>
 
+
 <pre><span id="TYPEurl"><span class="keyword">type</span> <code class="type"></code>url</span> </pre>
-<div class="info">
+<div class="info ">
 Values of type <code class="code">url</code> describe concrete URLs. Every URL must have
  a fundamental <code class="code">url_syntax</code>, and it is only possible to create URLs
  conforming to the syntax. See <code class="code">make_url</code> for further information.<br>
 </div>
 
-<pre><span id="VALurl_syntax_is_valid"><span class="keyword">val</span> url_syntax_is_valid</span> : <code class="type"><a href="Neturl.html#TYPEurl_syntax">url_syntax</a> -> bool</code></pre><div class="info">
+
+<pre><span id="VALurl_syntax_is_valid"><span class="keyword">val</span> url_syntax_is_valid</span> : <code class="type"><a href="Neturl.html#TYPEurl_syntax">url_syntax</a> -> bool</code></pre><div class="info ">
 Checks whether the passed <code class="code">url_syntax</code> is valid. This means:<ul>
 <li>If passwords are recognized, users (and hosts) must be recognized, too</li>
 <li>If ports are recognized, hosts must be recognized, too</li>
@@ -488,23 +495,27 @@ Checks whether the passed <code class="code">url_syntax</code> is valid. This me
 </ul>
 <br>
 </div>
-<pre><span id="VALpartial_url_syntax"><span class="keyword">val</span> partial_url_syntax</span> : <code class="type"><a href="Neturl.html#TYPEurl_syntax">url_syntax</a> -> <a href="Neturl.html#TYPEurl_syntax">url_syntax</a></code></pre><div class="info">
+
+<pre><span id="VALpartial_url_syntax"><span class="keyword">val</span> partial_url_syntax</span> : <code class="type"><a href="Neturl.html#TYPEurl_syntax">url_syntax</a> -> <a href="Neturl.html#TYPEurl_syntax">url_syntax</a></code></pre><div class="info ">
 Transforms the syntax into another syntax where all required parts are
  changed into optional parts.<br>
 </div>
-<pre><span id="VALnull_url_syntax"><span class="keyword">val</span> null_url_syntax</span> : <code class="type"><a href="Neturl.html#TYPEurl_syntax">url_syntax</a></code></pre><div class="info">
+
+<pre><span id="VALnull_url_syntax"><span class="keyword">val</span> null_url_syntax</span> : <code class="type"><a href="Neturl.html#TYPEurl_syntax">url_syntax</a></code></pre><div class="info ">
 An URL syntax that recognizes nothing. Use this as base for your own
  definitions, e.g.
  <pre class="codepre"><code class="code"> let my_syntax = { null_url_syntax with
                      url_enable_host = Url_part_required; ... }
  </code></pre><br>
 </div>
-<pre><span id="VALip_url_syntax"><span class="keyword">val</span> ip_url_syntax</span> : <code class="type"><a href="Neturl.html#TYPEurl_syntax">url_syntax</a></code></pre><div class="info">
+
+<pre><span id="VALip_url_syntax"><span class="keyword">val</span> ip_url_syntax</span> : <code class="type"><a href="Neturl.html#TYPEurl_syntax">url_syntax</a></code></pre><div class="info ">
 Syntax for IP based protocols. This syntax allows scheme, user,
  password, host, port, path, param, query, fragment, but not "other".
  It does not accept 8 bit bytes.<br>
 </div>
-<pre><span id="VALcommon_url_syntax"><span class="keyword">val</span> common_url_syntax</span> : <code class="type">(string, <a href="Neturl.html#TYPEurl_syntax">url_syntax</a>) Hashtbl.t</code></pre><div class="info">
+
+<pre><span id="VALcommon_url_syntax"><span class="keyword">val</span> common_url_syntax</span> : <code class="type">(string, <a href="Neturl.html#TYPEurl_syntax">url_syntax</a>) Hashtbl.t</code></pre><div class="info ">
 Syntax descriptions for common URL schemes. The key of the hashtable
  is the scheme name, and the value is the corresponding syntax.
 <p>
@@ -548,10 +559,12 @@ Syntax descriptions for common URL schemes. The key of the hashtable
 </ul>
 <br>
 </div>
-<pre><span id="VALnull_url"><span class="keyword">val</span> null_url</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info">
+
+<pre><span id="VALnull_url"><span class="keyword">val</span> null_url</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info ">
 A URL without any component and <code class="code">null_url_syntax</code><br>
 </div>
-<pre><span id="VALmake_url"><span class="keyword">val</span> make_url</span> : <code class="type">?encoded:bool -><br>       ?scheme:string -><br>       ?user:string -><br>       ?user_param:string list -><br>       ?password:string -><br>       ?host:string -><br>       ?addr:Unix.inet_addr -><br>       ?port:int -><br>       ?socksymbol:<a href="Netsockaddr.html#TYPEsocksymbol">Netsockaddr.socksymbol</a> -><br>       ?path:string list -><br>       ?param:string list -><br>       ?query:string -><br>       ?fragment:string -> ?other:string -> <a href="Neturl.html#TYPEurl_syntax">url_syntax</a> -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info">
+
+<pre><span id="VALmake_url"><span class="keyword">val</span> make_url</span> : <code class="type">?encoded:bool -><br>       ?scheme:string -><br>       ?user:string -><br>       ?user_param:string list -><br>       ?password:string -><br>       ?host:string -><br>       ?addr:Unix.inet_addr -><br>       ?port:int -><br>       ?socksymbol:<a href="Netsockaddr.html#TYPEsocksymbol">Netsockaddr.socksymbol</a> -><br>       ?path:string list -><br>       ?param:string list -><br>       ?query:string -><br>       ?fragment:string -> ?other:string -> <a href="Neturl.html#TYPEurl_syntax">url_syntax</a> -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info ">
 Creates a URL from components:
 <p>
 <ul>
@@ -624,39 +637,47 @@ Creates a URL from components:
  of parameters is represented as list of strings where the strings
  contain the value following <code class="code">';'</code>.<br>
 </div>
-<pre><span id="VALmodify_url"><span class="keyword">val</span> modify_url</span> : <code class="type">?syntax:<a href="Neturl.html#TYPEurl_syntax">url_syntax</a> -><br>       ?encoded:bool -><br>       ?scheme:string -><br>       ?user:string -><br>       ?user_param:string list -><br>       ?password:string -><br>       ?host:string -><br>       ?addr:Unix.inet_addr -><br>       ?port:int -><br>       ?socksymbol:<a href="Netsockaddr.html#TYPEsocksymbol">Netsockaddr.socksymbol</a> -><br>       ?path:string list -><br>       ?param:string list -><br>       ?query:string -><br>       ?fragment:string -> ?other:string -> <a href="Neturl.html#TYPEurl">url</a> -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info">
+
+<pre><span id="VALmodify_url"><span class="keyword">val</span> modify_url</span> : <code class="type">?syntax:<a href="Neturl.html#TYPEurl_syntax">url_syntax</a> -><br>       ?encoded:bool -><br>       ?scheme:string -><br>       ?user:string -><br>       ?user_param:string list -><br>       ?password:string -><br>       ?host:string -><br>       ?addr:Unix.inet_addr -><br>       ?port:int -><br>       ?socksymbol:<a href="Netsockaddr.html#TYPEsocksymbol">Netsockaddr.socksymbol</a> -><br>       ?path:string list -><br>       ?param:string list -><br>       ?query:string -><br>       ?fragment:string -> ?other:string -> <a href="Neturl.html#TYPEurl">url</a> -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info ">
 Modifies the passed components and returns the modified URL.
  The modfied URL shares unmodified components with the original
  URL.<br>
 </div>
-<pre><span id="VALremove_from_url"><span class="keyword">val</span> remove_from_url</span> : <code class="type">?scheme:bool -><br>       ?user:bool -><br>       ?user_param:bool -><br>       ?password:bool -><br>       ?host:bool -><br>       ?port:bool -><br>       ?path:bool -><br>       ?param:bool -><br>       ?query:bool -> ?fragment:bool -> ?other:bool -> <a href="Neturl.html#TYPEurl">url</a> -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info">
+
+<pre><span id="VALremove_from_url"><span class="keyword">val</span> remove_from_url</span> : <code class="type">?scheme:bool -><br>       ?user:bool -><br>       ?user_param:bool -><br>       ?password:bool -><br>       ?host:bool -><br>       ?port:bool -><br>       ?path:bool -><br>       ?param:bool -><br>       ?query:bool -> ?fragment:bool -> ?other:bool -> <a href="Neturl.html#TYPEurl">url</a> -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info ">
 Removes the <code class="code">true</code> components from the URL, and returns the modified
  URL.
  The modfied URL shares unmodified components with the original
  URL.<br>
 </div>
-<pre><span id="VALdefault_url"><span class="keyword">val</span> default_url</span> : <code class="type">?encoded:bool -><br>       ?scheme:string -><br>       ?user:string -><br>       ?user_param:string list -><br>       ?password:string -><br>       ?host:string -><br>       ?port:int -><br>       ?path:string list -><br>       ?param:string list -><br>       ?query:string -><br>       ?fragment:string -> ?other:string -> <a href="Neturl.html#TYPEurl">url</a> -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info">
+
+<pre><span id="VALdefault_url"><span class="keyword">val</span> default_url</span> : <code class="type">?encoded:bool -><br>       ?scheme:string -><br>       ?user:string -><br>       ?user_param:string list -><br>       ?password:string -><br>       ?host:string -><br>       ?port:int -><br>       ?path:string list -><br>       ?param:string list -><br>       ?query:string -><br>       ?fragment:string -> ?other:string -> <a href="Neturl.html#TYPEurl">url</a> -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info ">
 Adds missing components and returns the modified URL.
  The modfied URL shares unmodified components with the original
  URL.<br>
 </div>
-<pre><span id="VALundefault_url"><span class="keyword">val</span> undefault_url</span> : <code class="type">?scheme:string -><br>       ?user:string -><br>       ?user_param:string list -><br>       ?password:string -><br>       ?host:string -><br>       ?port:int -><br>       ?path:string list -><br>       ?param:string list -><br>       ?query:string -><br>       ?fragment:string -> ?other:string -> <a href="Neturl.html#TYPEurl">url</a> -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info">
+
+<pre><span id="VALundefault_url"><span class="keyword">val</span> undefault_url</span> : <code class="type">?scheme:string -><br>       ?user:string -><br>       ?user_param:string list -><br>       ?password:string -><br>       ?host:string -><br>       ?port:int -><br>       ?path:string list -><br>       ?param:string list -><br>       ?query:string -><br>       ?fragment:string -> ?other:string -> <a href="Neturl.html#TYPEurl">url</a> -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info ">
 Removes components from the URL if they have the passed value, and
  returns the modified URL.
  Note: The values must always be passed in <b>encoded</b> form!
  The modfied URL shares unmodified components with the original
  URL.<br>
 </div>
-<pre><span id="VALurl_syntax_of_url"><span class="keyword">val</span> url_syntax_of_url</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> <a href="Neturl.html#TYPEurl_syntax">url_syntax</a></code></pre><div class="info">
+
+<pre><span id="VALurl_syntax_of_url"><span class="keyword">val</span> url_syntax_of_url</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> <a href="Neturl.html#TYPEurl_syntax">url_syntax</a></code></pre><div class="info ">
 Returns the <code class="code">url_syntax</code> record of a URL.<br>
 </div>
-<pre><span id="VALurl_of_string"><span class="keyword">val</span> url_of_string</span> : <code class="type"><a href="Neturl.html#TYPEurl_syntax">url_syntax</a> -> string -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info">
+
+<pre><span id="VALurl_of_string"><span class="keyword">val</span> url_of_string</span> : <code class="type"><a href="Neturl.html#TYPEurl_syntax">url_syntax</a> -> string -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info ">
 Parses the passed string according to the passed <code class="code">url_syntax</code>.<br>
 </div>
-<pre><span id="VALstring_of_url"><span class="keyword">val</span> string_of_url</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALstring_of_url"><span class="keyword">val</span> string_of_url</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> string</code></pre><div class="info ">
 Returns the URL as string<br>
 </div>
-<pre><span id="VALparse_url"><span class="keyword">val</span> parse_url</span> : <code class="type">?schemes:(string, <a href="Neturl.html#TYPEurl_syntax">url_syntax</a>) Hashtbl.t -><br>       ?base_syntax:<a href="Neturl.html#TYPEurl_syntax">url_syntax</a> -><br>       ?accept_8bits:bool -> ?enable_fragment:bool -> string -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info">
+
+<pre><span id="VALparse_url"><span class="keyword">val</span> parse_url</span> : <code class="type">?schemes:(string, <a href="Neturl.html#TYPEurl_syntax">url_syntax</a>) Hashtbl.t -><br>       ?base_syntax:<a href="Neturl.html#TYPEurl_syntax">url_syntax</a> -><br>       ?accept_8bits:bool -> ?enable_fragment:bool -> string -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info ">
 Parses the string and returns the URL the string represents.
  If the URL is absolute (i.e. begins with a scheme like
  "http:..."), the syntax will be looked up in <code class="code">schemes</code>.
@@ -680,7 +701,8 @@ Parses the string and returns the URL the string represents.
    syntax descriptions in <code class="code">schemes</code> whether fragment identifiers
    (e.g. "#fragment") are recognized or not. If <code class="code">true</code>, fragments
    are always recognized.</div>
-<pre><span id="VALfixup_url_string"><span class="keyword">val</span> fixup_url_string</span> : <code class="type">?escape_hash:bool -> string -> string</code></pre><div class="info">
+
+<pre><span id="VALfixup_url_string"><span class="keyword">val</span> fixup_url_string</span> : <code class="type">?escape_hash:bool -> string -> string</code></pre><div class="info ">
 Escapes some unsafe or "unwise" characters that are commonly used
  in URL strings: space, &lt; &gt; { } ^ \\ | and double quotes.
  Call this function before parsing the URL to support these
@@ -693,11 +715,23 @@ Escapes some unsafe or "unwise" characters that are commonly used
  Change: Since Ocamlnet-3.4, square brackets are no longer fixed up,
  because they have now a legal use to denote IPv6 addresses.<br>
 </div>
-<pre><span id="VALurl_provides"><span class="keyword">val</span> url_provides</span> : <code class="type">?scheme:bool -><br>       ?user:bool -><br>       ?user_param:bool -><br>       ?password:bool -><br>       ?host:bool -><br>       ?port:bool -><br>       ?path:bool -><br>       ?param:bool -><br>       ?query:bool -> ?fragment:bool -> ?other:bool -> <a href="Neturl.html#TYPEurl">url</a> -> bool</code></pre><div class="info">
+
+<pre><span id="VALurl_provides"><span class="keyword">val</span> url_provides</span> : <code class="type">?scheme:bool -><br>       ?user:bool -><br>       ?user_param:bool -><br>       ?password:bool -><br>       ?host:bool -><br>       ?port:bool -><br>       ?path:bool -><br>       ?param:bool -><br>       ?query:bool -> ?fragment:bool -> ?other:bool -> <a href="Neturl.html#TYPEurl">url</a> -> bool</code></pre><div class="info ">
 Returns <code class="code">true</code> iff the URL has all of the components passed with
  <code class="code">true</code> value.<br>
 </div>
-<pre><span id="VALurl_scheme"><span class="keyword">val</span> url_scheme</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> string</code></pre><pre><span id="VALurl_user"><span class="keyword">val</span> url_user</span> : <code class="type">?encoded:bool -> <a href="Neturl.html#TYPEurl">url</a> -> string</code></pre><pre><span id="VALurl_user_param"><span class="keyword">val</span> url_user_param</span> : <code class="type">?encoded:bool -> <a href="Neturl.html#TYPEurl">url</a> -> string list</code></pre><pre><span id="VALurl_password"><span class="keyword">val</span> url_password</span> : <code class="type">?encoded:bool -> <a href="Neturl.html#TYPEurl">url</a> -> string</code></pre><pre><span id="VALurl_host"><span class="keyword">val</span> url_host</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> string</code></pre><pre><span id="VALurl_port"><span class="keyword">val</span> url_port</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> int</code></pre><pre><span id="VALurl_path"><span class="keyword">val</span> url_path</span> : <code class="type">?encoded:bool -> <a href="Neturl.html#TYPEurl">url</a> -> string list</code></pre><pre><span id="VALurl_param"><span class="keyword">val</span> url_param</span> : <code class="type">?encoded:bool -> <a href="Neturl.html#TYPEurl">url</a> -> string list</code></pre><pre><span id="VALurl_query"><span class="keyword">val</span> url_query</span> : <code class="type">?encoded:bool -> <a href="Neturl.html#TYPEurl">url</a> -> string</code></pre><pre><span id="VALurl_fragment"><span class="keyword">val</span> url_fragment</span> : <code class="type">?encoded:bool -> <a href="Neturl.html#TYPEurl">url</a> -> string</code></pre><pre><span id="VALurl_other"><span class="keyword">val</span> url_other</span> : <code class="type">?encoded:bool -> <a href="Neturl.html#TYPEurl">url</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALurl_scheme"><span class="keyword">val</span> url_scheme</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> string</code></pre>
+<pre><span id="VALurl_user"><span class="keyword">val</span> url_user</span> : <code class="type">?encoded:bool -> <a href="Neturl.html#TYPEurl">url</a> -> string</code></pre>
+<pre><span id="VALurl_user_param"><span class="keyword">val</span> url_user_param</span> : <code class="type">?encoded:bool -> <a href="Neturl.html#TYPEurl">url</a> -> string list</code></pre>
+<pre><span id="VALurl_password"><span class="keyword">val</span> url_password</span> : <code class="type">?encoded:bool -> <a href="Neturl.html#TYPEurl">url</a> -> string</code></pre>
+<pre><span id="VALurl_host"><span class="keyword">val</span> url_host</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> string</code></pre>
+<pre><span id="VALurl_port"><span class="keyword">val</span> url_port</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> int</code></pre>
+<pre><span id="VALurl_path"><span class="keyword">val</span> url_path</span> : <code class="type">?encoded:bool -> <a href="Neturl.html#TYPEurl">url</a> -> string list</code></pre>
+<pre><span id="VALurl_param"><span class="keyword">val</span> url_param</span> : <code class="type">?encoded:bool -> <a href="Neturl.html#TYPEurl">url</a> -> string list</code></pre>
+<pre><span id="VALurl_query"><span class="keyword">val</span> url_query</span> : <code class="type">?encoded:bool -> <a href="Neturl.html#TYPEurl">url</a> -> string</code></pre>
+<pre><span id="VALurl_fragment"><span class="keyword">val</span> url_fragment</span> : <code class="type">?encoded:bool -> <a href="Neturl.html#TYPEurl">url</a> -> string</code></pre>
+<pre><span id="VALurl_other"><span class="keyword">val</span> url_other</span> : <code class="type">?encoded:bool -> <a href="Neturl.html#TYPEurl">url</a> -> string</code></pre><div class="info ">
 Return components of the URL. The functions return decoded strings
  unless <code class="code">encoded:true</code> is set.
  If the component does not exist, the exception <code class="code">Not_found</code>
@@ -708,17 +742,20 @@ Return components of the URL. The functions return decoded strings
  in square brackets. Modules calling <code class="code">url_host</code> may require porting
  to support this syntax variant.<br>
 </div>
-<pre><span id="VALurl_addr"><span class="keyword">val</span> url_addr</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> Unix.inet_addr</code></pre><div class="info">
+
+<pre><span id="VALurl_addr"><span class="keyword">val</span> url_addr</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> Unix.inet_addr</code></pre><div class="info ">
 If the <code class="code">host</code> part of the URL is an IP address, the address is returned.
       Works for IPv4 and IPv6 addresses. Otherwise <code class="code">Not_found</code> is raised.<br>
 </div>
-<pre><span id="VALurl_socksymbol"><span class="keyword">val</span> url_socksymbol</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> int -> <a href="Netsockaddr.html#TYPEsocksymbol">Netsockaddr.socksymbol</a></code></pre><div class="info">
+
+<pre><span id="VALurl_socksymbol"><span class="keyword">val</span> url_socksymbol</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> int -> <a href="Netsockaddr.html#TYPEsocksymbol">Netsockaddr.socksymbol</a></code></pre><div class="info ">
 <code class="code">url_socksymbol url default_port</code>: Returns the <code class="code">host</code> and <code class="code">port</code> parts
       of the URL as <code class="code">socksymbol</code>. If the port is missing in the URL,
       <code class="code">default_port</code> is substituted. If the <code class="code">host</code> is missing in the URL
       the exception <code class="code">Not_found</code> is raised.<br>
 </div>
-<pre><span id="VALsplit_path"><span class="keyword">val</span> split_path</span> : <code class="type">string -> string list</code></pre><div class="info">
+
+<pre><span id="VALsplit_path"><span class="keyword">val</span> split_path</span> : <code class="type">string -> string list</code></pre><div class="info ">
 Splits a <code class="code">'/'</code>-separated path into components (e.g. to set up the
  <code class="code">path</code> argument of <code class="code">make_url</code>).
  E.g.
@@ -729,10 +766,12 @@ Splits a <code class="code">'/'</code>-separated path into components (e.g. to s
  returns <code class="code">[".."; ""]</code>.  The two will behave differently, for example
  when used with <a href="Neturl.html#VALapply_relative_url"><code class="code">Neturl.apply_relative_url</code></a>.<br>
 </div>
-<pre><span id="VALjoin_path"><span class="keyword">val</span> join_path</span> : <code class="type">string list -> string</code></pre><div class="info">
+
+<pre><span id="VALjoin_path"><span class="keyword">val</span> join_path</span> : <code class="type">string list -> string</code></pre><div class="info ">
 Concatenates the path components (reverse function of split_path).<br>
 </div>
-<pre><span id="VALnorm_path"><span class="keyword">val</span> norm_path</span> : <code class="type">string list -> string list</code></pre><div class="info">
+
+<pre><span id="VALnorm_path"><span class="keyword">val</span> norm_path</span> : <code class="type">string list -> string list</code></pre><div class="info ">
 Removes <code class="code">"."</code> and <code class="code">".."</code> from the path if possible. Deletes double slashes.
 <p>
 
@@ -791,7 +830,8 @@ Removes <code class="code">"."</code> and <code class="code">".."</code> from th
 </ul>
 <br>
 </div>
-<pre><span id="VALapply_relative_url"><span class="keyword">val</span> apply_relative_url</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> <a href="Neturl.html#TYPEurl">url</a> -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info">
+
+<pre><span id="VALapply_relative_url"><span class="keyword">val</span> apply_relative_url</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> <a href="Neturl.html#TYPEurl">url</a> -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info ">
 <code class="code">apply_relative_url base rel</code>:
  Interprets <code class="code">rel</code> relative to <code class="code">base</code> and returns the new URL. This
  function implements RFC 1808.
@@ -812,7 +852,8 @@ Removes <code class="code">"."</code> and <code class="code">".."</code> from th
  base="x/y/..", url="a/b" =&gt; result="x/y/a/b"   (beware!)
  base="x/y/../", url="a/b" =&gt; result="x/a/b"<br>
 </div>
-<pre><span id="VALensure_absolute_url"><span class="keyword">val</span> ensure_absolute_url</span> : <code class="type">?base:<a href="Neturl.html#TYPEurl">url</a> -> <a href="Neturl.html#TYPEurl">url</a> -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info">
+
+<pre><span id="VALensure_absolute_url"><span class="keyword">val</span> ensure_absolute_url</span> : <code class="type">?base:<a href="Neturl.html#TYPEurl">url</a> -> <a href="Neturl.html#TYPEurl">url</a> -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info ">
 If the anonymous URL is absolute, it is just returned as result of
  this function. If the URL is relative, it is tried to make it
  absolute by resolving it relative to <code class="code">base</code>. If there is no <code class="code">base</code>
@@ -820,7 +861,8 @@ If the anonymous URL is absolute, it is just returned as result of
  (e.g. if the anonymous URL possesses a fragment and <code class="code">base</code> does not
  allow that), this will fail, and the function raises <code class="code">Malformed_URL</code>.<br>
 </div>
-<pre><span id="VALfile_url_of_local_path"><span class="keyword">val</span> file_url_of_local_path</span> : <code class="type">?getcwd:(unit -> string) -> string -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info">
+
+<pre><span id="VALfile_url_of_local_path"><span class="keyword">val</span> file_url_of_local_path</span> : <code class="type">?getcwd:(unit -> string) -> string -> <a href="Neturl.html#TYPEurl">url</a></code></pre><div class="info ">
 Generates a URL with "file" scheme from the passed path name. The
  URL is always absolute, i.e. the current directory is prepended if the
  path is not absolute.
@@ -847,7 +889,8 @@ Generates a URL with "file" scheme from the passed path name. The
    directory. Note that for
    Win32 this must be either an absolute name with drive letter,
    or an UNC path. Default: <code class="code">Sys.getcwd</code></div>
-<pre><span id="VALlocal_path_of_file_url"><span class="keyword">val</span> local_path_of_file_url</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALlocal_path_of_file_url"><span class="keyword">val</span> local_path_of_file_url</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> string</code></pre><div class="info ">
 Extracts the path from an absolute file URL, and returns a
  correct path name.
 <p>
@@ -862,7 +905,8 @@ Extracts the path from an absolute file URL, and returns a
 
  Cygwin: Drive letters and remote URLs are recognised.<br>
 </div>
-<pre><span id="VALprint_url"><span class="keyword">val</span> print_url</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALprint_url"><span class="keyword">val</span> print_url</span> : <code class="type"><a href="Neturl.html#TYPEurl">url</a> -> unit</code></pre><div class="info ">
 Printer for the toploop.<br>
 </div>
 </body></html>

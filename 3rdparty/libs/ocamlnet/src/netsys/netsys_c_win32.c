@@ -1,4 +1,4 @@
-/* $Id: netsys_c_win32.c 1505 2010-12-15 19:15:22Z gerd $ */
+/* $Id: netsys_c_win32.c 2013 2014-08-31 14:19:40Z gerd $ */
 
 /* Note: need -lws2_32 to link this file, e.g. */
 /* ocamlmktop -o otop -I . -cclib -lws2_32 unix.cma netsys.cma */
@@ -11,7 +11,6 @@ static int debug = 0;
 
 #ifdef _WIN32
 
-#include "unixsupport_w32.c"
 #include <wincrypt.h>
 #include <stdarg.h>
 

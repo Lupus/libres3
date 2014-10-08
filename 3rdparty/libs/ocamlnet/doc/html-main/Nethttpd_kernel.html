@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -206,7 +206,8 @@
 &nbsp;<a class="post" href="Nethttpd_reactor.html" title="Nethttpd_reactor">Next</a>
 </div>
 <h1>Module <a href="type_Nethttpd_kernel.html">Nethttpd_kernel</a></h1>
-<pre><span class="keyword">module</span> Nethttpd_kernel: <code class="code">sig</code> <a href="Nethttpd_kernel.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Nethttpd_kernel: <code class="code">sig</code> <a href="Nethttpd_kernel.html">..</a> <code class="code">end</code></pre><div class="info module top">
 <h1 id="1_TheprotocolkerneloftheHTTPdaemon">The protocol kernel of the HTTP daemon</h1>
 <p>
 
@@ -217,8 +218,9 @@
  of <code class="code">resp_token</code> values.<br>
 </div>
 <hr width="100%">
+
 <pre><span id="TYPEfatal_error"><span class="keyword">type</span> <code class="type"></code>fatal_error</span> = <code class="type">[ `Broken_pipe<br>       | `Broken_pipe_ignore<br>       | `Message_too_long<br>       | `Server_error<br>       | `Timeout<br>       | `Unix_error of Unix.error ]</code> </pre>
-<div class="info">
+<div class="info ">
 These are the serious protocol violations after that the daemon stops
  any further processing.
 <p>
@@ -238,38 +240,46 @@ These are the serious protocol violations after that the daemon stops
  the client.<br>
 </div>
 
-<pre><span id="VALstring_of_fatal_error"><span class="keyword">val</span> string_of_fatal_error</span> : <code class="type"><a href="Nethttpd_kernel.html#TYPEfatal_error">fatal_error</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALstring_of_fatal_error"><span class="keyword">val</span> string_of_fatal_error</span> : <code class="type"><a href="Nethttpd_kernel.html#TYPEfatal_error">fatal_error</a> -> string</code></pre><div class="info ">
 Convert error to a string, for logging<br>
 </div>
+
 <pre><span id="TYPEbad_request_error"><span class="keyword">type</span> <code class="type"></code>bad_request_error</span> = <code class="type">[ `Bad_header<br>       | `Bad_header_field of string<br>       | `Bad_request_line<br>       | `Bad_trailer<br>       | `Format_error of string<br>       | `Protocol_not_supported<br>       | `Request_line_too_long<br>       | `Unexpected_eof ]</code> </pre>
-<div class="info">
+<div class="info ">
 A bad request is a violation where the current request cannot be
  decoded, and it is not possible to accept further requests over the
  current connection.<br>
 </div>
 
-<pre><span id="VALstring_of_bad_request_error"><span class="keyword">val</span> string_of_bad_request_error</span> : <code class="type"><a href="Nethttpd_kernel.html#TYPEbad_request_error">bad_request_error</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALstring_of_bad_request_error"><span class="keyword">val</span> string_of_bad_request_error</span> : <code class="type"><a href="Nethttpd_kernel.html#TYPEbad_request_error">bad_request_error</a> -> string</code></pre><div class="info ">
 Convert error to a string, for logging<br>
 </div>
-<pre><span id="VALstatus_of_bad_request_error"><span class="keyword">val</span> status_of_bad_request_error</span> : <code class="type"><a href="Nethttpd_kernel.html#TYPEbad_request_error">bad_request_error</a> -> <a href="Nethttp.html#TYPEhttp_status">Nethttp.http_status</a></code></pre><div class="info">
+
+<pre><span id="VALstatus_of_bad_request_error"><span class="keyword">val</span> status_of_bad_request_error</span> : <code class="type"><a href="Nethttpd_kernel.html#TYPEbad_request_error">bad_request_error</a> -> <a href="Nethttp.html#TYPEhttp_status">Nethttp.http_status</a></code></pre><div class="info ">
 Returns the best response code for the error<br>
 </div>
+
 <pre><span id="TYPEdata_chunk"><span class="keyword">type</span> <code class="type"></code>data_chunk</span> = <code class="type">string * int * int</code> </pre>
-<div class="info">
+<div class="info ">
 A <code class="code">data_chunk</code> is a substring of a string. The substring is described by
  the triple <code class="code">(s, pos, len)</code> where <code class="code">s</code> is the container, <code class="code">pos</code> is the
  position where the substring begins, and <code class="code">len</code> its length.<br>
 </div>
 
+
 <pre><span id="TYPEstatus_line"><span class="keyword">type</span> <code class="type"></code>status_line</span> = <code class="type">int * string</code> </pre>
-<div class="info">
+<div class="info ">
 = (code, phrase)<br>
 </div>
 
+
 <pre><span id="TYPEtransfer_coding"><span class="keyword">type</span> <code class="type"></code>transfer_coding</span> = <code class="type">[ `Chunked | `Identity ]</code> </pre>
 
+
 <pre><span id="TYPEresp_token"><span class="keyword">type</span> <code class="type"></code>resp_token</span> = <code class="type">[ `Resp_action of unit -> unit<br>       | `Resp_body of <a href="Nethttpd_kernel.html#TYPEdata_chunk">data_chunk</a><br>       | `Resp_end<br>       | `Resp_header of <a href="Nethttp.http_header-c.html">Nethttp.http_header</a><br>       | `Resp_info_line of <a href="Nethttpd_kernel.html#TYPEstatus_line">status_line</a> * <a href="Nethttp.http_header-c.html">Nethttp.http_header</a><br>       | `Resp_status_line of <a href="Nethttpd_kernel.html#TYPEstatus_line">status_line</a><br>       | `Resp_trailer of <a href="Nethttp.http_trailer-c.html">Nethttp.http_trailer</a> ]</code> </pre>
-<div class="info">
+<div class="info ">
 The <code class="code">resp_token</code> represents a textual part of the response to send:<ul>
 <li><code class="code">`Resp_info_line</code> is an informational status line (code=100..199). There can
    be several informational lines, and they can be accompanied with their own
@@ -288,11 +298,13 @@ The <code class="code">resp_token</code> represents a textual part of the respon
 <br>
 </div>
 
-<pre><span id="VALresp_100_continue"><span class="keyword">val</span> resp_100_continue</span> : <code class="type"><a href="Nethttpd_kernel.html#TYPEresp_token">resp_token</a></code></pre><div class="info">
+
+<pre><span id="VALresp_100_continue"><span class="keyword">val</span> resp_100_continue</span> : <code class="type"><a href="Nethttpd_kernel.html#TYPEresp_token">resp_token</a></code></pre><div class="info ">
 The predefined token for the "100 Continue" response<br>
 </div>
+
 <pre><span id="TYPEresp_state"><span class="keyword">type</span> <code class="type"></code>resp_state</span> = <code class="type">[ `Active | `Dropped | `Error | `Inhibited | `Processed | `Queued ]</code> </pre>
-<div class="info">
+<div class="info ">
 The response state:<ul>
 <li><code class="code">`Inhibited</code> = it is not yet allowed to start the response</li>
 <li><code class="code">`Queued</code> = the response waits on the queue for activation</li>
@@ -305,8 +317,9 @@ The response state:<ul>
 <br>
 </div>
 
+
 <pre><span id="TYPEfront_token"><span class="keyword">type</span> <code class="type"></code>front_token</span> = <code class="type">[ `Resp_end | `Resp_wire_data of <a href="Nethttpd_kernel.html#TYPEdata_chunk">data_chunk</a> ]</code> </pre>
-<div class="info">
+<div class="info ">
 Tokens generated by <code class="code">http_response</code>:<ul>
 <li><code class="code">`Resp_wire_data</code> are data tokens.</li>
 <li><code class="code">`Resp_end</code> indicates the end of the response.</li>
@@ -314,19 +327,24 @@ Tokens generated by <code class="code">http_response</code>:<ul>
 <br>
 </div>
 
+
 <pre><span id="EXCEPTIONSend_queue_empty"><span class="keyword">exception</span> Send_queue_empty</span></pre>
+
 <pre><span id="TYPEannouncement"><span class="keyword">type</span> <code class="type"></code>announcement</span> = <code class="type">[ `As of string | `Ignore | `Ocamlnet | `Ocamlnet_and of string ]</code> </pre>
-<div class="info">
+<div class="info ">
 See config<br>
 </div>
+
 
 <pre><span id="TYPEhttp_response"><span class="keyword">class type</span> <a href="Nethttpd_kernel.http_response-c.html">http_response</a></span> = <code class="code">object</code> <a href="Nethttpd_kernel.http_response-c.html">..</a> <code class="code">end</code></pre><div class="info">
 Encapsultation of the HTTP response for a single request
 </div>
+
 <pre><span name="TYPEhttp_response_impl"><span class="keyword">class</span> <a href="Nethttpd_kernel.http_response_impl-c.html">http_response_impl</a></span> : <code class="type">?close:bool -> ?suppress_body:bool -> int64 -> <a href="Nethttp.html#TYPEprotocol">Nethttp.protocol</a> -> <a href="Nethttpd_kernel.html#TYPEannouncement">announcement</a> -> </code><code class="type"><a href="Nethttpd_kernel.http_response-c.html">http_response</a></code></pre><div class="info">
 Exported for debugging and testing only
 </div>
-<pre><span id="VALsend_static_response"><span class="keyword">val</span> send_static_response</span> : <code class="type"><a href="Nethttpd_kernel.http_response-c.html">http_response</a> -><br>       <a href="Nethttp.html#TYPEhttp_status">Nethttp.http_status</a> -> <a href="Nethttp.http_header-c.html">Nethttp.http_header</a> option -> string -> unit</code></pre><div class="info">
+
+<pre><span id="VALsend_static_response"><span class="keyword">val</span> send_static_response</span> : <code class="type"><a href="Nethttpd_kernel.http_response-c.html">http_response</a> -><br>       <a href="Nethttp.html#TYPEhttp_status">Nethttp.http_status</a> -> <a href="Nethttp.http_header-c.html">Nethttp.http_header</a> option -> string -> unit</code></pre><div class="info ">
 Sends the string argument as response body, together with the given status and
  the header (optional). Response header fields are set as follows:<ul>
 <li>The <code class="code">Content-Length</code> is set to the length of the string.</li>
@@ -336,7 +354,8 @@ Sends the string argument as response body, together with the given status and
 </ul>
 <br>
 </div>
-<pre><span id="VALsend_file_response"><span class="keyword">val</span> send_file_response</span> : <code class="type"><a href="Nethttpd_kernel.http_response-c.html">http_response</a> -><br>       <a href="Nethttp.html#TYPEhttp_status">Nethttp.http_status</a> -><br>       <a href="Nethttp.http_header-c.html">Nethttp.http_header</a> option -> Unix.file_descr -> int64 -> unit</code></pre><div class="info">
+
+<pre><span id="VALsend_file_response"><span class="keyword">val</span> send_file_response</span> : <code class="type"><a href="Nethttpd_kernel.http_response-c.html">http_response</a> -><br>       <a href="Nethttp.html#TYPEhttp_status">Nethttp.http_status</a> -><br>       <a href="Nethttp.http_header-c.html">Nethttp.http_header</a> option -> Unix.file_descr -> int64 -> unit</code></pre><div class="info ">
 Sends the contents of a file as response body, together with the given status and
  the header (optional). The descriptor must be a file descriptor (that cannot
  block). The int64 number is the length
@@ -357,13 +376,15 @@ Sends the contents of a file as response body, together with the given status an
  object up that the next chunk of the file is added when the send queue becomes
  empty. This file will be closed when the transfer is done.<br>
 </div>
+
 <pre><span id="TYPErequest_line"><span class="keyword">type</span> <code class="type"></code>request_line</span> = <code class="type"><a href="Nethttp.html#TYPEhttp_method">Nethttp.http_method</a> * <a href="Nethttp.html#TYPEprotocol">Nethttp.protocol</a></code> </pre>
-<div class="info">
+<div class="info ">
 The method (including the URI), and the HTTP version<br>
 </div>
 
+
 <pre><span id="TYPEreq_token"><span class="keyword">type</span> <code class="type"></code>req_token</span> = <code class="type">[ `Bad_request_error of<br>           <a href="Nethttpd_kernel.html#TYPEbad_request_error">bad_request_error</a> * <a href="Nethttpd_kernel.http_response-c.html">http_response</a><br>       | `Eof<br>       | `Fatal_error of <a href="Nethttpd_kernel.html#TYPEfatal_error">fatal_error</a><br>       | `Req_body of <a href="Nethttpd_kernel.html#TYPEdata_chunk">data_chunk</a><br>       | `Req_end<br>       | `Req_expect_100_continue<br>       | `Req_header of<br>           <a href="Nethttpd_kernel.html#TYPErequest_line">request_line</a> * <a href="Nethttp.http_header-c.html">Nethttp.http_header</a> *<br>           <a href="Nethttpd_kernel.http_response-c.html">http_response</a><br>       | `Req_trailer of <a href="Nethttp.http_trailer-c.html">Nethttp.http_trailer</a><br>       | `Timeout ]</code> </pre>
-<div class="info">
+<div class="info ">
 A <code class="code">req_token</code> represents a textual part of the received request:<ul>
 <li><code class="code">`Req_header</code> is the full received header. Together with the header,
    the corresponding <code class="code">http_response</code> object is returned which must
@@ -394,14 +415,18 @@ A <code class="code">req_token</code> represents a textual part of the received 
  in time.<br>
 </div>
 
-<pre><span id="VALstring_of_req_token"><span class="keyword">val</span> string_of_req_token</span> : <code class="type"><a href="Nethttpd_kernel.html#TYPEreq_token">req_token</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALstring_of_req_token"><span class="keyword">val</span> string_of_req_token</span> : <code class="type"><a href="Nethttpd_kernel.html#TYPEreq_token">req_token</a> -> string</code></pre><div class="info ">
 For debugging<br>
 </div>
+
 <pre><span id="EXCEPTIONRecv_queue_empty"><span class="keyword">exception</span> Recv_queue_empty</span></pre>
+
 <pre><span id="TYPEhttp_protocol_config"><span class="keyword">class type</span> <a href="Nethttpd_kernel.http_protocol_config-c.html">http_protocol_config</a></span> = <code class="code">object</code> <a href="Nethttpd_kernel.http_protocol_config-c.html">..</a> <code class="code">end</code></pre><div class="info">
 Configuration values for the HTTP kernel
 </div>
-<pre><span id="VALdefault_http_protocol_config"><span class="keyword">val</span> default_http_protocol_config</span> : <code class="type"><a href="Nethttpd_kernel.http_protocol_config-c.html">http_protocol_config</a></code></pre><div class="info">
+
+<pre><span id="VALdefault_http_protocol_config"><span class="keyword">val</span> default_http_protocol_config</span> : <code class="type"><a href="Nethttpd_kernel.http_protocol_config-c.html">http_protocol_config</a></code></pre><div class="info ">
 Default config:<ul>
 <li><code class="code">config_max_reqline_length = 32768</code></li>
 <li><code class="code">config_max_header_length = 65536</code></li>
@@ -413,16 +438,20 @@ Default config:<ul>
 </ul>
 <br>
 </div>
+
 <pre><span name="TYPEmodify_http_protocol_config"><span class="keyword">class</span> <a href="Nethttpd_kernel.modify_http_protocol_config-c.html">modify_http_protocol_config</a></span> : <code class="type">?config_max_reqline_length:int -> ?config_max_header_length:int -> ?config_max_trailer_length:int -> ?config_limit_pipeline_length:int -> ?config_limit_pipeline_size:int -> ?config_announce_server:<a href="Nethttpd_kernel.html#TYPEannouncement">announcement</a> -> ?config_suppress_broken_pipe:bool -> <a href="Nethttpd_kernel.http_protocol_config-c.html">http_protocol_config</a> -> </code><code class="type"><a href="Nethttpd_kernel.http_protocol_config-c.html">http_protocol_config</a></code></pre><div class="info">
 Modifies the passed config object as specified by the optional
       arguments
 </div>
+
 <pre><span name="TYPEhttp_protocol"><span class="keyword">class</span> <a href="Nethttpd_kernel.http_protocol-c.html">http_protocol</a></span> : <code class="type">#<a href="Nethttpd_kernel.http_protocol_config-c.html">http_protocol_config</a> -> Unix.file_descr -> </code><code class="code">object</code> <a href="Nethttpd_kernel.http_protocol-c.html">..</a> <code class="code">end</code></pre><div class="info">
 The core event loop of the HTTP daemon
 </div>
+
 <pre><span name="TYPElingering_close"><span class="keyword">class</span> <a href="Nethttpd_kernel.lingering_close-c.html">lingering_close</a></span> : <code class="type">?preclose:unit -> unit -> Unix.file_descr -> </code><code class="code">object</code> <a href="Nethttpd_kernel.lingering_close-c.html">..</a> <code class="code">end</code></pre><div class="info">
 Closes a file descriptor using the "lingering close" algorithm.
 </div>
 <br>
 <h1 id="1_Debugging">Debugging</h1><br>
+
 <pre><span class="keyword">module</span> <a href="Nethttpd_kernel.Debug.html">Debug</a>: <code class="code">sig</code> <a href="Nethttpd_kernel.Debug.html">..</a> <code class="code">end</code></pre></body></html>

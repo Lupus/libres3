@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -210,12 +210,14 @@
 &nbsp;<a class="post" href="Netsys_tmp.html" title="Netsys_tmp">Next</a>
 </div>
 <h1>Module <a href="type_Netsys_mem.html">Netsys_mem</a></h1>
-<pre><span class="keyword">module</span> Netsys_mem: <code class="code">sig</code> <a href="Netsys_mem.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Netsys_mem: <code class="code">sig</code> <a href="Netsys_mem.html">..</a> <code class="code">end</code></pre><div class="info module top">
 Bigarrays as memory buffers<br>
 </div>
 <hr width="100%">
+
 <pre><span id="TYPEmemory"><span class="keyword">type</span> <code class="type"></code>memory</span> = <code class="type"><a href="Netsys_types.html#TYPEmemory">Netsys_types.memory</a></code> </pre>
-<div class="info">
+<div class="info ">
 We consider 1-dimensional bigarrays of chars as memory buffers.
       They have the useful property that the garbage collector cannot
       relocate them, i.e. the address is fixed. Also, one can mmap
@@ -224,7 +226,8 @@ We consider 1-dimensional bigarrays of chars as memory buffers.
 
 <br>
 <h2 id="2_General">General</h2><br>
-<pre><span id="VALblit_memory_to_string"><span class="keyword">val</span> blit_memory_to_string</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> string -> int -> int -> unit</code></pre><div class="info">
+
+<pre><span id="VALblit_memory_to_string"><span class="keyword">val</span> blit_memory_to_string</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> string -> int -> int -> unit</code></pre><div class="info ">
 <code class="code">blit_memory_to_string src srcoff dst dstoff len</code> copies <code class="code">len</code> characters
       from buffer <code class="code">src</code>, starting at character number <code class="code">srcoff</code>, to
       string <code class="code">dst</code>, starting at character number <code class="code">dstoff</code>
@@ -234,10 +237,12 @@ We consider 1-dimensional bigarrays of chars as memory buffers.
       designate a valid subbuffer of <code class="code">src</code>, or if <code class="code">dstoff</code> and <code class="code">len</code>
       do not designate a valid substring of <code class="code">dst</code>.<br>
 </div>
-<pre><span id="VALblit_memory_to_string_unsafe"><span class="keyword">val</span> blit_memory_to_string_unsafe</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> string -> int -> int -> unit</code></pre><div class="info">
+
+<pre><span id="VALblit_memory_to_string_unsafe"><span class="keyword">val</span> blit_memory_to_string_unsafe</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> string -> int -> int -> unit</code></pre><div class="info ">
 Unsafe version<br>
 </div>
-<pre><span id="VALblit_string_to_memory"><span class="keyword">val</span> blit_string_to_memory</span> : <code class="type">string -> int -> <a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> unit</code></pre><div class="info">
+
+<pre><span id="VALblit_string_to_memory"><span class="keyword">val</span> blit_string_to_memory</span> : <code class="type">string -> int -> <a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> unit</code></pre><div class="info ">
 <code class="code">blit_string_to_memory src srcoff dst dstoff len</code> copies <code class="code">len</code> characters
       from string <code class="code">src</code>, starting at character number <code class="code">srcoff</code>, to
       buffer <code class="code">dst</code>, starting at character number <code class="code">dstoff</code>
@@ -247,13 +252,19 @@ Unsafe version<br>
       designate a valid substring of <code class="code">src</code>, or if <code class="code">dstoff</code> and <code class="code">len</code>
       do not designate a valid subbuffer of <code class="code">dst</code>.<br>
 </div>
-<pre><span id="VALblit_string_to_memory_unsafe"><span class="keyword">val</span> blit_string_to_memory_unsafe</span> : <code class="type">string -> int -> <a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> unit</code></pre><div class="info">
+
+<pre><span id="VALblit_string_to_memory_unsafe"><span class="keyword">val</span> blit_string_to_memory_unsafe</span> : <code class="type">string -> int -> <a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> unit</code></pre><div class="info ">
 Unsafe version<br>
 </div>
-<pre><span id="VALmemory_address"><span class="keyword">val</span> memory_address</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> nativeint</code></pre><div class="info">
+
+<pre><span id="VALmemory_address"><span class="keyword">val</span> memory_address</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> nativeint</code></pre><div class="info ">
 Returns the start address of the buffer<br>
 </div>
-<pre><span id="VALmemory_of_bigarray"><span class="keyword">val</span> memory_of_bigarray</span> : <code class="type">('a, 'b, 'c) Bigarray.Genarray.t -> <a href="Netsys_mem.html#TYPEmemory">memory</a></code></pre><pre><span id="VALmemory_of_bigarray_1"><span class="keyword">val</span> memory_of_bigarray_1</span> : <code class="type">('a, 'b, 'c) Bigarray.Array1.t -> <a href="Netsys_mem.html#TYPEmemory">memory</a></code></pre><pre><span id="VALmemory_of_bigarray_2"><span class="keyword">val</span> memory_of_bigarray_2</span> : <code class="type">('a, 'b, 'c) Bigarray.Array2.t -> <a href="Netsys_mem.html#TYPEmemory">memory</a></code></pre><pre><span id="VALmemory_of_bigarray_3"><span class="keyword">val</span> memory_of_bigarray_3</span> : <code class="type">('a, 'b, 'c) Bigarray.Array3.t -> <a href="Netsys_mem.html#TYPEmemory">memory</a></code></pre><div class="info">
+
+<pre><span id="VALmemory_of_bigarray"><span class="keyword">val</span> memory_of_bigarray</span> : <code class="type">('a, 'b, 'c) Bigarray.Genarray.t -> <a href="Netsys_mem.html#TYPEmemory">memory</a></code></pre>
+<pre><span id="VALmemory_of_bigarray_1"><span class="keyword">val</span> memory_of_bigarray_1</span> : <code class="type">('a, 'b, 'c) Bigarray.Array1.t -> <a href="Netsys_mem.html#TYPEmemory">memory</a></code></pre>
+<pre><span id="VALmemory_of_bigarray_2"><span class="keyword">val</span> memory_of_bigarray_2</span> : <code class="type">('a, 'b, 'c) Bigarray.Array2.t -> <a href="Netsys_mem.html#TYPEmemory">memory</a></code></pre>
+<pre><span id="VALmemory_of_bigarray_3"><span class="keyword">val</span> memory_of_bigarray_3</span> : <code class="type">('a, 'b, 'c) Bigarray.Array3.t -> <a href="Netsys_mem.html#TYPEmemory">memory</a></code></pre><div class="info ">
 These functions return an arbitrary bigarray as <code class="code">memory</code>.
 <p>
 
@@ -263,7 +274,8 @@ These functions return an arbitrary bigarray as <code class="code">memory</code>
 </div>
 <br>
 <h2 id="2_Allocationandmemorymapping">Allocation and memory-mapping</h2><br>
-<pre><span id="VALgetpagesize"><span class="keyword">val</span> getpagesize</span> : <code class="type">unit -> int</code></pre><div class="info">
+
+<pre><span id="VALgetpagesize"><span class="keyword">val</span> getpagesize</span> : <code class="type">unit -> int</code></pre><div class="info ">
 Returns the size of a page as reported by <code class="code">sysconf</code>.
 <p>
 
@@ -273,10 +285,12 @@ Returns the size of a page as reported by <code class="code">sysconf</code>.
 
       This function is only available if the system has <code class="code">sysconf</code>.<br>
 </div>
-<pre><span id="VALpagesize"><span class="keyword">val</span> pagesize</span> : <code class="type">int</code></pre><div class="info">
+
+<pre><span id="VALpagesize"><span class="keyword">val</span> pagesize</span> : <code class="type">int</code></pre><div class="info ">
 The best guess at the page size<br>
 </div>
-<pre><span id="VALalloc_memory_pages"><span class="keyword">val</span> alloc_memory_pages</span> : <code class="type">?addr:nativeint -> ?exec:bool -> int -> <a href="Netsys_mem.html#TYPEmemory">memory</a></code></pre><div class="info">
+
+<pre><span id="VALalloc_memory_pages"><span class="keyword">val</span> alloc_memory_pages</span> : <code class="type">?addr:nativeint -> ?exec:bool -> int -> <a href="Netsys_mem.html#TYPEmemory">memory</a></code></pre><div class="info ">
 Allocates memory in units of pages. The memory buffer will start
       on a page boundary.
 <p>
@@ -298,7 +312,8 @@ Allocates memory in units of pages. The memory buffer will start
       and allows to allocate anonymous memory with <code class="code">mmap</code> (outside POSIX
       but common).<br>
 </div>
-<pre><span id="VALalloc_aligned_memory"><span class="keyword">val</span> alloc_aligned_memory</span> : <code class="type">int -> int -> <a href="Netsys_mem.html#TYPEmemory">memory</a></code></pre><div class="info">
+
+<pre><span id="VALalloc_aligned_memory"><span class="keyword">val</span> alloc_aligned_memory</span> : <code class="type">int -> int -> <a href="Netsys_mem.html#TYPEmemory">memory</a></code></pre><div class="info ">
 <code class="code">alloc_aligned_memory alignment size</code>: Allocates a buffer of <code class="code">size</code>
       whose start address is a multiple of <code class="code">alignment</code>. The <code class="code">alignment</code>
       must be a power of two, and at least <code class="code">Sys.word_size/8</code>.
@@ -312,14 +327,16 @@ Allocates memory in units of pages. The memory buffer will start
 
       This function is only available if the system has <code class="code">posix_memalign</code>.<br>
 </div>
-<pre><span id="VALmemory_map_file"><span class="keyword">val</span> memory_map_file</span> : <code class="type">Unix.file_descr -><br>       ?pos:int64 -> ?addr:nativeint -> bool -> int -> <a href="Netsys_mem.html#TYPEmemory">memory</a></code></pre><div class="info">
+
+<pre><span id="VALmemory_map_file"><span class="keyword">val</span> memory_map_file</span> : <code class="type">Unix.file_descr -><br>       ?pos:int64 -> ?addr:nativeint -> bool -> int -> <a href="Netsys_mem.html#TYPEmemory">memory</a></code></pre><div class="info ">
 <code class="code">memory_map_file fd shared size</code>: Maps <code class="code">size</code> bytes of the file
       <code class="code">fd</code> into memory, and returns the memory buffer like
       <code class="code">Bigarray.Array1.map_file</code>. <code class="code">pos</code> and <code class="code">shared</code> have the same
       meaning as there. In <code class="code">addr</code> one can suggest a start address.
       There is, however, no guarantee that this wish can be fulfilled.<br>
 </div>
-<pre><span id="VALmemory_unmap_file"><span class="keyword">val</span> memory_unmap_file</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALmemory_unmap_file"><span class="keyword">val</span> memory_unmap_file</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> unit</code></pre><div class="info ">
 Unmaps the file. The memory block must have been allocated
       with <code class="code">memory_map_file</code> or with <code class="code">Bigarray.Array1.map_file</code>.
 <p>
@@ -334,7 +351,8 @@ Unmaps the file. The memory block must have been allocated
       It is required that there are no subarrays at the time of
       calling this function. (If so, the function does nothing.)<br>
 </div>
-<pre><span id="VALzero_pages"><span class="keyword">val</span> zero_pages</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> unit</code></pre><div class="info">
+
+<pre><span id="VALzero_pages"><span class="keyword">val</span> zero_pages</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> unit</code></pre><div class="info ">
 <code class="code">zero_pages m pos len</code>: If possible, the memory pages in the
       range <code class="code">pos</code> to <code class="code">pos+len-1</code> of <code class="code">m</code> are allocated again, so that
       they replace the previous pages.
@@ -350,7 +368,8 @@ Unmaps the file. The memory block must have been allocated
       memory pages can be dropped, and when the alternative of
       overwriting these pages would imply a copy-on-write operation.<br>
 </div>
-<pre><span id="VALgrab"><span class="keyword">val</span> grab</span> : <code class="type">nativeint -> int -> <a href="Netsys_mem.html#TYPEmemory">memory</a></code></pre><div class="info">
+
+<pre><span id="VALgrab"><span class="keyword">val</span> grab</span> : <code class="type">nativeint -> int -> <a href="Netsys_mem.html#TYPEmemory">memory</a></code></pre><div class="info ">
 <code class="code">grab addr len</code>: Interprets the address range from <code class="code">addr</code> to
       <code class="code">addr+len-1</code> as <code class="code">memory</code> bigarray.
 <p>
@@ -360,7 +379,8 @@ Unmaps the file. The memory block must have been allocated
 </div>
 <br>
 <h2 id="2_Interpretingmemoryasvalues">Interpreting memory as values</h2><br>
-<pre><span id="VALas_value"><span class="keyword">val</span> as_value</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> 'a</code></pre><div class="info">
+
+<pre><span id="VALas_value"><span class="keyword">val</span> as_value</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> 'a</code></pre><div class="info ">
 <code class="code">as_value mem offset</code>: Returns a pointer to <code class="code">mem+offset</code>. There
       must be a valid boxed value at this address (i.e. at 
       the word preceding <code class="code">mem+offset</code> there must be a valid block
@@ -382,10 +402,12 @@ Unmaps the file. The memory block must have been allocated
       (polymorphic equality, marshalling, hashing) unless 
       <a href="Netsys_mem.html#VALvalue_area"><code class="code">Netsys_mem.value_area</code></a> is called for the memory block.<br>
 </div>
-<pre><span id="VALas_obj"><span class="keyword">val</span> as_obj</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> Obj.t</code></pre><div class="info">
+
+<pre><span id="VALas_obj"><span class="keyword">val</span> as_obj</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> Obj.t</code></pre><div class="info ">
 Same as <code class="code">as_value</code> but returns the value as <code class="code">Obj.t</code><br>
 </div>
-<pre><span id="VALvalue_area"><span class="keyword">val</span> value_area</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALvalue_area"><span class="keyword">val</span> value_area</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> unit</code></pre><div class="info ">
 Marks the memory block as value area. This enables that the
       value primitives (polymorphic equality, marshalling, hashing)
       return meaningful results. The memory area is automatically
@@ -397,7 +419,9 @@ Marks the memory block as value area. This enables that the
 
       This function is first available since O'Caml 3.11.<br>
 </div>
-<pre><span id="VALobj_address"><span class="keyword">val</span> obj_address</span> : <code class="type">Obj.t -> nativeint</code></pre><pre><span id="VALhdr_address"><span class="keyword">val</span> hdr_address</span> : <code class="type">Obj.t -> nativeint</code></pre><div class="info">
+
+<pre><span id="VALobj_address"><span class="keyword">val</span> obj_address</span> : <code class="type">Obj.t -> nativeint</code></pre>
+<pre><span id="VALhdr_address"><span class="keyword">val</span> hdr_address</span> : <code class="type">Obj.t -> nativeint</code></pre><div class="info ">
 These two functions return the address of the <code class="code">Obj.t</code> and the
       address of the header of the <code class="code">Obj.t</code>, respectively.
 <p>
@@ -405,19 +429,23 @@ These two functions return the address of the <code class="code">Obj.t</code> an
       Note that this can only be relied upon if the input object
       cannot be moved around by the garbage collector!<br>
 </div>
-<pre><span id="VALcmp_string"><span class="keyword">val</span> cmp_string</span> : <code class="type">string -> string -> int</code></pre><div class="info">
+
+<pre><span id="VALcmp_string"><span class="keyword">val</span> cmp_string</span> : <code class="type">string -> string -> int</code></pre><div class="info ">
 Compares two strings like <code class="code">String.compare</code>. This also works
       when the strings reside outside the O'Caml heap, e.g. in a
       <code class="code">memory</code> block.<br>
 </div>
+
 <pre><span id="EXCEPTIONOut_of_space"><span class="keyword">exception</span> Out_of_space</span></pre>
-<pre><span id="VALinit_header"><span class="keyword">val</span> init_header</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> int -> unit</code></pre><div class="info">
+
+<pre><span id="VALinit_header"><span class="keyword">val</span> init_header</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> int -> unit</code></pre><div class="info ">
 <code class="code">init_header mem offset tag size</code>: Initializes the word at
       <code class="code">mem+offset</code> as an Ocaml value header with the given <code class="code">tag</code>
       and the given <code class="code">size</code> (in words). The GC color is always set
       to "white".<br>
 </div>
-<pre><span id="VALinit_string"><span class="keyword">val</span> init_string</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> int * int</code></pre><div class="info">
+
+<pre><span id="VALinit_string"><span class="keyword">val</span> init_string</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> int * int</code></pre><div class="info ">
 <code class="code">let voffset, bytelen = init_string mem offset len</code>: 
       Initializes the memory at <code class="code">offset</code>
       and following bytes as Ocaml string with length <code class="code">len</code>.
@@ -442,11 +470,13 @@ Compares two strings like <code class="code">String.compare</code>. This also wo
 
       Raises <code class="code">Out_of_space</code> if the memory block is too small.<br>
 </div>
-<pre><span id="VALinit_string_bytelen"><span class="keyword">val</span> init_string_bytelen</span> : <code class="type">int -> int</code></pre><div class="info">
+
+<pre><span id="VALinit_string_bytelen"><span class="keyword">val</span> init_string_bytelen</span> : <code class="type">int -> int</code></pre><div class="info ">
 Returns <code class="code">bytelen</code> if <code class="code">init_string</code> was called with the passed
       <code class="code">len</code>.<br>
 </div>
-<pre><span id="VALinit_array"><span class="keyword">val</span> init_array</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> int * int</code></pre><div class="info">
+
+<pre><span id="VALinit_array"><span class="keyword">val</span> init_array</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> int * int</code></pre><div class="info ">
 <code class="code">let voffset, bytelen = init_array mem offset size</code>: 
       Initializes the memory at <code class="code">offset</code>
       and following bytes as Ocaml array with <code class="code">size</code> elements.
@@ -476,17 +506,22 @@ Returns <code class="code">bytelen</code> if <code class="code">init_string</cod
 
       Raises <code class="code">Out_of_space</code> if the memory block is too small.<br>
 </div>
-<pre><span id="VALinit_float_array"><span class="keyword">val</span> init_float_array</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> int * int</code></pre><div class="info">
+
+<pre><span id="VALinit_float_array"><span class="keyword">val</span> init_float_array</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> int * int</code></pre><div class="info ">
 Same for arrays of floats<br>
 </div>
-<pre><span id="VALinit_array_bytelen"><span class="keyword">val</span> init_array_bytelen</span> : <code class="type">int -> int</code></pre><div class="info">
+
+<pre><span id="VALinit_array_bytelen"><span class="keyword">val</span> init_array_bytelen</span> : <code class="type">int -> int</code></pre><div class="info ">
 Returns <code class="code">bytelen</code> if <code class="code">init_array</code> was called with the passed
       <code class="code">size</code>.<br>
 </div>
-<pre><span id="VALinit_float_array_bytelen"><span class="keyword">val</span> init_float_array_bytelen</span> : <code class="type">int -> int</code></pre><div class="info">
+
+<pre><span id="VALinit_float_array_bytelen"><span class="keyword">val</span> init_float_array_bytelen</span> : <code class="type">int -> int</code></pre><div class="info ">
 Same for arrays of floats<br>
 </div>
+
 <pre><span id="TYPEcustom_ops"><span class="keyword">type</span> <code class="type"></code>custom_ops</span> = <code class="type">nativeint</code> </pre>
+
 
 <pre><code><span id="TYPEinit_value_flag"><span class="keyword">type</span> <code class="type"></code>init_value_flag</span> = </code></pre><table class="typetable">
 <tr>
@@ -533,7 +568,8 @@ Same for arrays of floats<br>
 </tr></table>
 
 
-<pre><span id="VALinit_value"><span class="keyword">val</span> init_value</span> : <code class="type">?targetaddr:nativeint -><br>       ?target_custom_ops:(string * <a href="Netsys_mem.html#TYPEcustom_ops">custom_ops</a>) list -><br>       ?cc:(nativeint * nativeint) list -><br>       <a href="Netsys_mem.html#TYPEmemory">memory</a> -><br>       int -> 'a -> <a href="Netsys_mem.html#TYPEinit_value_flag">init_value_flag</a> list -> int * int</code></pre><div class="info">
+
+<pre><span id="VALinit_value"><span class="keyword">val</span> init_value</span> : <code class="type">?targetaddr:nativeint -><br>       ?target_custom_ops:(string * <a href="Netsys_mem.html#TYPEcustom_ops">custom_ops</a>) list -><br>       ?cc:(nativeint * nativeint) list -><br>       <a href="Netsys_mem.html#TYPEmemory">memory</a> -><br>       int -> 'a -> <a href="Netsys_mem.html#TYPEinit_value_flag">init_value_flag</a> list -> int * int</code></pre><div class="info ">
 <code class="code">let voffset, bytelen = init_value mem offset v flags</code>:
       Initializes the memory at <code class="code">offset</code> and following bytes as
       copy of the boxed value <code class="code">v</code>. 
@@ -610,10 +646,12 @@ Same for arrays of floats<br>
       Otherwise the block is copied. As an exception of the foregoing,
       the first block (i.e. <code class="code">v</code>) is always copied.<br>
 </div>
-<pre><span id="VALget_custom_ops"><span class="keyword">val</span> get_custom_ops</span> : <code class="type">'a -> string * <a href="Netsys_mem.html#TYPEcustom_ops">custom_ops</a></code></pre><div class="info">
+
+<pre><span id="VALget_custom_ops"><span class="keyword">val</span> get_custom_ops</span> : <code class="type">'a -> string * <a href="Netsys_mem.html#TYPEcustom_ops">custom_ops</a></code></pre><div class="info ">
 Returns custom ops for a sample value (or <code class="code">Invalid_argument</code>)<br>
 </div>
-<pre><span id="VALcopy_value"><span class="keyword">val</span> copy_value</span> : <code class="type"><a href="Netsys_mem.html#TYPEinit_value_flag">init_value_flag</a> list -> 'a -> 'a</code></pre><div class="info">
+
+<pre><span id="VALcopy_value"><span class="keyword">val</span> copy_value</span> : <code class="type"><a href="Netsys_mem.html#TYPEinit_value_flag">init_value_flag</a> list -> 'a -> 'a</code></pre><div class="info ">
 <code class="code">copy_value flags v</code>: Creates a deep copy of <code class="code">v</code> and returns it.
       The copy is allocated in the normal Ocaml heap.
 <p>
@@ -631,6 +669,7 @@ Returns custom ops for a sample value (or <code class="code">Invalid_argument</c
 
       Cyclic input values are supported. <code class="code">Copy_simulate</code> is ignored.<br>
 </div>
+
 <pre><code><span id="TYPEcolor"><span class="keyword">type</span> <code class="type"></code>color</span> = </code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
@@ -662,34 +701,42 @@ Returns custom ops for a sample value (or <code class="code">Invalid_argument</c
 </tr></table>
 
 
-<pre><span id="VALcolor"><span class="keyword">val</span> color</span> : <code class="type">Obj.t -> <a href="Netsys_mem.html#TYPEcolor">color</a></code></pre><div class="info">
+
+<pre><span id="VALcolor"><span class="keyword">val</span> color</span> : <code class="type">Obj.t -> <a href="Netsys_mem.html#TYPEcolor">color</a></code></pre><div class="info ">
 Return the GC color<br>
 </div>
-<pre><span id="VALset_color"><span class="keyword">val</span> set_color</span> : <code class="type">Obj.t -> <a href="Netsys_mem.html#TYPEcolor">color</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_color"><span class="keyword">val</span> set_color</span> : <code class="type">Obj.t -> <a href="Netsys_mem.html#TYPEcolor">color</a> -> unit</code></pre><div class="info ">
 Set the GC color<br>
 </div>
-<pre><span id="VALis_bigarray"><span class="keyword">val</span> is_bigarray</span> : <code class="type">Obj.t -> bool</code></pre><div class="info">
+
+<pre><span id="VALis_bigarray"><span class="keyword">val</span> is_bigarray</span> : <code class="type">Obj.t -> bool</code></pre><div class="info ">
 Checks whether the objects ia actually a bigarray<br>
 </div>
 <br>
 <h2 id="2_IOusingmemoryasbuffers">I/O using <code class="code">memory</code> as buffers</h2><br>
-<pre><span id="VALmem_read"><span class="keyword">val</span> mem_read</span> : <code class="type">Unix.file_descr -> <a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> int</code></pre><div class="info">
+
+<pre><span id="VALmem_read"><span class="keyword">val</span> mem_read</span> : <code class="type">Unix.file_descr -> <a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> int</code></pre><div class="info ">
 A version of <code class="code">Unix.read</code> that uses a <code class="code">memory</code> buffer.
      Some OS allow faster I/O when <code class="code">memory</code> is page-aligned
      (see <code class="code">alloc_memory_pages</code>). Also, a copy in the stub function
      can be avoided. Both effects can result in a considerable speedup.<br>
 </div>
-<pre><span id="VALmem_write"><span class="keyword">val</span> mem_write</span> : <code class="type">Unix.file_descr -> <a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> int</code></pre><div class="info">
+
+<pre><span id="VALmem_write"><span class="keyword">val</span> mem_write</span> : <code class="type">Unix.file_descr -> <a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> int</code></pre><div class="info ">
 A version of <code class="code">Unix.single_write</code> that uses a <code class="code">memory</code> buffer.<br>
 </div>
-<pre><span id="VALmem_recv"><span class="keyword">val</span> mem_recv</span> : <code class="type">Unix.file_descr -><br>       <a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> Unix.msg_flag list -> int</code></pre><pre><span id="VALmem_send"><span class="keyword">val</span> mem_send</span> : <code class="type">Unix.file_descr -><br>       <a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> Unix.msg_flag list -> int</code></pre><div class="info">
+
+<pre><span id="VALmem_recv"><span class="keyword">val</span> mem_recv</span> : <code class="type">Unix.file_descr -><br>       <a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> Unix.msg_flag list -> int</code></pre>
+<pre><span id="VALmem_send"><span class="keyword">val</span> mem_send</span> : <code class="type">Unix.file_descr -><br>       <a href="Netsys_mem.html#TYPEmemory">memory</a> -> int -> int -> Unix.msg_flag list -> int</code></pre><div class="info ">
 Versions of <code class="code">Unix.recv</code>, and <code class="code">Unix.send</code>
       using <code class="code">memory</code> buffers.<br>
 </div>
 <br>
 <h2 id="2_Bufferpools">Buffer pools</h2><br>
+
 <pre><span id="TYPEmemory_pool"><span class="keyword">type</span> <code class="type"></code>memory_pool</span> </pre>
-<div class="info">
+<div class="info ">
 A pool of <code class="code">memory</code> blocks that are all the same size and page-aligned
       (if the OS supports this). The pool tries to bundle memory allocations
       so that not for every block a system call is required. This reduces
@@ -698,11 +745,13 @@ A pool of <code class="code">memory</code> blocks that are all the same size and
       pool.<br>
 </div>
 
-<pre><span id="VALcreate_pool"><span class="keyword">val</span> create_pool</span> : <code class="type">int -> <a href="Netsys_mem.html#TYPEmemory_pool">memory_pool</a></code></pre><div class="info">
+
+<pre><span id="VALcreate_pool"><span class="keyword">val</span> create_pool</span> : <code class="type">int -> <a href="Netsys_mem.html#TYPEmemory_pool">memory_pool</a></code></pre><div class="info ">
 Create a new pool. The argument is the size of the memory blocks
       (must be a multiple of the page size)<br>
 </div>
-<pre><span id="VALpool_alloc_memory"><span class="keyword">val</span> pool_alloc_memory</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory_pool">memory_pool</a> -> <a href="Netsys_mem.html#TYPEmemory">memory</a></code></pre><div class="info">
+
+<pre><span id="VALpool_alloc_memory"><span class="keyword">val</span> pool_alloc_memory</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory_pool">memory_pool</a> -> <a href="Netsys_mem.html#TYPEmemory">memory</a></code></pre><div class="info ">
 <code class="code">let m = pool_alloc_memory p</code>: 
       Gets a memory block <code class="code">m</code> from the pool <code class="code">p</code>. If required, new blocks are 
       automatically allocated and added to the pool. This function is
@@ -711,7 +760,8 @@ Create a new pool. The argument is the size of the memory blocks
 
       The memory block is automatically garbage-collected.<br>
 </div>
-<pre><span id="VALpool_alloc_memory2"><span class="keyword">val</span> pool_alloc_memory2</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory_pool">memory_pool</a> -> <a href="Netsys_mem.html#TYPEmemory">memory</a> * (unit -> unit)</code></pre><div class="info">
+
+<pre><span id="VALpool_alloc_memory2"><span class="keyword">val</span> pool_alloc_memory2</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory_pool">memory_pool</a> -> <a href="Netsys_mem.html#TYPEmemory">memory</a> * (unit -> unit)</code></pre><div class="info ">
 <code class="code">let m, free = pool_alloc_memory2 p</code>: 
       Gets a memory block <code class="code">m</code> from the pool <code class="code">p</code> like <code class="code">pool_alloc_memory</code>.
       This function also returns the function <code class="code">free</code> marking the
@@ -722,29 +772,36 @@ Create a new pool. The argument is the size of the memory blocks
       If <code class="code">free</code> is not called, the block <code class="code">m</code> is first recycled when it
       is not referenced any more (like in <code class="code">pool_alloc_memory</code>).<br>
 </div>
-<pre><span id="VALpool_reclaim"><span class="keyword">val</span> pool_reclaim</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory_pool">memory_pool</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALpool_reclaim"><span class="keyword">val</span> pool_reclaim</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory_pool">memory_pool</a> -> unit</code></pre><div class="info ">
 Reclaim as much memory as possible<br>
 </div>
-<pre><span id="VALpool_block_size"><span class="keyword">val</span> pool_block_size</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory_pool">memory_pool</a> -> int</code></pre><div class="info">
+
+<pre><span id="VALpool_block_size"><span class="keyword">val</span> pool_block_size</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory_pool">memory_pool</a> -> int</code></pre><div class="info ">
 Returns the size of the memory blocks in bytes<br>
 </div>
-<pre><span id="VALdefault_block_size"><span class="keyword">val</span> default_block_size</span> : <code class="type">int</code></pre><div class="info">
+
+<pre><span id="VALdefault_block_size"><span class="keyword">val</span> default_block_size</span> : <code class="type">int</code></pre><div class="info ">
 The default block size, normally 64 K (or better, 16 times the
       page size)<br>
 </div>
-<pre><span id="VALdefault_pool"><span class="keyword">val</span> default_pool</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory_pool">memory_pool</a></code></pre><div class="info">
+
+<pre><span id="VALdefault_pool"><span class="keyword">val</span> default_pool</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory_pool">memory_pool</a></code></pre><div class="info ">
 The default pool with the default block size. This pool is used
       by Ocamlnet itself as much as possible<br>
 </div>
-<pre><span id="VALsmall_block_size"><span class="keyword">val</span> small_block_size</span> : <code class="type">int</code></pre><div class="info">
+
+<pre><span id="VALsmall_block_size"><span class="keyword">val</span> small_block_size</span> : <code class="type">int</code></pre><div class="info ">
 The block size of <code class="code">small_pool</code>, normally 4K (or better, the
       page size)<br>
 </div>
-<pre><span id="VALsmall_pool"><span class="keyword">val</span> small_pool</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory_pool">memory_pool</a></code></pre><div class="info">
+
+<pre><span id="VALsmall_pool"><span class="keyword">val</span> small_pool</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory_pool">memory_pool</a></code></pre><div class="info ">
 Another standard pool where the blocks are smaller than in
       <code class="code">default_pool</code>.<br>
 </div>
-<pre><span id="VALpool_report"><span class="keyword">val</span> pool_report</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory_pool">memory_pool</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALpool_report"><span class="keyword">val</span> pool_report</span> : <code class="type"><a href="Netsys_mem.html#TYPEmemory_pool">memory_pool</a> -> string</code></pre><div class="info ">
 Returns a report describing the memory allocation in the pool<br>
 </div>
 </body></html>

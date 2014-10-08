@@ -1,13 +1,13 @@
-(* $Id: uq_gtk.ml 1230 2009-05-11 00:37:38Z gerd $ *)
+(* $Id: uq_gtk.ml 1989 2014-08-24 12:44:32Z gerd $ *)
 
 open Equeue
 open Unixqueue
 
-IFDEF GTK1 THEN
+#ifdef GTK1
   type event_id = GMain.Io.event_source
-ELSE
+#else
   type event_id = GMain.Io.id
-END
+#endif
 
 type gtk_file_handler_rec = 
     { gtk_fd : Unix.file_descr;
@@ -105,12 +105,12 @@ object (self)
 
     let dest_handler (gh, is_active) =
       is_active := false;
-      IFDEF GTK1 THEN
+      #ifdef GTK1
         ignore(GMain.Io.remove_source gh);
-      ELSE
+      #else
         (* GTK2 *)
         ignore(GMain.Io.remove gh);
-      END
+      #endif
     in
 
     (* Update GTK file handlers: *)
@@ -125,11 +125,12 @@ object (self)
 	     GMain.Io.add_watch 
 	       ~prio:150
 	       ~cond:(
-		 IFDEF GTK2_IO_ADD_WATCH_SUPPORTS_LISTS THEN
+		 #ifdef GTK2_IO_ADD_WATCH_SUPPORTS_LISTS
 		   [cond]
-		 ELSE
+		 #else
 		   cond
-		 END)
+                 #endif
+               )
 	       ~callback:(
 		 fun _ ->
 		   !is_active &&

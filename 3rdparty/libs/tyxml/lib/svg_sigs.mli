@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02111-1307, USA.
- *)
+*)
 
 module type T = sig
 
@@ -31,23 +31,19 @@ module type T = sig
 
   (** {1 Abstraction over XML's types} *)
 
-  type 'a attrib
+  type +'a attrib
 
   type 'a wrap
+  type 'a list_wrap
 
   type +'a elt
-
-  type +'a elts
 
   type ('a, 'b) nullary = ?a: (('a attrib) list) -> unit -> 'b elt
 
   type ('a, 'b, 'c) unary = ?a: (('a attrib) list) -> 'b elt wrap -> 'c elt
 
   type ('a, 'b, 'c) star =
-      ?a: (('a attrib) list) -> ('b elt) list wrap -> 'c elt
-
-  type ('a, 'b, 'c) plus =
-      ?a: (('a attrib) list) -> 'b elt wrap -> ('b elt) list wrap -> 'c elt
+    ?a: (('a attrib) list) -> ('b elt) list_wrap -> 'c elt
 
   (* to be processed by a script *)
   type altglyphdef_content =
@@ -183,11 +179,11 @@ module type T = sig
 
   val a_renderingindent :
     [<
-    | `Auto
-    | `Perceptual
-    | `Relative_colorimetric
-    | `Saturation
-    | `Absolute_colorimetric ] wrap -> [> | `Rendering_Indent ] attrib
+      | `Auto
+      | `Perceptual
+      | `Relative_colorimetric
+      | `Saturation
+      | `Absolute_colorimetric ] wrap -> [> | `Rendering_Indent ] attrib
 
   val a_gradientunits :
     [< `UserSpaceOnUse | `ObjectBoundingBox ] wrap ->
@@ -237,23 +233,23 @@ module type T = sig
 
   val a_in :
     [<
-    | `SourceGraphic
-    | `SourceAlpha
-    | `BackgroundImage
-    | `BackgroundAlpha
-    | `FillPaint
-    | `StrokePaint
-    | `Ref of string ] wrap -> [> | `In ] attrib
+      | `SourceGraphic
+      | `SourceAlpha
+      | `BackgroundImage
+      | `BackgroundAlpha
+      | `FillPaint
+      | `StrokePaint
+      | `Ref of string ] wrap -> [> | `In ] attrib
 
   val a_in2 :
     [<
-    | `SourceGraphic
-    | `SourceAlpha
-    | `BackgroundImage
-    | `BackgroundAlpha
-    | `FillPaint
-    | `StrokePaint
-    | `Ref of string ] wrap -> [> | `In2 ] attrib
+      | `SourceGraphic
+      | `SourceAlpha
+      | `BackgroundImage
+      | `BackgroundAlpha
+      | `FillPaint
+      | `StrokePaint
+      | `Ref of string ] wrap -> [> | `In2 ] attrib
 
   val a_aizmuth : float wrap -> [> | `Azimuth ] attrib
 
@@ -286,8 +282,6 @@ module type T = sig
     [> | `Typetransfert ] attrib
 
   val a_tablevalues : numbers wrap -> [> | `TableValues ] attrib
-
-  val a_slope : number wrap -> [> | `Slope ] attrib
 
   val a_intercept : number wrap -> [> | `Intercept ] attrib
 
@@ -527,50 +521,39 @@ module type T = sig
 
   val a_name : string wrap -> [> | `Name ] attrib
 
+
+  (** Javascript events *)
+
   val a_onabort : Xml.event_handler  -> [> | `OnAbort ] attrib
-
   val a_onactivate : Xml.event_handler  -> [> | `OnActivate ] attrib
-
   val a_onbegin : Xml.event_handler  -> [> | `OnBegin ] attrib
-
-  val a_onclick : Xml.event_handler  -> [> | `OnClick ] attrib
-
   val a_onend : Xml.event_handler  -> [> | `OnEnd ] attrib
-
   val a_onerror : Xml.event_handler  -> [> | `OnError ] attrib
-
   val a_onfocusin : Xml.event_handler  -> [> | `OnFocusIn ] attrib
-
   val a_onfocusout : Xml.event_handler  -> [> | `OnFocusOut ] attrib
-
   val a_onload : Xml.event_handler  -> [> | `OnLoad ] attrib
-
-  val a_onmousedown : Xml.event_handler  -> [> | `OnMouseDown ] attrib
-
-  val a_onmouseup : Xml.event_handler  -> [> | `OnMouseUp ] attrib
-
-  val a_onmouseover : Xml.event_handler  -> [> | `OnMouseOver ] attrib
-
-  val a_onmouseout : Xml.event_handler  -> [> | `OnMouseOut ] attrib
-
-  val a_onmousemove : Xml.event_handler  -> [> | `OnMouseMove ] attrib
-
   val a_onrepeat : Xml.event_handler  -> [> | `OnRepeat ] attrib
-
   val a_onresize : Xml.event_handler  -> [> | `OnResize ] attrib
-
   val a_onscroll : Xml.event_handler  -> [> | `OnScroll ] attrib
-
   val a_onunload : Xml.event_handler  -> [> | `OnUnload ] attrib
-
   val a_onzoom : Xml.event_handler  -> [> | `OnZoom ] attrib
 
+  (** Javascript mouse events *)
+
+  val a_onclick : Xml.mouse_event_handler  -> [> | `OnClick ] attrib
+  val a_onmousedown : Xml.mouse_event_handler  -> [> | `OnMouseDown ] attrib
+  val a_onmouseup : Xml.mouse_event_handler  -> [> | `OnMouseUp ] attrib
+  val a_onmouseover : Xml.mouse_event_handler  -> [> | `OnMouseOver ] attrib
+  val a_onmouseout : Xml.mouse_event_handler  -> [> | `OnMouseOut ] attrib
+  val a_onmousemove : Xml.mouse_event_handler  -> [> | `OnMouseMove ] attrib
+
+
   val metadata :
-    ?a: ((metadata_attr attrib) list) -> Xml.elt list wrap -> [> | metadata] elt
+    ?a: ((metadata_attr attrib) list) -> Xml.elt list_wrap -> [> | metadata] elt
 
   val foreignobject :
     ?a: ((foreignobject_attr attrib) list) ->
-    Xml.elt list wrap -> [> | foreignobject] elt
+    Xml.elt list_wrap -> [> | foreignobject] elt
 
   val a_stopcolor : color wrap -> [> | `Stop_Color ] attrib
 
@@ -648,11 +631,12 @@ module type T = sig
 
   val altglyphdef :
     ([< | altglyphdef_attr], [< | altglyphdef_content], [> | altglyphdef])
-	unary
+      unary
 
+  (* theoretically a plus, simplified into star *)
   val altglyphitem :
     ([< | altglyphitem_attr], [< | altglyphitem_content], [> | altglyphitem
-							  ]) plus
+                                                          ]) star
 
   val glyphref : ([< | glyphref_attr], [> | glyphref]) nullary
 
@@ -660,7 +644,7 @@ module type T = sig
 
   val colorprofile :
     ([< | colorprofile_attr], [< | colorprofile_content], [> | colorprofile
-							  ]) star
+                                                          ]) star
 
   val lineargradient :
     ([< | lineargradient_attr], [< | lineargradient_content],
@@ -687,11 +671,11 @@ module type T = sig
 
   val fepointlight :
     ([< | fepointlight_attr], [< | fepointlight_content], [> | fepointlight
-							  ]) star
+                                                          ]) star
 
   val fespotlight :
     ([< | fespotlight_attr], [< | fespotlight_content], [> | fespotlight])
-	star
+      star
 
   val feblend :
     ([< | feblend_attr], [< | feblend_content], [> | feblend]) star
@@ -718,7 +702,7 @@ module type T = sig
 
   val fecomposite :
     ([< | fecomposite_attr], [< | fecomposite_content], [> | fecomposite])
-	star
+      star
 
   val feconvolvematrix :
     ([< | feconvolvematrix_attr], [< | feconvolvematrix_content],
@@ -747,7 +731,7 @@ module type T = sig
 
   val femorphology :
     ([< | femorphology_attr], [< | femorphology_content], [> | femorphology
-							  ]) star
+                                                          ]) star
 
   val feoffset :
     ([< | feoffset_attr], [< | feoffset_content], [> | feoffset]) star
@@ -760,7 +744,7 @@ module type T = sig
 
   val feturbulence :
     ([< | feturbulence_attr], [< | feturbulence_content], [> | feturbulence
-							  ]) star
+                                                          ]) star
 
   val cursor : ([< | cursor_attr], [< | cursor_content], [> | cursor]) star
 
@@ -784,7 +768,7 @@ module type T = sig
 
   val animatecolor :
     ([< | animatecolor_attr], [< | animatecolor_content], [> | animatecolor
-							  ]) star
+                                                          ]) star
 
   val animatetransform :
     ([< | animatetransform_attr], [< | animatetransform_content],
@@ -796,7 +780,7 @@ module type T = sig
 
   val missingglyph :
     ([< | missingglyph_attr], [< | missingglyph_content], [> | missingglyph
-							  ]) star
+                                                          ]) star
 
   val hkern : ([< | hkern_attr], [> | hkern]) nullary
 
@@ -806,11 +790,11 @@ module type T = sig
 
   val fontfacesrc :
     ([< | fontfacesrc_attr], [< | fontfacesrc_content], [> | fontfacesrc])
-	star
+      star
 
   val fontfaceuri :
     ([< | fontfaceuri_attr], [< | fontfaceuri_content], [> | fontfaceuri])
-	star
+      star
 
   val fontfaceformat :
     ([< | fontfaceformat_attr], [> | fontfaceformat]) nullary
@@ -842,7 +826,7 @@ module type T = sig
         If it is a standard SVG node which is missing,
         please report to the Ocsigen team.
     *)
-    val node : string -> ?a:'a attrib list -> 'b elt list wrap -> 'c elt
+    val node : string -> ?a:'a attrib list -> 'b elt list_wrap -> 'c elt
 
     (** Insert an XML node without children
         that is not implemented in this module.
@@ -885,4 +869,35 @@ module type T = sig
   val doc_toelt : doc -> Xml.elt
 
 
+end
+
+(** {2 Signature functors} *)
+(** See {% <<a_manual chapter="functors"|the manual of the functorial interface>> %}. *)
+
+(** Signature functor for {!Svg_f.MakeWrapped}. *)
+module MakeWrapped
+    (W : Xml_wrap.T)
+    (Xml : Xml_sigs.Wrapped) :
+sig
+
+  (** See {!modtype:Svg_sigs.T}. *)
+  module type T = T
+    with type Xml.uri = Xml.uri
+     and type Xml.event_handler = Xml.event_handler
+     and type Xml.mouse_event_handler = Xml.mouse_event_handler
+     and type Xml.keyboard_event_handler = Xml.keyboard_event_handler
+     and type Xml.attrib = Xml.attrib
+     and type Xml.elt = Xml.elt
+     and type 'a Xml.wrap = 'a W.t
+     and type 'a wrap = 'a W.t
+     and type 'a Xml.list_wrap = 'a W.tlist
+     and type 'a list_wrap = 'a W.tlist
+end
+
+(** Signature functor for {!Svg_f.Make}. *)
+module Make(Xml : Xml_sigs.T) :
+sig
+
+  (** See {!modtype:Svg_sigs.MakeWrapped} and {!modtype:Svg_sigs.T}. *)
+  module type T = MakeWrapped(Xml_wrap.NoWrap)(Xml).T
 end

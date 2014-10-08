@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -205,37 +205,40 @@
 &nbsp;<a class="post" href="Rpc_packer.html" title="Rpc_packer">Next</a>
 </div>
 <h1>Module <a href="type_Rpc_portmapper_aux.html">Rpc_portmapper_aux</a></h1>
+
 <pre><span class="keyword">module</span> Rpc_portmapper_aux: <code class="code">sig</code> <a href="Rpc_portmapper_aux.html">..</a> <code class="code">end</code></pre><hr width="100%">
+
 <pre><code><span id="TYPEmapping"><span class="keyword">type</span> <code class="type"></code>mapping</span> = {</code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTmapping.prog">prog</span>&nbsp;:<code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code>;</code></td>
+<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTmapping.prog">prog</span>&nbsp;: <code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTmapping.vers">vers</span>&nbsp;:<code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code>;</code></td>
+<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTmapping.vers">vers</span>&nbsp;: <code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTmapping.prot">prot</span>&nbsp;:<code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code>;</code></td>
+<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTmapping.prot">prot</span>&nbsp;: <code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTmapping.port">port</span>&nbsp;:<code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code>;</code></td>
+<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTmapping.port">port</span>&nbsp;: <code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code>;</code></td>
 
 </tr></table>
 }
+
 
 
 <pre><code><span id="TYPEpmaplist"><span class="keyword">type</span> <code class="type"></code>pmaplist</span> = {</code></pre><table class="typetable">
@@ -243,51 +246,54 @@
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTpmaplist.map">map</span>&nbsp;:<code class="type"><a href="Rpc_portmapper_aux.html#TYPEmapping">mapping</a></code>;</code></td>
+<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTpmaplist.map">map</span>&nbsp;: <code class="type"><a href="Rpc_portmapper_aux.html#TYPEmapping">mapping</a></code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTpmaplist.next">next</span>&nbsp;:<code class="type"><a href="Rpc_portmapper_aux.html#TYPEpmaplist">pmaplist</a> option</code>;</code></td>
+<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTpmaplist.next">next</span>&nbsp;: <code class="type"><a href="Rpc_portmapper_aux.html#TYPEpmaplist">pmaplist</a> option</code>;</code></td>
 
 </tr></table>
 }
 
 
+
 <pre><span id="TYPEpmaplist_p"><span class="keyword">type</span> <code class="type"></code>pmaplist_p</span> = <code class="type"><a href="Rpc_portmapper_aux.html#TYPEpmaplist">pmaplist</a> option</code> </pre>
+
 
 <pre><code><span id="TYPEcall_args"><span class="keyword">type</span> <code class="type"></code>call_args</span> = {</code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTcall_args.call_prog">call_prog</span>&nbsp;:<code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code>;</code></td>
+<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTcall_args.call_prog">call_prog</span>&nbsp;: <code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTcall_args.call_vers">call_vers</span>&nbsp;:<code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code>;</code></td>
+<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTcall_args.call_vers">call_vers</span>&nbsp;: <code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTcall_args.call_proc">call_proc</span>&nbsp;:<code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code>;</code></td>
+<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTcall_args.call_proc">call_proc</span>&nbsp;: <code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTcall_args.call_args">call_args</span>&nbsp;:<code class="type">string</code>;</code></td>
+<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTcall_args.call_args">call_args</span>&nbsp;: <code class="type">string</code>;</code></td>
 
 </tr></table>
 }
+
 
 
 <pre><code><span id="TYPEcall_result"><span class="keyword">type</span> <code class="type"></code>call_result</span> = {</code></pre><table class="typetable">
@@ -295,41 +301,108 @@
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTcall_result.call_port">call_port</span>&nbsp;:<code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code>;</code></td>
+<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTcall_result.call_port">call_port</span>&nbsp;: <code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTcall_result.call_res">call_res</span>&nbsp;:<code class="type">string</code>;</code></td>
+<code><span class="keyword">mutable&nbsp;</span><span id="TYPEELTcall_result.call_res">call_res</span>&nbsp;: <code class="type">string</code>;</code></td>
 
 </tr></table>
 }
 
 
+
 <pre><span id="TYPEt_PMAP'V2'pmapproc_null'arg"><span class="keyword">type</span> <code class="type"></code>t_PMAP'V2'pmapproc_null'arg</span> = <code class="type">unit</code> </pre>
+
 
 <pre><span id="TYPEt_PMAP'V2'pmapproc_null'res"><span class="keyword">type</span> <code class="type"></code>t_PMAP'V2'pmapproc_null'res</span> = <code class="type">unit</code> </pre>
 
+
 <pre><span id="TYPEt_PMAP'V2'pmapproc_set'arg"><span class="keyword">type</span> <code class="type"></code>t_PMAP'V2'pmapproc_set'arg</span> = <code class="type"><a href="Rpc_portmapper_aux.html#TYPEmapping">mapping</a></code> </pre>
+
 
 <pre><span id="TYPEt_PMAP'V2'pmapproc_set'res"><span class="keyword">type</span> <code class="type"></code>t_PMAP'V2'pmapproc_set'res</span> = <code class="type">bool</code> </pre>
 
+
 <pre><span id="TYPEt_PMAP'V2'pmapproc_unset'arg"><span class="keyword">type</span> <code class="type"></code>t_PMAP'V2'pmapproc_unset'arg</span> = <code class="type"><a href="Rpc_portmapper_aux.html#TYPEmapping">mapping</a></code> </pre>
+
 
 <pre><span id="TYPEt_PMAP'V2'pmapproc_unset'res"><span class="keyword">type</span> <code class="type"></code>t_PMAP'V2'pmapproc_unset'res</span> = <code class="type">bool</code> </pre>
 
+
 <pre><span id="TYPEt_PMAP'V2'pmapproc_getport'arg"><span class="keyword">type</span> <code class="type"></code>t_PMAP'V2'pmapproc_getport'arg</span> = <code class="type"><a href="Rpc_portmapper_aux.html#TYPEmapping">mapping</a></code> </pre>
+
 
 <pre><span id="TYPEt_PMAP'V2'pmapproc_getport'res"><span class="keyword">type</span> <code class="type"></code>t_PMAP'V2'pmapproc_getport'res</span> = <code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code> </pre>
 
+
 <pre><span id="TYPEt_PMAP'V2'pmapproc_dump'arg"><span class="keyword">type</span> <code class="type"></code>t_PMAP'V2'pmapproc_dump'arg</span> = <code class="type">unit</code> </pre>
+
 
 <pre><span id="TYPEt_PMAP'V2'pmapproc_dump'res"><span class="keyword">type</span> <code class="type"></code>t_PMAP'V2'pmapproc_dump'res</span> = <code class="type"><a href="Rpc_portmapper_aux.html#TYPEpmaplist_p">pmaplist_p</a></code> </pre>
 
+
 <pre><span id="TYPEt_PMAP'V2'pmapproc_callit'arg"><span class="keyword">type</span> <code class="type"></code>t_PMAP'V2'pmapproc_callit'arg</span> = <code class="type"><a href="Rpc_portmapper_aux.html#TYPEcall_args">call_args</a></code> </pre>
+
 
 <pre><span id="TYPEt_PMAP'V2'pmapproc_callit'res"><span class="keyword">type</span> <code class="type"></code>t_PMAP'V2'pmapproc_callit'res</span> = <code class="type"><a href="Rpc_portmapper_aux.html#TYPEcall_result">call_result</a></code> </pre>
 
-<pre><span id="VALpmap_port"><span class="keyword">val</span> pmap_port</span> : <code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code></pre><pre><span id="VALipproto_tcp"><span class="keyword">val</span> ipproto_tcp</span> : <code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code></pre><pre><span id="VALipproto_udp"><span class="keyword">val</span> ipproto_udp</span> : <code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code></pre><pre><span id="VAL_to_mapping"><span class="keyword">val</span> _to_mapping</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEmapping">mapping</a></code></pre><pre><span id="VAL_of_mapping"><span class="keyword">val</span> _of_mapping</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEmapping">mapping</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><pre><span id="VAL_to_pmaplist"><span class="keyword">val</span> _to_pmaplist</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEpmaplist">pmaplist</a></code></pre><pre><span id="VAL_of_pmaplist"><span class="keyword">val</span> _of_pmaplist</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEpmaplist">pmaplist</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><pre><span id="VAL_to_pmaplist_p"><span class="keyword">val</span> _to_pmaplist_p</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEpmaplist_p">pmaplist_p</a></code></pre><pre><span id="VAL_of_pmaplist_p"><span class="keyword">val</span> _of_pmaplist_p</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEpmaplist_p">pmaplist_p</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><pre><span id="VAL_to_call_args"><span class="keyword">val</span> _to_call_args</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEcall_args">call_args</a></code></pre><pre><span id="VAL_of_call_args"><span class="keyword">val</span> _of_call_args</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEcall_args">call_args</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><pre><span id="VAL_to_call_result"><span class="keyword">val</span> _to_call_result</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEcall_result">call_result</a></code></pre><pre><span id="VAL_of_call_result"><span class="keyword">val</span> _of_call_result</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEcall_result">call_result</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><pre><span id="VAL_to_PMAP'V2'pmapproc_null'arg"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_null'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_null'arg">t_PMAP'V2'pmapproc_null'arg</a></code></pre><pre><span id="VAL_of_PMAP'V2'pmapproc_null'arg"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_null'arg</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_null'arg">t_PMAP'V2'pmapproc_null'arg</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><pre><span id="VAL_to_PMAP'V2'pmapproc_null'res"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_null'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_null'res">t_PMAP'V2'pmapproc_null'res</a></code></pre><pre><span id="VAL_of_PMAP'V2'pmapproc_null'res"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_null'res</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_null'res">t_PMAP'V2'pmapproc_null'res</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><pre><span id="VAL_to_PMAP'V2'pmapproc_set'arg"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_set'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_set'arg">t_PMAP'V2'pmapproc_set'arg</a></code></pre><pre><span id="VAL_of_PMAP'V2'pmapproc_set'arg"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_set'arg</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_set'arg">t_PMAP'V2'pmapproc_set'arg</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><pre><span id="VAL_to_PMAP'V2'pmapproc_set'res"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_set'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_set'res">t_PMAP'V2'pmapproc_set'res</a></code></pre><pre><span id="VAL_of_PMAP'V2'pmapproc_set'res"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_set'res</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_set'res">t_PMAP'V2'pmapproc_set'res</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><pre><span id="VAL_to_PMAP'V2'pmapproc_unset'arg"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_unset'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_unset'arg">t_PMAP'V2'pmapproc_unset'arg</a></code></pre><pre><span id="VAL_of_PMAP'V2'pmapproc_unset'arg"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_unset'arg</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_unset'arg">t_PMAP'V2'pmapproc_unset'arg</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><pre><span id="VAL_to_PMAP'V2'pmapproc_unset'res"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_unset'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_unset'res">t_PMAP'V2'pmapproc_unset'res</a></code></pre><pre><span id="VAL_of_PMAP'V2'pmapproc_unset'res"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_unset'res</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_unset'res">t_PMAP'V2'pmapproc_unset'res</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><pre><span id="VAL_to_PMAP'V2'pmapproc_getport'arg"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_getport'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_getport'arg">t_PMAP'V2'pmapproc_getport'arg</a></code></pre><pre><span id="VAL_of_PMAP'V2'pmapproc_getport'arg"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_getport'arg</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_getport'arg">t_PMAP'V2'pmapproc_getport'arg</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><pre><span id="VAL_to_PMAP'V2'pmapproc_getport'res"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_getport'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_getport'res">t_PMAP'V2'pmapproc_getport'res</a></code></pre><pre><span id="VAL_of_PMAP'V2'pmapproc_getport'res"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_getport'res</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_getport'res">t_PMAP'V2'pmapproc_getport'res</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><pre><span id="VAL_to_PMAP'V2'pmapproc_dump'arg"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_dump'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_dump'arg">t_PMAP'V2'pmapproc_dump'arg</a></code></pre><pre><span id="VAL_of_PMAP'V2'pmapproc_dump'arg"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_dump'arg</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_dump'arg">t_PMAP'V2'pmapproc_dump'arg</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><pre><span id="VAL_to_PMAP'V2'pmapproc_dump'res"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_dump'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_dump'res">t_PMAP'V2'pmapproc_dump'res</a></code></pre><pre><span id="VAL_of_PMAP'V2'pmapproc_dump'res"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_dump'res</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_dump'res">t_PMAP'V2'pmapproc_dump'res</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><pre><span id="VAL_to_PMAP'V2'pmapproc_callit'arg"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_callit'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_callit'arg">t_PMAP'V2'pmapproc_callit'arg</a></code></pre><pre><span id="VAL_of_PMAP'V2'pmapproc_callit'arg"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_callit'arg</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_callit'arg">t_PMAP'V2'pmapproc_callit'arg</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><pre><span id="VAL_to_PMAP'V2'pmapproc_callit'res"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_callit'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_callit'res">t_PMAP'V2'pmapproc_callit'res</a></code></pre><pre><span id="VAL_of_PMAP'V2'pmapproc_callit'res"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_callit'res</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_callit'res">t_PMAP'V2'pmapproc_callit'res</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre><pre><span id="VALxdrt_mapping"><span class="keyword">val</span> xdrt_mapping</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre><pre><span id="VALxdrt_pmaplist"><span class="keyword">val</span> xdrt_pmaplist</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre><pre><span id="VALxdrt_pmaplist_p"><span class="keyword">val</span> xdrt_pmaplist_p</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre><pre><span id="VALxdrt_call_args"><span class="keyword">val</span> xdrt_call_args</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre><pre><span id="VALxdrt_call_result"><span class="keyword">val</span> xdrt_call_result</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre><pre><span id="VALxdrt_PMAP'V2'pmapproc_null'arg"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_null'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre><pre><span id="VALxdrt_PMAP'V2'pmapproc_null'res"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_null'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre><pre><span id="VALxdrt_PMAP'V2'pmapproc_set'arg"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_set'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre><pre><span id="VALxdrt_PMAP'V2'pmapproc_set'res"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_set'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre><pre><span id="VALxdrt_PMAP'V2'pmapproc_unset'arg"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_unset'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre><pre><span id="VALxdrt_PMAP'V2'pmapproc_unset'res"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_unset'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre><pre><span id="VALxdrt_PMAP'V2'pmapproc_getport'arg"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_getport'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre><pre><span id="VALxdrt_PMAP'V2'pmapproc_getport'res"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_getport'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre><pre><span id="VALxdrt_PMAP'V2'pmapproc_dump'arg"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_dump'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre><pre><span id="VALxdrt_PMAP'V2'pmapproc_dump'res"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_dump'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre><pre><span id="VALxdrt_PMAP'V2'pmapproc_callit'arg"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_callit'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre><pre><span id="VALxdrt_PMAP'V2'pmapproc_callit'res"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_callit'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre><pre><span id="VALprogram_PMAP'V2"><span class="keyword">val</span> program_PMAP'V2</span> : <code class="type"><a href="Rpc_program.html#TYPEt">Rpc_program.t</a></code></pre></body></html>
+
+<pre><span id="VALpmap_port"><span class="keyword">val</span> pmap_port</span> : <code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code></pre>
+<pre><span id="VALipproto_tcp"><span class="keyword">val</span> ipproto_tcp</span> : <code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code></pre>
+<pre><span id="VALipproto_udp"><span class="keyword">val</span> ipproto_udp</span> : <code class="type"><a href="Netnumber.html#TYPEuint4">Netnumber.uint4</a></code></pre>
+<pre><span id="VAL_to_mapping"><span class="keyword">val</span> _to_mapping</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEmapping">mapping</a></code></pre>
+<pre><span id="VAL_of_mapping"><span class="keyword">val</span> _of_mapping</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEmapping">mapping</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre>
+<pre><span id="VAL_to_pmaplist"><span class="keyword">val</span> _to_pmaplist</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEpmaplist">pmaplist</a></code></pre>
+<pre><span id="VAL_of_pmaplist"><span class="keyword">val</span> _of_pmaplist</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEpmaplist">pmaplist</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre>
+<pre><span id="VAL_to_pmaplist_p"><span class="keyword">val</span> _to_pmaplist_p</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEpmaplist_p">pmaplist_p</a></code></pre>
+<pre><span id="VAL_of_pmaplist_p"><span class="keyword">val</span> _of_pmaplist_p</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEpmaplist_p">pmaplist_p</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre>
+<pre><span id="VAL_to_call_args"><span class="keyword">val</span> _to_call_args</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEcall_args">call_args</a></code></pre>
+<pre><span id="VAL_of_call_args"><span class="keyword">val</span> _of_call_args</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEcall_args">call_args</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre>
+<pre><span id="VAL_to_call_result"><span class="keyword">val</span> _to_call_result</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEcall_result">call_result</a></code></pre>
+<pre><span id="VAL_of_call_result"><span class="keyword">val</span> _of_call_result</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEcall_result">call_result</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre>
+<pre><span id="VAL_to_PMAP'V2'pmapproc_null'arg"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_null'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_null'arg">t_PMAP'V2'pmapproc_null'arg</a></code></pre>
+<pre><span id="VAL_of_PMAP'V2'pmapproc_null'arg"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_null'arg</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_null'arg">t_PMAP'V2'pmapproc_null'arg</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre>
+<pre><span id="VAL_to_PMAP'V2'pmapproc_null'res"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_null'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_null'res">t_PMAP'V2'pmapproc_null'res</a></code></pre>
+<pre><span id="VAL_of_PMAP'V2'pmapproc_null'res"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_null'res</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_null'res">t_PMAP'V2'pmapproc_null'res</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre>
+<pre><span id="VAL_to_PMAP'V2'pmapproc_set'arg"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_set'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_set'arg">t_PMAP'V2'pmapproc_set'arg</a></code></pre>
+<pre><span id="VAL_of_PMAP'V2'pmapproc_set'arg"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_set'arg</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_set'arg">t_PMAP'V2'pmapproc_set'arg</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre>
+<pre><span id="VAL_to_PMAP'V2'pmapproc_set'res"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_set'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_set'res">t_PMAP'V2'pmapproc_set'res</a></code></pre>
+<pre><span id="VAL_of_PMAP'V2'pmapproc_set'res"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_set'res</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_set'res">t_PMAP'V2'pmapproc_set'res</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre>
+<pre><span id="VAL_to_PMAP'V2'pmapproc_unset'arg"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_unset'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_unset'arg">t_PMAP'V2'pmapproc_unset'arg</a></code></pre>
+<pre><span id="VAL_of_PMAP'V2'pmapproc_unset'arg"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_unset'arg</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_unset'arg">t_PMAP'V2'pmapproc_unset'arg</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre>
+<pre><span id="VAL_to_PMAP'V2'pmapproc_unset'res"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_unset'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_unset'res">t_PMAP'V2'pmapproc_unset'res</a></code></pre>
+<pre><span id="VAL_of_PMAP'V2'pmapproc_unset'res"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_unset'res</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_unset'res">t_PMAP'V2'pmapproc_unset'res</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre>
+<pre><span id="VAL_to_PMAP'V2'pmapproc_getport'arg"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_getport'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_getport'arg">t_PMAP'V2'pmapproc_getport'arg</a></code></pre>
+<pre><span id="VAL_of_PMAP'V2'pmapproc_getport'arg"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_getport'arg</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_getport'arg">t_PMAP'V2'pmapproc_getport'arg</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre>
+<pre><span id="VAL_to_PMAP'V2'pmapproc_getport'res"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_getport'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_getport'res">t_PMAP'V2'pmapproc_getport'res</a></code></pre>
+<pre><span id="VAL_of_PMAP'V2'pmapproc_getport'res"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_getport'res</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_getport'res">t_PMAP'V2'pmapproc_getport'res</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre>
+<pre><span id="VAL_to_PMAP'V2'pmapproc_dump'arg"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_dump'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_dump'arg">t_PMAP'V2'pmapproc_dump'arg</a></code></pre>
+<pre><span id="VAL_of_PMAP'V2'pmapproc_dump'arg"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_dump'arg</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_dump'arg">t_PMAP'V2'pmapproc_dump'arg</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre>
+<pre><span id="VAL_to_PMAP'V2'pmapproc_dump'res"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_dump'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_dump'res">t_PMAP'V2'pmapproc_dump'res</a></code></pre>
+<pre><span id="VAL_of_PMAP'V2'pmapproc_dump'res"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_dump'res</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_dump'res">t_PMAP'V2'pmapproc_dump'res</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre>
+<pre><span id="VAL_to_PMAP'V2'pmapproc_callit'arg"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_callit'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_callit'arg">t_PMAP'V2'pmapproc_callit'arg</a></code></pre>
+<pre><span id="VAL_of_PMAP'V2'pmapproc_callit'arg"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_callit'arg</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_callit'arg">t_PMAP'V2'pmapproc_callit'arg</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre>
+<pre><span id="VAL_to_PMAP'V2'pmapproc_callit'res"><span class="keyword">val</span> _to_PMAP'V2'pmapproc_callit'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a> -> <a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_callit'res">t_PMAP'V2'pmapproc_callit'res</a></code></pre>
+<pre><span id="VAL_of_PMAP'V2'pmapproc_callit'res"><span class="keyword">val</span> _of_PMAP'V2'pmapproc_callit'res</span> : <code class="type"><a href="Rpc_portmapper_aux.html#TYPEt_PMAP'V2'pmapproc_callit'res">t_PMAP'V2'pmapproc_callit'res</a> -> <a href="Xdr.html#TYPExdr_value">Xdr.xdr_value</a></code></pre>
+<pre><span id="VALxdrt_mapping"><span class="keyword">val</span> xdrt_mapping</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre>
+<pre><span id="VALxdrt_pmaplist"><span class="keyword">val</span> xdrt_pmaplist</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre>
+<pre><span id="VALxdrt_pmaplist_p"><span class="keyword">val</span> xdrt_pmaplist_p</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre>
+<pre><span id="VALxdrt_call_args"><span class="keyword">val</span> xdrt_call_args</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre>
+<pre><span id="VALxdrt_call_result"><span class="keyword">val</span> xdrt_call_result</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre>
+<pre><span id="VALxdrt_PMAP'V2'pmapproc_null'arg"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_null'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre>
+<pre><span id="VALxdrt_PMAP'V2'pmapproc_null'res"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_null'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre>
+<pre><span id="VALxdrt_PMAP'V2'pmapproc_set'arg"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_set'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre>
+<pre><span id="VALxdrt_PMAP'V2'pmapproc_set'res"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_set'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre>
+<pre><span id="VALxdrt_PMAP'V2'pmapproc_unset'arg"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_unset'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre>
+<pre><span id="VALxdrt_PMAP'V2'pmapproc_unset'res"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_unset'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre>
+<pre><span id="VALxdrt_PMAP'V2'pmapproc_getport'arg"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_getport'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre>
+<pre><span id="VALxdrt_PMAP'V2'pmapproc_getport'res"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_getport'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre>
+<pre><span id="VALxdrt_PMAP'V2'pmapproc_dump'arg"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_dump'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre>
+<pre><span id="VALxdrt_PMAP'V2'pmapproc_dump'res"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_dump'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre>
+<pre><span id="VALxdrt_PMAP'V2'pmapproc_callit'arg"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_callit'arg</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre>
+<pre><span id="VALxdrt_PMAP'V2'pmapproc_callit'res"><span class="keyword">val</span> xdrt_PMAP'V2'pmapproc_callit'res</span> : <code class="type"><a href="Xdr.html#TYPExdr_type_term">Xdr.xdr_type_term</a></code></pre>
+<pre><span id="VALprogram_PMAP'V2"><span class="keyword">val</span> program_PMAP'V2</span> : <code class="type"><a href="Rpc_program.html#TYPEt">Rpc_program.t</a></code></pre></body></html>

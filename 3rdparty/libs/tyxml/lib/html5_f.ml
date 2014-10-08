@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (* TODO :
    - MathML and SVG
@@ -34,7 +34,8 @@ open Html5_types
 
 module MakeWrapped
     (W : Xml_wrap.T)
-    (Xml : Xml_sigs.Wrapped with type 'a wrap = 'a W.t)
+    (Xml : Xml_sigs.Wrapped with type 'a wrap = 'a W.t
+                             and type 'a list_wrap = 'a W.tlist)
     (Svg : Svg_sigs.T with module Xml := Xml)= struct
 
   module Xml = Xml
@@ -53,14 +54,7 @@ module MakeWrapped
   end
 
   type 'a wrap = 'a W.t
-
-  let opt_fmap f x def = match x with
-    | None -> W.return def
-    | Some x -> W.fmap f x
-  let opt_w x def = match x with
-    | None -> W.return def
-    | Some x -> x
-
+  type 'a list_wrap = 'a W.tlist
 
   type uri = Xml.uri
   let string_of_uri = Xml.string_of_uri
@@ -86,10 +80,7 @@ module MakeWrapped
 
   let user_attrib f name v = Xml.string_attrib name (W.fmap f v)
 
-  let event_handler_attrib = Xml.event_handler_attrib
-
-  (* Deprecated alias. *)
-  let event_attrib = Xml.event_handler_attrib
+  let bool_attrib = user_attrib string_of_bool
 
   (* space-separated *)
   let length_to_string = function
@@ -185,145 +176,81 @@ module MakeWrapped
   let a_property = string_attrib "property"
 
   (* Events: *)
-  let a_onabort = event_attrib "onabort"
-
-  let a_onafterprint = event_attrib "onafterprint"
-
-  let a_onbeforeprint = event_attrib "onbeforeprint"
-
-  let a_onbeforeunload = event_attrib "onbeforeunload"
-
-  let a_onblur = event_attrib "onblur"
-
-  let a_oncanplay = event_attrib "oncanplay"
-
-  let a_oncanplaythrough = event_attrib "oncanplaythrough"
-
-  let a_onchange = event_attrib "onchange"
-
-  let a_onclick = event_attrib "onclick"
-
-  let a_oncontextmenu = event_attrib "oncontextmenu"
-
-  let a_ondblclick = event_attrib "ondblclick"
-
-  let a_ondrag = event_attrib "ondrag"
-
-  let a_ondragend = event_attrib "ondragend"
-
-  let a_ondragenter = event_attrib "ondragenter"
-
-  let a_ondragleave = event_attrib "ondragleave"
-
-  let a_ondragover = event_attrib "ondragover"
-
-  let a_ondragstart = event_attrib "ondragstart"
-
-  let a_ondrop = event_attrib "ondrop"
-
-  let a_ondurationchange = event_attrib "ondurationchange"
-
-  let a_onemptied = event_attrib "onemptied"
-
-  let a_onended = event_attrib "onended"
-
-  let a_onerror = event_attrib "onerror"
-
-  let a_onfocus = event_attrib "onfocus"
-
-  let a_onformchange = event_attrib "onformchange"
-
-  let a_onforminput = event_attrib "onforminput"
-
-  let a_onhashchange = event_attrib "onhashchange"
-
-  let a_oninput = event_attrib "oninput"
-
-  let a_oninvalid = event_attrib "oninvalid"
-
-  let a_onmousedown = event_attrib "onmousedown"
-
-  let a_onmouseup = event_attrib "onmouseup"
-
-  let a_onmouseover = event_attrib "onmouseover"
-
-  let a_onmousemove = event_attrib "onmousemove"
-
-  let a_onmouseout = event_attrib "onmouseout"
-
-  let a_onmousewheel = event_attrib "onmousewheel"
-
-  let a_onoffline = event_attrib "onoffline"
-
-  let a_ononline = event_attrib "ononline"
-
-  let a_onpause = event_attrib "onpause"
-
-  let a_onplay = event_attrib "onplay"
-
-  let a_onplaying = event_attrib "onplaying"
-
-  let a_onpagehide = event_attrib "onpagehide"
-
-  let a_onpageshow = event_attrib "onpageshow"
-
-  let a_onpopstate = event_attrib "onpopstate"
-
-  let a_onprogress = event_attrib "onprogress"
-
-  let a_onratechange = event_attrib "onratechange"
-
-  let a_onreadystatechange = event_attrib "onreadystatechange"
-
-  let a_onredo = event_attrib "onredo"
-
-  let a_onresize = event_attrib "onresize"
-
-  let a_onscroll = event_attrib "onscroll"
-
-  let a_onseeked = event_attrib "onseeked"
-
-  let a_onseeking = event_attrib "onseeking"
-
-  let a_onselect = event_attrib "onselect"
-
-  let a_onshow = event_attrib "onshow"
-
-  let a_onstalled = event_attrib "onstalled"
-
-  let a_onstorage = event_attrib "onstorage"
-
-  let a_onsubmit = event_attrib "onsubmit"
-
-  let a_onsuspend = event_attrib "onsuspend"
-
-  let a_ontimeupdate = event_attrib "ontimeupdate"
-
-  let a_onundo = event_attrib "onundo"
-
-  let a_onunload = event_attrib "onunload"
-
-  let a_onvolumechange = event_attrib "onvolumechange"
-
-  let a_onwaiting = event_attrib "onwaiting"
-
-  let a_onkeypress = event_attrib "onkeypress"
-
-  let a_onkeydown = event_attrib "onkeydown"
-
-  let a_onkeyup = event_attrib "onkeyup"
-
-  let a_onload = event_attrib "onload"
-
-  let a_onloadeddata = event_attrib "onloadeddata"
-
-  let a_onloadedmetadata = event_attrib ""
-
-  let a_onloadstart = event_attrib "onloadstart"
-
-  let a_onmessage = event_attrib "onmessage"
-
-    (* Other Attributes *)
+  let a_onabort = Xml.event_handler_attrib "onabort"
+  let a_onafterprint = Xml.event_handler_attrib "onafterprint"
+  let a_onbeforeprint = Xml.event_handler_attrib "onbeforeprint"
+  let a_onbeforeunload = Xml.event_handler_attrib "onbeforeunload"
+  let a_onblur = Xml.event_handler_attrib "onblur"
+  let a_oncanplay = Xml.event_handler_attrib "oncanplay"
+  let a_oncanplaythrough = Xml.event_handler_attrib "oncanplaythrough"
+  let a_onchange = Xml.event_handler_attrib "onchange"
+  let a_ondurationchange = Xml.event_handler_attrib "ondurationchange"
+  let a_onemptied = Xml.event_handler_attrib "onemptied"
+  let a_onended = Xml.event_handler_attrib "onended"
+  let a_onerror = Xml.event_handler_attrib "onerror"
+  let a_onfocus = Xml.event_handler_attrib "onfocus"
+  let a_onformchange = Xml.event_handler_attrib "onformchange"
+  let a_onforminput = Xml.event_handler_attrib "onforminput"
+  let a_onhashchange = Xml.event_handler_attrib "onhashchange"
+  let a_oninput = Xml.event_handler_attrib "oninput"
+  let a_oninvalid = Xml.event_handler_attrib "oninvalid"
+  let a_onoffline = Xml.event_handler_attrib "onoffline"
+  let a_ononline = Xml.event_handler_attrib "ononline"
+  let a_onpause = Xml.event_handler_attrib "onpause"
+  let a_onplay = Xml.event_handler_attrib "onplay"
+  let a_onplaying = Xml.event_handler_attrib "onplaying"
+  let a_onpagehide = Xml.event_handler_attrib "onpagehide"
+  let a_onpageshow = Xml.event_handler_attrib "onpageshow"
+  let a_onpopstate = Xml.event_handler_attrib "onpopstate"
+  let a_onprogress = Xml.event_handler_attrib "onprogress"
+  let a_onratechange = Xml.event_handler_attrib "onratechange"
+  let a_onreadystatechange = Xml.event_handler_attrib "onreadystatechange"
+  let a_onredo = Xml.event_handler_attrib "onredo"
+  let a_onresize = Xml.event_handler_attrib "onresize"
+  let a_onscroll = Xml.event_handler_attrib "onscroll"
+  let a_onseeked = Xml.event_handler_attrib "onseeked"
+  let a_onseeking = Xml.event_handler_attrib "onseeking"
+  let a_onselect = Xml.event_handler_attrib "onselect"
+  let a_onshow = Xml.event_handler_attrib "onshow"
+  let a_onstalled = Xml.event_handler_attrib "onstalled"
+  let a_onstorage = Xml.event_handler_attrib "onstorage"
+  let a_onsubmit = Xml.event_handler_attrib "onsubmit"
+  let a_onsuspend = Xml.event_handler_attrib "onsuspend"
+  let a_ontimeupdate = Xml.event_handler_attrib "ontimeupdate"
+  let a_onundo = Xml.event_handler_attrib "onundo"
+  let a_onunload = Xml.event_handler_attrib "onunload"
+  let a_onvolumechange = Xml.event_handler_attrib "onvolumechange"
+  let a_onwaiting = Xml.event_handler_attrib "onwaiting"
+  let a_onload = Xml.event_handler_attrib "onload"
+  let a_onloadeddata = Xml.event_handler_attrib "onloadeddata"
+  let a_onloadedmetadata = Xml.event_handler_attrib ""
+  let a_onloadstart = Xml.event_handler_attrib "onloadstart"
+  let a_onmessage = Xml.event_handler_attrib "onmessage"
+  let a_onmousewheel = Xml.event_handler_attrib "onmousewheel"
+
+  (** Javascript mouse events *)
+  let a_onclick = Xml.mouse_event_handler_attrib "onclick"
+  let a_oncontextmenu = Xml.mouse_event_handler_attrib "oncontextmenu"
+  let a_ondblclick = Xml.mouse_event_handler_attrib "ondblclick"
+  let a_ondrag = Xml.mouse_event_handler_attrib "ondrag"
+  let a_ondragend = Xml.mouse_event_handler_attrib "ondragend"
+  let a_ondragenter = Xml.mouse_event_handler_attrib "ondragenter"
+  let a_ondragleave = Xml.mouse_event_handler_attrib "ondragleave"
+  let a_ondragover = Xml.mouse_event_handler_attrib "ondragover"
+  let a_ondragstart = Xml.mouse_event_handler_attrib "ondragstart"
+  let a_ondrop = Xml.mouse_event_handler_attrib "ondrop"
+  let a_onmousedown = Xml.mouse_event_handler_attrib "onmousedown"
+  let a_onmouseup = Xml.mouse_event_handler_attrib "onmouseup"
+  let a_onmouseover = Xml.mouse_event_handler_attrib "onmouseover"
+  let a_onmousemove = Xml.mouse_event_handler_attrib "onmousemove"
+  let a_onmouseout = Xml.mouse_event_handler_attrib "onmouseout"
+
+  (** Javascript keyboard events *)
+  let a_onkeypress = Xml.keyboard_event_handler_attrib "onkeypress"
+  let a_onkeydown = Xml.keyboard_event_handler_attrib "onkeydown"
+  let a_onkeyup = Xml.keyboard_event_handler_attrib "onkeyup"
+
+  (* Other Attributes *)
   let a_version = string_attrib "version"
 
   let a_xmlns x =
@@ -435,13 +362,23 @@ module MakeWrapped
       | `Autoplay -> "autoplay"
     in user_attrib f "autoplay" x
 
+  let a_muted x =
+    let f = function
+      | `Muted -> "muted"
+    in user_attrib f "muted" x
+
+  let a_crossorigin x =
+    let f = function
+      | `Anonymous -> "anonymous"
+      | `Use_credentials -> "use-credentials"
+    in user_attrib f "crossorigin" x
+
+  let a_mediagroup = string_attrib "mediagroup"
+
   let a_challenge = string_attrib "challenge"
 
   let a_contenteditable ce =
-    let f = function
-      | `True -> "true"
-      | `False -> "false"
-    in user_attrib f "contenteditable" ce
+    bool_attrib "contenteditable" ce
 
   let a_contextmenu = string_attrib "contextmenu"
 
@@ -457,10 +394,7 @@ module MakeWrapped
     in user_attrib f "dir" d
 
   let a_draggable d =
-    let f = function
-      | `True -> "true"
-      | `False -> "false"
-    in user_attrib f "draggable" d
+    bool_attrib "draggable" d
 
   let a_form = string_attrib "form"
 
@@ -558,20 +492,17 @@ module MakeWrapped
       | `Reversed -> "reserved"
     in user_attrib f "reserved" x
 
-  let rec a_sandbox sb =
+  let a_sandbox sb =
     let rec aux sb =
       match sb with
-        | `AllowSameOrigin :: a -> "allow-same-origin" :: (aux a)
-        | `AllowForms :: a -> "allow-forms" :: (aux a)
-        | `AllowScript :: a -> "allow-script" :: (aux a)
-        | [] -> []
+      | `AllowSameOrigin :: a -> "allow-same-origin" :: (aux a)
+      | `AllowForms :: a -> "allow-forms" :: (aux a)
+      | `AllowScript :: a -> "allow-script" :: (aux a)
+      | [] -> []
     in space_sep_attrib "sandbox" (W.fmap aux sb)
 
   let a_spellcheck sc =
-    let f = function
-      | `True -> "true"
-      | `False -> "false"
-    in user_attrib f "spellckeck" sc
+    bool_attrib "spellckeck" sc
 
   let a_scoped x =
     let f = function
@@ -749,101 +680,27 @@ module MakeWrapped
 
   type html = [ | `Html ] elt
 
-  (* NB: These are more general than the ones in xhtml.mli *)
   type ('a, 'b) nullary = ?a: (('a attrib) list) -> unit -> 'b elt
 
   type ('a, 'b, 'c) unary = ?a: (('a attrib) list) -> 'b elt wrap -> 'c elt
 
-  type ('a, 'b, 'c, 'd) binary =
-    ?a: (('a attrib) list) -> 'b elt wrap -> 'c elt wrap -> 'd elt
-
-  type ('b, 'c, 'd, 'e) tri = 'b elt wrap -> 'c elt wrap -> 'd elt wrap -> 'e elt
-
   type ('a, 'b, 'c) star =
-    ?a: (('a attrib) list) -> ('b elt) list wrap -> 'c elt
-
-  type ('a, 'b, 'c) plus =
-    ?a: (('a attrib) list) -> 'b elt wrap -> ('b elt) list wrap -> 'c elt
+    ?a: (('a attrib) list) -> ('b elt) list_wrap -> 'c elt
 
   let terminal tag ?a () = Xml.leaf ?a tag
 
-  let nullary tag ?a () =
-    Xml.node ?a tag (W.return [])
-
-  let binary tag ?a elt1 elt2 =
-    let l = W.fmap2 (fun x y -> [x; y]) elt1 elt2 in
-    Xml.node ?a tag l
-
-  let tri tag ?a elt1 elt2 elt3 =
-    let l = W.fmap3 (fun x y z -> [x; y; z]) elt1 elt2 elt3 in
-    Xml.node ?a tag l
-
   let unary tag ?a elt =
-    Xml.node ?a tag W.(bind elt (fun x -> return [ x ]))
+    Xml.node ?a tag (W.singleton elt)
 
   let star tag ?a elts = Xml.node ?a tag elts
 
   let plus tag ?a elt elts =
-    let l = W.fmap2 (fun x y -> x :: y) elt elts in
-    Xml.node ?a tag l
+    Xml.node ?a tag (W.cons elt elts)
 
-  let plus_concat tag ?a elt elts =
-    let l = W.fmap2 (@) elt elts in
-    Xml.node ?a tag l
-
-  let list_of_option = function
-    | Some x -> [ x ]
-    | None -> []
-
-  let list_of_list_option = function
-    | Some x -> x
-    | None -> []
-
-  let srcs_option = function
-    | Some (`Srcs s) -> s
-    | None -> []
-
-  let phrasing_option = function
-    | Some (`Phras p) -> p
-    | None -> []
-
-  let ruby_option = function
-    | Some (`Rt_elt r) -> r
-    | Some (`Group g) -> g
-    | None -> []
-
-  let body_option = function
-    | Some (`Body b) -> b
-    | Some (`Trs t) -> t
-    | None -> []
-
-  let colg_option = function
-    | Some (`Colgroups c) -> c
-    | None -> []
-
-  let opts_option = function
-    | Some (`Options o) -> o
-    | Some (`Optgroups o) -> o
-    | None -> []
-
-  let li_option = function
-    | Some (`Lis l) -> l
-    | Some (`Flows f) -> f
-    | None -> []
-
-  let opt_option = function
-    | Some (`Options o) -> o
-    | Some (`Phras p) -> p
-    | None -> []
-
-  let param_option = function
-    | Some (`Params p) -> p
-    | None -> []
-
-  let cols_option = function
-    | Some (`Cols c) -> c
-    | Some (`Colgroups c) -> c
-    | None -> []
+  let option_cons opt elts =
+    match opt with
+    | None -> elts
+    | Some x -> W.cons x elts
 
   let body = star "body"
 
@@ -851,7 +708,9 @@ module MakeWrapped
 
   let title = unary "title"
 
-  let html = binary "html"
+  let html ?a head body =
+    let content = W.cons head (W.singleton body) in
+    Xml.node ?a "html" content
 
   let footer = star "footer"
 
@@ -885,7 +744,7 @@ module MakeWrapped
 
   let h6 = star "h6"
 
-  let hgroup = plus "hgroup"
+  let hgroup = star "hgroup"
 
   let address = star "address"
 
@@ -925,15 +784,7 @@ module MakeWrapped
 
   let a = star "a"
 
-  let dl ?a list =
-    let f l =
-      List.concat
-        (List.map
-           (fun ((elt, elts), (elt', elts')) ->
-              (elt :: elts) @ (elt' :: elts'))
-           l)
-    in
-    Xml.node ?a "dl" (W.fmap f list)
+  let dl = star "dl"
 
   let ol = star "ol"
 
@@ -961,40 +812,27 @@ module MakeWrapped
 
   let mark = star "mark"
 
-  let rp ?(a = []) elts = (a, elts)
+  let rp = star "rp"
 
-  let rt ?rp ?a elts =
-      match rp with
-      | Some ((a1, e1), (a2, e2)) ->
-          `Rpt (Xml.node ~a: a1 "rp" e1, Xml.node ?a "rt" elts,
-            Xml.node ~a: a2 "rp" e2)
-      | None -> `Rt (Xml.node ?a "rt" elts)
+  let rt = star "rt"
 
-  let ruby ?a elt elts =
-    let rec aux =
-        function
-        | [] -> []
-        | (pel, `Rt e) :: l -> pel @ (e :: (aux l))
-        | (pel, `Rpt (e1, e2, e3)) :: l -> pel @ (e1 :: e2 :: e3 :: (aux l))
-    in
-    let l = W.(bind elt (fun x -> bind elts (fun y -> return (x :: y))))
-    in Xml.node ?a "ruby" (W.fmap aux l)
+  let ruby = star "ruby"
 
   let wbr = terminal "wbr"
 
-    (* VB *)
-    type shape = [ | `Rect | `Circle | `Poly | `Default ]
+  (* VB *)
+  type shape = [ | `Rect | `Circle | `Poly | `Default ]
 
   let bdo ~dir ?(a = []) elts = Xml.node ~a: ((a_dir dir) :: a) "bdo" elts
 
   let a_datetime = string_attrib "datetime"
 
   let a_shape d =
-      let f = function | `Rect -> "rect"
-         | `Circle -> "circle"
-         | `Poly -> "poly"
-         | `Default -> "default"
- in user_attrib f "shape" d
+    let f = function | `Rect -> "rect"
+                     | `Circle -> "circle"
+                     | `Poly -> "poly"
+                     | `Default -> "default"
+    in user_attrib f "shape" d
 
   let a_coords coords =
     let f c = String.concat "," (List.map string_of_int c)
@@ -1009,7 +847,7 @@ module MakeWrapped
 
   let area ~alt ?(a = []) () = Xml.leaf ~a: ((a_alt alt) :: a) "area"
 
-  let map = plus "map"
+  let map = star "map"
 
   let del = star "del"
 
@@ -1017,19 +855,21 @@ module MakeWrapped
 
   let script = unary "script"
 
-  let noscript = plus "noscript"
+  let noscript = star "noscript"
 
   let article = star "article"
 
   let aside = star "aside"
 
-  let video_audio name ?src ?(srcs=W.return []) ?(a = []) elts =
+  let video_audio name ?src ?srcs ?(a = []) elts =
     let a =
       match src with
-        | None -> a
-        | Some uri -> (a_src uri) :: a
+      | None -> a
+      | Some uri -> (a_src uri) :: a
     in
-    plus_concat ~a name srcs elts
+    match srcs with
+    | None -> Xml.node name ~a elts
+    | Some srcs -> Xml.node name ~a (W.append srcs elts)
 
   let audio = video_audio "audio"
 
@@ -1038,10 +878,13 @@ module MakeWrapped
   let canvas = star "canvas"
 
   let command ~label ?(a = []) () =
-      Xml.leaf ~a: ((a_label label) :: a) "command"
+    Xml.leaf ~a: ((a_label label) :: a) "command"
 
   let menu ?child ?a () =
-    let child = opt_fmap (fun x -> li_option (Some x)) child (li_option None) in
+    let child = match child with
+      | None -> W.nil ()
+      | Some (`Lis l)
+      | Some (`Flows l) -> l in
     Xml.node ?a "menu" child
 
   let embed = terminal "embed"
@@ -1052,44 +895,11 @@ module MakeWrapped
 
   let output_elt = star "output"
 
-  let form = plus "form"
+  let form = star "form"
 
   let svg ?(xmlns = "http://www.w3.org/2000/svg") ?(a = []) children =
     star ~a:(string_attrib "xmlns" (W.return xmlns) ::(Svg.to_xmlattribs a))
-      "svg" (W.fmap Svg.toeltl children)
-
-  type input_attr =
-    [ common
-    | `Accept
-    | `Alt
-    | `Autocomplete
-    | `Autofocus
-    | `Checked
-    | `Disabled
-    | `Form
-    | `Formation
-    | `Formenctype
-    | `Formmethod
-    | `Formnovalidate
-    | `Formtarget
-    | `Height
-    | `List
-    | `Input_Max
-    | `Maxlength
-    | `Input_Min
-    | `Multiple
-    | `Name
-    | `Pattern
-    | `Placeholder
-    | `ReadOnly
-    | `Required
-    | `Size
-    | `Src
-    | `Step
-    | `Input_Type
-    | `Value
-    | `Width
-    ]
+      "svg" (W.map Svg.toelt children)
 
   let input = terminal "input"
 
@@ -1106,10 +916,12 @@ module MakeWrapped
   let button = star "button"
 
   let datalist ?children ?a () =
-    let f = function `Options x | `Phras x -> x in
-    Xml.node ?a "datalist" (opt_fmap f children [])
+    let children = match children with
+      | None -> W.nil ()
+      | Some (`Options x | `Phras x) -> x in
+    Xml.node ?a "datalist" children
 
-  let progress = star "proress"
+  let progress = star "progress"
 
   let legend = star "legend"
 
@@ -1119,38 +931,31 @@ module MakeWrapped
   let summary = star "summary"
 
   let fieldset ?legend ?a elts =
-    plus_concat ?a "fieldset" (opt_fmap (fun x -> [ x ]) legend []) elts
+    Xml.node ?a "fieldset" (option_cons legend elts)
 
   let optgroup ~label ?(a = []) elts =
     Xml.node ~a: ((a_label label) :: a) "optgroup" elts
 
   let figcaption = star "figcaption"
   let figure ?figcaption ?a elts =
-    let add_caption caption elts = match caption with
+    let content = match figcaption with
       | None -> elts
-      | Some x ->
-          let f c elts = match c with
-            | `Top figc -> figc :: elts
-            | `Bottom figc -> elts @ [figc]
-          in W.fmap2 f x elts
+      | Some (`Top c) -> W.cons c elts
+      | Some (`Bottom c) -> W.append elts (W.singleton c)
     in
-    let content = add_caption figcaption elts in
     Xml.node ?a "figure" content
 
   let caption = star "caption"
 
   let tablex ?caption ?columns ?thead ?tfoot ?a elts =
-    let thead = opt_fmap (fun x -> [ x ]) thead [] in
-    let columns = opt_w columns [] in
-    let tfoot = opt_fmap (fun x -> [ x ]) tfoot [] in
-    let caption = opt_fmap (fun x -> [ x ]) caption [] in
-    let f caption columns  thead tfoot l =
-      caption @ columns @ thead @ tfoot @ l
-    in Xml.node ?a "table" (W.fmap5 f caption columns thead tfoot elts)
+    let content = option_cons thead (option_cons tfoot elts) in
+    let content = match columns with
+      | None -> content
+      | Some columns -> W.append columns content in
+    let content = option_cons caption content in
+    Xml.node ?a "table" content
 
-  let table ?caption ?columns ?thead ?tfoot ?a elt elts =
-    let l = W.fmap2 (fun x y -> x :: y) elt elts in
-    tablex ?caption ?columns ?thead ?tfoot ?a l
+  let table = tablex
 
   let td = star "td"
 
@@ -1171,13 +976,16 @@ module MakeWrapped
   let iframe = star "iframe"
 
   let object_ ?params ?(a = []) elts =
-    plus_concat ~a "object" (opt_w params []) elts
+    let elts = match params with
+      | None -> elts
+      | Some e -> W.append e elts in
+    Xml.node ~a "object" elts
 
   let param = terminal "param"
 
   let img ~src ~alt ?(a = []) () =
     let a = (a_src src) :: (a_alt alt) :: a in
-      Xml.leaf ~a "img"
+    Xml.leaf ~a "img"
 
   let meta = terminal "meta"
 
@@ -1187,17 +995,6 @@ module MakeWrapped
     Xml.leaf ~a: ((a_rel rel) :: (a_href href) :: a) "link"
 
   let base = terminal "base"
-
-  (* VB *)
-
-  type rt =
-    [ `Rt of [ | `Rt ] elt
-    | `Rpt of (([ | `Rp ] elt) * ([ | `Rt ] elt) * ([ | `Rp ] elt))
-    ]
-
-  type ruby_content = (((phrasing elt) list) * rt)
-
-  type rp = (((common attrib) list) * ((phrasing elt) list wrap))
 
   (******************************************************************)
   (* Conversion from and to Xml module *)
@@ -1233,8 +1030,6 @@ module MakeWrapped
     let space_sep_attrib = Xml.space_sep_attrib
 
     let comma_sep_attrib = Xml.comma_sep_attrib
-
-    let event_handler_attrib = Xml.event_handler_attrib
 
   end
 

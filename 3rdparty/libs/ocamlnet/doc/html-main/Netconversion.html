@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="style.css" type="text/css">
 <meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
 <link rel="Start" href="index.html">
-<link rel="previous" href="Netshm_intro.html">
+<link rel="previous" href="Netstring_pcre.html">
 <link rel="next" href="Netchannels.html">
 <link rel="Up" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -210,12 +210,13 @@
 <title>Ocamlnet 3 Reference Manual : Netconversion</title>
 </head>
 <body>
-<div class="navbar"><a class="pre" href="Netshm_intro.html" title="Netshm_intro">Previous</a>
+<div class="navbar"><a class="pre" href="Netstring_pcre.html" title="Netstring_pcre">Previous</a>
 &nbsp;<a class="up" href="index.html" title="Index">Up</a>
 &nbsp;<a class="post" href="Netchannels.html" title="Netchannels">Next</a>
 </div>
 <h1>Module <a href="type_Netconversion.html">Netconversion</a></h1>
-<pre><span class="keyword">module</span> Netconversion: <code class="code">sig</code> <a href="Netconversion.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Netconversion: <code class="code">sig</code> <a href="Netconversion.html">..</a> <code class="code">end</code></pre><div class="info module top">
 Conversion between character encodings 
 <p>
 
@@ -521,17 +522,20 @@ Conversion between character encodings
 <li>A <code class="code">uarray</code> is an <code class="code">array of int</code> representing a string</li>
 </ul>
 <br>
+
 <pre><span id="EXCEPTIONMalformed_code"><span class="keyword">exception</span> Malformed_code</span></pre>
-<div class="info">
+<div class="info ">
 Raised when an illegal byte sequence is found<br>
 </div>
+
 <pre><span id="EXCEPTIONCannot_represent"><span class="keyword">exception</span> Cannot_represent</span> <span class="keyword">of</span> <code class="type">int</code></pre>
-<div class="info">
+<div class="info ">
 Raised when a certain Unicode code point cannot be represented in
  the selected output encoding<br>
 </div>
+
 <pre><span id="TYPEencoding"><span class="keyword">type</span> <code class="type"></code>encoding</span> = <code class="type">[ `Enc_adobe_standard_encoding<br>       | `Enc_adobe_symbol_encoding<br>       | `Enc_adobe_zapf_dingbats_encoding<br>       | `Enc_cp037<br>       | `Enc_cp1006<br>       | `Enc_cp1026<br>       | `Enc_cp1047<br>       | `Enc_cp424<br>       | `Enc_cp437<br>       | `Enc_cp500<br>       | `Enc_cp737<br>       | `Enc_cp775<br>       | `Enc_cp850<br>       | `Enc_cp852<br>       | `Enc_cp855<br>       | `Enc_cp856<br>       | `Enc_cp857<br>       | `Enc_cp860<br>       | `Enc_cp861<br>       | `Enc_cp862<br>       | `Enc_cp863<br>       | `Enc_cp864<br>       | `Enc_cp865<br>       | `Enc_cp866<br>       | `Enc_cp869<br>       | `Enc_cp874<br>       | `Enc_cp875<br>       | `Enc_empty<br>       | `Enc_eucjp<br>       | `Enc_euckr<br>       | `Enc_iso88591<br>       | `Enc_iso885910<br>       | `Enc_iso885911<br>       | `Enc_iso885913<br>       | `Enc_iso885914<br>       | `Enc_iso885915<br>       | `Enc_iso885916<br>       | `Enc_iso88592<br>       | `Enc_iso88593<br>       | `Enc_iso88594<br>       | `Enc_iso88595<br>       | `Enc_iso88596<br>       | `Enc_iso88597<br>       | `Enc_iso88598<br>       | `Enc_iso88599<br>       | `Enc_java<br>       | `Enc_jis0201<br>       | `Enc_koi8r<br>       | `Enc_macroman<br>       | `Enc_subset of <a href="Netconversion.html#TYPEencoding">encoding</a> * (int -> bool)<br>       | `Enc_usascii<br>       | `Enc_utf16<br>       | `Enc_utf16_be<br>       | `Enc_utf16_le<br>       | `Enc_utf8<br>       | `Enc_windows1250<br>       | `Enc_windows1251<br>       | `Enc_windows1252<br>       | `Enc_windows1253<br>       | `Enc_windows1254<br>       | `Enc_windows1255<br>       | `Enc_windows1256<br>       | `Enc_windows1257<br>       | `Enc_windows1258 ]</code> </pre>
-<div class="info">
+<div class="info ">
 The polymorphic variant enumerating the supported encodings. We have:<ul>
 <li><code class="code">`Enc_utf8</code>: UTF-8</li>
 <li><code class="code">`Enc_java</code>: The UTF-8 variant used by Java (the only difference is
@@ -558,8 +562,9 @@ The polymorphic variant enumerating the supported encodings. We have:<ul>
 <br>
 </div>
 
+
 <pre><span id="TYPEcharset"><span class="keyword">type</span> <code class="type"></code>charset</span> = <code class="type">[ `Set_adobe_standard_encoding<br>       | `Set_adobe_symbol_encoding<br>       | `Set_adobe_zapf_dingbats_encoding<br>       | `Set_cp037<br>       | `Set_cp1006<br>       | `Set_cp1026<br>       | `Set_cp1047<br>       | `Set_cp424<br>       | `Set_cp437<br>       | `Set_cp500<br>       | `Set_cp737<br>       | `Set_cp775<br>       | `Set_cp850<br>       | `Set_cp852<br>       | `Set_cp855<br>       | `Set_cp856<br>       | `Set_cp857<br>       | `Set_cp860<br>       | `Set_cp861<br>       | `Set_cp862<br>       | `Set_cp863<br>       | `Set_cp864<br>       | `Set_cp865<br>       | `Set_cp866<br>       | `Set_cp869<br>       | `Set_cp874<br>       | `Set_cp875<br>       | `Set_iso88591<br>       | `Set_iso885910<br>       | `Set_iso885911<br>       | `Set_iso885913<br>       | `Set_iso885914<br>       | `Set_iso885915<br>       | `Set_iso885916<br>       | `Set_iso88592<br>       | `Set_iso88593<br>       | `Set_iso88594<br>       | `Set_iso88595<br>       | `Set_iso88596<br>       | `Set_iso88597<br>       | `Set_iso88598<br>       | `Set_iso88599<br>       | `Set_jis0201<br>       | `Set_jis0208<br>       | `Set_jis0212<br>       | `Set_koi8r<br>       | `Set_ks1001<br>       | `Set_macroman<br>       | `Set_unicode<br>       | `Set_usascii<br>       | `Set_windows1250<br>       | `Set_windows1251<br>       | `Set_windows1252<br>       | `Set_windows1253<br>       | `Set_windows1254<br>       | `Set_windows1255<br>       | `Set_windows1256<br>       | `Set_windows1257<br>       | `Set_windows1258 ]</code> </pre>
-<div class="info">
+<div class="info ">
 A <code class="code">charset</code> is simply a set of code points. It does not say how
  the code points are encoded as bytes. Every encoding implies a certain
  charset (or several charsets) that can be encoded, but the reverse is 
@@ -599,7 +604,8 @@ A <code class="code">charset</code> is simply a set of code points. It does not 
  When a function can be inlined across module/library boundaries,
  this is indicated by the predicate INLINED. Of course, this works
  only for the ocamlopt compiler.<br>
-<pre><span id="VALencoding_of_string"><span class="keyword">val</span> encoding_of_string</span> : <code class="type">string -> <a href="Netconversion.html#TYPEencoding">encoding</a></code></pre><div class="info">
+
+<pre><span id="VALencoding_of_string"><span class="keyword">val</span> encoding_of_string</span> : <code class="type">string -> <a href="Netconversion.html#TYPEencoding">encoding</a></code></pre><div class="info ">
 Returns the encoding of the name of the encoding. Fails if the 
  encoding is unknown.
  E.g. <code class="code">encoding_of_string "iso-8859-1" = `Enc_iso88591</code> 
@@ -608,10 +614,12 @@ Returns the encoding of the name of the encoding. Fails if the
  Punctuation characters (e.g. "-") and year suffixes (e.g.
  ":1991") are ignored.<br>
 </div>
-<pre><span id="VALstring_of_encoding"><span class="keyword">val</span> string_of_encoding</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALstring_of_encoding"><span class="keyword">val</span> string_of_encoding</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -> string</code></pre><div class="info ">
 Returns the name of the encoding.<br>
 </div>
-<pre><span id="VALis_ascii_compatible"><span class="keyword">val</span> is_ascii_compatible</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -> bool</code></pre><div class="info">
+
+<pre><span id="VALis_ascii_compatible"><span class="keyword">val</span> is_ascii_compatible</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -> bool</code></pre><div class="info ">
 "ASCII compatible" means: The bytes 1 to 127 represent the ASCII
  codes 1 to 127, and no other representation of a character contains
  the bytes 1 to 127.
@@ -631,10 +639,12 @@ Returns the name of the encoding.<br>
  language uses it with a special meaning that has nothing to do with
  characters, so it is questionable to interpret the byte 0 anyway.<br>
 </div>
-<pre><span id="VALis_single_byte"><span class="keyword">val</span> is_single_byte</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -> bool</code></pre><div class="info">
+
+<pre><span id="VALis_single_byte"><span class="keyword">val</span> is_single_byte</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -> bool</code></pre><div class="info ">
 Returns whether the encoding is a single-byte encoding<br>
 </div>
-<pre><span id="VALsame_encoding"><span class="keyword">val</span> same_encoding</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -> <a href="Netconversion.html#TYPEencoding">encoding</a> -> bool</code></pre><div class="info">
+
+<pre><span id="VALsame_encoding"><span class="keyword">val</span> same_encoding</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -> <a href="Netconversion.html#TYPEencoding">encoding</a> -> bool</code></pre><div class="info ">
 Whether both encodings are the same. <code class="code">`Enc_subset</code> encodings are only
  considered as equal when the definition functions are physically the same.
 <p>
@@ -642,7 +652,8 @@ Whether both encodings are the same. <code class="code">`Enc_subset</code> encod
  Warning: Don't use ( = ) to compare encodings because this may
  fail.<br>
 </div>
-<pre><span id="VALbyte_order_mark"><span class="keyword">val</span> byte_order_mark</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALbyte_order_mark"><span class="keyword">val</span> byte_order_mark</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -> string</code></pre><div class="info ">
 Returns the byte order mark that must occur at the beginning of
  files to indicate whether "little endian" or "big endian" is used.
  If this does not apply to the encoding, an empty string is returned.
@@ -650,7 +661,8 @@ Returns the byte order mark that must occur at the beginning of
 
  See also the section about "<a href="Netconversion.html#bom"><i>Byte Order Marks</i></a>" below.<br>
 </div>
-<pre><span id="VALmakechar"><span class="keyword">val</span> makechar</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -> int -> string</code></pre><div class="info">
+
+<pre><span id="VALmakechar"><span class="keyword">val</span> makechar</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -> int -> string</code></pre><div class="info ">
 <span class="warning">Deprecated.</span>This function is deprecated since ocamlnet-0.96. Use
    <code class="code">ustring_of_uchar</code> instead.<br>
 <code class="code">makechar enc i:</code>
@@ -668,7 +680,8 @@ Returns the byte order mark that must occur at the beginning of
 
 <br>
 </div>
-<pre><span id="VALustring_of_uchar"><span class="keyword">val</span> ustring_of_uchar</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -> int -> string</code></pre><div class="info">
+
+<pre><span id="VALustring_of_uchar"><span class="keyword">val</span> ustring_of_uchar</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -> int -> string</code></pre><div class="info ">
 <code class="code">ustring_of_uchar enc i</code>:
  Creates the string representing the Unicode code point <code class="code">i</code> in encoding
  <code class="code">enc</code>. Raises <code class="code">Cannot_represent i</code> if the character is legal but cannot be 
@@ -683,7 +696,8 @@ Returns the byte order mark that must occur at the beginning of
 </ul>
 <br>
 </div>
-<pre><span id="VALto_unicode"><span class="keyword">val</span> to_unicode</span> : <code class="type"><a href="Netconversion.html#TYPEcharset">charset</a> -> int -> int</code></pre><div class="info">
+
+<pre><span id="VALto_unicode"><span class="keyword">val</span> to_unicode</span> : <code class="type"><a href="Netconversion.html#TYPEcharset">charset</a> -> int -> int</code></pre><div class="info ">
 Maps the code point of the charset to the corresponding 
  Unicode code point, or raises <code class="code">Malformed_code</code>, when the
  input number does not correspond to a code point.
@@ -700,7 +714,8 @@ Maps the code point of the charset to the corresponding
 </ul>
 <br>
 </div>
-<pre><span id="VALfrom_unicode"><span class="keyword">val</span> from_unicode</span> : <code class="type"><a href="Netconversion.html#TYPEcharset">charset</a> -> int -> int</code></pre><div class="info">
+
+<pre><span id="VALfrom_unicode"><span class="keyword">val</span> from_unicode</span> : <code class="type"><a href="Netconversion.html#TYPEcharset">charset</a> -> int -> int</code></pre><div class="info ">
 Maps the Unicode code point to the corresponding code point of
  the charset, or raises <code class="code">Cannot_represent</code> when there is no such
  corresponding code point.
@@ -717,17 +732,20 @@ Maps the Unicode code point to the corresponding code point of
 </ul>
 <br>
 </div>
-<pre><span id="VALavailable_input_encodings"><span class="keyword">val</span> available_input_encodings</span> : <code class="type">unit -> <a href="Netconversion.html#TYPEencoding">encoding</a> list</code></pre><div class="info">
+
+<pre><span id="VALavailable_input_encodings"><span class="keyword">val</span> available_input_encodings</span> : <code class="type">unit -> <a href="Netconversion.html#TYPEencoding">encoding</a> list</code></pre><div class="info ">
 Returns the list of all available encodings that can be used for
  input strings. The list reflects the set of loadable/linked <code class="code">Netmapping</code>
  modules.<br>
 </div>
-<pre><span id="VALavailable_output_encodings"><span class="keyword">val</span> available_output_encodings</span> : <code class="type">unit -> <a href="Netconversion.html#TYPEencoding">encoding</a> list</code></pre><div class="info">
+
+<pre><span id="VALavailable_output_encodings"><span class="keyword">val</span> available_output_encodings</span> : <code class="type">unit -> <a href="Netconversion.html#TYPEencoding">encoding</a> list</code></pre><div class="info ">
 Returns the list of all available encodings that can be used for
  output strings. The list reflects the set of loadable/linked <code class="code">Netmapping</code>
  modules.<br>
 </div>
-<pre><span id="VALuser_encoding"><span class="keyword">val</span> user_encoding</span> : <code class="type">unit -> <a href="Netconversion.html#TYPEencoding">encoding</a> option</code></pre><div class="info">
+
+<pre><span id="VALuser_encoding"><span class="keyword">val</span> user_encoding</span> : <code class="type">unit -> <a href="Netconversion.html#TYPEencoding">encoding</a> option</code></pre><div class="info ">
 Determines the preferred user encoding:
 <p>
 <ul>
@@ -738,7 +756,8 @@ Determines the preferred user encoding:
       If an error occurs while determining the result, the value
       <code class="code">None</code> is returned.<br>
 </div>
-<pre><span id="VALwin32_code_pages"><span class="keyword">val</span> win32_code_pages</span> : <code class="type">(int * <a href="Netconversion.html#TYPEencoding">encoding</a>) list</code></pre><div class="info">
+
+<pre><span id="VALwin32_code_pages"><span class="keyword">val</span> win32_code_pages</span> : <code class="type">(int * <a href="Netconversion.html#TYPEencoding">encoding</a>) list</code></pre><div class="info ">
 Mapping between Win32 code page numbers and Ocamlnet encodings.
       This is incomplete. The official list:
       http://msdn.microsoft.com/en-us/library/dd317756%28v=VS.85%29.aspx<br>
@@ -762,7 +781,8 @@ In order to convert a string from one encoding to another, call
  This use case is effectively handled by the class 
  <a href="Netconversion.conversion_pipe-c.html"><code class="code">Netconversion.conversion_pipe</code></a>.
  See the explanations of this class for examples.<br>
-<pre><span id="VALconvert"><span class="keyword">val</span> convert</span> : <code class="type">?subst:(int -> string) -><br>       in_enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       out_enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       ?range_pos:int -> ?range_len:int -> string -> string</code></pre><div class="info">
+
+<pre><span id="VALconvert"><span class="keyword">val</span> convert</span> : <code class="type">?subst:(int -> string) -><br>       in_enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       out_enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       ?range_pos:int -> ?range_len:int -> string -> string</code></pre><div class="info ">
 Converts the string from <code class="code">in_enc</code> to <code class="code">out_enc</code>, and returns it.
  The string must consist of a whole number of characters. If it
  ends with an incomplete multi-byte character, however, this is
@@ -785,7 +805,8 @@ Converts the string from <code class="code">in_enc</code> to <code class="code">
 <div class="param_info"><code class="code">range_len</code> : Selects a substring for conversion. <code class="code">range_len</code>
    is the length of the substring in bytes (Default: Length
    of the input string minus <code class="code">range_pos</code>)</div>
-<pre><span id="VALrecode_string"><span class="keyword">val</span> recode_string</span> : <code class="type">in_enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       out_enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -> ?subst:(int -> string) -> string -> string</code></pre><div class="info">
+
+<pre><span id="VALrecode_string"><span class="keyword">val</span> recode_string</span> : <code class="type">in_enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       out_enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -> ?subst:(int -> string) -> string -> string</code></pre><div class="info ">
 <span class="warning">Deprecated.</span>This function is obsolete since ocamlnet-0.96. Use
    <code class="code">convert</code> instead.<br>
 Recodes a complete string from <code class="code">in_enc</code> to <code class="code">out_enc</code>, and returns it.
@@ -799,7 +820,8 @@ Recodes a complete string from <code class="code">in_enc</code> to <code class="
 
 <br>
 </div>
-<pre><span id="VALrecode"><span class="keyword">val</span> recode</span> : <code class="type">in_enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       in_buf:string -><br>       in_pos:int -><br>       in_len:int -><br>       out_enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       out_buf:string -><br>       out_pos:int -><br>       out_len:int -><br>       max_chars:int -> subst:(int -> string) -> int * int * <a href="Netconversion.html#TYPEencoding">encoding</a></code></pre><div class="info">
+
+<pre><span id="VALrecode"><span class="keyword">val</span> recode</span> : <code class="type">in_enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       in_buf:string -><br>       in_pos:int -><br>       in_len:int -><br>       out_enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       out_buf:string -><br>       out_pos:int -><br>       out_len:int -><br>       max_chars:int -> subst:(int -> string) -> int * int * <a href="Netconversion.html#TYPEencoding">encoding</a></code></pre><div class="info ">
  Converts the character sequence contained in the at most <code class="code">in_len</code> bytes
  of <code class="code">in_buf</code> starting at byte position <code class="code">in_pos</code>, and writes the result 
  into at most <code class="code">out_len</code> bytes of <code class="code">out_buf</code> starting at byte position
@@ -847,10 +869,12 @@ Recodes a complete string from <code class="code">in_enc</code> to <code class="
  space for one complete character in <code class="code">out_buf</code>, and <code class="code">max_chars &gt;= 1</code>, it is 
  guaranteed that <code class="code">in_n &gt; 0 &amp;&amp; out_n &gt; 0</code>.<br>
 </div>
+
 <pre><span name="TYPEconversion_pipe"><span class="keyword">class</span> <a href="Netconversion.conversion_pipe-c.html">conversion_pipe</a></span> : <code class="type">?subst:int -> string -> in_enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -> out_enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -> unit -> </code><code class="type"><a href="Netchannels.io_obj_channel-c.html">Netchannels.io_obj_channel</a></code></pre><div class="info">
 This pipeline class (see <code class="code">Netchannels</code> for more information) can be used
  to recode a netchannel while reading or writing.
 </div>
+
 <pre><span name="TYPErecoding_pipe"><span class="keyword">class</span> <a href="Netconversion.recoding_pipe-c.html">recoding_pipe</a></span> : <code class="type">?subst:int -> string -> in_enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -> out_enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -> unit -> </code><code class="type"><a href="Netchannels.io_obj_channel-c.html">Netchannels.io_obj_channel</a></code></pre><div class="info">
 <span class="deprecated">Recodes a channel like <code class="code">conversion_pipe</code>.
 </span></div>
@@ -928,35 +952,41 @@ This pipeline class (see <code class="code">Netchannels</code> for more informat
 
  It is undefined what happens when the encoded string is modified
  while a cursor is in use referring to it.<br>
+
 <pre><span id="TYPEcursor"><span class="keyword">type</span> <code class="type"></code>cursor</span> </pre>
-<div class="info">
+<div class="info ">
 A cursor denotes a character position in an encoded string<br>
 </div>
 
+
 <pre><span id="EXCEPTIONEnd_of_string"><span class="keyword">exception</span> End_of_string</span></pre>
-<div class="info">
+<div class="info ">
 Raised when it is tried to access the character after the end of the
  string (at position <code class="code">n_max</code>)<br>
 </div>
+
 <pre><span id="EXCEPTIONCursor_out_of_range"><span class="keyword">exception</span> Cursor_out_of_range</span></pre>
-<div class="info">
+<div class="info ">
 Raised when it is tried to move the cursor beyond the beginning of the
  string or beyond the end of the string. In the latter case, it is
  legal to move the cursor to the position following the last character,
  but it is not possible to move it further.<br>
 </div>
+
 <pre><span id="EXCEPTIONPartial_character"><span class="keyword">exception</span> Partial_character</span></pre>
-<div class="info">
+<div class="info ">
 Raised when the last character of the string is an incomplete
  multi-byte character, and it is tried to get the code point
  (using <code class="code">uchar_at</code>).<br>
 </div>
+
 <pre><span id="EXCEPTIONByte_order_mark"><span class="keyword">exception</span> Byte_order_mark</span></pre>
-<div class="info">
+<div class="info ">
 Raised when it is tried to get the code point of the BOM at the
  beginning of the string<br>
 </div>
-<pre><span id="VALcreate_cursor"><span class="keyword">val</span> create_cursor</span> : <code class="type">?range_pos:int -><br>       ?range_len:int -><br>       ?initial_rel_pos:int -><br>       <a href="Netconversion.html#TYPEencoding">encoding</a> -> string -> <a href="Netconversion.html#TYPEcursor">cursor</a></code></pre><div class="info">
+
+<pre><span id="VALcreate_cursor"><span class="keyword">val</span> create_cursor</span> : <code class="type">?range_pos:int -><br>       ?range_len:int -><br>       ?initial_rel_pos:int -><br>       <a href="Netconversion.html#TYPEencoding">encoding</a> -> string -> <a href="Netconversion.html#TYPEcursor">cursor</a></code></pre><div class="info ">
 Creates a new cursor for the passed string and the passed encoding.
  By default, the allowed range of the cursor is the whole string,
  and the cursor is intially positioned at the beginning of the string.
@@ -988,11 +1018,13 @@ Creates a new cursor for the passed string and the passed encoding.
    as bytes relative to <code class="code">range_pos</code>. The character at this position
    is considered as the zeroth character of the string (as reported
    by <code class="code">cursor_char_count</code>)</div>
-<pre><span id="VALreinit_cursor"><span class="keyword">val</span> reinit_cursor</span> : <code class="type">?range_pos:int -><br>       ?range_len:int -><br>       ?initial_rel_pos:int -><br>       ?enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -> string -> <a href="Netconversion.html#TYPEcursor">cursor</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALreinit_cursor"><span class="keyword">val</span> reinit_cursor</span> : <code class="type">?range_pos:int -><br>       ?range_len:int -><br>       ?initial_rel_pos:int -><br>       ?enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -> string -> <a href="Netconversion.html#TYPEcursor">cursor</a> -> unit</code></pre><div class="info ">
 Reuses an existing cursor for a new purpose. The arguments are
  as in <code class="code">create_cursor</code>.<br>
 </div>
-<pre><span id="VALcopy_cursor"><span class="keyword">val</span> copy_cursor</span> : <code class="type">?enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -> <a href="Netconversion.html#TYPEcursor">cursor</a> -> <a href="Netconversion.html#TYPEcursor">cursor</a></code></pre><div class="info">
+
+<pre><span id="VALcopy_cursor"><span class="keyword">val</span> copy_cursor</span> : <code class="type">?enc:<a href="Netconversion.html#TYPEencoding">encoding</a> -> <a href="Netconversion.html#TYPEcursor">cursor</a> -> <a href="Netconversion.html#TYPEcursor">cursor</a></code></pre><div class="info ">
 Copies the cursor. The copy can be moved independently of the original
  cursor, but is applied to the same string. The copy starts at the
  byte position of the string where the original cursor is currently
@@ -1003,7 +1035,8 @@ Copies the cursor. The copy can be moved independently of the original
 </div>
 <div class="param_info"><code class="code">enc</code> : Optionally, the assumed
    encoding can be changed to a different one by passing <code class="code">enc</code>.</div>
-<pre><span id="VALcursor_target"><span class="keyword">val</span> cursor_target</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALcursor_target"><span class="keyword">val</span> cursor_target</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> string</code></pre><div class="info ">
 Returns the string of the cursor
 <p>
 
@@ -1012,7 +1045,8 @@ Returns the string of the cursor
 </ul>
 <br>
 </div>
-<pre><span id="VALcursor_range"><span class="keyword">val</span> cursor_range</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> int * int</code></pre><div class="info">
+
+<pre><span id="VALcursor_range"><span class="keyword">val</span> cursor_range</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> int * int</code></pre><div class="info ">
 Returns the valid range of the cursor as pair <code class="code">(range_pos, range_len)</code> 
 <p>
 
@@ -1021,7 +1055,8 @@ Returns the valid range of the cursor as pair <code class="code">(range_pos, ran
 </ul>
 <br>
 </div>
-<pre><span id="VALcursor_initial_rel_pos"><span class="keyword">val</span> cursor_initial_rel_pos</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> int</code></pre><div class="info">
+
+<pre><span id="VALcursor_initial_rel_pos"><span class="keyword">val</span> cursor_initial_rel_pos</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> int</code></pre><div class="info ">
 Returns the initial relative byte position of the cursor 
 <p>
 
@@ -1030,7 +1065,8 @@ Returns the initial relative byte position of the cursor
 </ul>
 <br>
 </div>
-<pre><span id="VALcursor_char_count"><span class="keyword">val</span> cursor_char_count</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> int</code></pre><div class="info">
+
+<pre><span id="VALcursor_char_count"><span class="keyword">val</span> cursor_char_count</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> int</code></pre><div class="info ">
 Returns the character count of the cursor. The initial position
  (when <code class="code">create_cursor</code> was called) has the number 0, positions to the
  right denote positive numbers, and positions to the left negative numbers.
@@ -1041,7 +1077,8 @@ Returns the character count of the cursor. The initial position
 </ul>
 <br>
 </div>
-<pre><span id="VALcursor_pos"><span class="keyword">val</span> cursor_pos</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> int</code></pre><div class="info">
+
+<pre><span id="VALcursor_pos"><span class="keyword">val</span> cursor_pos</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> int</code></pre><div class="info ">
 Returns the byte position of the cursor, i.e. the byte index of
  the string that corresponds to the cursor position. The function
  returns the absolute position (i.e. NOT relative to <code class="code">cursor_range</code>).
@@ -1052,7 +1089,8 @@ Returns the byte position of the cursor, i.e. the byte index of
 </ul>
 <br>
 </div>
-<pre><span id="VALuchar_at"><span class="keyword">val</span> uchar_at</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> int</code></pre><div class="info">
+
+<pre><span id="VALuchar_at"><span class="keyword">val</span> uchar_at</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> int</code></pre><div class="info ">
 Returns the Unicode code point of the character at the cursor.
  Raises <code class="code">End_of_string</code> if the cursor is positioned past the last
  character.
@@ -1067,7 +1105,8 @@ Returns the Unicode code point of the character at the cursor.
 </ul>
 <br>
 </div>
-<pre><span id="VALcursor_byte_length"><span class="keyword">val</span> cursor_byte_length</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> int</code></pre><div class="info">
+
+<pre><span id="VALcursor_byte_length"><span class="keyword">val</span> cursor_byte_length</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> int</code></pre><div class="info ">
 Returns the byte length of the representation of the character at the
  cursor. This works also for incomplete multi-byte characters and
  BOMs.
@@ -1080,7 +1119,8 @@ Returns the byte length of the representation of the character at the
 </ul>
 <br>
 </div>
-<pre><span id="VALcursor_at_end"><span class="keyword">val</span> cursor_at_end</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> bool</code></pre><div class="info">
+
+<pre><span id="VALcursor_at_end"><span class="keyword">val</span> cursor_at_end</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> bool</code></pre><div class="info ">
 Returns whether the cursor is positioned past the last character.
 <p>
 
@@ -1089,7 +1129,8 @@ Returns whether the cursor is positioned past the last character.
 </ul>
 <br>
 </div>
-<pre><span id="VALmove"><span class="keyword">val</span> move</span> : <code class="type">?num:int -> <a href="Netconversion.html#TYPEcursor">cursor</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALmove"><span class="keyword">val</span> move</span> : <code class="type">?num:int -> <a href="Netconversion.html#TYPEcursor">cursor</a> -> unit</code></pre><div class="info ">
 Moves the cursor one character to the right, or if <code class="code">num</code> is passed,
  this number of characters to the right. <code class="code">num</code> can be negative in
  which case the cursor is moved to the left.
@@ -1101,7 +1142,8 @@ Moves the cursor one character to the right, or if <code class="code">num</code>
  leftmost or rightmost position (depending on the direction),
  and the exception <code class="code">Cursor_out_of_range</code> is raised.<br>
 </div>
-<pre><span id="VALcursor_encoding"><span class="keyword">val</span> cursor_encoding</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> <a href="Netconversion.html#TYPEencoding">encoding</a></code></pre><div class="info">
+
+<pre><span id="VALcursor_encoding"><span class="keyword">val</span> cursor_encoding</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> <a href="Netconversion.html#TYPEencoding">encoding</a></code></pre><div class="info ">
 Returns the encoding of the cursor. For some encodings, the
  returned encoding depends on the position of the cursor (see
  the note about UTF-8 in <code class="code">create_cursor</code>)
@@ -1112,7 +1154,8 @@ Returns the encoding of the cursor. For some encodings, the
 </ul>
 <br>
 </div>
-<pre><span id="VALcursor_blit"><span class="keyword">val</span> cursor_blit</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> int array -> int -> int -> int</code></pre><div class="info">
+
+<pre><span id="VALcursor_blit"><span class="keyword">val</span> cursor_blit</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> int array -> int -> int -> int</code></pre><div class="info ">
 <code class="code">cursor_blit cs ua pos len</code>: Copies at most <code class="code">len</code> characters as code
  points from
  the cursor position and the following positions to the array <code class="code">ua</code>
@@ -1133,7 +1176,8 @@ Returns the encoding of the cursor. For some encodings, the
 
  The function does not move the cursor.<br>
 </div>
-<pre><span id="VALcursor_blit_maxlen"><span class="keyword">val</span> cursor_blit_maxlen</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> int</code></pre><div class="info">
+
+<pre><span id="VALcursor_blit_maxlen"><span class="keyword">val</span> cursor_blit_maxlen</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> int</code></pre><div class="info ">
 Returns the maximum number of characters <code class="code">cursor_blit</code> can copy
  at the current cursor position. This is the number of characters
  <code class="code">cursor_blit</code> would copy if the <code class="code">len</code> argument were arbitrarily
@@ -1147,7 +1191,8 @@ Returns the maximum number of characters <code class="code">cursor_blit</code> c
  This function raises <code class="code">End_of_string</code> if the cursor is positioned
  at the end of the string.<br>
 </div>
-<pre><span id="VALcursor_blit_positions"><span class="keyword">val</span> cursor_blit_positions</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> int array -> int -> int -> int</code></pre><div class="info">
+
+<pre><span id="VALcursor_blit_positions"><span class="keyword">val</span> cursor_blit_positions</span> : <code class="type"><a href="Netconversion.html#TYPEcursor">cursor</a> -> int array -> int -> int -> int</code></pre><div class="info ">
 Works like <code class="code">cursor_blit</code>, but copies the byte positions of the
  characters into <code class="code">ua</code> instead of the code points.
 <p>
@@ -1277,7 +1322,8 @@ Works like <code class="code">cursor_blit</code>, but copies the byte positions 
  iterate over the characters of the string one after another.<br>
 <br>
 <h2 id="unicode_functions">Unicode String Functions</h2><br>
-<pre><span id="VALustring_length"><span class="keyword">val</span> ustring_length</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -> ?range_pos:int -> ?range_len:int -> string -> int</code></pre><div class="info">
+
+<pre><span id="VALustring_length"><span class="keyword">val</span> ustring_length</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -> ?range_pos:int -> ?range_len:int -> string -> int</code></pre><div class="info ">
 Returns the length of the string in characters. The function fails
  when illegal byte sequences or incomplete characters are found in the
  string with <code class="code">Malformed_code</code>.
@@ -1293,7 +1339,8 @@ Returns the length of the string in characters. The function fails
    (default: 0)</div>
 <div class="param_info"><code class="code">range_len</code> : The byte length of the substring to measure
    (default: byte length of the input string minus <code class="code">range_pos</code>)</div>
-<pre><span id="VALustring_iter"><span class="keyword">val</span> ustring_iter</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       (int -> unit) -> ?range_pos:int -> ?range_len:int -> string -> unit</code></pre><div class="info">
+
+<pre><span id="VALustring_iter"><span class="keyword">val</span> ustring_iter</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       (int -> unit) -> ?range_pos:int -> ?range_len:int -> string -> unit</code></pre><div class="info ">
 Iterates over the characters of a string, and calls the passed function
  for every code point. The function raises <code class="code">Malformed_code</code> when
  illegal byte sequences or incomplete characters are found.
@@ -1305,7 +1352,8 @@ Iterates over the characters of a string, and calls the passed function
    (default: 0)</div>
 <div class="param_info"><code class="code">range_len</code> : The byte length of the substring to iterate over
    (default: byte length of the input string minus <code class="code">range_pos</code>)</div>
-<pre><span id="VALustring_map"><span class="keyword">val</span> ustring_map</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       (int -> int list) -> ?range_pos:int -> ?range_len:int -> string -> string</code></pre><div class="info">
+
+<pre><span id="VALustring_map"><span class="keyword">val</span> ustring_map</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       (int -> int list) -> ?range_pos:int -> ?range_len:int -> string -> string</code></pre><div class="info ">
 Maps every character of a string to a list of characters, and returns
  the concatenated string. 
  The <code class="code">encoding</code> argument determines the encoding of both the argument
@@ -1324,7 +1372,8 @@ Maps every character of a string to a list of characters, and returns
    (default: 0)</div>
 <div class="param_info"><code class="code">range_len</code> : The byte length of the substring to map
    (default: byte length of the input string minus <code class="code">range_pos</code>)</div>
-<pre><span id="VALustring_to_lower"><span class="keyword">val</span> ustring_to_lower</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       ?range_pos:int -> ?range_len:int -> string -> string</code></pre><div class="info">
+
+<pre><span id="VALustring_to_lower"><span class="keyword">val</span> ustring_to_lower</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       ?range_pos:int -> ?range_len:int -> string -> string</code></pre><div class="info ">
 Converts the input string to lowercase.
 <p>
 
@@ -1332,7 +1381,8 @@ Converts the input string to lowercase.
       as for <code class="code">ustring_map</code>. The exception <code class="code">Malformed_code</code> is raised
       when illegal byte sequences are found.<br>
 </div>
-<pre><span id="VALustring_to_upper"><span class="keyword">val</span> ustring_to_upper</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       ?range_pos:int -> ?range_len:int -> string -> string</code></pre><div class="info">
+
+<pre><span id="VALustring_to_upper"><span class="keyword">val</span> ustring_to_upper</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       ?range_pos:int -> ?range_len:int -> string -> string</code></pre><div class="info ">
 Converts the input string to uppercase.
 <p>
 
@@ -1340,7 +1390,8 @@ Converts the input string to uppercase.
       as for <code class="code">ustring_map</code>. The exception <code class="code">Malformed_code</code> is raised
       when illegal byte sequences are found.<br>
 </div>
-<pre><span id="VALustring_to_title"><span class="keyword">val</span> ustring_to_title</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       ?range_pos:int -> ?range_len:int -> string -> string</code></pre><div class="info">
+
+<pre><span id="VALustring_to_title"><span class="keyword">val</span> ustring_to_title</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       ?range_pos:int -> ?range_len:int -> string -> string</code></pre><div class="info ">
 Converts the input string to titlecase.
 <p>
 
@@ -1348,7 +1399,8 @@ Converts the input string to titlecase.
       as for <code class="code">ustring_map</code>. The exception <code class="code">Malformed_code</code> is raised
       when illegal byte sequences are found.<br>
 </div>
-<pre><span id="VALustring_sub"><span class="keyword">val</span> ustring_sub</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       int -> int -> ?range_pos:int -> ?range_len:int -> string -> string</code></pre><div class="info">
+
+<pre><span id="VALustring_sub"><span class="keyword">val</span> ustring_sub</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       int -> int -> ?range_pos:int -> ?range_len:int -> string -> string</code></pre><div class="info ">
 <code class="code">ustring_sub enc start length s</code>: Returns the substring of <code class="code">s</code> starting
  at character count <code class="code">start</code> and consisting of <code class="code">length</code> characters. Note
  that <code class="code">start</code> and <code class="code">length</code> select the substring by multiples of
@@ -1371,7 +1423,8 @@ Converts the input string to titlecase.
    (default: 0)</div>
 <div class="param_info"><code class="code">range_len</code> : The byte length of the substring to extract
    (default: byte length of the input string minus <code class="code">range_pos</code>)</div>
-<pre><span id="VALustring_compare"><span class="keyword">val</span> ustring_compare</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       (int -> int -> int) -><br>       ?range_pos:int -><br>       ?range_len:int -> string -> ?range_pos:int -> ?range_len:int -> string -> int</code></pre><div class="info">
+
+<pre><span id="VALustring_compare"><span class="keyword">val</span> ustring_compare</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       (int -> int -> int) -><br>       ?range_pos:int -><br>       ?range_len:int -> string -> ?range_pos:int -> ?range_len:int -> string -> int</code></pre><div class="info ">
 Compares two strings lexicographically. The first argument is the
  encoding of both strings (which must be the same). The second argument
  is the function that compares two Unicode code points. It must return
@@ -1396,11 +1449,13 @@ Compares two strings lexicographically. The first argument is the
 <div class="param_info"><code class="code">range_len</code> : The byte length of the substring to compare
    (default: byte length of the input string minus <code class="code">range_pos</code>),
    referring to the following string argument</div>
-<pre><span id="VALcode_cmp"><span class="keyword">val</span> code_cmp</span> : <code class="type">int -> int -> int</code></pre><div class="info">
+
+<pre><span id="VALcode_cmp"><span class="keyword">val</span> code_cmp</span> : <code class="type">int -> int -> int</code></pre><div class="info ">
 A compare function for <code class="code">ustring_compare</code>: Normal string comparison:
       This function compares by code point<br>
 </div>
-<pre><span id="VALci_code_cmp"><span class="keyword">val</span> ci_code_cmp</span> : <code class="type">int -> int -> int</code></pre><div class="info">
+
+<pre><span id="VALci_code_cmp"><span class="keyword">val</span> ci_code_cmp</span> : <code class="type">int -> int -> int</code></pre><div class="info ">
 A compare function for <code class="code">ustring_compare</code>: Case-insensitive comparison:
       This function compares by the lowercase code point if it exists, 
       and the untransformed code point otherwise.
@@ -1409,7 +1464,8 @@ A compare function for <code class="code">ustring_compare</code>: Case-insensiti
       NB. This bases on the lowercase transformation that maps one char
       to only one char, and not to many.<br>
 </div>
-<pre><span id="VALuarray_of_ustring"><span class="keyword">val</span> uarray_of_ustring</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       ?range_pos:int -> ?range_len:int -> string -> int array</code></pre><div class="info">
+
+<pre><span id="VALuarray_of_ustring"><span class="keyword">val</span> uarray_of_ustring</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -><br>       ?range_pos:int -> ?range_len:int -> string -> int array</code></pre><div class="info ">
 Returns the characters of the string as array of Unicode code points.
 <p>
 
@@ -1419,7 +1475,8 @@ Returns the characters of the string as array of Unicode code points.
    (default: 0)</div>
 <div class="param_info"><code class="code">range_len</code> : The byte length of the substring to extract
    (default: byte length of the input string minus <code class="code">range_pos</code>)</div>
-<pre><span id="VALustring_of_uarray"><span class="keyword">val</span> ustring_of_uarray</span> : <code class="type">?subst:(int -> string) -><br>       <a href="Netconversion.html#TYPEencoding">encoding</a> -> ?pos:int -> ?len:int -> int array -> string</code></pre><div class="info">
+
+<pre><span id="VALustring_of_uarray"><span class="keyword">val</span> ustring_of_uarray</span> : <code class="type">?subst:(int -> string) -><br>       <a href="Netconversion.html#TYPEencoding">encoding</a> -> ?pos:int -> ?len:int -> int array -> string</code></pre><div class="info ">
 Returns the array of Unicode code points as encoded string.
 <p>
 
@@ -1434,11 +1491,13 @@ Returns the array of Unicode code points as encoded string.
    to encode (default: 0)</div>
 <div class="param_info"><code class="code">len</code> : Selects a subarray: <code class="code">len</code> is the length of the subarray
    to encode (default: array length minus <code class="code">pos</code>)</div>
+
 <pre><span id="EXCEPTIONMalformed_code_at"><span class="keyword">exception</span> Malformed_code_at</span> <span class="keyword">of</span> <code class="type">int</code></pre>
-<div class="info">
+<div class="info ">
 An illegal byte sequence is found at this byte position<br>
 </div>
-<pre><span id="VALverify"><span class="keyword">val</span> verify</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -> ?range_pos:int -> ?range_len:int -> string -> unit</code></pre><div class="info">
+
+<pre><span id="VALverify"><span class="keyword">val</span> verify</span> : <code class="type"><a href="Netconversion.html#TYPEencoding">encoding</a> -> ?range_pos:int -> ?range_len:int -> string -> unit</code></pre><div class="info ">
 Checks whether the string is properly encoded. If so, () is returned.
  If not, the exception <code class="code">Malformed_code_at</code> will be raised indicating 
  the byte position where the problem occurs.

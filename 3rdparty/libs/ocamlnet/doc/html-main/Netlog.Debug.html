@@ -15,6 +15,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -28,12 +31,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -44,7 +45,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -106,6 +106,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -141,7 +142,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -166,6 +166,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -183,8 +185,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -203,6 +203,7 @@
 <div class="navbar">&nbsp;<a class="up" href="Netlog.html" title="Netlog">Up</a>
 &nbsp;</div>
 <h1>Module <a href="type_Netlog.Debug.html">Netlog.Debug</a></h1>
+
 <pre><span class="keyword">module</span> Debug: <code class="code">sig</code> <a href="Netlog.Debug.html">..</a> <code class="code">end</code></pre><hr width="100%">
 <br>
 Controlling messages for debugging Ocamlnet<br>
@@ -229,57 +230,71 @@ Many Ocamlnet modules can emit debug messages. For a module
       controls whether debug messages are enabled (see <code class="code">register_module</code>
       below). This should be done at module initialization time, and
       <b>before</b> any thread is spawned.<br>
+
 <pre><span id="TYPEdlogger"><span class="keyword">type</span> <code class="type"></code>dlogger</span> = <code class="type">string -> string -> unit</code> </pre>
-<div class="info">
+<div class="info ">
 Debug logger: The first string is the module name, and the second 
         is the message<br>
 </div>
 
-<pre><span id="VALfwd_dlogger"><span class="keyword">val</span> fwd_dlogger</span> : <code class="type"><a href="Netlog.Debug.html#TYPEdlogger">dlogger</a></code></pre><div class="info">
+
+<pre><span id="VALfwd_dlogger"><span class="keyword">val</span> fwd_dlogger</span> : <code class="type"><a href="Netlog.Debug.html#TYPEdlogger">dlogger</a></code></pre><div class="info ">
 The standard debug logger simply prepends the module name to the
         message (separated by ": "), and calls the current logger to
         print it<br>
 </div>
-<pre><span id="VALnull_dlogger"><span class="keyword">val</span> null_dlogger</span> : <code class="type"><a href="Netlog.Debug.html#TYPEdlogger">dlogger</a></code></pre><div class="info">
+
+<pre><span id="VALnull_dlogger"><span class="keyword">val</span> null_dlogger</span> : <code class="type"><a href="Netlog.Debug.html#TYPEdlogger">dlogger</a></code></pre><div class="info ">
 The "logger" not printing anything<br>
 </div>
-<pre><span id="VALcurrent_dlogger"><span class="keyword">val</span> current_dlogger</span> : <code class="type"><a href="Netlog.Debug.html#TYPEdlogger">dlogger</a> Pervasives.ref</code></pre><div class="info">
+
+<pre><span id="VALcurrent_dlogger"><span class="keyword">val</span> current_dlogger</span> : <code class="type"><a href="Netlog.Debug.html#TYPEdlogger">dlogger</a> Pervasives.ref</code></pre><div class="info ">
 The current debug logger. This is initialized to <code class="code">fwd_dlogger</code> at
         program startup. Set this variable to <code class="code">null_logger</code> to completely
         turn off debug logging of Ocamlnet.<br>
 </div>
-<pre><span id="VALlog"><span class="keyword">val</span> log</span> : <code class="type">string -> string -> unit</code></pre><div class="info">
+
+<pre><span id="VALlog"><span class="keyword">val</span> log</span> : <code class="type">string -> string -> unit</code></pre><div class="info ">
 Writes a log message<br>
 </div>
-<pre><span id="VALlogf"><span class="keyword">val</span> logf</span> : <code class="type">string -> ('a, unit, string, unit) Pervasives.format4 -> 'a</code></pre><div class="info">
+
+<pre><span id="VALlogf"><span class="keyword">val</span> logf</span> : <code class="type">string -> ('a, unit, string, unit) Pervasives.format4 -> 'a</code></pre><div class="info ">
 Writes a log message like <code class="code">printf</code><br>
 </div>
-<pre><span id="VALenable_module"><span class="keyword">val</span> enable_module</span> : <code class="type">string -> unit</code></pre><pre><span id="VALdisable_module"><span class="keyword">val</span> disable_module</span> : <code class="type">string -> unit</code></pre><div class="info">
+
+<pre><span id="VALenable_module"><span class="keyword">val</span> enable_module</span> : <code class="type">string -> unit</code></pre>
+<pre><span id="VALdisable_module"><span class="keyword">val</span> disable_module</span> : <code class="type">string -> unit</code></pre><div class="info ">
 Enable or disable the passed module <code class="code">M</code>
         (e.g. <code class="code">enable_module "Rpc_client"</code>). No exception is raised when
         the module name is invalid! Because of this, it is usually safer
         to change the variable <code class="code">M.Debug.enable</code> directly (e.g.
         <code class="code">Rpc_client.Debug.enable := true</code>).<br>
 </div>
-<pre><span id="VALenable_all"><span class="keyword">val</span> enable_all</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="VALenable_all"><span class="keyword">val</span> enable_all</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Enable all modules<br>
 </div>
-<pre><span id="VALdisable_all"><span class="keyword">val</span> disable_all</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="VALdisable_all"><span class="keyword">val</span> disable_all</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Disable all modules (the default)<br>
 </div>
-<pre><span id="VALnames"><span class="keyword">val</span> names</span> : <code class="type">unit -> string list</code></pre><div class="info">
+
+<pre><span id="VALnames"><span class="keyword">val</span> names</span> : <code class="type">unit -> string list</code></pre><div class="info ">
 Return the possible module names for <code class="code">enable_module</code> and
         <code class="code">disable_module</code><br>
 </div>
 <br>
 <h2 id="2_FordebuggedOcamlnetmodules">For debugged Ocamlnet modules</h2><br>
-<pre><span id="VALregister_module"><span class="keyword">val</span> register_module</span> : <code class="type">string -> bool Pervasives.ref -> unit</code></pre><div class="info">
+
+<pre><span id="VALregister_module"><span class="keyword">val</span> register_module</span> : <code class="type">string -> bool Pervasives.ref -> unit</code></pre><div class="info ">
 Registers the <code class="code">enable</code> variable of the named module<br>
 </div>
-<pre><span id="VALmk_dlog"><span class="keyword">val</span> mk_dlog</span> : <code class="type">string -> bool Pervasives.ref -> string -> unit</code></pre><div class="info">
+
+<pre><span id="VALmk_dlog"><span class="keyword">val</span> mk_dlog</span> : <code class="type">string -> bool Pervasives.ref -> string -> unit</code></pre><div class="info ">
 <code class="code">let dlog = mk_dlog "M" enable</code>: The conditional debug function<br>
 </div>
-<pre><span id="VALmk_dlogr"><span class="keyword">val</span> mk_dlogr</span> : <code class="type">string -> bool Pervasives.ref -> (unit -> string) -> unit</code></pre><div class="info">
+
+<pre><span id="VALmk_dlogr"><span class="keyword">val</span> mk_dlogr</span> : <code class="type">string -> bool Pervasives.ref -> (unit -> string) -> unit</code></pre><div class="info ">
 <code class="code">let dlogr = mk_dlog "M" enable</code>: The conditional debug function<br>
 </div>
 <br>
@@ -290,15 +305,18 @@ Registers the <code class="code">enable</code> variable of the named module<br>
       easily, and to find file descriptor leaks, and "double close" bugs.
       All long-living descriptors managed by Ocamlnet should go into this
       table.<br>
+
 <pre><span id="TYPEserial"><span class="keyword">type</span> <code class="type"></code>serial</span> </pre>
-<div class="info">
+<div class="info ">
 A serial number for the optional tracking of ownership<br>
 </div>
 
-<pre><span id="VALnew_serial"><span class="keyword">val</span> new_serial</span> : <code class="type">unit -> <a href="Netlog.Debug.html#TYPEserial">serial</a></code></pre><div class="info">
+
+<pre><span id="VALnew_serial"><span class="keyword">val</span> new_serial</span> : <code class="type">unit -> <a href="Netlog.Debug.html#TYPEserial">serial</a></code></pre><div class="info ">
 Create new serial number<br>
 </div>
-<pre><span id="VALtrack_fd"><span class="keyword">val</span> track_fd</span> : <code class="type">?update:bool -><br>       ?anchor:'a -><br>       ?sn:<a href="Netlog.Debug.html#TYPEserial">serial</a> -><br>       owner:string -> descr:string -> Unix.file_descr -> unit</code></pre><div class="info">
+
+<pre><span id="VALtrack_fd"><span class="keyword">val</span> track_fd</span> : <code class="type">?update:bool -><br>       ?anchor:'a -><br>       ?sn:<a href="Netlog.Debug.html#TYPEserial">serial</a> -><br>       owner:string -> descr:string -> Unix.file_descr -> unit</code></pre><div class="info ">
 <code class="code">track_fd ~owner ~descr fd</code>: Enters the descriptor <code class="code">fd</code> into the
         descriptor table. The <code class="code">owner</code> string should be set to the module
         name. In <code class="code">descr</code> one can give additional information, e.g. about
@@ -322,7 +340,8 @@ Create new serial number<br>
         updated or released with the wrong serial number, a warning
         is emitted (to the debug logger).<br>
 </div>
-<pre><span id="VALrelease_fd"><span class="keyword">val</span> release_fd</span> : <code class="type">?sn:<a href="Netlog.Debug.html#TYPEserial">serial</a> -> ?force:bool -> Unix.file_descr -> unit</code></pre><div class="info">
+
+<pre><span id="VALrelease_fd"><span class="keyword">val</span> release_fd</span> : <code class="type">?sn:<a href="Netlog.Debug.html#TYPEserial">serial</a> -> ?force:bool -> Unix.file_descr -> unit</code></pre><div class="info ">
 Removes this descriptor from the descriptor table.
 <p>
 
@@ -336,7 +355,8 @@ Removes this descriptor from the descriptor table.
 
         <code class="code">force</code>: If set, all warnings are suppressed<br>
 </div>
-<pre><span id="VALfd_string"><span class="keyword">val</span> fd_string</span> : <code class="type">?owner:bool -> ?descr:bool -> Unix.file_descr -> string</code></pre><div class="info">
+
+<pre><span id="VALfd_string"><span class="keyword">val</span> fd_string</span> : <code class="type">?owner:bool -> ?descr:bool -> Unix.file_descr -> string</code></pre><div class="info ">
 Return a string for generating debug messages. By default, the
         string only includes the numeric descriptor value.
 <p>
@@ -349,12 +369,14 @@ Return a string for generating debug messages. By default, the
         "76(Http_client - 87.65.213.67:80)". An untracked descriptor
         looks like "76(?)".<br>
 </div>
-<pre><span id="VALfd_table"><span class="keyword">val</span> fd_table</span> : <code class="type">unit -> string list</code></pre><div class="info">
+
+<pre><span id="VALfd_table"><span class="keyword">val</span> fd_table</span> : <code class="type">unit -> string list</code></pre><div class="info ">
 Returns the table of descriptors as list of lines. 
         One can easily print them to stdout using
         <code class="code">List.iter print_endline (fd_table())</code>.<br>
 </div>
-<pre><span id="VALenable_fd_tracking"><span class="keyword">val</span> enable_fd_tracking</span> : <code class="type">bool Pervasives.ref</code></pre><div class="info">
+
+<pre><span id="VALenable_fd_tracking"><span class="keyword">val</span> enable_fd_tracking</span> : <code class="type">bool Pervasives.ref</code></pre><div class="info ">
 By setting to true, each <code class="code">track_fd</code> and <code class="code">release_fd</code> is 
         logged.<br>
 </div>

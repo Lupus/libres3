@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02111-1307, USA.
- *)
+*)
 
 (** SVG types with variants. (See also {!Svg.M}) *)
 
@@ -28,8 +28,6 @@
     This module is experimental, it may lack of some attributes,
     and the interface is very low level and do not take deeply into account
     the needs of SVG elements. *)
-
-(** See {!Xhtml.M} for a description of the transcription's principles. *)
 
 (* Some attribtes and elements are tagged with XXX: they
    may be improved and do not match completely the SVG spec *)
@@ -793,24 +791,6 @@ type tspan_attr =
     | `LengthAdjust
   ]
 
-type tspan_attribute =
-  [
-    | conditional_processing_attr
-    | core_attr
-    | graphical_event_attr
-    | presentation_attr
-    | `Class
-    | `Style
-    | `ExternalResourcesRequired
-    | `X_list
-    | `Y_list
-    | `Dx_list
-    | `Dy_list
-    | `Rotate
-    | `TextLength
-    | `LengthAdjust
-  ]
-
 type tref = [ | `Tref ]
 
 (* star *)
@@ -895,7 +875,7 @@ type altglyphdef_attr = [ | core_attr ]
 
 type altglyphitem = [ | `AltGlyphItem ]
 
-(* plus *)
+
 type altglyphitem_content = [ | `glyphRef ]
 
 type altglyphitem_attr = [ | core_attr ]

@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="style.css" type="text/css">
 <meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
 <link rel="Start" href="index.html">
-<link rel="previous" href="Rpc_xti_client.html">
+<link rel="previous" href="Rpc_intro_gss.html">
 <link rel="next" href="Shell.html">
 <link rel="Up" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -207,12 +207,13 @@
 <title>Ocamlnet 3 Reference Manual : Shell_sys</title>
 </head>
 <body>
-<div class="navbar"><a class="pre" href="Rpc_xti_client.html" title="Rpc_xti_client">Previous</a>
+<div class="navbar"><a class="pre" href="Rpc_intro_gss.html" title="Rpc_intro_gss">Previous</a>
 &nbsp;<a class="up" href="index.html" title="Index">Up</a>
 &nbsp;<a class="post" href="Shell.html" title="Shell">Next</a>
 </div>
 <h1>Module <a href="type_Shell_sys.html">Shell_sys</a></h1>
-<pre><span class="keyword">module</span> Shell_sys: <code class="code">sig</code> <a href="Shell_sys.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Shell_sys: <code class="code">sig</code> <a href="Shell_sys.html">..</a> <code class="code">end</code></pre><div class="info module top">
 Calls external programs, creates pipelines, etc. (full interface)<br>
 </div>
 <hr width="100%">
@@ -225,58 +226,71 @@ If you get errors like "Netsys_posix.watch_subprocess: uninitialized"
     you should call <a href="Shell_sys.html#VALinstall_job_handlers"><code class="code">Shell_sys.install_job_handlers</code></a>.<br>
 <br>
 <h1 id="1_Commonexceptions">Common exceptions</h1><br>
+
 <pre><span id="EXCEPTIONFatal_error"><span class="keyword">exception</span> Fatal_error</span> <span class="keyword">of</span> <code class="type">exn</code></pre>
-<div class="info">
+<div class="info ">
 An error is fatal if it is not possible to recover from it in a
  predictable manner. In this case, many function wrap such exceptions
  <code class="code">x</code> into <code class="code">Fatal_error x</code>.<br>
 </div>
 <br>
 <h1 id="1_Environments">Environments</h1><br>
+
 <pre><span id="TYPEenvironment"><span class="keyword">type</span> <code class="type"></code>environment</span> </pre>
-<div class="info">
+<div class="info ">
 The abstract type of a process environment<br>
 </div>
 
-<pre><span id="VALcreate_env"><span class="keyword">val</span> create_env</span> : <code class="type">unit -> <a href="Shell_sys.html#TYPEenvironment">environment</a></code></pre><div class="info">
+
+<pre><span id="VALcreate_env"><span class="keyword">val</span> create_env</span> : <code class="type">unit -> <a href="Shell_sys.html#TYPEenvironment">environment</a></code></pre><div class="info ">
 Creates an empty environment<br>
 </div>
-<pre><span id="VALcurrent_env"><span class="keyword">val</span> current_env</span> : <code class="type">unit -> <a href="Shell_sys.html#TYPEenvironment">environment</a></code></pre><div class="info">
+
+<pre><span id="VALcurrent_env"><span class="keyword">val</span> current_env</span> : <code class="type">unit -> <a href="Shell_sys.html#TYPEenvironment">environment</a></code></pre><div class="info ">
 Returns the environment of the current process as abstract environment
  value<br>
 </div>
-<pre><span id="VALcopy_env"><span class="keyword">val</span> copy_env</span> : <code class="type"><a href="Shell_sys.html#TYPEenvironment">environment</a> -> <a href="Shell_sys.html#TYPEenvironment">environment</a></code></pre><div class="info">
+
+<pre><span id="VALcopy_env"><span class="keyword">val</span> copy_env</span> : <code class="type"><a href="Shell_sys.html#TYPEenvironment">environment</a> -> <a href="Shell_sys.html#TYPEenvironment">environment</a></code></pre><div class="info ">
 Copies an environment<br>
 </div>
-<pre><span id="VALset_env"><span class="keyword">val</span> set_env</span> : <code class="type"><a href="Shell_sys.html#TYPEenvironment">environment</a> -> string array -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_env"><span class="keyword">val</span> set_env</span> : <code class="type"><a href="Shell_sys.html#TYPEenvironment">environment</a> -> string array -> unit</code></pre><div class="info ">
 Sets the contents of the environment to the passed string array<br>
 </div>
-<pre><span id="VALget_env"><span class="keyword">val</span> get_env</span> : <code class="type"><a href="Shell_sys.html#TYPEenvironment">environment</a> -> string array</code></pre><div class="info">
+
+<pre><span id="VALget_env"><span class="keyword">val</span> get_env</span> : <code class="type"><a href="Shell_sys.html#TYPEenvironment">environment</a> -> string array</code></pre><div class="info ">
 Gets the contents of the environment as string array<br>
 </div>
-<pre><span id="VALiter_env"><span class="keyword">val</span> iter_env</span> : <code class="type">f:(string -> unit) -> <a href="Shell_sys.html#TYPEenvironment">environment</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALiter_env"><span class="keyword">val</span> iter_env</span> : <code class="type">f:(string -> unit) -> <a href="Shell_sys.html#TYPEenvironment">environment</a> -> unit</code></pre><div class="info ">
 Iterates over the strings of the environment, and calls
  <code class="code">f s</code> for every string <code class="code">s</code>.<br>
 </div>
-<pre><span id="VALset_env_var"><span class="keyword">val</span> set_env_var</span> : <code class="type"><a href="Shell_sys.html#TYPEenvironment">environment</a> -> string -> string -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_env_var"><span class="keyword">val</span> set_env_var</span> : <code class="type"><a href="Shell_sys.html#TYPEenvironment">environment</a> -> string -> string -> unit</code></pre><div class="info ">
 <code class="code">set_env_var env varname varval</code>: Sets the value of the variable
  <code class="code">varname</code> in the environment <code class="code">env</code> to <code class="code">varval</code>.<br>
 </div>
-<pre><span id="VALget_env_var"><span class="keyword">val</span> get_env_var</span> : <code class="type"><a href="Shell_sys.html#TYPEenvironment">environment</a> -> string -> string</code></pre><div class="info">
+
+<pre><span id="VALget_env_var"><span class="keyword">val</span> get_env_var</span> : <code class="type"><a href="Shell_sys.html#TYPEenvironment">environment</a> -> string -> string</code></pre><div class="info ">
 Returns the value of the variable in the environment<br>
 </div>
-<pre><span id="VALiter_env_vars"><span class="keyword">val</span> iter_env_vars</span> : <code class="type">f:(string -> string -> unit) -> <a href="Shell_sys.html#TYPEenvironment">environment</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALiter_env_vars"><span class="keyword">val</span> iter_env_vars</span> : <code class="type">f:(string -> string -> unit) -> <a href="Shell_sys.html#TYPEenvironment">environment</a> -> unit</code></pre><div class="info ">
 Iterates over the variables of the environment, and calls
  <code class="code">f name value</code> for every variable with <code class="code">name</code> and <code class="code">value</code>.<br>
 </div>
 <br>
 <h1 id="1_Commands">Commands</h1><br>
+
 <pre><span id="TYPEcommand"><span class="keyword">type</span> <code class="type"></code>command</span> </pre>
-<div class="info">
+<div class="info ">
 A command describes how to start a new process<br>
 </div>
 
-<pre><span id="VALcommand"><span class="keyword">val</span> command</span> : <code class="type">?cmdname:string -><br>       ?arguments:string array -><br>       ?chdir:string -><br>       ?environment:<a href="Shell_sys.html#TYPEenvironment">environment</a> -><br>       ?descriptors:Unix.file_descr list -><br>       ?assignments:(Unix.file_descr * Unix.file_descr) list -><br>       filename:string -> unit -> <a href="Shell_sys.html#TYPEcommand">command</a></code></pre><div class="info">
+
+<pre><span id="VALcommand"><span class="keyword">val</span> command</span> : <code class="type">?cmdname:string -><br>       ?arguments:string array -><br>       ?chdir:string -><br>       ?environment:<a href="Shell_sys.html#TYPEenvironment">environment</a> -><br>       ?descriptors:Unix.file_descr list -><br>       ?assignments:(Unix.file_descr * Unix.file_descr) list -><br>       filename:string -> unit -> <a href="Shell_sys.html#TYPEcommand">command</a></code></pre><div class="info ">
 Creates a command from the passed arguments:
 <p>
 
@@ -314,12 +328,14 @@ Creates a command from the passed arguments:
 <div class="param_info"><code class="code">filename</code> : The name of the executable to start. The executable
    file is not searched, use <a href="Shell_sys.html#VALlookup_executable"><code class="code">Shell_sys.lookup_executable</code></a> for this
    purpose.</div>
+
 <pre><span id="EXCEPTIONExecutable_not_found"><span class="keyword">exception</span> Executable_not_found</span> <span class="keyword">of</span> <code class="type">string</code></pre>
-<div class="info">
+<div class="info ">
 Raised when an executable file cannot be found; the argument is the
   search name<br>
 </div>
-<pre><span id="VALlookup_executable"><span class="keyword">val</span> lookup_executable</span> : <code class="type">?path:string list -> string -> string</code></pre><div class="info">
+
+<pre><span id="VALlookup_executable"><span class="keyword">val</span> lookup_executable</span> : <code class="type">?path:string list -> string -> string</code></pre><div class="info ">
 Searches an executable file. If the passed search name contains a
  slash, it is expected that this name is already the path name of the
  executable. If the search name does not contain a slash character,
@@ -331,52 +347,68 @@ Searches an executable file. If the passed search name contains a
 <div class="param_info"><code class="code">path</code> : The search path. By default, the contents of the
    variable PATH of the current environment, split by ':', are
    used (Win32: SearchPath is used)</div>
-<pre><span id="VALget_cmdname"><span class="keyword">val</span> get_cmdname</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALget_cmdname"><span class="keyword">val</span> get_cmdname</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> string</code></pre><div class="info ">
 Returns the name of the command<br>
 </div>
-<pre><span id="VALget_arguments"><span class="keyword">val</span> get_arguments</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> string array</code></pre><div class="info">
+
+<pre><span id="VALget_arguments"><span class="keyword">val</span> get_arguments</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> string array</code></pre><div class="info ">
 Returns the argument array of the command (skipping the command name)<br>
 </div>
-<pre><span id="VALget_chdir"><span class="keyword">val</span> get_chdir</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> string option</code></pre><div class="info">
+
+<pre><span id="VALget_chdir"><span class="keyword">val</span> get_chdir</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> string option</code></pre><div class="info ">
 Returns the <code class="code">chdir</code> parameter of the command<br>
 </div>
-<pre><span id="VALget_environment"><span class="keyword">val</span> get_environment</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> <a href="Shell_sys.html#TYPEenvironment">environment</a></code></pre><div class="info">
+
+<pre><span id="VALget_environment"><span class="keyword">val</span> get_environment</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> <a href="Shell_sys.html#TYPEenvironment">environment</a></code></pre><div class="info ">
 Returns the designated environment of the command<br>
 </div>
-<pre><span id="VALget_descriptors"><span class="keyword">val</span> get_descriptors</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> Unix.file_descr list</code></pre><div class="info">
+
+<pre><span id="VALget_descriptors"><span class="keyword">val</span> get_descriptors</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> Unix.file_descr list</code></pre><div class="info ">
 Returns the list of active descriptors<br>
 </div>
-<pre><span id="VALget_assignments"><span class="keyword">val</span> get_assignments</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> (Unix.file_descr * Unix.file_descr) list</code></pre><div class="info">
+
+<pre><span id="VALget_assignments"><span class="keyword">val</span> get_assignments</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> (Unix.file_descr * Unix.file_descr) list</code></pre><div class="info ">
 Returns the list of assignments <code class="code"> (fd_from,fd_to) </code><br>
 </div>
-<pre><span id="VALget_filename"><span class="keyword">val</span> get_filename</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALget_filename"><span class="keyword">val</span> get_filename</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> string</code></pre><div class="info ">
 Returns the file name of the executable<br>
 </div>
-<pre><span id="VALset_cmdname"><span class="keyword">val</span> set_cmdname</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> string -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_cmdname"><span class="keyword">val</span> set_cmdname</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> string -> unit</code></pre><div class="info ">
 Sets the command name<br>
 </div>
-<pre><span id="VALset_arguments"><span class="keyword">val</span> set_arguments</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> string array -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_arguments"><span class="keyword">val</span> set_arguments</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> string array -> unit</code></pre><div class="info ">
 Sets the argument array<br>
 </div>
-<pre><span id="VALset_chdir"><span class="keyword">val</span> set_chdir</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> string option -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_chdir"><span class="keyword">val</span> set_chdir</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> string option -> unit</code></pre><div class="info ">
 Sets the <code class="code">chdir</code> parameter of the command<br>
 </div>
-<pre><span id="VALset_environment"><span class="keyword">val</span> set_environment</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> <a href="Shell_sys.html#TYPEenvironment">environment</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_environment"><span class="keyword">val</span> set_environment</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> <a href="Shell_sys.html#TYPEenvironment">environment</a> -> unit</code></pre><div class="info ">
 Sets the environment<br>
 </div>
-<pre><span id="VALset_descriptors"><span class="keyword">val</span> set_descriptors</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> Unix.file_descr list -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_descriptors"><span class="keyword">val</span> set_descriptors</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> Unix.file_descr list -> unit</code></pre><div class="info ">
 Sets the list of active descriptors<br>
 </div>
-<pre><span id="VALset_assignments"><span class="keyword">val</span> set_assignments</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> (Unix.file_descr * Unix.file_descr) list -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_assignments"><span class="keyword">val</span> set_assignments</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> (Unix.file_descr * Unix.file_descr) list -> unit</code></pre><div class="info ">
 Sets the list of assignments <code class="code"> (fd_from,fd_to) </code><br>
 </div>
-<pre><span id="VALset_filename"><span class="keyword">val</span> set_filename</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> string -> unit</code></pre><div class="info">
+
+<pre><span id="VALset_filename"><span class="keyword">val</span> set_filename</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> string -> unit</code></pre><div class="info ">
 Sets the file name of the executable to start<br>
 </div>
-<pre><span id="VALcopy_command"><span class="keyword">val</span> copy_command</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> <a href="Shell_sys.html#TYPEcommand">command</a></code></pre><div class="info">
+
+<pre><span id="VALcopy_command"><span class="keyword">val</span> copy_command</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> <a href="Shell_sys.html#TYPEcommand">command</a></code></pre><div class="info ">
 Returns a duplicate of the command description<br>
 </div>
-<pre><span id="VALis_executable"><span class="keyword">val</span> is_executable</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> bool</code></pre><div class="info">
+
+<pre><span id="VALis_executable"><span class="keyword">val</span> is_executable</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> bool</code></pre><div class="info ">
 Returns <code class="code">true</code> if there is an executable file for the command, and
  it is permitted to run this file (as stated by the file permissions).
 <p>
@@ -387,10 +419,12 @@ Returns <code class="code">true</code> if there is an executable file for the co
 </div>
 <br>
 <h1 id="1_Processes">Processes</h1><br>
+
 <pre><span id="TYPEprocess"><span class="keyword">type</span> <code class="type"></code>process</span> </pre>
-<div class="info">
+<div class="info ">
 A process is the running instance of a command (a Unix process)<br>
 </div>
+
 
 <pre><code><span id="TYPEgroup_action"><span class="keyword">type</span> <code class="type"></code>group_action</span> = </code></pre><table class="typetable">
 <tr>
@@ -422,9 +456,10 @@ A process is the running instance of a command (a Unix process)<br>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >Started process remains in the current group</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr></table>
 
-<div class="info">
+<div class="info ">
 Determines in which process group the new process will run<br>
 </div>
+
 
 <pre><code><span id="TYPEfwd_mode"><span class="keyword">type</span> <code class="type"></code>fwd_mode</span> = </code></pre><table class="typetable">
 <tr>
@@ -449,13 +484,14 @@ Determines in which process group the new process will run<br>
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >Forward signals to the process group of the subprocess</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr></table>
 
-<div class="info">
+<div class="info ">
 Determines whether and how keyboard signals (SIGINT, SIGQUIT) are
       forwarded from the caller to the new child. There is no forwarding
       in Win32 - all console applications get the keyboard signals anyway.<br>
 </div>
 
-<pre><span id="VALrun"><span class="keyword">val</span> run</span> : <code class="type">?group:<a href="Shell_sys.html#TYPEgroup_action">group_action</a> -><br>       ?forward_mode:<a href="Shell_sys.html#TYPEfwd_mode">fwd_mode</a> -><br>       ?pipe_assignments:(Unix.file_descr * Unix.file_descr) list -><br>       <a href="Shell_sys.html#TYPEcommand">command</a> -> <a href="Shell_sys.html#TYPEprocess">process</a></code></pre><div class="info">
+
+<pre><span id="VALrun"><span class="keyword">val</span> run</span> : <code class="type">?group:<a href="Shell_sys.html#TYPEgroup_action">group_action</a> -><br>       ?forward_mode:<a href="Shell_sys.html#TYPEfwd_mode">fwd_mode</a> -><br>       ?pipe_assignments:(Unix.file_descr * Unix.file_descr) list -><br>       <a href="Shell_sys.html#TYPEcommand">command</a> -> <a href="Shell_sys.html#TYPEprocess">process</a></code></pre><div class="info ">
 Executes the command concurrently with the current process. The function
  does not wait until the process terminates; it returns immediately after
  the <code class="code">exec</code> system call has been successfully performed; errors that
@@ -495,23 +531,28 @@ Executes the command concurrently with the current process. The function
    be closed. The list of assignments is executed in parallel. For
    example, to swap the roles of stdout and stderr, pass the list
    <code class="code"> [(stdout,stderr); (stderr,stdout)] </code>.</div>
-<pre><span id="VALprocess_id"><span class="keyword">val</span> process_id</span> : <code class="type"><a href="Shell_sys.html#TYPEprocess">process</a> -> int</code></pre><div class="info">
+
+<pre><span id="VALprocess_id"><span class="keyword">val</span> process_id</span> : <code class="type"><a href="Shell_sys.html#TYPEprocess">process</a> -> int</code></pre><div class="info ">
 Returns the process ID of the process<br>
 </div>
-<pre><span id="VALstatus"><span class="keyword">val</span> status</span> : <code class="type"><a href="Shell_sys.html#TYPEprocess">process</a> -> Unix.process_status</code></pre><div class="info">
+
+<pre><span id="VALstatus"><span class="keyword">val</span> status</span> : <code class="type"><a href="Shell_sys.html#TYPEprocess">process</a> -> Unix.process_status</code></pre><div class="info ">
 Reports the status so far known: If the process 
  has terminated, the status of the process is returned.
  If the process is still running, <code class="code">Not_found</code> will be raised.<br>
 </div>
-<pre><span id="VALcommand_of_process"><span class="keyword">val</span> command_of_process</span> : <code class="type"><a href="Shell_sys.html#TYPEprocess">process</a> -> <a href="Shell_sys.html#TYPEcommand">command</a></code></pre><div class="info">
+
+<pre><span id="VALcommand_of_process"><span class="keyword">val</span> command_of_process</span> : <code class="type"><a href="Shell_sys.html#TYPEprocess">process</a> -> <a href="Shell_sys.html#TYPEcommand">command</a></code></pre><div class="info ">
 Returns the command that is now running as the process<br>
 </div>
-<pre><span id="VALcall"><span class="keyword">val</span> call</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> <a href="Shell_sys.html#TYPEprocess">process</a></code></pre><div class="info">
+
+<pre><span id="VALcall"><span class="keyword">val</span> call</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> <a href="Shell_sys.html#TYPEprocess">process</a></code></pre><div class="info ">
 Executes the command and waits until the process terminates
  (synchronous execution a la <code class="code">system</code>, but no intermediate shell).
  <code class="code">status</code> is guaranteed to return WEXITED or WSIGNALED.<br>
 </div>
-<pre><span id="VALkill"><span class="keyword">val</span> kill</span> : <code class="type">?signal:int -> <a href="Shell_sys.html#TYPEprocess">process</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALkill"><span class="keyword">val</span> kill</span> : <code class="type">?signal:int -> <a href="Shell_sys.html#TYPEprocess">process</a> -> unit</code></pre><div class="info ">
 Sends a signal to the passed process.
 <p>
 
@@ -547,25 +588,30 @@ A <code class="code">job</code> is the description of how to run several command
  In order to run jobs efficiently (without busy waiting) and properly
  it is strongly recommended to install the signal handlers using
  <code class="code">install_job_handlers</code><br>
+
 <pre><span id="TYPEjob"><span class="keyword">type</span> <code class="type"></code>job</span> </pre>
+
 
 <pre><span id="TYPEjob_instance"><span class="keyword">type</span> <code class="type"></code>job_instance</span> </pre>
 
-<pre><span id="VALnew_job"><span class="keyword">val</span> new_job</span> : <code class="type">unit -> <a href="Shell_sys.html#TYPEjob">job</a></code></pre><div class="info">
+
+<pre><span id="VALnew_job"><span class="keyword">val</span> new_job</span> : <code class="type">unit -> <a href="Shell_sys.html#TYPEjob">job</a></code></pre><div class="info ">
 Creates a new job descriptor. Initially the job is empty, but you can
  fill it with commands (<code class="code">add_command</code>), pipelines (<code class="code">add_pipeline</code>), 
  consumers (<code class="code">add_consumer</code>) and producers (<code class="code">add_producer</code>).
  When the job is set up, you can start it (<code class="code">run_job</code>/<code class="code">finish_job</code> or
  <code class="code">call_job</code>).<br>
 </div>
-<pre><span id="VALadd_command"><span class="keyword">val</span> add_command</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> <a href="Shell_sys.html#TYPEjob">job</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALadd_command"><span class="keyword">val</span> add_command</span> : <code class="type"><a href="Shell_sys.html#TYPEcommand">command</a> -> <a href="Shell_sys.html#TYPEjob">job</a> -> unit</code></pre><div class="info ">
 Adds a command to a job. 
 <p>
 
  Note that you cannot add the same command twice; however you can
  add a copy of a command already belonging to the job.<br>
 </div>
-<pre><span id="VALadd_pipeline"><span class="keyword">val</span> add_pipeline</span> : <code class="type">?bidirectional:bool -><br>       ?src_descr:Unix.file_descr -><br>       ?dest_descr:Unix.file_descr -><br>       src:<a href="Shell_sys.html#TYPEcommand">command</a> -> dest:<a href="Shell_sys.html#TYPEcommand">command</a> -> <a href="Shell_sys.html#TYPEjob">job</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALadd_pipeline"><span class="keyword">val</span> add_pipeline</span> : <code class="type">?bidirectional:bool -><br>       ?src_descr:Unix.file_descr -><br>       ?dest_descr:Unix.file_descr -><br>       src:<a href="Shell_sys.html#TYPEcommand">command</a> -> dest:<a href="Shell_sys.html#TYPEcommand">command</a> -> <a href="Shell_sys.html#TYPEjob">job</a> -> unit</code></pre><div class="info ">
 Adds a pipeline which redirects the output of the command <code class="code">src</code> to the
  input of the command <code class="code">dest</code>.
 <p>
@@ -581,7 +627,8 @@ Adds a pipeline which redirects the output of the command <code class="code">src
     which is redirected. This is by default <code class="code">stdout</code>.</div>
 <div class="param_info"><code class="code">dest_descr</code> : determines the file descriptor of the destination
     command to which the data stream is sent. This is by default <code class="code">stdin</code>.</div>
-<pre><span id="VALadd_producer"><span class="keyword">val</span> add_producer</span> : <code class="type">?descr:Unix.file_descr -><br>       producer:(Unix.file_descr -> bool) -><br>       <a href="Shell_sys.html#TYPEcommand">command</a> -> <a href="Shell_sys.html#TYPEjob">job</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALadd_producer"><span class="keyword">val</span> add_producer</span> : <code class="type">?descr:Unix.file_descr -><br>       producer:(Unix.file_descr -> bool) -><br>       <a href="Shell_sys.html#TYPEcommand">command</a> -> <a href="Shell_sys.html#TYPEjob">job</a> -> unit</code></pre><div class="info ">
 Adds a producer to the job. A producer transfers data to the
  subprocess realizing the passed command. To do so, a pipe is created
  between the file descriptor <code class="code">descr</code> of the subprocess and another
@@ -598,7 +645,8 @@ Adds a producer to the job. A producer transfers data to the
 </div>
 <div class="param_info"><code class="code">descr</code> : The descriptor of the subprocess to which the reading
     end of the pipe is dup'ed. By default <code class="code">stdin</code>.</div>
-<pre><span id="VALfrom_string"><span class="keyword">val</span> from_string</span> : <code class="type">?pos:int -><br>       ?len:int -> ?epipe:(unit -> unit) -> string -> Unix.file_descr -> bool</code></pre><div class="info">
+
+<pre><span id="VALfrom_string"><span class="keyword">val</span> from_string</span> : <code class="type">?pos:int -><br>       ?len:int -> ?epipe:(unit -> unit) -> string -> Unix.file_descr -> bool</code></pre><div class="info ">
 <code class="code">from_string ?pos ?len ?epipe s</code> returns a function which can be
  used as <code class="code">producer</code> argument for <code class="code">add_producer</code>. The data transferred
  to the subprocess is taken from the string <code class="code">s</code>. After these data
@@ -615,7 +663,8 @@ Adds a producer to the job. A producer transfers data to the
 <div class="param_info"><code class="code">epipe</code> : This function is called when the pipeline breaks
     (EPIPE). Default: the empty function. EPIPE exceptions are
     always caught, and implicitly handled by closing the pipeline.</div>
-<pre><span id="VALfrom_stream"><span class="keyword">val</span> from_stream</span> : <code class="type">?epipe:(unit -> unit) -> string Stream.t -> Unix.file_descr -> bool</code></pre><div class="info">
+
+<pre><span id="VALfrom_stream"><span class="keyword">val</span> from_stream</span> : <code class="type">?epipe:(unit -> unit) -> string Stream.t -> Unix.file_descr -> bool</code></pre><div class="info ">
 <code class="code">from_stream ?epipe s</code> returns a function which can be
  used as <code class="code">producer</code> argument for <code class="code">add_producer</code>. The data transferred
  to the subprocess is taken from the string stream <code class="code">s</code>. After these data
@@ -627,7 +676,8 @@ Adds a producer to the job. A producer transfers data to the
 <div class="param_info"><code class="code">epipe</code> : This function is called when the pipeline breaks
     (EPIPE). Default: the empty function. EPIPE exceptions are
     always caught, and implicitly handled by closing the pipeline.</div>
-<pre><span id="VALadd_consumer"><span class="keyword">val</span> add_consumer</span> : <code class="type">?descr:Unix.file_descr -><br>       consumer:(Unix.file_descr -> bool) -><br>       <a href="Shell_sys.html#TYPEcommand">command</a> -> <a href="Shell_sys.html#TYPEjob">job</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALadd_consumer"><span class="keyword">val</span> add_consumer</span> : <code class="type">?descr:Unix.file_descr -><br>       consumer:(Unix.file_descr -> bool) -><br>       <a href="Shell_sys.html#TYPEcommand">command</a> -> <a href="Shell_sys.html#TYPEjob">job</a> -> unit</code></pre><div class="info ">
 Adds a consumer to the job. A consumer transfers data from the
  subprocess realizing the passed command to the current process. 
  To do so, a pipe is created between the file descriptor <code class="code">descr</code>
@@ -644,11 +694,13 @@ Adds a consumer to the job. A consumer transfers data from the
 </div>
 <div class="param_info"><code class="code">descr</code> : The descriptor of the subprocess to which the writing
     end of the pipe is dup'ed. By default <code class="code">stdout</code>.</div>
-<pre><span id="VALto_buffer"><span class="keyword">val</span> to_buffer</span> : <code class="type">Buffer.t -> Unix.file_descr -> bool</code></pre><div class="info">
+
+<pre><span id="VALto_buffer"><span class="keyword">val</span> to_buffer</span> : <code class="type">Buffer.t -> Unix.file_descr -> bool</code></pre><div class="info ">
 <code class="code">to_buffer b</code> returns a function which can be
  used as <code class="code">consumer</code> argument for <code class="code">add_consumer</code>. The data received
  from the subprocess is added to the buffer <code class="code">b</code>.<br>
 </div>
+
 <pre><code><span id="TYPEgroup_mode"><span class="keyword">type</span> <code class="type"></code>group_mode</span> = </code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
@@ -672,11 +724,12 @@ Adds a consumer to the job. A consumer transfers data from the
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >The job runs in a new background process group</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr></table>
 
-<div class="info">
+<div class="info ">
 Specifies how the job instance is related to process groups<br>
 </div>
 
-<pre><span id="VALrun_job"><span class="keyword">val</span> run_job</span> : <code class="type">?mode:<a href="Shell_sys.html#TYPEgroup_mode">group_mode</a> -><br>       ?forward_signals:bool -> <a href="Shell_sys.html#TYPEjob">job</a> -> <a href="Shell_sys.html#TYPEjob_instance">job_instance</a></code></pre><div class="info">
+
+<pre><span id="VALrun_job"><span class="keyword">val</span> run_job</span> : <code class="type">?mode:<a href="Shell_sys.html#TYPEgroup_mode">group_mode</a> -><br>       ?forward_signals:bool -> <a href="Shell_sys.html#TYPEjob">job</a> -> <a href="Shell_sys.html#TYPEjob_instance">job_instance</a></code></pre><div class="info ">
 Invokes the commands of the job such that they run concurrently
  with the main process.
 <p>
@@ -752,14 +805,17 @@ Invokes the commands of the job such that they run concurrently
 
  When all processes could be started and no other exceptional condition
  happened, the function sets <code class="code">job_status</code> to <code class="code">Job_running</code>.</div>
+
 <pre><span id="TYPEjob_handler_engine_type"><span class="keyword">class type</span> <code class="type">['t]</code> <a href="Shell_sys.job_handler_engine_type-c.html">job_handler_engine_type</a></span> = <code class="code">object</code> <a href="Shell_sys.job_handler_engine_type-c.html">..</a> <code class="code">end</code></pre><div class="info">
 This type of engine also returns the <code class="code">job</code> and the <code class="code">job_instance</code>.
 </div>
+
 <pre><span name="TYPEjob_engine"><span class="keyword">class</span> <a href="Shell_sys.job_engine-c.html">job_engine</a></span> : <code class="type"><a href="Unixqueue.event_system-c.html">Unixqueue.event_system</a> -> <a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> </code><code class="type">[unit]</code> <code class="type"><a href="Shell_sys.job_handler_engine_type-c.html">job_handler_engine_type</a></code></pre><div class="info">
 The <code class="code">job_engine</code> watches the job, and looks whether the processes
       are finished, and if so, it records the process statuses.
 </div>
-<pre><span id="VALfinish_job"><span class="keyword">val</span> finish_job</span> : <code class="type"><a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALfinish_job"><span class="keyword">val</span> finish_job</span> : <code class="type"><a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> unit</code></pre><div class="info ">
 This creates a <code class="code">job_engine</code> internally and runs until it is
  finished, i.e. until the job has been executed.
 <p>
@@ -769,7 +825,8 @@ This creates a <code class="code">job_engine</code> internally and runs until it
  It is no longer possible to restart <code class="code">finish_job</code> when an error
  happens.<br>
 </div>
-<pre><span id="VALcall_job"><span class="keyword">val</span> call_job</span> : <code class="type">?mode:<a href="Shell_sys.html#TYPEgroup_mode">group_mode</a> -><br>       ?forward_signals:bool -><br>       ?onerror:(<a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> unit) -><br>       <a href="Shell_sys.html#TYPEjob">job</a> -> <a href="Shell_sys.html#TYPEjob_instance">job_instance</a></code></pre><div class="info">
+
+<pre><span id="VALcall_job"><span class="keyword">val</span> call_job</span> : <code class="type">?mode:<a href="Shell_sys.html#TYPEgroup_mode">group_mode</a> -><br>       ?forward_signals:bool -><br>       ?onerror:(<a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> unit) -><br>       <a href="Shell_sys.html#TYPEjob">job</a> -> <a href="Shell_sys.html#TYPEjob_instance">job_instance</a></code></pre><div class="info ">
 Starts the job (see <code class="code">run_job</code>) and waits until it finishes (see
  <code class="code">finish_job</code>); i.e. <code class="code">call_job = run_job + finish_job</code>.
  The function returns normally if all processes can be started; you can
@@ -786,24 +843,29 @@ Starts the job (see <code class="code">run_job</code>) and waits until it finish
     function calls <code class="code">abandon_job</code> to stop the already running
     processes. After the <code class="code">onerror</code> function has returned, the original 
     exception is raised again. Fatal error conditions are not caught.</div>
-<pre><span id="VALprocesses"><span class="keyword">val</span> processes</span> : <code class="type"><a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> <a href="Shell_sys.html#TYPEprocess">process</a> list</code></pre><div class="info">
+
+<pre><span id="VALprocesses"><span class="keyword">val</span> processes</span> : <code class="type"><a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> <a href="Shell_sys.html#TYPEprocess">process</a> list</code></pre><div class="info ">
 Returns the processes that have actually been started for this job
  by <code class="code">run_job</code>; note that the corresponding Unix process group
  may have additional processes (e.g. indirectly started processes).<br>
 </div>
+
 <pre><span id="EXCEPTIONNo_Unix_process_group"><span class="keyword">exception</span> No_Unix_process_group</span></pre>
-<div class="info">
+<div class="info ">
 Raised by functions referring to Unix process groups when the
  job has not been started in its own process group.<br>
 </div>
-<pre><span id="VALprocess_group_leader"><span class="keyword">val</span> process_group_leader</span> : <code class="type"><a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> <a href="Shell_sys.html#TYPEprocess">process</a></code></pre><div class="info">
+
+<pre><span id="VALprocess_group_leader"><span class="keyword">val</span> process_group_leader</span> : <code class="type"><a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> <a href="Shell_sys.html#TYPEprocess">process</a></code></pre><div class="info ">
 Returns the process group leader process.
  This function is not available for jobs in the mode <code class="code">Same_as_caller</code>.<br>
 </div>
-<pre><span id="VALprocess_group_id"><span class="keyword">val</span> process_group_id</span> : <code class="type"><a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> int</code></pre><div class="info">
+
+<pre><span id="VALprocess_group_id"><span class="keyword">val</span> process_group_id</span> : <code class="type"><a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> int</code></pre><div class="info ">
 Returns the Unix ID of the process group as number &gt; 1.
  This function is not available for jobs in the mode <code class="code">Same_as_caller</code>.<br>
 </div>
+
 <pre><code><span id="TYPEjob_status"><span class="keyword">type</span> <code class="type"></code>job_status</span> = </code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
@@ -843,11 +905,12 @@ Returns the Unix ID of the process group as number &gt; 1.
 <td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" >the job has been abandoned (see <code class="code">abandon_job</code>)</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr></table>
 
-<div class="info">
+<div class="info ">
 Indicates the status of the job<br>
 </div>
 
-<pre><span id="VALjob_status"><span class="keyword">val</span> job_status</span> : <code class="type"><a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> <a href="Shell_sys.html#TYPEjob_status">job_status</a></code></pre><div class="info">
+
+<pre><span id="VALjob_status"><span class="keyword">val</span> job_status</span> : <code class="type"><a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> <a href="Shell_sys.html#TYPEjob_status">job_status</a></code></pre><div class="info ">
 Returns the status. The status may only change after <code class="code">finish_job</code>
  has been called:
 <p>
@@ -859,7 +922,8 @@ Returns the status. The status may only change after <code class="code">finish_j
 </ul>
 <br>
 </div>
-<pre><span id="VALkill_process_group"><span class="keyword">val</span> kill_process_group</span> : <code class="type">?signal:int -> <a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALkill_process_group"><span class="keyword">val</span> kill_process_group</span> : <code class="type">?signal:int -> <a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> unit</code></pre><div class="info ">
 Kills the process group if it is still (at least partially) running.
  This operation is not available if the mode is <code class="code">Same_as_caller</code>
  (exception <code class="code">No_Unix_process_group</code>).
@@ -882,7 +946,8 @@ Kills the process group if it is still (at least partially) running.
 </div>
 <div class="param_info"><code class="code">signal</code> : The signal number to send (O'Caml signal numbers as
     used by the <code class="code">Sys</code> module). Default is <code class="code">Sys.sigterm</code>.</div>
-<pre><span id="VALkill_processes"><span class="keyword">val</span> kill_processes</span> : <code class="type">?signal:int -> <a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALkill_processes"><span class="keyword">val</span> kill_processes</span> : <code class="type">?signal:int -> <a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> unit</code></pre><div class="info ">
 Kills the individual processes of the job which are still running.
 <p>
 
@@ -890,7 +955,8 @@ Kills the individual processes of the job which are still running.
 </div>
 <div class="param_info"><code class="code">signal</code> : The signal number to send (O'Caml signal numbers as
     used by the <code class="code">Sys</code> module). Default is <code class="code">Sys.sigterm</code>.</div>
-<pre><span id="VALcancel_job"><span class="keyword">val</span> cancel_job</span> : <code class="type">?signal:int -> <a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALcancel_job"><span class="keyword">val</span> cancel_job</span> : <code class="type">?signal:int -> <a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> unit</code></pre><div class="info ">
 Tries to get rid of a running job. If the mode is <code class="code">Same_as_caller</code>, the
  signal is sent to the processes individually. If the mode is
  <code class="code">Foreground</code> or <code class="code">Background</code>, the signal is sent to the process group 
@@ -907,14 +973,17 @@ Tries to get rid of a running job. If the mode is <code class="code">Same_as_cal
 </div>
 <div class="param_info"><code class="code">signal</code> : The signal number to send (O'Caml signal numbers as
     used by the <code class="code">Sys</code> module). Default is <code class="code">Sys.sigterm</code>.</div>
-<pre><span id="VALabandon_job"><span class="keyword">val</span> abandon_job</span> : <code class="type">?signal:int -> <a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALabandon_job"><span class="keyword">val</span> abandon_job</span> : <code class="type">?signal:int -> <a href="Shell_sys.html#TYPEjob_instance">job_instance</a> -> unit</code></pre><div class="info ">
 <b>Deprecated</b> name for <code class="code">cancel_job</code><br>
 </div>
+
 <pre><span id="EXCEPTIONAlready_installed"><span class="keyword">exception</span> Already_installed</span></pre>
-<div class="info">
+<div class="info ">
 Raised when the job handlers are already installed<br>
 </div>
-<pre><span id="VALconfigure_job_handlers"><span class="keyword">val</span> configure_job_handlers</span> : <code class="type">?catch_sigint:bool -><br>       ?catch_sigquit:bool -><br>       ?catch_sigterm:bool -> ?catch_sighup:bool -> ?at_exit:bool -> unit -> unit</code></pre><div class="info">
+
+<pre><span id="VALconfigure_job_handlers"><span class="keyword">val</span> configure_job_handlers</span> : <code class="type">?catch_sigint:bool -><br>       ?catch_sigquit:bool -><br>       ?catch_sigterm:bool -> ?catch_sighup:bool -> ?at_exit:bool -> unit -> unit</code></pre><div class="info ">
 Configures signal and at_exit handlers for jobs:<ul>
 <li>The keyboard signals SIGINT and SIGQUIT are forwarded to all jobs
    which are running in the background (and thus are not
@@ -964,7 +1033,8 @@ Configures signal and at_exit handlers for jobs:<ul>
 <div class="param_info"><code class="code">catch_sigterm</code> : whether to install a SIGTERM handler (default: <code class="code">true</code>)</div>
 <div class="param_info"><code class="code">catch_sighup</code> : whether to install a SIGHUP handler (default: <code class="code">true</code>)</div>
 <div class="param_info"><code class="code">at_exit</code> : whether to set the <code class="code">at_exit</code> handler (default: <code class="code">true</code>)</div>
-<pre><span id="VALinstall_job_handlers"><span class="keyword">val</span> install_job_handlers</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="VALinstall_job_handlers"><span class="keyword">val</span> install_job_handlers</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Installs handlers as configured before.
  Raises <code class="code">Already_installed</code> if the handlers are already installed.<br>
 </div>
@@ -1007,4 +1077,5 @@ Also no longer supported because the type <code class="code">system_handler</cod
     <pre class="codepre"><code class="code">val process_group_expects_signals : job_instance -&gt; bool</code></pre><br>
 <br>
 <h1 id="1_Debugging">Debugging</h1><br>
+
 <pre><span class="keyword">module</span> <a href="Shell_sys.Debug.html">Debug</a>: <code class="code">sig</code> <a href="Shell_sys.Debug.html">..</a> <code class="code">end</code></pre></body></html>

@@ -17,6 +17,9 @@
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Uq_gtk" rel="Chapter" href="Uq_gtk.html">
+<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
+<link title="Https_client" rel="Chapter" href="Https_client.html">
+<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Equeue" rel="Chapter" href="Equeue.html">
 <link title="Unixqueue" rel="Chapter" href="Unixqueue.html">
 <link title="Unixqueue_pollset" rel="Chapter" href="Unixqueue_pollset.html">
@@ -30,12 +33,10 @@
 <link title="Uq_mt" rel="Chapter" href="Uq_mt.html">
 <link title="Equeue_intro" rel="Chapter" href="Equeue_intro.html">
 <link title="Equeue_howto" rel="Chapter" href="Equeue_howto.html">
-<link title="Uq_ssl" rel="Chapter" href="Uq_ssl.html">
-<link title="Https_client" rel="Chapter" href="Https_client.html">
-<link title="Uq_tcl" rel="Chapter" href="Uq_tcl.html">
 <link title="Netcamlbox" rel="Chapter" href="Netcamlbox.html">
 <link title="Netcgi_apache" rel="Chapter" href="Netcgi_apache.html">
 <link title="Netcgi_modtpl" rel="Chapter" href="Netcgi_modtpl.html">
+<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Netcgi_common" rel="Chapter" href="Netcgi_common.html">
 <link title="Netcgi" rel="Chapter" href="Netcgi.html">
 <link title="Netcgi_ajp" rel="Chapter" href="Netcgi_ajp.html">
@@ -46,7 +47,6 @@
 <link title="Netcgi1_compat" rel="Chapter" href="Netcgi1_compat.html">
 <link title="Netcgi_test" rel="Chapter" href="Netcgi_test.html">
 <link title="Netcgi_porting" rel="Chapter" href="Netcgi_porting.html">
-<link title="Netcgi_plex" rel="Chapter" href="Netcgi_plex.html">
 <link title="Http_client_conncache" rel="Chapter" href="Http_client_conncache.html">
 <link title="Http_client" rel="Chapter" href="Http_client.html">
 <link title="Telnet_client" rel="Chapter" href="Telnet_client.html">
@@ -108,6 +108,7 @@
 <link title="Netshm_hashtbl" rel="Chapter" href="Netshm_hashtbl.html">
 <link title="Netshm_array" rel="Chapter" href="Netshm_array.html">
 <link title="Netshm_intro" rel="Chapter" href="Netshm_intro.html">
+<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netconversion" rel="Chapter" href="Netconversion.html">
 <link title="Netchannels" rel="Chapter" href="Netchannels.html">
 <link title="Netstream" rel="Chapter" href="Netstream.html">
@@ -143,7 +144,6 @@
 <link title="Netsendmail_tut" rel="Chapter" href="Netsendmail_tut.html">
 <link title="Netulex_tut" rel="Chapter" href="Netulex_tut.html">
 <link title="Neturl_tut" rel="Chapter" href="Neturl_tut.html">
-<link title="Netstring_pcre" rel="Chapter" href="Netstring_pcre.html">
 <link title="Netsys" rel="Chapter" href="Netsys.html">
 <link title="Netsys_posix" rel="Chapter" href="Netsys_posix.html">
 <link title="Netsys_pollset" rel="Chapter" href="Netsys_pollset.html">
@@ -168,6 +168,8 @@
 <link title="Rpc_key_service" rel="Chapter" href="Rpc_key_service.html">
 <link title="Rpc_time" rel="Chapter" href="Rpc_time.html">
 <link title="Rpc_auth_local" rel="Chapter" href="Rpc_auth_local.html">
+<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
+<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Rpc" rel="Chapter" href="Rpc.html">
 <link title="Rpc_program" rel="Chapter" href="Rpc_program.html">
 <link title="Rpc_util" rel="Chapter" href="Rpc_util.html">
@@ -185,8 +187,6 @@
 <link title="Rpc_intro" rel="Chapter" href="Rpc_intro.html">
 <link title="Rpc_mapping_ref" rel="Chapter" href="Rpc_mapping_ref.html">
 <link title="Rpc_intro_gss" rel="Chapter" href="Rpc_intro_gss.html">
-<link title="Rpc_ssl" rel="Chapter" href="Rpc_ssl.html">
-<link title="Rpc_xti_client" rel="Chapter" href="Rpc_xti_client.html">
 <link title="Shell_sys" rel="Chapter" href="Shell_sys.html">
 <link title="Shell" rel="Chapter" href="Shell.html">
 <link title="Shell_uq" rel="Chapter" href="Shell_uq.html">
@@ -209,7 +209,8 @@
 &nbsp;<a class="post" href="Netmcore_camlbox.html" title="Netmcore_camlbox">Next</a>
 </div>
 <h1>Module <a href="type_Netmcore.html">Netmcore</a></h1>
-<pre><span class="keyword">module</span> Netmcore: <code class="code">sig</code> <a href="Netmcore.html">..</a> <code class="code">end</code></pre><div class="info">
+
+<pre><span class="keyword">module</span> Netmcore: <code class="code">sig</code> <a href="Netmcore.html">..</a> <code class="code">end</code></pre><div class="info module top">
 Multi-processing for compute jobs
 <p>
 
@@ -275,14 +276,16 @@ Multi-processing for compute jobs
 <hr width="100%">
 <br>
 <h2 id="2_Typesandexceptions">Types and exceptions</h2><br>
+
 <pre><span id="TYPEres_id"><span class="keyword">type</span> <code class="type"></code>res_id</span> = <code class="type">[ `Resource of int ]</code> </pre>
-<div class="info">
+<div class="info ">
 This tagged integer identifies resources. This variant type will never
       be extended.<br>
 </div>
 
+
 <pre><span id="TYPEprocess_id"><span class="keyword">type</span> <code class="type"></code>process_id</span> = <code class="type">[ `Process of int ]</code> </pre>
-<div class="info">
+<div class="info ">
 This tagged integer identifies processes. This variant type will never
       be extended.
 <p>
@@ -291,12 +294,15 @@ This tagged integer identifies processes. This variant type will never
       identifier that is unique for the lifetime of the program.<br>
 </div>
 
+
 <pre><span id="TYPEcompute_resource_type"><span class="keyword">type</span> <code class="type"></code>compute_resource_type</span> = <code class="type">[ `File<br>       | `Fork_point<br>       | `Join_point<br>       | `Posix_sem<br>       | `Posix_shm<br>       | `Posix_shm_preallocated<br>       | `Posix_shm_preallocated_sc<br>       | `Posix_shm_sc ]</code> </pre>
+
 
 <pre><span id="TYPEinherit_request"><span class="keyword">type</span> <code class="type"></code>inherit_request</span> = <code class="type">[ `All | `Resources of <a href="Netmcore.html#TYPEres_id">res_id</a> list ]</code> </pre>
 
+
 <pre><span id="TYPEcompute_resource_repr"><span class="keyword">type</span> <code class="type"></code>compute_resource_repr</span> = <code class="type">[ `File of string<br>       | `Fork_point of<br>           <a href="Netmcore.html#TYPEinherit_request">inherit_request</a> * <a href="Netplex_encap.html#TYPEencap">Netplex_encap.encap</a> -> <a href="Netmcore.html#TYPEprocess_id">process_id</a><br>       | `Join_point of <a href="Netmcore.html#TYPEprocess_id">process_id</a> -> <a href="Netplex_encap.html#TYPEencap">Netplex_encap.encap</a> option<br>       | `Posix_sem of string<br>       | `Posix_shm of string<br>       | `Posix_shm_preallocated of string * <a href="Netsys_mem.html#TYPEmemory">Netsys_mem.memory</a><br>       | `Posix_shm_preallocated_sc of<br>           string * <a href="Netsys_mem.html#TYPEmemory">Netsys_mem.memory</a> * <a href="Netsys_sem.html#TYPEcontainer">Netsys_sem.container</a><br>       | `Posix_shm_sc of string * <a href="Netsys_sem.html#TYPEprefix">Netsys_sem.prefix</a> ]</code> </pre>
-<div class="info">
+<div class="info ">
 Centrally managed resources include:<ul>
 <li><code class="code">`File name</code>: (Temporary) file <code class="code">name</code> (absolute name)</li>
 <li><code class="code">`Posix_shm name</code>: Shared memory objects with <code class="code">name</code></li>
@@ -323,10 +329,12 @@ Centrally managed resources include:<ul>
       <a href="Netsys_pmanage.html"><code class="code">Netsys_pmanage</code></a>).<br>
 </div>
 
+
 <pre><span id="EXCEPTIONNo_resource"><span class="keyword">exception</span> No_resource</span> <span class="keyword">of</span> <code class="type"><a href="Netmcore.html#TYPEres_id">res_id</a></code></pre>
-<div class="info">
+<div class="info ">
 No such resource, or no resource of the expected type<br>
 </div>
+
 <pre><span id="TYPEcompute_resource"><span class="keyword">class type</span> <a href="Netmcore.compute_resource-c.html">compute_resource</a></span> = <code class="code">object</code> <a href="Netmcore.compute_resource-c.html">..</a> <code class="code">end</code></pre><br>
 <h2 id="2_Definingprocesses">Defining processes</h2><br>
 <br>
@@ -335,7 +343,8 @@ This is the lower-level version of the process API where arguments
     uses when writing generic process managers, but for the
     normal application the statically typed API in <a href="Netmcore_process.html"><code class="code">Netmcore_process</code></a>
     is easier to use (and less verbose).<br>
-<pre><span id="VALdef_process"><span class="keyword">val</span> def_process</span> : <code class="type">(<a href="Netplex_encap.html#TYPEencap">Netplex_encap.encap</a> -> <a href="Netplex_encap.html#TYPEencap">Netplex_encap.encap</a>) -><br>       <a href="Netmcore.html#TYPEres_id">res_id</a> * <a href="Netmcore.html#TYPEres_id">res_id</a></code></pre><div class="info">
+
+<pre><span id="VALdef_process"><span class="keyword">val</span> def_process</span> : <code class="type">(<a href="Netplex_encap.html#TYPEencap">Netplex_encap.encap</a> -> <a href="Netplex_encap.html#TYPEencap">Netplex_encap.encap</a>) -><br>       <a href="Netmcore.html#TYPEres_id">res_id</a> * <a href="Netmcore.html#TYPEres_id">res_id</a></code></pre><div class="info ">
 <code class="code">let fork_point, join_point = def_process f</code>:
       Defines process types, i.e. ways of starting and finishing processes. 
       The definition must be done in the master process, e.g. before the first
@@ -397,7 +406,8 @@ This is the lower-level version of the process API where arguments
 <br>
 The following functions can also be called from worker processes
     (i.e. Netplex containers)<br>
-<pre><span id="VALstart"><span class="keyword">val</span> start</span> : <code class="type">?inherit_resources:<a href="Netmcore.html#TYPEinherit_request">inherit_request</a> -><br>       <a href="Netmcore.html#TYPEres_id">res_id</a> -> <a href="Netplex_encap.html#TYPEencap">Netplex_encap.encap</a> -> <a href="Netmcore.html#TYPEprocess_id">process_id</a></code></pre><div class="info">
+
+<pre><span id="VALstart"><span class="keyword">val</span> start</span> : <code class="type">?inherit_resources:<a href="Netmcore.html#TYPEinherit_request">inherit_request</a> -><br>       <a href="Netmcore.html#TYPEres_id">res_id</a> -> <a href="Netplex_encap.html#TYPEencap">Netplex_encap.encap</a> -> <a href="Netmcore.html#TYPEprocess_id">process_id</a></code></pre><div class="info ">
 <code class="code">let pid = start fork_point arg</code>: Starts the process with the
       given <code class="code">fork_point</code> and the argument <code class="code">arg</code>.
 <p>
@@ -418,7 +428,8 @@ The following functions can also be called from worker processes
       (This changed in Ocamlnet-3.5 - before, no resources were inherited,
       which turned out to be quite dangerous as default.)<br>
 </div>
-<pre><span id="VALjoin"><span class="keyword">val</span> join</span> : <code class="type"><a href="Netmcore.html#TYPEres_id">res_id</a> -> <a href="Netmcore.html#TYPEprocess_id">process_id</a> -> <a href="Netplex_encap.html#TYPEencap">Netplex_encap.encap</a> option</code></pre><div class="info">
+
+<pre><span id="VALjoin"><span class="keyword">val</span> join</span> : <code class="type"><a href="Netmcore.html#TYPEres_id">res_id</a> -> <a href="Netmcore.html#TYPEprocess_id">process_id</a> -> <a href="Netplex_encap.html#TYPEencap">Netplex_encap.encap</a> option</code></pre><div class="info ">
 <code class="code">let res_opt = join join_point pid</code>: Waits until the process <code class="code">pid</code>
       is done, and returns the result value if any. You can only join
       (or <code class="code">join_nowait</code>) once per process.
@@ -432,7 +443,8 @@ The following functions can also be called from worker processes
       already terminated process with <code class="code">join_nowait</code>, e.g. after
       <a href="Netmcore.html#VALrun"><code class="code">Netmcore.run</code></a> returned.<br>
 </div>
-<pre><span id="VALjoin_nowait"><span class="keyword">val</span> join_nowait</span> : <code class="type"><a href="Netmcore.html#TYPEres_id">res_id</a> -> <a href="Netmcore.html#TYPEprocess_id">process_id</a> -> <a href="Netplex_encap.html#TYPEencap">Netplex_encap.encap</a> option</code></pre><div class="info">
+
+<pre><span id="VALjoin_nowait"><span class="keyword">val</span> join_nowait</span> : <code class="type"><a href="Netmcore.html#TYPEres_id">res_id</a> -> <a href="Netmcore.html#TYPEprocess_id">process_id</a> -> <a href="Netplex_encap.html#TYPEencap">Netplex_encap.encap</a> option</code></pre><div class="info ">
 <code class="code">let res_opt = join_nowait join_point pid</code>: Checks if the process <code class="code">pid</code>
       is done, and returns the result value if so. Otherwise return <code class="code">None</code>.<br>
 </div>
@@ -441,7 +453,8 @@ The following functions can also be called from worker processes
 <br>
 The following functions can also be called from worker processes
     (i.e. Netplex containers)<br>
-<pre><span id="VALget_resource"><span class="keyword">val</span> get_resource</span> : <code class="type"><a href="Netmcore.html#TYPEres_id">res_id</a> -> <a href="Netmcore.compute_resource-c.html">compute_resource</a></code></pre><div class="info">
+
+<pre><span id="VALget_resource"><span class="keyword">val</span> get_resource</span> : <code class="type"><a href="Netmcore.html#TYPEres_id">res_id</a> -> <a href="Netmcore.compute_resource-c.html">compute_resource</a></code></pre><div class="info ">
 Retrieves the resource by ID. This implicitly also marks this resource
       as being used by this process. Don't forget to call <code class="code">release</code> when
       your are done with the resource.
@@ -449,34 +462,42 @@ Retrieves the resource by ID. This implicitly also marks this resource
 
       Raises <code class="code">No_resource</code> if there is no such resource.<br>
 </div>
-<pre><span id="VALrelease"><span class="keyword">val</span> release</span> : <code class="type"><a href="Netmcore.html#TYPEres_id">res_id</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALrelease"><span class="keyword">val</span> release</span> : <code class="type"><a href="Netmcore.html#TYPEres_id">res_id</a> -> unit</code></pre><div class="info ">
 Release the resource with this ID. (Same as calling the <code class="code">release</code>
       method on the object.)<br>
 </div>
-<pre><span id="VALmanage_file"><span class="keyword">val</span> manage_file</span> : <code class="type">string -> <a href="Netmcore.compute_resource-c.html">compute_resource</a></code></pre><div class="info">
+
+<pre><span id="VALmanage_file"><span class="keyword">val</span> manage_file</span> : <code class="type">string -> <a href="Netmcore.compute_resource-c.html">compute_resource</a></code></pre><div class="info ">
 hands over a file to the manager<br>
 </div>
-<pre><span id="VALget_file"><span class="keyword">val</span> get_file</span> : <code class="type"><a href="Netmcore.html#TYPEres_id">res_id</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALget_file"><span class="keyword">val</span> get_file</span> : <code class="type"><a href="Netmcore.html#TYPEres_id">res_id</a> -> string</code></pre><div class="info ">
 Gets the file with this ID (or raises <code class="code">No_resource</code>). As for
       <code class="code">get_resource</code> the file is marked as being used by the process.<br>
 </div>
-<pre><span id="VALmanage_shm"><span class="keyword">val</span> manage_shm</span> : <code class="type">string -> <a href="Netmcore.compute_resource-c.html">compute_resource</a></code></pre><div class="info">
+
+<pre><span id="VALmanage_shm"><span class="keyword">val</span> manage_shm</span> : <code class="type">string -> <a href="Netmcore.compute_resource-c.html">compute_resource</a></code></pre><div class="info ">
 hands over a named shm object to the manager<br>
 </div>
-<pre><span id="VALmanage_shm_sc"><span class="keyword">val</span> manage_shm_sc</span> : <code class="type">string -> <a href="Netsys_sem.html#TYPEcontainer">Netsys_sem.container</a> -> <a href="Netmcore.compute_resource-c.html">compute_resource</a></code></pre><div class="info">
+
+<pre><span id="VALmanage_shm_sc"><span class="keyword">val</span> manage_shm_sc</span> : <code class="type">string -> <a href="Netsys_sem.html#TYPEcontainer">Netsys_sem.container</a> -> <a href="Netmcore.compute_resource-c.html">compute_resource</a></code></pre><div class="info ">
 hands over a named shm object plus semaphore container to the manager<br>
 </div>
-<pre><span id="VALget_shm"><span class="keyword">val</span> get_shm</span> : <code class="type"><a href="Netmcore.html#TYPEres_id">res_id</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALget_shm"><span class="keyword">val</span> get_shm</span> : <code class="type"><a href="Netmcore.html#TYPEres_id">res_id</a> -> string</code></pre><div class="info ">
 Gets the shm object with this ID (or raises <code class="code">No_resource</code>). As
       for <code class="code">get_resource</code> the shm object is marked as being used by the process.<br>
 </div>
-<pre><span id="VALget_sem_container"><span class="keyword">val</span> get_sem_container</span> : <code class="type"><a href="Netmcore.html#TYPEres_id">res_id</a> -> <a href="Netsys_sem.html#TYPEcontainer">Netsys_sem.container</a></code></pre><div class="info">
+
+<pre><span id="VALget_sem_container"><span class="keyword">val</span> get_sem_container</span> : <code class="type"><a href="Netmcore.html#TYPEres_id">res_id</a> -> <a href="Netsys_sem.html#TYPEcontainer">Netsys_sem.container</a></code></pre><div class="info ">
 Get the semaphore container<br>
 </div>
 <br>
 Shared memory objects can be created with <a href="Netsys_posix.html#VALshm_create"><code class="code">Netsys_posix.shm_create</code></a>,
     and opened with <a href="Netsys_posix.html#VALshm_open"><code class="code">Netsys_posix.shm_open</code></a>.<br>
-<pre><span id="VALcreate_preallocated_shm"><span class="keyword">val</span> create_preallocated_shm</span> : <code class="type">?value_area:bool -> string -> int -> <a href="Netmcore.html#TYPEres_id">res_id</a> * string</code></pre><div class="info">
+
+<pre><span id="VALcreate_preallocated_shm"><span class="keyword">val</span> create_preallocated_shm</span> : <code class="type">?value_area:bool -> string -> int -> <a href="Netmcore.html#TYPEres_id">res_id</a> * string</code></pre><div class="info ">
 <code class="code">create_preallocated_shm prefix size</code>: Creates a new preallocated
       shm object with a unique name based on <code class="code">prefix</code>, and a length of
       <code class="code">size</code> bytes. The object is created and mapped into the master
@@ -500,21 +521,25 @@ Shared memory objects can be created with <a href="Netsys_posix.html#VALshm_crea
       area, so the ocaml runtime allows value comparisons in this
       memory area.<br>
 </div>
-<pre><span id="VALcreate_preallocated_shm_sc"><span class="keyword">val</span> create_preallocated_shm_sc</span> : <code class="type">?value_area:bool -><br>       string -> int -> <a href="Netmcore.html#TYPEres_id">res_id</a> * string * <a href="Netsys_sem.html#TYPEcontainer">Netsys_sem.container</a></code></pre><div class="info">
+
+<pre><span id="VALcreate_preallocated_shm_sc"><span class="keyword">val</span> create_preallocated_shm_sc</span> : <code class="type">?value_area:bool -><br>       string -> int -> <a href="Netmcore.html#TYPEres_id">res_id</a> * string * <a href="Netsys_sem.html#TYPEcontainer">Netsys_sem.container</a></code></pre><div class="info ">
 Same as <code class="code">create_preallocated_shm</code> with the extension that 
       a semaphore container is also allocated and returned<br>
 </div>
-<pre><span id="VALmanage_sem"><span class="keyword">val</span> manage_sem</span> : <code class="type">string -> <a href="Netmcore.compute_resource-c.html">compute_resource</a></code></pre><div class="info">
+
+<pre><span id="VALmanage_sem"><span class="keyword">val</span> manage_sem</span> : <code class="type">string -> <a href="Netmcore.compute_resource-c.html">compute_resource</a></code></pre><div class="info ">
 hands over a named semaphore to the manager<br>
 </div>
-<pre><span id="VALget_sem"><span class="keyword">val</span> get_sem</span> : <code class="type"><a href="Netmcore.html#TYPEres_id">res_id</a> -> string</code></pre><div class="info">
+
+<pre><span id="VALget_sem"><span class="keyword">val</span> get_sem</span> : <code class="type"><a href="Netmcore.html#TYPEres_id">res_id</a> -> string</code></pre><div class="info ">
 gets the semaphore with this ID (or raises <code class="code">No_resource</code>). As
       for <code class="code">get_resource</code> the semaphore is marked as being used by the process.<br>
 </div>
 <br>
 Semaphores can be opened with <a href="Netsys_posix.html#VALsem_open"><code class="code">Netsys_posix.sem_open</code></a>, and
     created with <a href="Netsys_posix.html#VALsem_create"><code class="code">Netsys_posix.sem_create</code></a>.<br>
-<pre><span id="VALself_process_id"><span class="keyword">val</span> self_process_id</span> : <code class="type">unit -> <a href="Netmcore.html#TYPEprocess_id">process_id</a></code></pre><div class="info">
+
+<pre><span id="VALself_process_id"><span class="keyword">val</span> self_process_id</span> : <code class="type">unit -> <a href="Netmcore.html#TYPEprocess_id">process_id</a></code></pre><div class="info ">
 Returns the process ID of a worker<br>
 </div>
 <br>
@@ -522,12 +547,14 @@ Returns the process ID of a worker<br>
 <br>
 This module can either be used as Netplex plugin and integrated into
     any existing Netplex program, or it can be started in stand-alone mode<br>
-<pre><span id="VALadd_plugins"><span class="keyword">val</span> add_plugins</span> : <code class="type"><a href="Netplex_types.controller-c.html">Netplex_types.controller</a> -> unit</code></pre><div class="info">
+
+<pre><span id="VALadd_plugins"><span class="keyword">val</span> add_plugins</span> : <code class="type"><a href="Netplex_types.controller-c.html">Netplex_types.controller</a> -> unit</code></pre><div class="info ">
 To enable compute processes for any Netplex program, call this
       function with the controller object as argument. This can e.g. 
       be done in the <code class="code">post_add_hook</code> of the processor.<br>
 </div>
-<pre><span id="VALstartup"><span class="keyword">val</span> startup</span> : <code class="type">socket_directory:string -><br>       ?pidfile:string -><br>       ?init_ctrl:(<a href="Netplex_types.controller-c.html">Netplex_types.controller</a> -> unit) -><br>       ?disable_pmanage:bool -><br>       ?no_unlink:bool -> first_process:('a -> <a href="Netmcore.html#TYPEprocess_id">process_id</a>) -> 'a -> unit</code></pre><div class="info">
+
+<pre><span id="VALstartup"><span class="keyword">val</span> startup</span> : <code class="type">socket_directory:string -><br>       ?pidfile:string -><br>       ?init_ctrl:(<a href="Netplex_types.controller-c.html">Netplex_types.controller</a> -> unit) -><br>       ?disable_pmanage:bool -><br>       ?no_unlink:bool -> first_process:('a -> <a href="Netmcore.html#TYPEprocess_id">process_id</a>) -> 'a -> unit</code></pre><div class="info ">
 This function makes the current process the master process.
       It starts immediately a new worker process, called the 
       first process. The <code class="code">startup</code> function returns first when this
@@ -557,7 +584,8 @@ This function makes the current process the master process.
       startup. This may be useful when <code class="code">startup</code> is called a second time
       from the same program.<br>
 </div>
-<pre><span id="VALrun"><span class="keyword">val</span> run</span> : <code class="type">socket_directory:string -><br>       ?pidfile:string -><br>       ?init_ctrl:(<a href="Netplex_types.controller-c.html">Netplex_types.controller</a> -> unit) -><br>       ?disable_pmanage:bool -><br>       ?no_unlink:bool -><br>       first_process:('a -> <a href="Netmcore.html#TYPEprocess_id">process_id</a>) -><br>       extract_result:(<a href="Netplex_types.controller-c.html">Netplex_types.controller</a> -> <a href="Netmcore.html#TYPEprocess_id">process_id</a> -> 'b) -><br>       'a -> 'b</code></pre><div class="info">
+
+<pre><span id="VALrun"><span class="keyword">val</span> run</span> : <code class="type">socket_directory:string -><br>       ?pidfile:string -><br>       ?init_ctrl:(<a href="Netplex_types.controller-c.html">Netplex_types.controller</a> -> unit) -><br>       ?disable_pmanage:bool -><br>       ?no_unlink:bool -><br>       first_process:('a -> <a href="Netmcore.html#TYPEprocess_id">process_id</a>) -><br>       extract_result:(<a href="Netplex_types.controller-c.html">Netplex_types.controller</a> -> <a href="Netmcore.html#TYPEprocess_id">process_id</a> -> 'b) -><br>       'a -> 'b</code></pre><div class="info ">
 This function fixes a design error in <code class="code">startup</code>, namely that it was
       difficult to get the result of the process(es) back. Here, the
       additional callback <code class="code">extract_result</code> can be used to retrieve the
@@ -570,7 +598,9 @@ This function fixes a design error in <code class="code">startup</code>, namely 
 
       The result of <code class="code">extract_result</code> is the result of <code class="code">run</code>.<br>
 </div>
-<pre><span id="VALdestroy_resources"><span class="keyword">val</span> destroy_resources</span> : <code class="type">unit -> unit</code></pre><div class="info">
+
+<pre><span id="VALdestroy_resources"><span class="keyword">val</span> destroy_resources</span> : <code class="type">unit -> unit</code></pre><div class="info ">
 Destroys all resources that may be left<br>
 </div>
+
 <pre><span class="keyword">module</span> <a href="Netmcore.Debug.html">Debug</a>: <code class="code">sig</code> <a href="Netmcore.Debug.html">..</a> <code class="code">end</code></pre></body></html>
