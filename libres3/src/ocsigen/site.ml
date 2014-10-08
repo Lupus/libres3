@@ -124,9 +124,9 @@ let source_of arg size = {
 let empty_stream () = Ocsigen_stream.of_string ""
 
 let stream_of_request ri =
-  match ri.ri_method with
+  match Ocsigen_request_info.meth ri with
   | Http_header.POST | Http_header.PUT ->
-      begin match ri.ri_http_frame.frame_content with
+      begin match (Ocsigen_request_info.http_frame ri).frame_content with
       | None -> empty_stream ()
       | Some input -> input
       end
@@ -136,21 +136,21 @@ let process_request dispatcher ri () =
   let headers = Http_headers.fold (fun name values accum ->
     let namestr = Http_headers.name_to_string name in
     List.rev_append (List.map (fun v -> namestr, v) values) accum
-  ) ri.ri_http_frame.frame_header.headers [] in
+  ) (Ocsigen_request_info.http_frame ri).frame_header.headers [] in
   let stream = stream_of_request ri in
   let w, u = Lwt.wait () in
   let server = {
     Server.headers = None;
     headers_wait = w; headers_wake = u;woken=false;
     mvar = Lwt_mvar.create_empty () } in
-  let cl = match ri.ri_content_length with
+  let cl = match Ocsigen_request_info.content_length ri with
   | Some l -> l
   | None -> 0L in
   let source = source_of stream cl in
-  let req_method = conv_method ri.ri_method source in
-  let undecoded_url = match ri.ri_http_frame.frame_header.mode with
+  let req_method = conv_method (Ocsigen_request_info.meth ri) source in
+  let undecoded_url = match (Ocsigen_request_info.http_frame ri).frame_header.mode with
   | Query (_, url) -> url
-  | _ -> "/" ^ ri.ri_url_string in
+  | _ -> "/" ^ (Ocsigen_request_info.url_string ri) in
   let wait_eof =
     handle_request dispatcher {
       server = server;
@@ -167,14 +167,14 @@ let process_request dispatcher ri () =
       match server.Server.headers with
       | None -> res
       | Some h ->
-        { res with
-          res_code = Nethttp.int_of_http_status h.D.status;
-          res_content_length = Some h.D.content_length;
-          res_content_type = h.D.content_type;
-          res_headers = convert_headers h.D.reply_headers;
-          res_lastmodified = h.D.last_modified;
-          res_etag = h.D.etag
-      };;
+        Ocsigen_http_frame.Result.update res
+          ~code:(Nethttp.int_of_http_status h.D.status)
+          ~content_length:(Some h.D.content_length)
+          ~content_type:h.D.content_type
+          ~headers:(convert_headers h.D.reply_headers)
+          ~lastmodified:h.D.last_modified
+          ~etag:h.D.etag ()
+      ;;
 
 open Dns.Packet
 
