@@ -446,6 +446,13 @@ module Make
          return_error Error.NoSuchBucket ["Bucket", bucket]
     ;;
 
+  let fake_owner =
+      [
+          (* TODO: use real uid once SX supports it *)
+          Xml.tag "ID" [Xml.d Configfile.owner_id];
+          Xml.tag "DisplayName" [ Xml.d Configfile.owner_name]
+      ]
+
   module StringSet = Set.Make(String)
   let list_bucket_files2 l common =
     let contents = StringMap.fold (fun name (size, mtime, md5) accum ->
@@ -457,11 +464,7 @@ module Make
         Xml.tag "ETag" [Xml.d ("\"" ^ md5 ^ "\"")];
         Xml.tag "Size" [Xml.d (Int64.to_string size)];
         Xml.tag "StorageClass" [Xml.d "STANDARD"];
-        Xml.tag "Owner" [
-          (* TODO: use real uid once SX supports it *)
-          Xml.tag "ID" [Xml.d Configfile.owner_id];
-          Xml.tag "DisplayName" [ Xml.d Configfile.owner_name]
-        ]
+        Xml.tag "Owner" fake_owner
       ]) :: accum
     ) l [] in
     StringSet.fold (fun name accum ->
@@ -698,6 +701,10 @@ module Make
     | _ ->
         return_error Error.NotImplemented ["ListWithLongDelimiter",delimstr];;
 
+  let delim_opt = function
+    | None -> []
+    | Some s -> [Xml.d (String.make 1 s)]
+
   let list_bucket ~req ~canon bucket params =
     get_delim params >>= fun delim ->
     let prefix = try List.assoc "prefix" params with Not_found -> "" in
@@ -730,6 +737,7 @@ module Make
             Xml.tag "Name" [Xml.d bucket];
             Xml.tag "Prefix" [Xml.d prefix];(* TODO: impl these *)
             Xml.tag "Marker" [];
+            Xml.tag "Delimiter" (delim_opt delim);
             Xml.tag "MaxKeys" [Xml.d (string_of_int Configfile.max_keys)];
             Xml.tag "IsTruncated" [Xml.d "false"];
           ] xml)
@@ -792,14 +800,20 @@ module Make
       Hashtbl.add mpart_buckets user bucket;
       return bucket
 
+  let mpart_get_path ~canon bucket path ~uploadId ~part =
+    mpart_get_bucket ~canon >>= fun mpart_bucket ->
+    let dir = Filename.concat bucket path in
+    let mpart_path = Filename.concat dir (Filename.concat uploadId part) in
+    return (mpart_bucket, mpart_path)
+
   let mput_initiate ~canon ~request bucket path =
     Buffer.reset buf;
     Buffer.add_string buf (Digest.string (bucket ^"/"^path));
     Buffer.add_char buf '\x00';
     Buffer.add_string buf (RequestId.to_string canon.CanonRequest.id);
     let uploadId = Cryptoutil.base64url_encode (Buffer.contents buf) in
-    mpart_get_bucket ~canon >>= fun mpart_bucket ->
-    let _, url = url_of_volpath ~canon mpart_bucket (Filename.concat uploadId "0") in
+    mpart_get_path ~canon bucket path ~uploadId ~part:"0" >>= fun (mpart_bucket, mpart_path) ->
+    let _, url = url_of_volpath ~canon mpart_bucket mpart_path in
     U.copy (U.of_string "") ~srcpos:0L url >>= fun () ->
     return_xml_canon ~req:request ~canon ~status:`Ok ~reply_headers:[] (
       Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "InitiateMultipartUploadResult"
@@ -823,11 +837,11 @@ module Make
         "Requirements","part numbers must be integers >= 1 and <= 10000"
       ];;
 
-  let mput_part ~canon ~request ~partNumber ~uploadId body _ _ =
+  let mput_part ~canon ~request ~partNumber ~uploadId body bucket path =
     validate_partNumber partNumber >>= fun n ->
-    mpart_get_bucket ~canon >>= fun mpart_bucket ->
-    let path = Printf.sprintf "%s/%05d" uploadId n in
-    put_object ~canon ~request body mpart_bucket path
+    let part = Printf.sprintf "%05d" n in
+    mpart_get_path ~canon bucket path ~uploadId ~part >>= fun (mpart_bucket, mpart_path) ->
+    put_object ~canon ~request body mpart_bucket mpart_path
 
   let build_url bucket path =
     (* TODO: use same scheme as the requests, i.e https on https *)
@@ -854,10 +868,12 @@ module Make
           failwith "bad XML"
     ) lst)
 
-  let get_part_sizes ~canon mpart_bucket ~uploadId lst =
+  let get_part_sizes ~canon bucket path ~uploadId lst =
     IO.rev_map_p (fun (part_number, etag) ->
-      let name = Printf.sprintf "%s/%05d" uploadId part_number in
-      let _, url = url_of_volpath ~canon mpart_bucket name in
+      let part = Printf.sprintf "%05d" part_number in
+      mpart_get_path ~canon bucket path ~uploadId ~part
+      >>= fun (mpart_bucket, mpart_path) ->
+      let _, url = url_of_volpath ~canon mpart_bucket mpart_path in
       IO.try_catch md5_of_url (function _ ->
         return_error Error.InvalidPart [
           "UploadID", uploadId;
@@ -885,18 +901,80 @@ module Make
       Int64.add filesize size, url :: names
     ) (0L, [])
 
-  let check_parts ~canon mpart_bucket ~uploadId body =
+  let check_parts ~canon bucket path ~uploadId body =
     parse_input_xml_opt body "CompleteMultipartUpload"
-      parse_parts (get_part_sizes ~canon mpart_bucket ~uploadId)
+      parse_parts (get_part_sizes ~canon bucket path ~uploadId)
 
-  let mpart_list ~canon ~req bucket =
-    mpart_get_bucket ~canon >>= fun mpart_bucket ->
-    (* TODO: take bucket into account: put multipart uploads in subdir *)
-    list_bucket ~req ~canon mpart_bucket ["delimiter","/"]
+  let list_bucket_uploads l common =
+    let _, contents = StringMap.fold (fun name (size, mtime, md5) (lastkey, accum) ->
+      let name = Filename.dirname name in
+      let key = Filename.dirname name in
+      let _, key = Util.url_split_first_component (Neturl.split_path key)
+      and uploadId = Filename.basename name in
+      let key = String.sub key 1 (String.length key-1) in
+      if key = lastkey then lastkey, accum
+      else key, (Xml.tag "Upload" [
+        Xml.tag "Key" [Xml.d key];
+        Xml.tag "UploadId" [Xml.d uploadId];
+        Xml.tag "Initiator" fake_owner;
+        Xml.tag "Owner" fake_owner;
+        Xml.tag "StorageClass" [Xml.d "STANDARD"];
+        Xml.tag "Initiated" [Xml.d (
+          Util.format_date mtime)
+        ]
+      ]) :: accum
+    ) l ("",[]) in
+    StringSet.fold (fun name accum ->
+      (Xml.tag "CommonPrefixes" [
+        Xml.tag "Prefix" [Xml.d (name ^ "/")]
+      ]) :: accum
+    ) common contents;;
 
-  let list_parts ~canon ~uploadId =
+  let mpart_list ~canon ~req bucket params =
     mpart_get_bucket ~canon >>= fun mpart_bucket ->
-    let base, url = url_of_volpath ~canon mpart_bucket uploadId in
+    get_delim params >>= fun delim ->
+    let prefix = try List.assoc "prefix" params with Not_found -> "" in
+    let pathprefix = Filename.concat bucket prefix in
+    let base, url = url_of_volpath ~canon mpart_bucket pathprefix in
+    try_catch
+      (fun () ->
+      U.fold_list ~base url
+        ~entry:(fold_entry ~canon bucket pathprefix delim)
+        ~recurse:(recurse pathprefix delim)
+        (StringMap.empty, StringSet.empty)
+      )
+      (fun e ->
+        U.exists url >>= function
+        | Some _ -> fail e
+        | None ->
+          return_error Error.NoSuchBucket ["Bucket",bucket]
+      ) () >>= fun (files, common_prefixes) ->
+    begin if files = StringMap.empty then begin
+      U.exists base >>= function
+        | Some _ -> return ()
+        | None ->
+          return_error Error.NoSuchBucket ["Bucket",bucket]
+    end else return ()
+    end >>= fun () ->
+    let xml = list_bucket_uploads files common_prefixes in
+    return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
+        Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "ListMultipartUploadsResult" (
+          List.rev_append [
+            Xml.tag "Bucket" [Xml.d bucket];
+            Xml.tag "Prefix" [Xml.d prefix];(* TODO: impl these *)
+            Xml.tag "KeyMarker" [];
+            Xml.tag "NextKeyMarker" [];
+            Xml.tag "NextUploadIdMarker" [];
+            Xml.tag "Delimiter" (delim_opt delim);
+            Xml.tag "IsTruncated" [Xml.d "false"];
+            Xml.tag "MaxUploads" [Xml.d (string_of_int Configfile.max_keys)];
+          ] xml)
+    );;
+
+  let list_parts ~canon ~uploadId bucket path =
+    mpart_get_path ~canon bucket path ~uploadId ~part:""
+    >>= fun (mpart_bucket, mpart_path) ->
+    let base, url = url_of_volpath ~canon mpart_bucket mpart_path in
     U.fold_list ~base url ~entry:(fun (filesize, names) entry ->
       let _, url = url_of_volpath ~canon mpart_bucket entry.U.name in
       U.exists url >>= function
@@ -907,12 +985,13 @@ module Make
             "UploadId",uploadId;
             "part",entry.U.name
         ]
-    ) ~recurse:(fun _ -> true) (0L, []) >|= fun (filesize, names) ->
-    filesize, List.fast_sort String.compare names
+      ) ~recurse:(fun _ -> true) (0L, []) >|= fun (filesize, names) ->
+    mpart_bucket, filesize, List.fast_sort String.compare names
 
   let mput_list_parts ~canon ~req bucket path ~uploadId =
-    mpart_get_bucket ~canon >>= fun mpart_bucket ->
-    let base, url = url_of_volpath ~canon mpart_bucket uploadId in
+    mpart_get_path ~canon bucket path ~uploadId ~part:""
+    >>= fun (mpart_bucket, mpart_path) ->
+    let base, url = url_of_volpath ~canon mpart_bucket mpart_path in
     U.fold_list ~base url ~entry:(fun parts entry ->
         (* TODO: ignore parts that raise errors *)
         let partNumber = int_of_string (Filename.basename entry.U.name) in
@@ -934,36 +1013,31 @@ module Make
       ) ~recurse:(fun _ -> true) [] >>= fun parts ->
     (* TODO: support maxParts *)
     (* TODO: check consistency of uploadId with bucket/path *)
-    let owner = [
-          (* TODO: use real uid once SX supports it *)
-          Xml.tag "ID" [Xml.d Configfile.owner_id];
-          Xml.tag "DisplayName" [ Xml.d Configfile.owner_name]
-    ] in
     return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
       Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "ListPartsResult" (List.rev (List.rev_append parts [
           Xml.tag "StorageClass" [Xml.d "STANDARD"];
-          Xml.tag "Owner" owner;
-          Xml.tag "Initiator" owner;
+          Xml.tag "Owner" fake_owner;
+          Xml.tag "Initiator" fake_owner;
           Xml.tag "UploadId" [Xml.d uploadId];
           Xml.tag "Key" [Xml.d (String.sub path 1 (String.length path-1))];
           Xml.tag "Bucket" [Xml.d bucket]
         ])))
 
-  let mput_delete_common ~canon ~request ~uploadId =
-    mpart_get_bucket ~canon >>= fun mpart_bucket ->
-    list_parts ~canon ~uploadId >>= fun (_, names) ->
+  let mput_delete_common ~canon ~request ~uploadId bucket path =
+    list_parts ~canon ~uploadId bucket path
+    >>= fun (mpart_bucket, _, names) ->
     IO.rev_map_p (fun name ->
       U.delete (snd (url_of_volpath ~canon mpart_bucket name))
     ) names
 
-  let mput_delete ~canon ~request ~uploadId _ _ =
-    mput_delete_common ~canon ~request ~uploadId >>= fun _ ->
+  let mput_delete ~canon ~request ~uploadId bucket path =
+    mput_delete_common ~canon ~request ~uploadId bucket path >>= fun _ ->
     return_empty ~req:request ~canon ~status:`No_content ~reply_headers:[];;
 
   let mput_complete ~canon ~request ~uploadId ~body bucket path =
-    mpart_get_bucket ~canon >>= fun mpart_bucket ->
-    let started = Filename.concat uploadId "0" in
-    U.exists (snd (url_of_volpath ~canon mpart_bucket started)) >>= function
+    mpart_get_path ~canon bucket path ~uploadId ~part:"0"
+    >>= fun (mpart_bucket, mpart_path) ->
+    U.exists (snd (url_of_volpath ~canon mpart_bucket mpart_path)) >>= function
     | None ->
       return_error Error.NoSuchUpload [
         "UploadId",uploadId;
@@ -971,14 +1045,14 @@ module Make
         "file",path
       ]
     | Some _ ->
-    check_parts ~canon mpart_bucket ~uploadId body >>= fun (filesize, urls) ->
+    check_parts ~canon bucket path ~uploadId body >>= fun (filesize, urls) ->
     let _, url = url_of_volpath ~canon bucket path in
     let digestref = ref "" in
     let md5 = Cryptokit.Hash.md5 () in
     U.with_urls_source urls filesize (fun src ->
         let source = md5_source2 md5 src in
         U.copy ~metafn:(md5_metafn md5 digestref) source ~srcpos:0L url >>= fun () ->
-        mput_delete_common ~canon ~request ~uploadId >>= fun _ ->
+        mput_delete_common ~canon ~request ~uploadId bucket path >>= fun _ ->
         (* TODO: periodically send whitespace to keep connection alive *)
         return_xml_canon ~req:request ~canon ~status:`Ok ~reply_headers:[] (
           Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "CompleteMultipartUploadResult"
@@ -1030,8 +1104,9 @@ module Make
     with
     | `GET, Bucket "", "/",[] ->
         list_buckets request canon
-    | `GET, Bucket bucket, "/",["uploads",""] ->
-        mpart_list ~canon ~req:request bucket
+    | `GET, Bucket bucket, "/", params
+      when List.mem_assoc "uploads" params && List.assoc "uploads" params = "" ->
+        mpart_list ~canon ~req:request bucket params
     | `GET, Bucket bucket, "/",params ->
         list_bucket ~req:request ~canon bucket params
     | `HEAD, Bucket bucket, "/",_ ->
