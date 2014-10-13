@@ -898,7 +898,7 @@ let pkg_ocsigenserver = ocaml_dependency "ocsigenserver"
     "--staticpagesdir";Filename.concat prefix_var "www/ocsigenserver";
     "--datadir";Filename.concat prefix_var "lib/ocsigenserver"
   ] ~findlibnames:["ocsigenserver"]
-)) ~version:(fun v -> v >=? "2.4.0") (* always build *)
+)) ~version:(fun v -> v >=? "2.5.0") (* always build *)
   ~deps:[
   gnu_make_dep; camlp4_dep; pkg_findlib; pkg_pcre; pkg_ocamlnet; pkg_react; pkg_ssl; pkg_lwt; pkg_cryptokit; pkg_tyxml; pkg_ipaddr
 ]
