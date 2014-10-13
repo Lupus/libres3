@@ -889,6 +889,11 @@ module Make
     parse_input_xml_opt body "CompleteMultipartUpload"
       parse_parts (get_part_sizes ~canon mpart_bucket ~uploadId)
 
+  let mpart_list ~canon ~req bucket =
+    mpart_get_bucket ~canon >>= fun mpart_bucket ->
+    (* TODO: take bucket into account: put multipart uploads in subdir *)
+    list_bucket ~req ~canon mpart_bucket ["delimiter","/"]
+
   let list_parts ~canon ~uploadId =
     mpart_get_bucket ~canon >>= fun mpart_bucket ->
     let base, url = url_of_volpath ~canon mpart_bucket uploadId in
@@ -904,6 +909,45 @@ module Make
         ]
     ) ~recurse:(fun _ -> true) (0L, []) >|= fun (filesize, names) ->
     filesize, List.fast_sort String.compare names
+
+  let mput_list_parts ~canon ~req bucket path ~uploadId =
+    mpart_get_bucket ~canon >>= fun mpart_bucket ->
+    let base, url = url_of_volpath ~canon mpart_bucket uploadId in
+    U.fold_list ~base url ~entry:(fun parts entry ->
+        (* TODO: ignore parts that raise errors *)
+        let partNumber = int_of_string (Filename.basename entry.U.name) in
+        if partNumber > 0 then
+          let _, url = url_of_volpath ~canon mpart_bucket entry.U.name in
+          IO.try_catch md5_of_url (function _ ->
+              return_error Error.InvalidPart [
+                "UploadID", uploadId;
+                "part",string_of_int partNumber;
+              ]) url >>= fun digest ->
+          let etag = "\"" ^ digest ^ "\"" in
+          return (Xml.tag "Part" [
+              Xml.tag "PartNumber" [Xml.d (string_of_int partNumber)];
+              Xml.tag "LastModified" [Xml.d (Util.format_date entry.U.mtime)];
+              Xml.tag "ETag" [Xml.d etag];
+              Xml.tag "Size" [Xml.d (Int64.to_string entry.U.size)]
+            ] :: parts)
+        else return parts
+      ) ~recurse:(fun _ -> true) [] >>= fun parts ->
+    (* TODO: support maxParts *)
+    (* TODO: check consistency of uploadId with bucket/path *)
+    let owner = [
+          (* TODO: use real uid once SX supports it *)
+          Xml.tag "ID" [Xml.d Configfile.owner_id];
+          Xml.tag "DisplayName" [ Xml.d Configfile.owner_name]
+    ] in
+    return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
+      Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "ListPartsResult" (List.rev (List.rev_append parts [
+          Xml.tag "StorageClass" [Xml.d "STANDARD"];
+          Xml.tag "Owner" owner;
+          Xml.tag "Initiator" owner;
+          Xml.tag "UploadId" [Xml.d uploadId];
+          Xml.tag "Key" [Xml.d (String.sub path 1 (String.length path-1))];
+          Xml.tag "Bucket" [Xml.d bucket]
+        ])))
 
   let mput_delete_common ~canon ~request ~uploadId =
     mpart_get_bucket ~canon >>= fun mpart_bucket ->
@@ -986,6 +1030,8 @@ module Make
     with
     | `GET, Bucket "", "/",[] ->
         list_buckets request canon
+    | `GET, Bucket bucket, "/",["uploads",""] ->
+        mpart_list ~canon ~req:request bucket
     | `GET, Bucket bucket, "/",params ->
         list_bucket ~req:request ~canon bucket params
     | `HEAD, Bucket bucket, "/",_ ->
@@ -995,6 +1041,8 @@ module Make
         get_object ~req:request ~canon bucket path
     | `GET, Bucket _, _, ["acl",""] ->
         send_default_acl ~req:request ~canon
+    | `GET, Bucket bucket, path, ["uploadId", uploadId] ->
+        mput_list_parts ~canon ~req:request bucket path ~uploadId
     | `GET, Bucket _, _, params ->
         return_error Error.NotImplemented params
     | `HEAD, Bucket bucket, path, _ ->

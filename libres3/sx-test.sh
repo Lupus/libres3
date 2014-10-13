@@ -1,9 +1,11 @@
 #!/bin/sh
 set -e
 SXDIR=../../sx
-make distclean
 PREFIX=`pwd`/test-libres3
 $PREFIX/sbin/libres3_ocsigen --stop || true
+
+if false; then
+make distclean
 rm -rf "$PREFIX"
 mkdir "$PREFIX"
 ./configure --prefix="$PREFIX" --enable-tests --disable-docs
@@ -16,7 +18,11 @@ cleanup() {
 }
 trap cleanup INT TERM EXIT
 echo "Starting SX"
-(cd $SXDIR/server && test/start-nginx.sh)
+(cd $SXDIR/server && N=1 test/start-nginx.sh)
+else
+. ./setup.data
+fi
+
 echo
 echo "Installing ocsigen"
 make reinstall
