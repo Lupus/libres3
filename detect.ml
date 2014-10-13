@@ -721,7 +721,7 @@ end = struct
      some 3rdparty libs also use 'ocamlfind ocamlmklib' which was not available
      prior to 1.2.8
     *)
-    let have = check_findlib_package (fun v -> v >=? "1.2.8") "findlib" in
+    let have = check_findlib_package (fun v -> v >=? "1.5.3") "findlib" in
     dependency "ocamlfind" have build_ocamlfind ~deps:[gnu_make_dep]
   ;;
 
