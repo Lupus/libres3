@@ -53,7 +53,7 @@ module Xml = struct
   let d str = `Data str
 
   let parse_string str : t =
-    let source = Xmlm.make_input (`String (0, str)) in
+    let source = Xmlm.make_input ~strip:true (`String (0, str)) in
     snd (Xmlm.input_doc_tree
       ~el:(fun tag lst -> `El (tag, lst)) ~data:(fun data -> `Data data) source
     );;

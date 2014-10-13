@@ -864,8 +864,8 @@ module Make
         `El (((_,"PartNumber"),_),[`Data part_number]);
         ]) ->
           int_of_string part_number, etag
-      | _ ->
-          failwith "bad XML"
+      | t ->
+          failwith ("bad XML:" ^ (CodedIO.Xml.to_string t))
     ) lst)
 
   let get_part_sizes ~canon bucket path ~uploadId lst =
