@@ -423,10 +423,26 @@ struct
         (fun e ->
           return ("Unparsable reply" ^ (Printexc.to_string e))) ();;
 
+    let make_http_request p url =
+      P.make_http_request p url >>= fun reply ->
+      let apiverstr =
+        try reply.headers#field "SX-API-Version"
+        with Not_found -> "0" in
+      try
+        let apiver = int_of_string apiverstr in
+        if apiver < Config.apiver_min || apiver > Config.apiver_max then
+          let msg = Printf.sprintf "Unsupported SX API version: %d, expected [%d,%d]"
+              apiver Config.apiver_min Config.apiver_max in
+          fail (Http_client.Http_protocol(Failure msg))
+        else return reply
+      with Failure _ ->
+        let msg = "Invalid SX API version: " ^ apiverstr in 
+        fail (Http_client.Http_protocol(Failure msg))
+
     let rec make_request_token ~token meth ?(req_body="") url =
       (* TODO: check that scheme is sx! *)
       let p = pipeline () in
-      P.make_http_request p (request_of_url ~token meth ~req_body url) >>= fun reply ->
+      make_http_request p (request_of_url ~token meth ~req_body url) >>= fun reply ->
       if reply.status = `Ok || reply.status = `Partial_content then
         return reply
       else if reply.code = 429 then
@@ -1277,7 +1293,7 @@ struct
       begin match url_path ~encoded:true url with
       | "" :: _volume :: ("" :: [] | []) ->
           (* does volume exist? *)
-          P.make_http_request p (request_of_url ~token `HEAD (locate url))
+          make_http_request p (request_of_url ~token `HEAD (locate url))
           >>= fun reply ->
           begin match reply.status with
           | `Ok -> return (Some 0L)
@@ -1289,7 +1305,7 @@ struct
           return (Some meta.XIO.size)
       | _ ->
           (* can I fetch the nodeslist? *)
-          P.make_http_request p (request_of_url ~token `HEAD (fetch_nodes url))
+          make_http_request p (request_of_url ~token `HEAD (fetch_nodes url))
           >>= fun reply ->
           begin match reply.status with
           | `Ok -> return (Some 0L)

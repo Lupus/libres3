@@ -32,7 +32,7 @@ open Unix
 open Configfile
 module StringMap = Map.Make(String)
 
-let server_name = "libres3"
+let server_name = ("libres3-" ^ Version.version)
 type substr = string * int * int
 
 type headers = {
