@@ -436,7 +436,7 @@ struct
           fail (Http_client.Http_protocol(Failure msg))
         else return reply
       with Failure _ ->
-        let msg = "Invalid SX API version: " ^ apiverstr in 
+        let msg = "Invalid SX API version: " ^ apiverstr in
         fail (Http_client.Http_protocol(Failure msg))
 
     let rec make_request_token ~token meth ?(req_body="") url =
@@ -566,15 +566,59 @@ struct
         make_request_loop meth ?req_body nodes url []
       ) ()
 
-    (* TODO: full DNS list? *)
-    let initial_nodelist url = [ Neturl.url_host url ]
+    module StringSet = Set.Make(String)
+    let last_nodelist = ref ([], "")
 
-    let get_nodelist url =
+    let rot l =
+      if l = [] then []
+      else List.rev_append (List.rev (List.tl l)) [List.hd l]
+
+    let parse_server server =
+      try
+        Scanf.sscanf server "Skylable/%_s (%s@)" (fun s -> s)
+      with e ->
+        failwith ("Bad servername " ^ server ^ ":" ^ (Printexc.to_string e))
+    ;;
+
+    let parse_sx_cluster server =
+      try
+        Scanf.sscanf server "%_s (%s@)" (fun s -> s)
+      with e ->
+        failwith ("Bad servername " ^ server ^ ":" ^ (Printexc.to_string e))
+    ;;
+
+    let get_cluster_nodelist url =
+      match !last_nodelist with
+      | [], _ ->
+        (* retrieve nodelist as admin *)
+        make_request_token ~token:!Config.secret_access_key `GET (fetch_nodes url) >>= fun reply ->
+        json_parse_tree (P.input_of_async_channel reply.body) >>= (function
+            | [`O [`F ("nodeList", [`A nodes])]] ->
+              let nodes = List.rev_map (function
+                  | `String h -> h
+                  | _ -> failwith "bad locate nodes format"
+                ) nodes in
+              let uuid =
+                try parse_sx_cluster (reply.headers#field "SX-Cluster")
+                with Not_found -> parse_server (reply.headers#field "Server") in
+              last_nodelist := rot nodes, uuid;
+              return (nodes, uuid)
+            | lst ->
+              List.iter pp_json lst;
+              failwith "bad locate nodes json"
+          )
+      | nodes, uuid ->
+        (* round-robin *)
+        last_nodelist := rot nodes, uuid;
+        return (rot (url_host url :: nodes), uuid)
+    ;;
+
+    let get_vol_nodelist url =
       match url_path ~encoded:true url with
       | "" :: volume :: _ ->
           let url = Neturl.modify_url url ~path:["";volume] in
-          let nodes = initial_nodelist url in
-          make_request `GET nodes (locate url) >>= (fun reply ->
+          get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
+          make_request `GET cluster_nodes (locate url) >>= (fun reply ->
           json_parse_tree (P.input_of_async_channel reply.body) >>= function
           | [`O [`F ("nodeList", [`A nodes]); `F ("volumeMeta", [`O metalist])]] ->
             if has_field "filterActive" metalist then
@@ -583,11 +627,12 @@ struct
                 ["LibreS3ErrorMessage","Cannot access a volume that uses filters"]
               ))
             else
-              return (List.rev_map
+              let nodes = List.rev_map
                 (function
                   | `String h -> h
                   | _ -> failwith "bad locate nodes format"
-                ) nodes)
+                ) nodes in
+              return (nodes, reply)
           | lst ->
               List.iter pp_json lst;
               failwith "bad locate nodes json"
@@ -610,16 +655,25 @@ struct
       ) (0,map) hashes)
     ;;
 
-    module StringSet = Set.Make(String)
-    module NodesMap = Map.Make(StringSet)
+    module NodesMap = Map.Make(struct
+        type t = string * StringSet.t
+        let compare (ah,at) (bh,bt) =
+          match String.compare ah bh with
+          | 0 -> StringSet.compare at bt
+          | n -> n
+    end)
 
-    let map_unique_nodes nodes =
-      List.fold_left
-        (fun accum -> function
-        | `String host ->
-          StringSet.add host accum
-        | _ -> failwith "Bad json nodes format"
-        ) StringSet.empty nodes
+    let nodelist (hd, tl) = hd :: (StringSet.elements tl)
+
+    let map_host = function
+      | `String host -> host
+      | _ -> failwith "Bad json node format"
+
+    let map_unique_nodes = function
+      | [] -> failwith "Hash with no nodes"
+      | hd :: nodes ->
+        map_host hd, List.fold_left (fun accum j ->
+            StringSet.add (map_host j) accum) StringSet.empty nodes
     ;;
 
     let add_to_nodemap key value map =
@@ -663,13 +717,12 @@ struct
       (* launch all requests *)
       let batches = NodesMap.fold (fun nodes hashes accum ->
         let split = split_at_threshold 1 download_max_blocks (List.rev hashes) [] [] 0 in
-        let nodelist = StringSet.elements nodes in
         List.fold_left (fun accum hashesr ->
           let hashes = List.rev hashesr in
           let batch = (String.concat "" hashes) in
           let u = Neturl.modify_url url
             ~path:["";".data";string_of_int blocksize;batch] in
-          (hashes, make_request `GET nodelist u) :: accum
+          (hashes, make_request `GET (nodelist nodes) u) :: accum
         ) accum split
       ) grouped [] in
       (* build map of replys *)
@@ -691,7 +744,7 @@ struct
     ;;
 
     let get_meta url =
-     get_nodelist url >>= fun nodes ->
+     get_vol_nodelist url >>= fun (nodes, _) ->
      let url = Neturl.modify_url ~syntax:http_syntax url ~query:"fileMeta" in
      make_request `GET nodes url >>= fun reply ->
      expect_content_type reply "application/json" >>= fun () ->
@@ -705,7 +758,7 @@ struct
      | _ -> failwith "bad meta reply format"
 
     let get url =
-     get_nodelist url >>= fun nodes ->
+     get_vol_nodelist url >>= fun (nodes, _) ->
      try_catch (fun () ->
        make_request `GET nodes url >>= fun reply ->
        try
@@ -801,7 +854,7 @@ struct
       let user = Neturl.url_user url in
       let req = user, string_of_url url, Unix.gettimeofday () in
       ListCache.bind (M.return req) (fun _ ->
-          get_nodelist url >>= fun nodes ->
+          get_vol_nodelist url >>= fun (nodes, _) ->
           make_request `GET nodes url >>=  fun reply ->
           begin
             expect_content_type reply "application/json" >>= fun () ->
@@ -831,7 +884,8 @@ struct
     ;;
 
     let volumelist url =
-      make_request `GET (initial_nodelist url) url >>=  fun reply ->
+      get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
+      make_request `GET cluster_nodes url >>=  fun reply ->
       begin
        expect_content_type reply "application/json" >>= fun () ->
        let input = P.input_of_async_channel reply.body in
@@ -973,15 +1027,14 @@ struct
           fail (Failure ("hash not found:" ^ hash))
       ) (return 0) hashes >>= fun _ ->
       (* TODO: retry on failure *)
-      let nodelist = StringSet.elements nodes in
       let url =
         Neturl.make_url ~encoded:false
           ~scheme:"sx"
           ~port ~path:["";".data";string_of_int blocksize;token]
-          ~user ~host:(List.hd nodelist)
+          ~user ~host:(fst nodes)
           http_syntax
       in
-      make_request `PUT ~req_body:buf.buf nodelist url >>= fun _ ->
+      make_request `PUT ~req_body:buf.buf (nodelist nodes) url >>= fun _ ->
       return ()
     ;;
 
@@ -1051,24 +1104,11 @@ struct
       make_request `PUT [Neturl.url_host url] url >>=
       job_get url
 
-    let parse_server server =
-      try
-        Scanf.sscanf server "Skylable/%_s (%s@)" (fun s -> s)
-      with e ->
-        failwith ("Bad servername " ^ server ^ ":" ^ (Printexc.to_string e))
-    ;;
-
-    let parse_sx_cluster server =
-      try
-        Scanf.sscanf server "%_s (%s@)" (fun s -> s)
-      with e ->
-        failwith ("Bad servername " ^ server ^ ":" ^ (Printexc.to_string e))
-    ;;
-
     let locate_upload url size =
       match url_path ~encoded:true url with
       | "" :: volume :: _ ->
-      begin make_request `GET (initial_nodelist url) (Neturl.modify_url
+      get_vol_nodelist url >>= fun (nodes, _) ->
+      begin make_request `GET nodes (Neturl.modify_url
             ~path:["";volume]
             ~scheme:"http"
             ~syntax:http_syntax
@@ -1243,14 +1283,8 @@ struct
       let url = Neturl.modify_url url
         ~encoded:true ~scheme:"http" ~syntax:http_syntax
         ~path:["";volume] ~query in
-      begin get_nodelist url >>= function
-      | [] -> fail (Failure "empty nodelist")
-      | node :: _ ->
-          (* TODO: support multiple nodes *)
-          let url = Neturl.modify_url ~host:node url in
           listit url >>= fun lst ->
             foldl base volume f lst accum
-      end
     | [""] | [] ->
         let base = Neturl.modify_url url
           ~encoded:true ~path:[""] ~scheme:"http" ~syntax:http_syntax
@@ -1315,10 +1349,7 @@ struct
 
   let check url =
     try_catch (fun () ->
-      make_request `GET (initial_nodelist url) (fetch_nodes url) >>= fun reply ->
-      let uuid =
-        try parse_sx_cluster (reply.headers#field "SX-Cluster")
-        with Not_found -> parse_server (reply.headers#field "Server") in
+      get_cluster_nodelist url >>= fun (_, uuid) ->
       return (Some uuid)
     ) (function
       | SXIO.Detail(e, details) ->
@@ -1338,9 +1369,10 @@ struct
           Neturl.modify_url
           ~path:["";volume] ~user:!Config.key_id url
         else url in
+      get_vol_nodelist url >>= fun (nodes, _) ->
       try_catch
         (fun () ->
-          send_json (initial_nodelist url) url (`Object [
+          send_json nodes url (`Object [
             (* max size allowed in json is 2^53, in SX it is 2^50*)
             "volumeSize", `Float !Config.volume_size;
             "owner", `String owner;
@@ -1367,7 +1399,7 @@ struct
         put ?metafn src 0L url;;
 
   let delete url =
-    get_nodelist url >>= fun nodes ->
+    get_vol_nodelist url >>= fun (nodes, _) ->
     let url =
       match url_path url ~encoded:true with
       | ["";volume;""] ->
