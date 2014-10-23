@@ -1369,7 +1369,7 @@ struct
           Neturl.modify_url
           ~path:["";volume] ~user:!Config.key_id url
         else url in
-      get_vol_nodelist url >>= fun (nodes, _) ->
+      get_cluster_nodelist url >>= fun (nodes, _) ->
       try_catch
         (fun () ->
           send_json nodes url (`Object [
