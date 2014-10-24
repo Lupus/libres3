@@ -277,7 +277,9 @@ module Make
         ) detail in
         Xml.tag "Error" (List.rev_append error_tags detail_tags)
     in
-    return_xml ~log:(S.log req.server) ~id ~id2 ~req ~status ~reply_headers:headers xml;;
+    let log = if code = Error.NoSuchKey then None
+      else Some (S.log req.server) in
+    return_xml ?log ~id ~id2 ~req ~status ~reply_headers:headers xml;;
 
   let return_error code details =
     IO.fail (Error.ErrorReply (code, details, []));;
@@ -649,12 +651,9 @@ module Make
       return_source url ~req ~canon ~content_type
           ~etag:digest
     ) (function
-      | Unix_error(ENOENT,_,_) | Unix_error(EISDIR,_,_) as e ->
+      | Unix_error(ENOENT,_,_) | Unix_error(EISDIR,_,_) ->
           (* TODO: is this the correct error message? *)
-          return_error Error.NoSuchKey [
-            "Backtrace",Printexc.get_backtrace ();
-            "Exc",Printexc.to_string e;
-          ]
+          return_error Error.NoSuchKey []
       | e -> IO.fail e
     ) ();;
 
