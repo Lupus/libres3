@@ -39,6 +39,25 @@ let ssl = ref true
 let s3_port = ref ""
 let batch_mode = ref false
 
+let is_space c = c = ' ' || (c >= '\t' && c <= '\r') 
+
+let rec trim_eol s pos e =
+  if pos == e || e == 0 then ""
+  else if is_space s.[e-1] then
+    trim_eol s pos (e-1)
+  else
+    String.sub s pos (e-pos)
+
+let rec trim_bol s pos =
+  if pos >= String.length s then ""
+  else if is_space s.[pos] then
+    trim_bol s (pos+1)
+  else
+    trim_eol s pos (String.length s)
+
+let trim s =
+  trim_bol s 0
+
 let spec = [
   "--s3-host", Arg.Set_string s3_host,
     " Base hostname to use (equivalent to; s3.amazonaws.com, host_base in .s3cfg)";
@@ -63,7 +82,7 @@ let read_line () =
     raise End_of_file
   end
   else
-    input_line stdin
+    trim (input_line stdin)
 
 let read_value msg () =
   flush stderr;
@@ -88,7 +107,7 @@ let () =
 
 let parse_value v =
   try
-    Scanf.sscanf v "%S" (fun v -> v)
+    Scanf.sscanf v "%S" (fun v -> trim v)
   with Scanf.Scan_failure _ ->
     v
 
