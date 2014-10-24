@@ -195,25 +195,35 @@ let handle_error f () =
 let handle_signal s msg =
   ignore (
     Sys.signal s (Sys.Signal_handle (fun _ ->
-      print_endline msg;
+      ignore (write UnixLabels.stdout ~buf:msg ~pos:0 ~len:(String.length msg));
       exit 3;
     ))
   );;
 
-let rec wait_pipe file delay =
+let pinged = ref false
+
+let rec wait_pipe file delay pipe_read =
   if delay <= 0. then false
   else try
-    ignore (Unix.lstat file);
-    true
-  with Unix.Unix_error(Unix.ENOENT,_,_) ->
+    let fd = openfile file ~mode:[O_RDWR] ~perm:0 in
+    let buf = "libres3:ping\n" in
+    ignore (write fd ~buf ~pos:0 ~len:(String.length buf));
+    close fd;
+    match select ~read:[pipe_read] ~write:[] ~except:[] ~timeout:0.1 with
+    | [], _, _ -> wait_pipe file (delay -. 0.1) pipe_read
+    | _ ->
+      let buf = String.make 1 ' ' in
+      ignore (read pipe_read ~buf ~pos:0 ~len:1);
+      buf = "X"
+  with Unix_error(ENOENT,_,_) ->
     Netsys.sleep 0.1;
-    wait_pipe file (delay -. 1.);;
+    wait_pipe file (delay -. 0.1) pipe_read;;
 
 let list_of_opt ptr = match !ptr with
   | Some v -> [ref v]
   | None -> []
 
-let initialize config =
+let initialize config pipe =
   let stop = ref false and status = ref false in
   let extra_spec = [
     "--foreground", Arg.Clear Configfile.daemonize, " Run in foreground mode (default: \
@@ -264,7 +274,7 @@ let initialize config =
   close_out ch;
   set_configfile configfile;
 
-  register_all ()
+  register_all pipe;
 ;;
 
 let command_pipe = Filename.concat Paths.var_lib_dir "command.pipe"
@@ -305,7 +315,8 @@ let run () =
     keepalivetimeout = ref 30;
   } in
 
-    initialize config;
+    let pipe_read, pipe_write = Unix.pipe () in
+    initialize config pipe_write;
     flush_all ();
     Sys.set_signal Sys.sigchld (Sys.Signal_handle (fun _ ->
         Printf.eprintf "Failed to start server (check logfile: %s/errors.log)\n%!" (!Paths.log_dir);
@@ -316,7 +327,8 @@ let run () =
     at_exit (fun () ->
       if not !ok then begin
         ok := true;
-        Printf.printf "Killing all children\n%!";
+        let msg = "Killing all children\n" in
+        ignore (write UnixLabels.stdout ~buf:msg ~pos:0 ~len:(String.length msg));
         (* kill self&all children *)
         Unix.kill 0 15
       end
@@ -337,7 +349,8 @@ let run () =
       run_server !(config.commandpipe)
     end;
     Printf.printf "Waiting for server to start (5s) ... %!";
-    if wait_pipe !(config.commandpipe) 5. then begin
+    begin try Unix.close pipe_write with _ -> () end;
+    if wait_pipe !(config.commandpipe) 5. pipe_read then begin
       Printf.printf "OK\n%!";
       ok := true;
     end else begin

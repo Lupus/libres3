@@ -300,6 +300,15 @@ let fun_site _ config_info _ _ _ _ =
       Lwt.return Ext_do_nothing
   ;;
 
+let ping pipe =
+  let chan = Lwt_chan.out_channel_of_descr pipe in
+  Lwt_chan.output_char chan  'X' >>= fun () ->
+  Lwt_chan.flush chan
 
-let register_all () =
-  Ocsigen_extensions.register_extension ~fun_site ~name:"libres3" ()
+let register_all pipe =
+  Ocsigen_extensions.register_extension ~fun_site ~name:"libres3" ();
+  Ocsigen_extensions.register_command_function ~prefix:"libres3"
+    (fun s c -> match c with
+       | ["ping"] ->
+         ping (Lwt_unix.of_unix_file_descr pipe)
+      | _ -> raise Ocsigen_extensions.Unknown_command)
