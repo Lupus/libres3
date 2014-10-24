@@ -227,18 +227,18 @@ let rec validate_loop ~key f ?validate m =
   try validate_one ~key f ?validate m
   with Failure _ -> validate_loop ~key f ?validate m
 
-let validate_and_add ~key ?default f ?validate m =
+let validate_and_add ~key ?default ?validate f m =
   match default with
   | None -> validate_loop ~key f ?validate m
   | Some default_fn ->
       try validate_one ~key default_fn ?validate m
       with Not_found | Failure _ -> validate_loop ~key f ?validate m
 
-let validate_and_add_opt opt ~key ?default f ?validate m =
+let validate_and_add_opt opt ~key ?default ?validate f m  =
   if opt then validate_and_add ~key ?default f ?validate m
   else m
 
-let read_and_validate ~key msg f x ?validate m =
+let read_and_validate ~key msg ?validate f x m =
   validate_and_add ~key ~default:(f x) (read_value msg) ?validate m
 
 let read_and_validate_opt opt ~key msg f x ?validate m =
