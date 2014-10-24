@@ -46,9 +46,14 @@ end = struct
     open Dispatch
     let send_headers s h =
       s.hstatus <- h.status;
-      s.headers <-
-        ("Content-Length",Int64.to_string h.content_length) ::
-        h.reply_headers;
+      begin match h.content_length with
+      | Some len ->
+        s.headers <-
+          ("Content-Length",Int64.to_string len) ::
+          h.reply_headers;
+      | None ->
+        s.headers <- h.reply_headers
+      end;
       begin match h.content_type with
       | None -> ()
       | Some c ->

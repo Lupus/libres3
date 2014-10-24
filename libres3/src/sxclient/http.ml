@@ -104,7 +104,7 @@ module MakePipeline (M:Sigs.Monad)(W:Sigs.ThreadMonad with type 'a t = 'a M.t)
     pipeline#set_connection_cache cache;
     https_setup pipeline;
     pipeline#set_options { pipeline#get_options with
-      Http_client.connection_timeout = 10.;
+      Http_client.connection_timeout = 20.;
       synchronization = Sync (* disable pipelining, but keep persistence *)
 };
     Unixqueue.add_handler esys keep_alive_group (fun _ _ event ->

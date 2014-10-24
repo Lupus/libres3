@@ -47,7 +47,7 @@ let string_of_attrs lst =
   lst);;
 
 let string_of_xmllist lst =
-  String.concat "\n" (List.rev (List.rev_map CodedIO.Xml.to_string lst));;
+  String.concat "\n" (List.rev (List.rev_map (CodedIO.Xml.to_string ?decl:None) lst));;
 
 let rec get_xml_field exp_tag = function
   | `El (((_,tag),[]),[`Data d]) when tag = exp_tag ->

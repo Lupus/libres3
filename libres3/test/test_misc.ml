@@ -33,7 +33,7 @@ let id x = x
 
 let test_roundtrip (input:Xml.t) () =
   assert_equal
-    ~printer:Xml.to_string
+    ~printer:(Xml.to_string ?decl:None)
     input
     (Xml.parse_string (Xml.to_string input));;
 

@@ -39,7 +39,7 @@ type headers = {
   status: Nethttp.http_status;
   reply_headers: CanonRequest.header list;
   content_type: string option;
-  content_length: int64;
+  content_length: int64 option;
   last_modified: float option;
   etag: string option;
 }
@@ -125,7 +125,7 @@ module Make
       reply_headers = headers;
       last_modified = last_modified;
       content_type = Some content_type;
-      content_length = Int64.of_int (String.length str);
+      content_length = Some (Int64.of_int (String.length str));
       etag = None;
     } >>= fun sender ->
     if req.meth = `HEAD then return () (* ensure HEAD has empty body, but all
@@ -144,7 +144,7 @@ module Make
       reply_headers = headers;
       last_modified = None;
       content_type = None;
-      content_length = 0L;
+      content_length = Some 0L;
       etag = None
     } >>= fun _ -> return ()
   ;;
@@ -201,7 +201,7 @@ module Make
           reply_headers = ("Accept-Ranges","bytes") :: headers;
           last_modified = Some mtime;
           content_type = Some content_type;
-          content_length = size;
+          content_length = Some size;
           etag = None;
         } >>= send_source url ~canon ~first:0L
     | Some (first, last) as range ->
@@ -216,7 +216,7 @@ module Make
             reply_headers = List.rev_append h headers;
             last_modified = Some mtime;
             content_type = Some content_type;
-            content_length = length;
+            content_length = Some length;
             etag = None;
           } >>= send_source url ~canon ~first
   ;;
@@ -1033,6 +1033,50 @@ module Make
     mput_delete_common ~canon ~request ~uploadId bucket path >>= fun _ ->
     return_empty ~req:request ~canon ~status:`No_content ~reply_headers:[];;
 
+  let rec periodic_send sender got_result msg =
+    IO.sleep 10. >>= fun () ->
+    if !got_result = true then return ()
+    else begin
+      S.send_data sender (msg, 0, String.length msg) >>= fun () ->
+      periodic_send sender got_result msg
+    end
+
+  let spaces = String.make 4096 ' '
+
+  let periodic_send_until sender msg result_wait =
+    let got_result = ref false in
+    let _periodic = periodic_send sender got_result spaces in
+    result_wait >>= fun result ->
+    got_result := true; (* stop sending periodic messages *)
+    return result
+
+  module MpartPending = Pendinglimit.Make(U.M)(struct
+        type t = string * string
+        let compare = Pervasives.compare
+  end)
+  let mpart_pending = MpartPending.create ()
+
+  let send_long_running ~canon ~req key f =
+    MpartPending.bind mpart_pending key (fun _ ->
+        let result_wait = f () in
+        let id = canon.CanonRequest.id
+        and id2 = CanonRequest.gen_debug ~canon in
+        let headers = add_std_headers ~id ~id2 [] in
+        S.send_headers req.server {
+          status = `Ok; (* we send 200 with an <Error> in the body if needed *)
+          reply_headers = headers;
+          last_modified = None;
+          content_type = Some "application/xml";
+          content_length = None;
+          etag = None;
+        } >>= fun sender ->
+        let decl = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" in
+        S.send_data sender (decl, 0, String.length decl) >>= fun() ->
+        periodic_send_until sender " " result_wait >>= fun result ->
+        let str = CodedIO.Xml.to_string ~decl:false result in
+        S.send_data sender (str, 0, String.length str)
+      )
+
   let mput_complete ~canon ~request ~uploadId ~body bucket path =
     mpart_get_path ~canon bucket path ~uploadId ~part:"0"
     >>= fun (mpart_bucket, mpart_path) ->
@@ -1045,23 +1089,25 @@ module Make
       ]
     | Some _ ->
     check_parts ~canon bucket path ~uploadId body >>= fun (filesize, urls) ->
-    let _, url = url_of_volpath ~canon bucket path in
-    let digestref = ref "" in
-    let md5 = Cryptokit.Hash.md5 () in
-    U.with_urls_source urls filesize (fun src ->
-        let source = md5_source2 md5 src in
-        U.copy ~metafn:(md5_metafn md5 digestref) source ~srcpos:0L url >>= fun () ->
-        mput_delete_common ~canon ~request ~uploadId bucket path >>= fun _ ->
-        (* TODO: periodically send whitespace to keep connection alive *)
-        return_xml_canon ~req:request ~canon ~status:`Ok ~reply_headers:[] (
-          Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "CompleteMultipartUploadResult"
-            [
-              Xml.tag "Location" [Xml.d (build_url bucket path)];
-              Xml.tag "Bucket" [Xml.d bucket];
-              Xml.tag "Key" [Xml.d path];
-              Xml.tag "ETag" [Xml.d !digestref];
-            ]
-        )
+    let key = canon.CanonRequest.user, uploadId in
+    send_long_running ~canon ~req:request key (fun url ->
+        let _, url = url_of_volpath ~canon bucket path in
+        let digestref = ref "" in
+        let md5 = Cryptokit.Hash.md5 () in
+        U.with_urls_source urls filesize (fun src ->
+            let source = md5_source2 md5 src in
+            U.copy ~metafn:(md5_metafn md5 digestref) source ~srcpos:0L url >>= fun () ->
+            mput_delete_common ~canon ~request ~uploadId bucket path >>= fun _ ->
+            return (
+              Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "CompleteMultipartUploadResult"
+                [
+                  Xml.tag "Location" [Xml.d (build_url bucket path)];
+                  Xml.tag "Bucket" [Xml.d bucket];
+                  Xml.tag "Key" [Xml.d path];
+                  Xml.tag "ETag" [Xml.d !digestref];
+                ]
+            )
+          )
     );;
 
   let list_buckets request canon =

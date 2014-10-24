@@ -169,7 +169,7 @@ let process_request dispatcher ri () =
       | Some h ->
         Ocsigen_http_frame.Result.update res
           ~code:(Nethttp.int_of_http_status h.D.status)
-          ~content_length:(Some h.D.content_length)
+          ~content_length:(h.D.content_length)
           ~content_type:h.D.content_type
           ~headers:(convert_headers h.D.reply_headers)
           ~lastmodified:h.D.last_modified
