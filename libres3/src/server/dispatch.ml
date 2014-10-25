@@ -1043,12 +1043,14 @@ module Make
 
   let spaces = String.make 4096 ' '
 
+  module Result = LRUCacheMonad.ResultT(U.M)
+
   let periodic_send_until sender msg result_wait =
     let got_result = ref false in
     let _periodic = periodic_send sender got_result spaces in
     result_wait >>= fun result ->
     got_result := true; (* stop sending periodic messages *)
-    return result
+    Result.unwrap result
 
   module MpartPending = Pendinglimit.Make(U.M)(struct
         type t = string * string
@@ -1058,7 +1060,7 @@ module Make
 
   let send_long_running ~canon ~req key f =
     MpartPending.bind mpart_pending key (fun _ ->
-        let result_wait = f () in
+        let result_wait = Result.lift f () in
         let id = canon.CanonRequest.id
         and id2 = CanonRequest.gen_debug ~canon in
         let headers = add_std_headers ~id ~id2 [] in

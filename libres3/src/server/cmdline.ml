@@ -53,10 +53,6 @@ let parse_configuration_line spec ch accum =
   | Some (key, v) -> StringMap.add key v accum
   | None -> accum;;
 
-let print_config key v =
-  if key <> "secret_key" then
-    Printf.printf "\t%s=%s\n" key v;;
-
 let load_configuration spec =
   let keys = List.fold_left (fun accum (key, _, _) ->
     StringSet.add (String.lowercase key) accum) StringSet.empty spec in
