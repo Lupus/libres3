@@ -35,6 +35,7 @@ let sxsetup_conf = ref ""
 let open_errmsg = ref false
 let s3_host = ref ""
 let default_replica = ref ""
+let default_volume_size = ref ""
 let ssl = ref true
 let s3_port = ref ""
 let batch_mode = ref false
@@ -65,6 +66,9 @@ let spec = [
     " Port to use for LibreS3";
   "--default-replica", Arg.Set_string default_replica,
     " Default volume replica count"
+  ;
+  "--default-volume-size", Arg.Set_string default_replica,
+    " Default volume size"
   ;
   "--sxsetup-conf", Arg.Set_string sxsetup_conf, " Path to sxsetup.conf";
   "--batch", Arg.Set batch_mode, "  Turn off interactive confirmations and assume safe defaults";
@@ -394,7 +398,10 @@ let () =
           let u = check_user (read_value "Run as user" ())
           and g = check_group (read_value "Run as group" ()) in
           run_as_of_user_group u g)
-      |> validate_and_add ~key:"volume_size" ~default:(fun () -> "10G") (fun () -> invalid_arg "built-in value")
+      |> validate_and_add ~key:"volume_size" ~default:(fun () ->
+          if !default_volume_size <> "" then !default_volume_size
+          else load "LIBRES3_VOLUMESIZE" ())
+        (read_value "Default volume size [use M, G and T suffixes]")
       |> validate_and_add ~key:"s3_host" ~default:(fun () ->
           if !s3_host <> "" then !s3_host
           else load "LIBRES3_HOST" ()) (read_value "S3 (DNS) name")
