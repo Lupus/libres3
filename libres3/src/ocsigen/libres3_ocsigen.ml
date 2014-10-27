@@ -319,7 +319,7 @@ let run () =
     initialize config pipe_write;
     flush_all ();
     Sys.set_signal Sys.sigchld (Sys.Signal_handle (fun _ ->
-        Printf.eprintf "Failed to start server (check logfile: %s/errors.log)\n%!" (!Paths.log_dir);
+        Printf.eprintf "\nFailed to start server (check logfile: %s/errors.log)\n%!" (!Paths.log_dir);
         exit 1
     ));
     ignore (Lwt_unix.on_signal Sys.sigusr1 reopen_logs);
