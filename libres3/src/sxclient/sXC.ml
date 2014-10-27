@@ -1383,13 +1383,45 @@ struct
         let `Source src = XIO.of_string "" in
         put ?metafn src 0L url;;
 
+  let is_owner_of_vol nodes volume_url =
+    let owner = Neturl.url_user volume_url in
+    let acl_url = Neturl.modify_url ~query:"o=acl" ~scheme:"http"
+        ~syntax:http_syntax volume_url in
+    make_request `GET nodes acl_url >>= fun reply ->
+    expect_content_type reply "application/json" >>= fun () ->
+    let input = P.input_of_async_channel reply.body in
+    json_parse_tree input >>= function
+    | [`O obj] ->
+      begin match filter_field owner obj with
+        | [`F (_, [ `A privileges ])] ->
+          return (List.exists (function | `String "owner" -> true | _ -> false) privileges)
+        | [] ->
+          return false
+        | p ->
+          List.iter pp_json p;
+          fail (Failure "bad acl list format")
+      end
+    | p ->
+      List.iter pp_json p;
+      fail (Failure "bad acl list format2")
+
   let delete url =
     get_vol_nodelist url >>= fun (nodes, _) ->
-    let url =
-      match url_path url ~encoded:true with
-      | ["";volume;""] ->
-          Neturl.modify_url ~path:["";volume] url
-      | _ -> url in
+    begin match url_path url ~encoded:true with
+    | "" :: volume :: ([""] | []) ->
+      let volume_url = Neturl.modify_url ~path:["";volume] url in
+      if !Config.volume_create_elevate_to_admin then
+        is_owner_of_vol nodes volume_url >>= function
+        | true ->
+          (* elevate to admin privileges for volume delete *)
+          return (Neturl.modify_url volume_url ~user:!Config.key_id)
+        | false ->
+          return url
+      else
+        (* not owner or escalation not permitted: use current user *)
+        return url
+    | _ -> return url
+    end >>= fun url ->
     try_catch
       (fun () ->
         make_request `DELETE nodes url >>= fun _ ->
