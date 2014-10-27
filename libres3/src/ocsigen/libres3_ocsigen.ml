@@ -330,6 +330,7 @@ let run () =
         let msg = "Killing all children\n" in
         ignore (write UnixLabels.stdout ~buf:msg ~pos:0 ~len:(String.length msg));
         (* kill self&all children *)
+        Unix.sleep 1;
         Unix.kill 0 15
       end
     );
