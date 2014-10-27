@@ -1,3 +1,14 @@
+0.9 (Final Beta)
+----------------
+
+Changes in this release include:
+ * support multipart upload with python-boto
+ * improve error message when accessing volume with filters
+ * improve load-balancing of SX nodes
+ * improve error handling on startup
+ * check SX protocol version and report own version
+ * other bug fixes and improvements
+
 0.3 (Third Beta)
 ----------------
 
