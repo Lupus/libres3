@@ -32,13 +32,7 @@
 (*  OF THE POSSIBILITY OF SUCH DAMAGE.                                    *)
 (**************************************************************************)
 
-module type Monad = sig
-  type +'a t
-  val (>>=) : 'a t -> ('a -> 'b t) -> 'b t
-  val return : 'a -> 'a t
-end
-
-module Make(M: Monad)(Key: Map.OrderedType) = struct
+module Make(M: LRUCacheTypes.TryMonad)(Key: Map.OrderedType) = struct
   module KeyMap = Map.Make(Key)
   type 'a t = {
     mutable map : 'a KeyMap.t
@@ -49,16 +43,18 @@ module Make(M: Monad)(Key: Map.OrderedType) = struct
     map = KeyMap.empty
   }
 
+  module Result = LRUCacheMonad.ResultT(M)
+
   let bind cache key f =
     if KeyMap.mem key cache.map then
-      KeyMap.find key cache.map
+      KeyMap.find key cache.map >>= Result.unwrap
     else begin
-      let pending = f key in
+      let pending = Result.lift f key in
       cache.map <- KeyMap.add key pending cache.map;
       (* ensure ordering: first add the key, then remove it *)
       pending >>= fun result ->
       cache.map <- KeyMap.remove key cache.map;
-      return result
+      Result.unwrap result
     end
 
 end
