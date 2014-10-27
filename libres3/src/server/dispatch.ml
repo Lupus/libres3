@@ -1058,8 +1058,7 @@ module Make
   end)
   let mpart_pending = MpartPending.create ()
 
-  let send_long_running ~canon ~req key f =
-    MpartPending.bind mpart_pending key (fun _ ->
+  let send_long_running_uncached ~canon ~req f _ =
         let result_wait = Result.lift f () in
         let id = canon.CanonRequest.id
         and id2 = CanonRequest.gen_debug ~canon in
@@ -1077,7 +1076,72 @@ module Make
         periodic_send_until sender " " result_wait >>= fun result ->
         let str = CodedIO.Xml.to_string ~decl:false result in
         S.send_data sender (str, 0, String.length str)
-      )
+
+  let send_long_running ~canon ~req key f =
+    MpartPending.bind mpart_pending key
+      (send_long_running_uncached ~canon ~req f)
+
+  let parse_multi_delete lst =
+    let quiet = ref false in
+    let result = List.rev_map (function
+        | `El (((_,"Object"),_),
+               (`El (((_,"Key"),_), [`Data key]) :: _ )) ->
+               Some key
+        | `El (((_, "Quiet"), _), [`Data quietstr]) ->
+          if quietstr <> "true" then
+            failwith ("bad value for quiet: " ^ quietstr);
+          quiet := true;
+          None
+        | t -> failwith ("bad XML:" ^ (CodedIO.Xml.to_string t))
+      ) lst in
+    !quiet, result
+
+  let multi_delete_ok quiet path =
+    if quiet then return None
+    else return (Some (Xml.tag "Deleted" [
+        Xml.tag "Key" [Xml.d path]
+      ]))
+
+  let multi_delete_error path e =
+    return (Some (Xml.tag "Error" [
+        Xml.tag "Key" [Xml.d path];
+        (* TODO: reuse code/message mapping from main handler *)
+        Xml.tag "Code" [Xml.d "InternalError"];
+        Xml.tag "Message" [Xml.d (Printexc.to_string e)]
+      ]))
+
+  let perform_multi_delete ~req ~canon bucket (quiet, lst) =
+    send_long_running_uncached ~canon ~req (fun () ->
+        IO.rev_map_p (function
+            | None -> return None
+            | Some path ->  try_catch (fun () ->
+                let _, url = url_of_volpath ~canon bucket path in
+                U.delete url >>= fun () ->
+                prerr_endline ("deleted" ^ path);
+                multi_delete_ok quiet path
+              ) (function
+                | Unix.Unix_error(Unix.ENOENT,_,_) ->
+                  prerr_endline "ENOENT";
+                  S.log req.server (Printf.sprintf "ENOENT when deleting %s/%s"
+                                      bucket path);
+                  multi_delete_ok quiet path (* ENOENT is considered deleted according to docs *)
+                | e ->
+                  multi_delete_error path e
+              ) ()) lst >>= fun result ->
+        let result = List.fold_left (fun accum -> function
+            | Some (e:Xml.t) -> e :: accum
+            | None -> accum) [] result in
+        return (Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "DeleteResult" result)
+    ) ()
+
+  let multi_delete_objects ~canon ~request bucket ~body =
+    let base, _ = url_of_volpath ~canon bucket "/" in
+    U.exists base >>= function
+    | None ->
+      return_error Error.NoSuchBucket ["Bucket", bucket]
+    | Some _ ->
+      let perform = perform_multi_delete ~canon ~req:request bucket in
+      parse_input_xml_opt body "Delete" parse_multi_delete perform
 
   let mput_complete ~canon ~request ~uploadId ~body bucket path =
     mpart_get_path ~canon bucket path ~uploadId ~part:"0"
@@ -1179,6 +1243,8 @@ module Make
           put_object ~canon ~request body bucket path
     | `PUT body, Bucket bucket, path, ["acl",""] ->
         set_object_acl ~canon ~request body bucket path
+    | `POST body, Bucket bucket, "/", ["delete", ""] ->
+        multi_delete_objects ~canon ~request bucket ~body
     | `POST _, Bucket bucket, path,["uploads",""] ->
         if Headers.has_header canon.CanonRequest.headers "x-amz-copy-source"
         then

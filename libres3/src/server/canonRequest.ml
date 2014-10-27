@@ -100,7 +100,7 @@ let canonicalized_resource c =
     n = "acl" || n = "lifecycle" || n = "location" || n = "logging" ||
     n = "notification" || n = "partNumber" || n = "policy" ||
     n = "requestPayment" || n = "torrent" || n = "uploadId" ||
-    n = "uploads" || n = "versionId" || n = "versions" ||
+    n = "delete" || n = "uploads" || n = "versionId" || n = "versions" ||
     n = "website") (stringmap_all c.query_params) in
   let sorted_subresources = List.fast_sort compare_nameval filtered_subresources
   in
