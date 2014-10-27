@@ -398,10 +398,6 @@ let () =
           let u = check_user (read_value "Run as user" ())
           and g = check_group (read_value "Run as group" ()) in
           run_as_of_user_group u g)
-      |> validate_and_add ~key:"volume_size" ~default:(fun () ->
-          if !default_volume_size <> "" then !default_volume_size
-          else load "LIBRES3_VOLUMESIZE" ())
-        (read_value "Default volume size [use K, M, G and T suffixes]")
       |> validate_and_add ~key:"s3_host" ~default:(fun () ->
           if !s3_host <> "" then !s3_host
           else load "LIBRES3_HOST" ()) (read_value "S3 (DNS) name")
@@ -420,6 +416,10 @@ let () =
           else load "LIBRES3_PORT" ()) (read_value port_msg)
               ~validate:port_validate
         )
+      |> validate_and_add ~key:"volume_size" ~default:(fun () ->
+          if !default_volume_size <> "" then !default_volume_size
+          else load "LIBRES3_VOLUMESIZE" ())
+        (read_value "Default volume size [use K, M, G and T suffixes]")
       |> validate_and_add ~key:"replica_count" ~default:(fun () ->
           if !default_replica <> "" then !default_replica
           else load "LIBRES3_REPLICA" ())
