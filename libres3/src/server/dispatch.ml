@@ -1299,6 +1299,13 @@ module Make
             ~id:canon.CanonRequest.id ~path ~headers:[]
             Error.RemoteServiceUnavailable [
               "SXUnavailable",(Printexc.to_string e)]
+      | SXIO.Detail (Http_client.Http_protocol e, detail) ->
+          return_error_xml
+            ~req:request
+            ~id2:(CanonRequest.gen_debug ~canon)
+            ~id:canon.CanonRequest.id ~path ~headers:[]
+            Error.RemoteServiceUnavailable (
+              ("SXUnavailable",(Printexc.to_string e)) :: detail)
       | SXIO.Detail (Unix.Unix_error(Unix.EACCES, _, _) as ex, detail) ->
           return_error_xml
             ~req:request
