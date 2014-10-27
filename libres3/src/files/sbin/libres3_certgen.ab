@@ -4,8 +4,8 @@ if test -z "\$DNS_NAME"; then
     echo "DNS name cannot be empty!"
     exit 1
 fi
-SSL_KEY_DIR=$(sysconfdir)/ssl/private/
-SSL_CERT_DIR=$(sysconfdir)/ssl/certs/
+SSL_KEY_DIR=$(sysconfdir)/ssl/private
+SSL_CERT_DIR=$(sysconfdir)/ssl/certs
 
 mkdir -p "\$SSL_KEY_DIR" "\$SSL_CERT_DIR"
 SSL_KEY_FILE="\$SSL_KEY_DIR/libres3.key"
@@ -41,8 +41,8 @@ keyUsage=keyCertSign,cRLSign,digitalSignature,keyEncipherment,nonRepudiation
 EOF
 
 echo
-echo "Generating default SSL certificate and key in \$SSL_KEY_FILE \$SSL_CERT_FILE"
+echo "Generating default SSL certificate and key in \$SSL_CERT_FILE and \$SSL_KEY_FILE"
 umask 077
 openssl req -days 1825 -x509 -config "\$CERTCONF_TMP" -new -keyout "\$SSL_KEY_FILE" -out "\$SSL_CERT_FILE"
 umask 022
-chmod 655 "\$SSL_CERT_FILE"
+chmod 644 "\$SSL_CERT_FILE"
