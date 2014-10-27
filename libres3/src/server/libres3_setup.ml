@@ -401,7 +401,7 @@ let () =
       |> validate_and_add ~key:"volume_size" ~default:(fun () ->
           if !default_volume_size <> "" then !default_volume_size
           else load "LIBRES3_VOLUMESIZE" ())
-        (read_value "Default volume size [use M, G and T suffixes]")
+        (read_value "Default volume size [use K, M, G and T suffixes]")
       |> validate_and_add ~key:"s3_host" ~default:(fun () ->
           if !s3_host <> "" then !s3_host
           else load "LIBRES3_HOST" ()) (read_value "S3 (DNS) name")
