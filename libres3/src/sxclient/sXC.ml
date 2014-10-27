@@ -431,7 +431,7 @@ struct
       try
         let apiver = int_of_string apiverstr in
         if apiver < Config.apiver_min || apiver > Config.apiver_max then
-          let msg = Printf.sprintf "Unsupported SX API version: %d, expected [%d,%d]"
+          let msg = Printf.sprintf "Unsupported SX API version: %d, expected between %d and %d"
               apiver Config.apiver_min Config.apiver_max in
           fail (SXIO.Detail(Http_client.Http_protocol(Failure msg),
                             ["LibreS3ErrorMessage", msg]))
