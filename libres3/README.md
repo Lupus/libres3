@@ -12,7 +12,7 @@ storage backend, which automatically provides data deduplication and
 replication.
 
 To get started please see the
-[quickstart documentation](doc/quickstart/quickstart.pdf).
+[quickstart documentation](http://www.skylable.com/products/libres3/quickstart/)
 
 For more information visit the [home page](http://www.skylable.com/products/libres3).
 
@@ -65,7 +65,7 @@ configuration, and inspect the log files at `/opt/libres3/var/log/libres3/`.
 Known limitations
 -----------------
 
-This is a beta of LibreS3, and comes with some limitations
+This is a beta release of LibreS3, and comes with some limitations
 but it has been reliably running on our internal production cluster
 for the past few months without any major issues:
 
