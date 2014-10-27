@@ -1117,11 +1117,9 @@ module Make
             | Some path ->  try_catch (fun () ->
                 let _, url = url_of_volpath ~canon bucket path in
                 U.delete url >>= fun () ->
-                prerr_endline ("deleted" ^ path);
                 multi_delete_ok quiet path
               ) (function
                 | Unix.Unix_error(Unix.ENOENT,_,_) ->
-                  prerr_endline "ENOENT";
                   S.log req.server (Printf.sprintf "ENOENT when deleting %s/%s"
                                       bucket path);
                   multi_delete_ok quiet path (* ENOENT is considered deleted according to docs *)
