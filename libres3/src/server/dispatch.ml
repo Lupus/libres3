@@ -337,8 +337,12 @@ module Make
     | None -> false
     | Some _ -> true;;
 
-  let validate_bucketname bucket region =
-    if bucket = "tmp" then
+  let is_mpart_bucket bucket =
+    String.length bucket = 48 &&
+    String.sub bucket 0 8 = "libres3-"
+
+  let validate_bucketname ?(hide=false) bucket region =
+    if hide && is_mpart_bucket bucket then
       Error.BucketAlreadyExists, ["BucketNameReserved", bucket]
     else
     let n = String.length bucket in
@@ -432,7 +436,7 @@ module Make
       | _ ->
           None
       ) (fun region ->
-        match validate_bucketname bucket region with
+        match validate_bucketname ~hide:true bucket region with
         | Error.NoError, [] ->
             make_bucket ~req:request ~canon bucket
         | error, detail ->
@@ -1180,7 +1184,7 @@ module Make
     (* TODO: use fold for dirs too *)
     U.fold_list ~base url ~entry:(fun _ _ -> return ())
       ~recurse:(fun dir ->
-        begin match validate_bucketname dir (Some "us-standard") with
+        begin match validate_bucketname ~hide:true dir (Some "us-standard") with
         | Error.NoError, _ ->
           buckets := dir :: !buckets;
         | _ -> () (* hide volumes with non-S3 compliant names *)
@@ -1211,6 +1215,9 @@ module Make
       canon.CanonRequest.req_method, canon.CanonRequest.bucket,
       canon.CanonRequest.path, CanonRequest.actual_query_params canon
     with
+    | _, Bucket bucket, _, _ when is_mpart_bucket bucket ->
+      return_error Error.AccessDenied
+          ["Bucket", bucket; "LibreS3ErrorMessage","This bucketname is reserved for internal use"]
     | `GET, Bucket "", "/",[] ->
         list_buckets request canon
     | `GET, Bucket bucket, "/", params
