@@ -609,9 +609,13 @@ module Make
               Xml.tag "ID" [Xml.d Configfile.owner_id];
               Xml.tag "DisplayName" [Xml.d Configfile.owner_name];
             ];
+            Xml.tag "Permission" [Xml.d "FULL_CONTROL"]
           ]
         ]
       ])
+
+  let send_default_policy ~req ~canon =
+    return_error Error.NotSuchBucketPolicy []
 
   let md5_of_url url =
     U.get_meta url >>= fun lst ->
@@ -1195,6 +1199,10 @@ module Make
     | `GET, Bucket bucket, "/", params
       when List.mem_assoc "uploads" params && List.assoc "uploads" params = "" ->
         mpart_list ~canon ~req:request bucket params
+    | `GET, Bucket _, _, ["acl",""] ->
+        send_default_acl ~req:request ~canon
+    | `GET, Bucket _, "/", ["policy",""] ->
+        send_default_policy ~req:request ~canon
     | `GET, Bucket bucket, "/",params ->
         list_bucket ~req:request ~canon bucket params
     | `HEAD, Bucket bucket, "/",_ ->
@@ -1202,8 +1210,6 @@ module Make
     | `GET, Bucket bucket, path, [] ->
         (* TODO: use params! *)
         get_object ~req:request ~canon bucket path
-    | `GET, Bucket _, _, ["acl",""] ->
-        send_default_acl ~req:request ~canon
     | `GET, Bucket bucket, path, ["uploadId", uploadId] ->
         mput_list_parts ~canon ~req:request bucket path ~uploadId
     | `GET, Bucket _, _, params ->
