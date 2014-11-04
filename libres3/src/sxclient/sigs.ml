@@ -72,7 +72,8 @@ module type SXIOSig = sig
   type entry = {
     name: string;
     size: int64;
-    mtime: float
+    mtime: float;
+    etag: string;
   }
 
   type source = {
@@ -150,6 +151,7 @@ type entry = {
   name: string;
   size: int64;
   mtime: float;
+  etag: string;
 }
 
 module type EventIOSig = sig

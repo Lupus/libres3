@@ -44,6 +44,11 @@ module Make(M:Sigs.Monad)(OS:EventIO.OSMonad with type 'a t = 'a M.t) = struct
 
   let token_of_user _ = return (Some !Config.secret_access_key)
   let check _ = return None
+
+  let etag_of_stat s =
+    Printf.sprintf "%d-%d-%f-%Ld" s.Unix.LargeFile.st_dev
+      s.Unix.LargeFile.st_ino s.Unix.LargeFile.st_mtime s.Unix.LargeFile.st_size
+
   let open_source url =
     let name = file url in
     OS.openfile name [Unix.O_RDONLY] 0 >>= fun fd ->
@@ -57,7 +62,8 @@ module Make(M:Sigs.Monad)(OS:EventIO.OSMonad with type 'a t = 'a M.t) = struct
           let entry = {
             IO.name = name;
             size = stat.Unix.LargeFile.st_size;
-            mtime = stat.Unix.LargeFile.st_mtime
+            mtime = stat.Unix.LargeFile.st_mtime;
+            etag = etag_of_stat stat
           } in
           let (s:state) = String.create Config.buffer_size, fd in
           return (entry, s)
@@ -116,7 +122,8 @@ module Make(M:Sigs.Monad)(OS:EventIO.OSMonad with type 'a t = 'a M.t) = struct
         let entry = {
           IO.name = path;
           size = stat.Unix.LargeFile.st_size;
-          mtime = stat.Unix.LargeFile.st_mtime
+          mtime = stat.Unix.LargeFile.st_mtime;
+          etag = etag_of_stat stat
         } in
         f accum entry >>= fun accum ->
         fold_dir f recurse dir accum dirs_waiting handle

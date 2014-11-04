@@ -323,9 +323,8 @@ let test_file_upload ?(enc=true) filename =
           req_body = "";
         };
         expected =
-          expect_xml_status_root_child `Ok
-          ~ns_root:"" ~tag_root:"CopyObjectResult"
-          ~child_tag:"ETag" ~child_contents:etag
+          expect_xml_status_root `Ok
+          "" "CopyObjectResult"
       };
       (* TODO: chain? *)
       Direct {

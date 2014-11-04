@@ -89,7 +89,7 @@ module Make
 
   let debug_output =
     try
-      let name = Printf.sprintf "/tmp/libres3-debug.%d.log" (Unix.getpid ()) in 
+      let name = Printf.sprintf "/tmp/libres3-debug.%d.log" (Unix.getpid ()) in
       if (Sys.getenv "LIBRES3_DEBUG") = "1" then begin
         Some (open_out_gen [Open_wronly;Open_append;Open_creat] 0o600 name)
       end else None
@@ -189,11 +189,24 @@ module Make
         return (S.send_data sender)))
   ;;
 
-  let return_source ~req ~canon ~content_type ~etag url =
+  let is_prefix ~prefix str =
+    let plen = String.length prefix in
+    (String.length str) >= plen &&
+    (String.sub str 0 plen) = prefix
+
+  let add_meta_headers other_headers xamz_headers =
+    List.fold_left (fun accum (key,value) ->
+        if is_prefix ~prefix:"x-amz-meta-" key then (key, value) :: accum
+        else accum
+    ) other_headers xamz_headers
+
+  let quote s = "\"" ^ s ^ "\""
+  let return_source ~req ~canon ~content_type url ~metalst =
+    U.with_url_source url (fun source -> return source.U.meta) >>= fun meta ->
+    let size = meta.U.size and mtime = meta.U.mtime and etag = meta.U.etag in
     let headers = add_std_headers ~id:canon.CanonRequest.id
-        ~id2:(CanonRequest.gen_debug ~canon) ["ETag",etag] in
-    U.with_url_source url (fun source ->
-      return (source.U.meta.U.size, source.U.meta.U.mtime)) >>= fun (size, mtime) ->
+        ~id2:(CanonRequest.gen_debug ~canon) ["ETag", quote etag] in
+    let headers = add_meta_headers headers metalst in
     match (parse_ranges canon.CanonRequest.headers size) with
     | None ->
         S.send_headers req.server {
@@ -375,7 +388,7 @@ module Make
     Filename.concat !Configfile.buckets_dir (
       Filename.concat bucket (Util.sanitize_path path)
     );;
-  
+
   (* TODO: instead the IO interface that we depend on shouldn't use URLs
    * but do the string list to URL conversion internally! *)
   let url_of_volpath_user ~user bucket path =
@@ -393,7 +406,7 @@ module Make
             | [] | [""] -> ["";bucket;""]
             | "" :: rest -> "" :: bucket :: rest
             | rest -> "" :: bucket :: rest in
-          let url = 
+          let url =
           Neturl.make_url ~encoded:false
             ~scheme:"sx"
             ~host ~path
@@ -461,13 +474,13 @@ module Make
 
   module StringSet = Set.Make(String)
   let list_bucket_files2 l common =
-    let contents = StringMap.fold (fun name (size, mtime, md5) accum ->
+    let contents = StringMap.fold (fun name (size, mtime, etag) accum ->
       (Xml.tag "Contents" [
         Xml.tag "Key" [Xml.d name];
         Xml.tag "LastModified" [Xml.d (
           Util.format_date mtime)
         ];
-        Xml.tag "ETag" [Xml.d ("\"" ^ md5 ^ "\"")];
+        Xml.tag "ETag" [Xml.d (quote etag)];
         Xml.tag "Size" [Xml.d (Int64.to_string size)];
         Xml.tag "StorageClass" [Xml.d "STANDARD"];
         Xml.tag "Owner" fake_owner
@@ -481,8 +494,6 @@ module Make
 
   (* returns tmpfile, digest *)
   let source_of_request ~canon body =
-    if Headers.has_header canon.CanonRequest.headers "x-amz-copy-source" then
-    begin
       let source = (
         Headers.field_single_value canon.CanonRequest.headers
         "x-amz-copy-source" "") in
@@ -490,38 +501,8 @@ module Make
         Util.url_split_first_component (Neturl.split_path source) in
       let decoded_path = Netencoding.Url.decode source_path in
       let _, url = url_of_volpath ~canon source_bucket decoded_path in
-      U.with_url_source url (fun source ->
-        return source.U.meta.U.mtime) >>= fun mtime ->
-      return (url, mtime)
-    end else begin
-      let mtime = Unix.gettimeofday () in
-      return (`Source body, mtime)
-      (* TODO: have to calc md5 for tmpfile
-      match request.body_file with
-      | None -> return (`Source body, mtime)
-      | Some tmp -> return (`Tmp tmp, mtime)*)
-    end;;
-
-  let md5_stream digestref md5 stream () =
-    stream () >>= fun (str,pos,len) ->
-    if len = 0 then
-      digestref := Cryptokit.transform_string (Cryptokit.Hexa.encode ())
-        md5#result
-    else begin
-      md5#add_substring str pos len;
-    end;
-    return (str, pos, len);;
-
-  let md5_seek_source digestref source pos =
-    source.U.seek pos >>= fun stream ->
-    let md5 = Cryptokit.Hash.md5 () in
-    return (md5_stream digestref md5 stream);;
-
-  let md5_source digestref source =
-    `Source {
-      U.meta = source.U.meta;
-      seek = md5_seek_source digestref source
-    };;
+      U.with_url_source url (fun source -> return source.U.meta) >>= fun meta ->
+      return (url, meta.U.mtime, meta.U.etag)
 
   let md5_stream2 md5 stream () =
     stream () >>= fun (str,pos,len) ->
@@ -539,23 +520,33 @@ module Make
       seek = md5_seek_source2 md5 source
     };;
 
+  let meta_key = "libres3-etag-md5"
+
+  let compute_meta ~canon url =
+    match Headers.field_single_value canon.CanonRequest.headers
+            "x-amz-metadata-directive" "COPY" with
+    | "COPY" ->
+      U.get_meta url
+    | "REPLACE" ->
+      return canon.CanonRequest.headers.Headers.ro#fields
+    | d ->
+      return_error Error.InvalidRequest ["Invalid-x-amz-metadata-directive", d]
+
   let copy_tourl ~canon body url =
-    source_of_request ~canon body >>= fun (src,mtime) ->
-    let source = match src with
-    | `Tmp _ -> `Source body
-    | (`Source _ | `Url _) as s -> s in
-    U.copy source ~srcpos:0L url >>= fun () ->
-    let digest = ref "" in
-    U.with_url_source url (fun source ->
-        U.copy (md5_source digest source) ~srcpos:0L `Null
-    ) >>= fun () ->
+    source_of_request ~canon body >>= fun (source, mtime, etag) ->
+    (* TODO: check for copying onto self and allow only if meta is set to
+      REPLACE *)
+    compute_meta ~canon source >>= fun metalst ->
+    U.copy source ~srcpos:0L ~metafn:(fun () ->
+      add_meta_headers [] metalst) url >>= fun () ->
     (* TODO: check for .., check Content-MD5, store it,
      * and store Content-Type*)
-    return (!digest, mtime);;
+    return (etag, mtime);;
 
   let copy_object ~canon ~request body bucket path =
     (* TODO: check that body is empty *)
     let _, url = url_of_volpath ~canon bucket path in
+
     (* TODO: handle the other x-amz-copy* and x-amz-meta* directives too *)
     IO.try_catch
       (fun () ->
@@ -568,38 +559,31 @@ module Make
       | Unix.Unix_error(Unix.ENOENT,_,_) ->
           return_error Error.NoSuchKey ["Key",path]
       | e -> IO.fail e
-      ) () >>= fun (digest, lastmodified) ->
+      ) () >>= fun (etag, lastmodified) ->
     return_xml_canon ~req:request ~canon ~status:`Ok ~reply_headers:[] (
       Xml.tag "CopyObjectResult" [
         Xml.tag "LastModified" [Xml.d (Util.format_date lastmodified)];
-        Xml.tag "ETag" [Xml.d ("\"" ^ digest ^ "\"")]
+        Xml.tag "ETag" [Xml.d (quote etag)]
       ]
     );;
 
-  let meta_key = "libres3-etag-md5"
 
-  let with_source ~canon body f =
-    source_of_request ~canon body >>= function
-      | `Source s, _ -> f s
-      | `Url _ as url, _ ->
-          U.with_url_source url f
-
-  let md5_metafn md5 digestref () =
+  let put_metafn ~canon md5 digestref () =
     digestref := Cryptokit.transform_string (Cryptokit.Hexa.encode ())
       md5#result;
-    [meta_key, !digestref]
+    let xamz_headers = canon.CanonRequest.headers.Headers.ro#fields in
+    add_meta_headers [meta_key, !digestref] xamz_headers
 
-  let put_object ~canon ~request body bucket path =
-    with_source ~canon body (fun src ->
+  let put_object ~canon ~request src bucket path =
     let md5 = Cryptokit.Hash.md5 () in
     let source = md5_source2 md5 src in
     IO.try_catch
       (fun () ->
         let _, url = url_of_volpath ~canon bucket path in
         let digestref = ref "" in
-        U.copy ~metafn:(md5_metafn md5 digestref) source ~srcpos:0L url >>= fun () ->
+        U.copy ~metafn:(put_metafn ~canon md5 digestref) source ~srcpos:0L url >>= fun () ->
         return_empty ~canon ~req:request ~status:`Ok
-          ~reply_headers:["ETag","\"" ^ !digestref ^ "\""](*TODO: store etag *)
+          ~reply_headers:["ETag",quote !digestref]
       )
       (function
       | Unix.Unix_error(Unix.ENOENT,_,bucket) ->
@@ -607,7 +591,7 @@ module Make
       | e ->
           IO.fail e
       ) ()
-    );;
+    ;;
 
   let send_default_acl ~req ~canon =
     return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
@@ -639,21 +623,9 @@ module Make
     (* TODO: hash of hashlist to md5 mapping *)
     let content_type = "application/octet-stream" in
     IO.try_catch (fun () ->
-      let _, url = url_of_volpath ~canon bucket path in
-      IO.try_catch (fun () ->
-        md5_of_url url
-      ) (fun _ ->
-        let digest = ref "" in
-        (* there is a race here between calculating the md5 and 
-         * downloading the file!
-         * this should be done in SXC! *)
-        U.with_url_source url (fun source ->
-          U.copy (md5_source digest source) ~srcpos:0L `Null
-        ) >>= fun () ->
-        return !digest
-      ) () >>= fun digest ->
-      return_source url ~req ~canon ~content_type
-          ~etag:digest
+        let _, url = url_of_volpath ~canon bucket path in
+        U.get_meta url >>= fun metalst ->
+        return_source url ~req ~canon ~content_type ~metalst
     ) (function
       | Unix_error(ENOENT,_,_) | Unix_error(EISDIR,_,_) ->
           (* TODO: is this the correct error message? *)
@@ -674,13 +646,9 @@ module Make
     | Some prefix ->
       return (fileset, StringSet.add prefix dirset)
     | None ->
-      try_catch (fun () ->
-          let _, url = url_of_volpath ~canon bucket entry.U.name in
-          md5_of_url url
-      ) (fun _ ->
-        return "") () >>= fun md5 ->
+      let etag = entry.U.etag in
       let meta=
-        entry.U.size, entry.U.mtime, md5 in
+        entry.U.size, entry.U.mtime, etag in
       return (StringMap.add entry.U.name meta fileset, dirset)
 
 
@@ -817,7 +785,8 @@ module Make
     let uploadId = Cryptoutil.base64url_encode (Buffer.contents buf) in
     mpart_get_path ~canon bucket path ~uploadId ~part:"0" >>= fun (mpart_bucket, mpart_path) ->
     let _, url = url_of_volpath ~canon mpart_bucket mpart_path in
-    U.copy (U.of_string "") ~srcpos:0L url >>= fun () ->
+    let meta = add_meta_headers [] canon.CanonRequest.headers.Headers.ro#fields in
+    U.copy (U.of_string "") ~metafn:(fun () -> meta) ~srcpos:0L url >>= fun () ->
     return_xml_canon ~req:request ~canon ~status:`Ok ~reply_headers:[] (
       Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "InitiateMultipartUploadResult"
       [
@@ -844,6 +813,7 @@ module Make
     validate_partNumber partNumber >>= fun n ->
     let part = Printf.sprintf "%05d" n in
     mpart_get_path ~canon bucket path ~uploadId ~part >>= fun (mpart_bucket, mpart_path) ->
+    (* TODO: we don't have to calculate MD5 here *)
     put_object ~canon ~request body mpart_bucket mpart_path
 
   let build_url bucket path =
@@ -884,7 +854,7 @@ module Make
           "ExpectedETag",etag;
         ]
       ) url >>= fun digest ->
-      let actual_etag = "\"" ^ digest ^ "\"" in
+      let actual_etag = quote digest in
       if actual_etag <> etag then
         return_error Error.InvalidPart [
           "UploadID", uploadId;
@@ -1004,12 +974,11 @@ module Make
               return_error Error.InvalidPart [
                 "UploadID", uploadId;
                 "part",string_of_int partNumber;
-              ]) url >>= fun digest ->
-          let etag = "\"" ^ digest ^ "\"" in
+              ]) url >>= fun etag ->
           return (Xml.tag "Part" [
               Xml.tag "PartNumber" [Xml.d (string_of_int partNumber)];
               Xml.tag "LastModified" [Xml.d (Util.format_date entry.U.mtime)];
-              Xml.tag "ETag" [Xml.d etag];
+              Xml.tag "ETag" [Xml.d (quote etag)];
               Xml.tag "Size" [Xml.d (Int64.to_string entry.U.size)]
             ] :: parts)
         else return parts
@@ -1146,25 +1115,19 @@ module Make
       parse_input_xml_opt body "Delete" parse_multi_delete perform
 
   let mput_complete ~canon ~request ~uploadId ~body bucket path =
-    mpart_get_path ~canon bucket path ~uploadId ~part:"0"
-    >>= fun (mpart_bucket, mpart_path) ->
-    U.exists (snd (url_of_volpath ~canon mpart_bucket mpart_path)) >>= function
-    | None ->
-      return_error Error.NoSuchUpload [
-        "UploadId",uploadId;
-        "bucket",bucket;
-        "file",path
-      ]
-    | Some _ ->
+    mpart_get_path ~canon bucket path ~uploadId ~part:"0" >>=
+    IO.try_catch (fun (mpart_bucket, mpart_path) ->
+    U.get_meta (snd (url_of_volpath ~canon mpart_bucket mpart_path))
+    >>= fun metalst ->
     check_parts ~canon bucket path ~uploadId body >>= fun (filesize, urls) ->
     let key = canon.CanonRequest.user, uploadId in
     send_long_running ~canon ~req:request key (fun url ->
         let _, url = url_of_volpath ~canon bucket path in
-        let digestref = ref "" in
-        let md5 = Cryptokit.Hash.md5 () in
         U.with_urls_source urls filesize (fun src ->
-            let source = md5_source2 md5 src in
-            U.copy ~metafn:(md5_metafn md5 digestref) source ~srcpos:0L url >>= fun () ->
+            (* TODO: base this on file revision, have get_meta return etag too! *)
+            let etag = uploadId ^ "-1" in
+            let meta = add_meta_headers [meta_key, etag] metalst in
+            U.copy ~metafn:(fun () -> meta) (`Source src) ~srcpos:0L url >>= fun () ->
             mput_delete_common ~canon ~request ~uploadId bucket path >>= fun _ ->
             return (
               Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "CompleteMultipartUploadResult"
@@ -1172,11 +1135,20 @@ module Make
                   Xml.tag "Location" [Xml.d (build_url bucket path)];
                   Xml.tag "Bucket" [Xml.d bucket];
                   Xml.tag "Key" [Xml.d path];
-                  Xml.tag "ETag" [Xml.d !digestref];
+                  Xml.tag "ETag" [Xml.d (quote etag)];
                 ]
             )
           )
-    );;
+      )
+    ) (function
+        | Unix.Unix_error(Unix.ENOENT,_,_) ->
+          return_error Error.NoSuchUpload [
+            "UploadId",uploadId;
+            "bucket",bucket;
+            "file",path
+          ]
+        | e -> IO.fail e
+    )
 
   let list_buckets request canon =
     let base, url = url_of_volpath ~canon "" "" in

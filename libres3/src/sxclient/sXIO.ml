@@ -40,12 +40,13 @@ module Make(M:Sigs.Monad) = struct
   type output_data = string * int * int
   type input_stream = unit -> output_data t
   type output_stream = output_data -> unit t
-  
+
 
   type entry = {
     name: string; (* absolute path *)
     size: int64;
-    mtime: float
+    mtime: float;
+    etag: string
   }
 
   type source = {
@@ -79,6 +80,7 @@ module Make(M:Sigs.Monad) = struct
       name = "";
       size = Int64.of_int (String.length str);
       mtime = Unix.gettimeofday ();
+      etag = Digest.to_hex (Digest.string str)
     };
     seek = read_string str;
   }
@@ -298,7 +300,7 @@ module Make(M:Sigs.Monad) = struct
       fn_finally value >>= fun () ->
       return result
   ;;
-  
+
   module RegisterURLScheme(O: SchemeOps) = struct
     let readurl state () = O.read state
     let seekurl state pos =
@@ -339,7 +341,7 @@ module Make(M:Sigs.Monad) = struct
       let current_source = ref None in
       let current_urls = ref urls in
       f {
-        meta = { name = ""; size = filesize; mtime = 0. };
+        meta = { name = ""; size = filesize; mtime = 0.; etag = "" };
         seek = (fun pos ->
           if pos <> 0L then
             fail (Failure "Non-seekable stream")

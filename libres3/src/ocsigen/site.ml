@@ -117,7 +117,7 @@ let stream_of arg pos =
     );;
 
 let source_of arg size = {
-  SXIO.meta = { SXIO.name = ""; SXIO.size = size; SXIO.mtime = 0.};
+  SXIO.meta = { SXIO.name = ""; SXIO.size = size; SXIO.mtime = 0.; SXIO.etag = "" };
   SXIO.seek = stream_of arg
 }
 

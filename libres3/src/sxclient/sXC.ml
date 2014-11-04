@@ -269,7 +269,8 @@ struct
           XIO.name =
             "/" ^ (Netencoding.Url.encode volume) ^ "/" ^ hd.Sigs.name;
           XIO.size = hd.Sigs.size;
-          XIO.mtime = hd.Sigs.mtime
+          XIO.mtime = hd.Sigs.mtime;
+          XIO.etag = hd.Sigs.etag;
         } >>= foldl base volume f tl
     | [] ->
         return accum;;
@@ -754,6 +755,13 @@ struct
       ) metalist)
      | _ -> failwith "bad meta reply format"
 
+    let etag_of_revision = function
+      | `String rev ->
+        (* could use a hash and a suffix *)
+        rev
+      | _ ->
+        failwith "bad revision format"
+
     let get url =
      get_vol_nodelist url >>= fun (nodes, _) ->
      try_catch (fun () ->
@@ -765,6 +773,7 @@ struct
          AJson.json_parse_tree input >>= function
          | [`O obj] ->
             let filesize = filter_field_int "fileSize" obj
+            and etag = etag_of_revision (filter_field_one "fileRevision" obj)
             and blocksize = Int64.to_int (filter_field_int "blockSize" obj) in
             begin match filter_field_one "fileData" obj with
             | `A a ->
@@ -787,6 +796,7 @@ struct
                     name = "";
                     size = filesize;
                     mtime = mtime;
+                    etag = etag;
                 })
             | p ->
              AJson.pp_json p;
@@ -820,7 +830,8 @@ struct
             | _ -> failwith "bad filesize format");
           mtime = (match filter_field_one "createdAt" meta with
           | `Float f -> f
-          | _ -> failwith "bad mtime format")
+          | _ -> failwith "bad mtime format");
+          etag = etag_of_revision (filter_field_one "fileRevision" meta)
         }
     | p ->
         pp_json p;
@@ -1288,7 +1299,8 @@ struct
     {
       XIO.name = Neturl.join_path (Neturl.url_path ~encoded:false url);
       size = entry.Sigs.size;
-      mtime = entry.Sigs.mtime
+      mtime = entry.Sigs.mtime;
+      etag = entry.Sigs.etag
     },
     reader
 
