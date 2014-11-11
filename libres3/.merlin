@@ -12,4 +12,5 @@ B _build/src/sxclient
 B _build/src/sxclient/lwt
 B _build/src/ocsigen
 B _build/test/
+B _build/
 B +threads

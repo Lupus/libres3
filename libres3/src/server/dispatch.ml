@@ -86,7 +86,6 @@ module Make
     meth: 'a;
   } constraint 'a = [> `DELETE | `GET | `HEAD | `POST of source | `PUT of source]
   open IO.Op
-
   let debug_output =
     try
       let name = Printf.sprintf "/tmp/libres3-debug.%d.log" (Unix.getpid ()) in
@@ -631,7 +630,8 @@ module Make
         U.get_meta url >>= fun metalst ->
         return_source url ~req ~canon ~content_type ~metalst
     ) (function
-      | Unix_error(ENOENT,_,_) | Unix_error(EISDIR,_,_) ->
+        | Unix_error((ENOENT|EISDIR),_,_)
+        | SXIO.Detail (Unix_error((ENOENT|EISDIR),_,_), _) ->
           (* TODO: is this the correct error message? *)
           return_error Error.NoSuchKey []
       | e -> IO.fail e

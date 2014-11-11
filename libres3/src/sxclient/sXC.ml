@@ -1419,6 +1419,7 @@ struct
       fail (Failure "bad acl list format2")
 
   let delete url =
+    try_catch (fun () ->
     get_vol_nodelist url >>= fun (nodes, _) ->
     begin match url_path url ~encoded:true with
     | "" :: volume :: ([""] | []) ->
@@ -1435,14 +1436,11 @@ struct
         return url
     | _ -> return url
     end >>= fun url ->
-    try_catch
-      (fun () ->
         make_request `DELETE nodes url >>= fun _ ->
         return ()
-      )
-      (function
-       | SXIO.Detail (Unix.Unix_error((Unix.ENOENT|Unix.ENOTEMPTY),_,_) as e, _) ->
-         fail e
-       | e -> fail e)
+    ) (function
+        | SXIO.Detail (Unix.Unix_error((Unix.ENOENT|Unix.ENOTEMPTY),_,_) as e, _) ->
+          fail e
+        | e -> fail e)
       ();;
 end
