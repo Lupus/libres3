@@ -146,6 +146,13 @@ let get_query_param_opt q param =
 
 let header_overrides = ["x-amz-date","Date"]
 
+let transform_path = function
+  | "" | "/" -> "/"
+  | path when path.[String.length path-1]='/' ->
+    (* SX strips trailing /, and also forbids trailing . or .. *)
+    path ^ ".sxnewdir"
+  | path -> path
+
 let canonicalize_request ~id req_method
   {req_headers=req_headers; undecoded_url=undecoded_url} =
   let headers = Headers.build header_overrides req_headers in
@@ -169,7 +176,7 @@ let canonicalize_request ~id req_method
     with Not_found -> "" in
   let query_params = parse_query query in
   let lpath = Neturl.join_path (Neturl.url_path ~encoded:false absolute_url) in
-  let path = if lpath = "" then "/" else lpath in
+  let path = transform_path lpath in
   {
     req_method = req_method;
     content_md5 = Headers.field_single_value headers "Content-MD5" "";
