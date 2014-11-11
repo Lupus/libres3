@@ -44,7 +44,10 @@ end = struct
 
     let log _ _ = ()
     open Dispatch
-    let send_headers s h =
+    let send_data s (str, pos, len) =
+      Buffer.add_substring s.buf str pos len;
+      M.return ()
+    let send_headers s ?body_header h =
       s.hstatus <- h.status;
       begin match h.content_length with
       | Some len ->
@@ -69,11 +72,11 @@ end = struct
       | Some c ->
           s.headers <- ("ETag", c) :: s.headers
       end;
-      M.return s
-
-    let send_data s (str, pos, len) =
-      Buffer.add_substring s.buf str pos len;
-      M.return ()
+      match body_header with
+      | Some b ->
+        M.(>>=) (send_data s (b, 0, String.length b))
+          (fun () -> M.return s)
+      | None -> M.return s
   end
 
 

@@ -40,13 +40,21 @@ module Server = struct
     mvar: (string * int * int) Lwt_mvar.t
   }
   type u = t
-  let send_headers s h =
-    s.headers <- Some h;
-    s.woken <- true;
-    Lwt.wakeup s.headers_wake ();
-    Lwt.return s
   let send_data s data =
     Lwt_mvar.put s.mvar data
+  let send_headers s ?body_header h =
+    s.headers <- Some h;
+    if not s.woken then begin
+      (* send headers and body xml header only once *)
+      s.woken <- true;
+      Lwt.wakeup s.headers_wake ();
+      match body_header with
+      | Some b ->
+        Lwt.bind (send_data s (b, 0, String.length b))
+          (fun () -> Lwt.return s)
+      | None -> Lwt.return s
+    end else
+      Lwt.return s
   let log _ str = Ocsigen_messages.warning str
 end
 

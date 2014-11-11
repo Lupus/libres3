@@ -49,7 +49,7 @@ module type Server = sig
   type u
   type 'a monad
   val log: t -> string -> unit
-  val send_headers: t -> headers -> u monad
+  val send_headers: t -> ?body_header:string -> headers -> u monad
   val send_data: u -> string * int * int -> unit monad
 end
 
@@ -117,14 +117,17 @@ module Make
     result
   ;;
 
-  let return_string ~id ~id2 ~req ~status ?last_modified ~reply_headers ~content_type str =
+  let return_string ~id ~id2 ~req ~status ?last_modified ~reply_headers ~content_type ?body_header str =
     let headers = add_std_headers ~id ~id2 reply_headers ~dbg_body:str in
-    S.send_headers req.server {
+    let body_header_len = match body_header with
+      | Some s -> String.length s
+      | None -> 0 in
+    S.send_headers req.server ?body_header {
       status = status;
       reply_headers = headers;
       last_modified = last_modified;
       content_type = Some content_type;
-      content_length = Some (Int64.of_int (String.length str));
+      content_length = Some (Int64.of_int (String.length str + body_header_len));
       etag = None;
     } >>= fun sender ->
     if req.meth = `HEAD then return () (* ensure HEAD has empty body, but all
@@ -148,10 +151,11 @@ module Make
     } >>= fun _ -> return ()
   ;;
 
-  let invalid_range length =
+  let invalid_range ~req ~canon length =
     let header = Headers.make_content_range (`Bytes (None, Some length))
     in
-    IO.fail ( Error.ErrorReply ( Error.InvalidRange, [], header));;
+    return_empty ~req ~canon ~status:`Requested_range_not_satisfiable
+      ~reply_headers:header
 
   let parse_ranges headers content_length  =
     let default_last = Int64.sub content_length 1L in
@@ -218,7 +222,7 @@ module Make
         } >>= send_source url ~canon ~first:0L
     | Some (first, last) as range ->
         if first > last then
-          invalid_range size (* not satisfiable *)
+          invalid_range ~req ~canon size (* not satisfiable *)
         else
           let h = Headers.make_content_range
             (`Bytes (range, Some size)) in
@@ -233,8 +237,10 @@ module Make
           } >>= send_source url ~canon ~first
   ;;
 
+  let xml_decl = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+
   let return_xml ?log ~id ~id2 ~req ~status ~reply_headers xml =
-    let str = CodedIO.Xml.to_string xml in
+    let str = CodedIO.Xml.to_string ~decl:false xml in
     begin match log with
     | None -> ()
     | Some l ->
@@ -244,7 +250,7 @@ module Make
           )
     end;
     return_string ~id ~id2 ~req ~status ~reply_headers
-      ~content_type:"application/xml" str;;
+      ~content_type:"application/xml" ~body_header:xml_decl str;;
 
   let return_xml_canon ?log ~req ~canon ~status ~reply_headers xml =
     return_xml ?log ~id:canon.CanonRequest.id ~id2:(CanonRequest.gen_debug ~canon)
@@ -1040,7 +1046,7 @@ module Make
         let id = canon.CanonRequest.id
         and id2 = CanonRequest.gen_debug ~canon in
         let headers = add_std_headers ~id ~id2 [] in
-        S.send_headers req.server {
+        S.send_headers req.server ~body_header:xml_decl {
           status = `Ok; (* we send 200 with an <Error> in the body if needed *)
           reply_headers = headers;
           last_modified = None;
@@ -1048,8 +1054,6 @@ module Make
           content_length = None;
           etag = None;
         } >>= fun sender ->
-        let decl = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" in
-        S.send_data sender (decl, 0, String.length decl) >>= fun() ->
         periodic_send_until sender " " result_wait >>= fun result ->
         let str = CodedIO.Xml.to_string ~decl:false result in
         S.send_data sender (str, 0, String.length str)
@@ -1361,6 +1365,12 @@ module Make
             ~id2:(CanonRequest.gen_debug ~canon)
             ~id:canon.CanonRequest.id ~path ~headers:[]
             Error.AccessDenied (("SXException", (Printexc.to_string ex)) :: detail)
+      | SXIO.Detail (Unix.Unix_error(Unix.ENOSPC, _, _), detail) ->
+          return_error_xml
+            ~req:request
+            ~id2:(CanonRequest.gen_debug ~canon)
+            ~id:canon.CanonRequest.id ~path ~headers:[]
+            Error.EntityTooLarge detail
       | SXIO.Detail (Unix.Unix_error _ as ex, detail)->
           return_error_xml
             ~req:request

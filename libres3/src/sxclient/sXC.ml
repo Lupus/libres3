@@ -462,6 +462,7 @@ struct
               Some (if meth=`DELETE then Unix.ENOTEMPTY else Unix.EEXIST)
         | `Request_uri_too_long -> Some Unix.ENAMETOOLONG
         | `Requested_range_not_satisfiable -> Some Unix.EINVAL
+        | `Request_entity_too_large -> Some Unix.ENOSPC
         | _ -> None in
         let details = [
           "SXErrorMessage",detail;
