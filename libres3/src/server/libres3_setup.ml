@@ -67,7 +67,7 @@ let spec = [
   "--default-replica", Arg.Set_string default_replica,
     " Default volume replica count"
   ;
-  "--default-volume-size", Arg.Set_string default_replica,
+  "--default-volume-size", Arg.Set_string default_volume_size,
     " Default volume size"
   ;
   "--sxsetup-conf", Arg.Set_string sxsetup_conf, " Path to sxsetup.conf";
