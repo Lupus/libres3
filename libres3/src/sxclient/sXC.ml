@@ -1437,8 +1437,8 @@ struct
         return url
     | _ -> return url
     end >>= fun url ->
-        make_request `DELETE nodes url >>= fun _ ->
-        return ()
+    make_request `DELETE nodes url >>=
+    job_get url
     ) (function
         | SXIO.Detail (Unix.Unix_error((Unix.ENOENT|Unix.ENOTEMPTY),_,_) as e, _) ->
           fail e
