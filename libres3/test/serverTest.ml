@@ -82,8 +82,6 @@ end = struct
 
   module D = Dispatch.Make(SXIO)(IO)(Server)
   let test_init () =
-    Configfile.buckets_dir := Filename.temp_file "libres3test" ".tmpdir";
-    Sys.remove !Configfile.buckets_dir;
     SXIO.M.run (D.init ());;
 
   open HttpTest
@@ -131,11 +129,5 @@ end = struct
     let dispatcher = test_init () in
     "server">:::[
       build_tests dispatcher "queries";
-      "cleanup">::(fun () ->
-        (* volume deletes are disabled, so rmdir them here *)
-        let dir = !Configfile.buckets_dir in
-        if dir <> "" && dir <> "/" then
-          TestUtil.rmdirs dir
-      )
     ]
 end

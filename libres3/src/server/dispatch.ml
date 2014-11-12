@@ -1438,13 +1438,6 @@ module Make
     handle_request_real request
   ;;
 
-  let mkdir_maybe dir =
-    IO.try_catch (fun () -> IO.mkdir dir 0o700) (function
-      | Unix.Unix_error (Unix.EEXIST,_,_) -> return ()
-      | e -> IO.fail e
-    ) ()
-  ;;
-
   let wsize_float = float_of_int Sys.word_size
   let words_to_kb w =
     ((float_of_int w) *. wsize_float) /. 1024.0;;
@@ -1485,11 +1478,7 @@ module Make
       fail (Failure "SX secret access key must be set!")
     else begin
       Gc.compact ();
-      if !Configfile.buckets_dir <> "" && !Configfile.buckets_dir <> "/" then
-        mkdir_maybe !Configfile.buckets_dir >>= fun () ->
-        mkdir_maybe (Filename.concat !Configfile.buckets_dir "tmp")
-        (*      >>= fun () ->  mkdir_maybe (!Configfile.buckets_dir ^ "-meta")*)
-      else return ()
+      return ()
     end
   ;;
 

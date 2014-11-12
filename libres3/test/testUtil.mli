@@ -38,7 +38,6 @@ val assert_eq_stringlist :
 val assert_eq_sort_stringlist :
   ?msg:string -> string list -> string list -> unit
 val assert_eq_intlist : ?msg:string -> int list -> int list -> unit
-val rmdirs : string -> unit
 module Pipeline : sig
   type ('i, 'o) listmap = 'i list -> 'o list
   type ('i, 'o) listjoin = 'i list -> 'o

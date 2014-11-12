@@ -33,125 +33,80 @@
 (**************************************************************************)
 
 module Make(M:Sigs.Monad)(OS:EventIO.OSMonad with type 'a t = 'a M.t) = struct
-  type state = string * OS.file_descr
+  type state = string * int ref
   let scheme = "file"
-  let syntax = Hashtbl.find Neturl.common_url_syntax scheme
+  let syntax = Hashtbl.find Neturl.common_url_syntax "file"
 
   let init () = ()
   open M
-  let file url = Neturl.local_path_of_file_url url
+  let file url =
+    match Neturl.split_path (Neturl.local_path_of_file_url url) with
+    | [""] -> "", ""
+    | "" :: volume :: path ->
+      let path = Neturl.join_path path in
+      volume, path
+    | path -> failwith ("Bad path: " ^ (Neturl.join_path path))
   module IO = SXIO.Make(M)
+
+  module StringMap = Map.Make(String)
+  let volumes = ref StringMap.empty
 
   let token_of_user _ = return (Some !Config.secret_access_key)
   let check _ = return None
 
-  let etag_of_stat s =
-    Printf.sprintf "%d-%d-%f-%Ld" s.Unix.LargeFile.st_dev
-      s.Unix.LargeFile.st_ino s.Unix.LargeFile.st_mtime s.Unix.LargeFile.st_size
+  let find name m =
+    try return (StringMap.find name m)
+    with Not_found -> fail (Unix.Unix_error(Unix.ENOENT, "find", name))
 
+  let etag_cnt = ref 0
   let open_source url =
-    let name = file url in
-    OS.openfile name [Unix.O_RDONLY] 0 >>= fun fd ->
-    try_catch
-      (fun () ->
-        OS.LargeFile.fstat fd >>= fun stat ->
-        if stat.Unix.LargeFile.st_kind <> Unix.S_REG then
-          (* it is not a file (could be a dir, etc. *)
-          fail (Unix.Unix_error (Unix.ENOENT, "open_source", name))
-        else
-          let entry = {
-            IO.name = name;
-            size = stat.Unix.LargeFile.st_size;
-            mtime = stat.Unix.LargeFile.st_mtime;
-            etag = etag_of_stat stat
-          } in
-          let (s:state) = String.create Config.buffer_size, fd in
-          return (entry, s)
-      )
-      (fun e ->
-        OS.close fd >>= fun () ->
-        fail e) ();;
+    let vol, name = file url in
+    find vol !volumes >>= fun volume ->
+    find name volume >>= fun (meta, _, contents) ->
+    return (meta, (contents, ref 0))
 
-  let seek (_,fd) pos =
-    OS.LargeFile.lseek fd pos Unix.SEEK_SET >>= fun _ -> return ();;
-  let read (buf,fd) =
+  let seek (_, fpos) pos =
+    fpos := Int64.to_int pos;
+    return ()
+
+  let read (contents, fpos) =
     (* TODO: check that there is only one read in-flight on this fd? *)
-    OS.read fd buf 0 (String.length buf) >>= fun amount ->
-    return (buf, 0, amount);;
-  let close_source (_, fd) = OS.close fd
+    let pos = !fpos in
+    let last = min (pos + Config.buffer_size) (String.length contents) in
+    let amount = last - pos in
+    fpos := last;
+    return (contents, pos, amount)
+
+  let close_source _ = return ()
 
   let copy_same _ _ =
     return false (* no optimized copy, fallback to generic *)
 
-  let is_dir name =
-    let n = String.length name in
-    n > 0 && name.[n-1] = '/';;
-
   let delete url =
-    let name = file url in
-    if is_dir name then
-      OS.rmdir name
-    else
-      OS.unlink name;;
+    match file url with
+    | vol, ("" | "/") ->
+      find vol !volumes >>= fun volume ->
+      if StringMap.is_empty volume then begin
+        volumes := StringMap.remove vol !volumes;
+        return ()
+      end else
+        fail (Unix.Unix_error(Unix.ENOTEMPTY, "delete", vol))
+    | vol, path ->
+      find vol !volumes >>= fun volume ->
+      find path volume >>= fun _ ->
+      volumes := StringMap.add vol (StringMap.remove path volume) !volumes;
+      return ()
 
   let exists url =
-    let name = file url in
-    M.try_catch
-      (fun () ->
-        OS.access name [Unix.R_OK] >>= fun () ->
-          (* TODO: return real size *)
+    match file url with
+    | vol, (""|"/") ->
+      if StringMap.mem vol !volumes then
         return (Some 0L)
-      )
-      (fun _ -> return None) ();;
-
-  let readdir_safe handle =
-    try_catch
-      (fun () ->
-        OS.readdir handle >>= fun entry ->
-        return (Some entry))
-      (function | End_of_file -> return None | e -> fail e) ();;
-
-  let rec fold_dir f recurse dir accum dirs_waiting handle =
-    readdir_safe handle >>= function
-    | None -> return (accum, dirs_waiting)
-    | Some entry ->
-      let path = Filename.concat dir entry in
-      OS.LargeFile.lstat path >>= fun stat ->
-      match stat.Unix.LargeFile.st_kind with
-      | Unix.S_REG ->
-        let entry = {
-          IO.name = path;
-          size = stat.Unix.LargeFile.st_size;
-          mtime = stat.Unix.LargeFile.st_mtime;
-          etag = etag_of_stat stat
-        } in
-        f accum entry >>= fun accum ->
-        fold_dir f recurse dir accum dirs_waiting handle
-     | Unix.S_DIR when entry <> "." && entry <> ".." ->
-         if recurse path then
-          fold_dir f recurse dir accum (path :: dirs_waiting) handle
-        else
-          fold_dir f recurse dir accum dirs_waiting handle
-     | _ -> fold_dir f recurse dir accum dirs_waiting handle;;
-
-  let rec fold_dir_safe f recurse accum dirs_waiting =
-    match dirs_waiting with
-    | dir :: rest ->
-      try_catch (fun () ->
-        OS.opendir dir >>= fun handle ->
-        try_catch
-          (fun () ->
-            fold_dir f recurse dir accum rest handle
-          )
-          (function | e -> OS.closedir handle >>= fun () -> fail e)
-          () >>= fun (accum, dirs_waiting) ->
-          fold_dir_safe f recurse accum dirs_waiting
-        )
-        (fun _ ->
-          (* skip this dir *)
-          fold_dir_safe f recurse accum rest) ()
-    | [] ->
-        return accum;;
+      else return None
+    | vol, path ->
+      find vol !volumes >>= fun volume ->
+      find path volume >>= fun (meta, _, _) ->
+      return (Some meta.IO.size)
 
   let is_prefix ~prefix str =
     let plen = String.length prefix in
@@ -159,8 +114,9 @@ module Make(M:Sigs.Monad)(OS:EventIO.OSMonad with type 'a t = 'a M.t) = struct
     (String.sub str 0 plen) = prefix;;
 
   let filter_fold f prefix accum entry =
-    if is_prefix ~prefix entry.IO.name then
+    if is_prefix ~prefix entry.IO.name then begin
       f accum entry
+        end
     else return accum
 
   let filter_recurse recurse prefix dir =
@@ -170,108 +126,66 @@ module Make(M:Sigs.Monad)(OS:EventIO.OSMonad with type 'a t = 'a M.t) = struct
       false;;
 
   let fold_list url f recurse accum =
-    let fullpath = Neturl.url_path ~encoded:false url in
-    match List.rev fullpath with
-    | _last :: rest ->
-        (* go back to last dir *)
-        let path = List.rev rest in
-        let dir = file (Neturl.modify_url ~encoded:false ~path url) in
-        let prefix = Neturl.join_path fullpath in
-        (* then filter its contents by prefix *)
-        fold_dir_safe (filter_fold f prefix) (filter_recurse recurse prefix)
-          accum [dir]
-    | [] -> (* file URLs are absolute *)
-        assert false;;
+    let vol, path = file url in
+    if vol = "" then begin
+      StringMap.iter (fun vol _ ->
+          ignore (recurse ("/" ^ vol))) !volumes;
+      return accum
+    end else
+      find vol !volumes >>= fun volume ->
+      StringMap.fold (fun _ (e,_,_) accum ->
+          accum >>= fun accum -> filter_fold f path accum e
+        ) volume (return accum)
 
   let create ?metafn ?replica url =
-    let name = file url in
-    if is_dir name then
-      OS.mkdir name 0o755
-    else
-      OS.openfile name [Unix.O_WRONLY;Unix.O_CREAT] 0o644 >>= OS.close;;
+    match file url with
+    | vol, ("" | "/") ->
+      if StringMap.mem vol !volumes then
+        fail (Unix.Unix_error(Unix.EEXIST, "create", vol))
+      else begin
+        volumes := StringMap.add vol StringMap.empty !volumes;
+        return ();
+      end
+    | vol, path ->
+      find vol !volumes >>= fun volume ->
+      incr etag_cnt;
+      let entry = {
+        IO.name = "/" ^ Netencoding.Url.encode vol ^ path;
+        size = 0L;
+        mtime = Unix.gettimeofday ();
+        etag = string_of_int !etag_cnt;
+      }, [], "" in
+      volumes := StringMap.add vol (StringMap.add path entry volume) !volumes;
+      return ()
 
-  let rec create_parents path =
-    let parent = Filename.dirname path in
-    if parent = "" || parent = "/"  || parent = "//" then
-      fail (Unix.Unix_error(Unix.ENOENT,"rename",path))
-    else begin
-      try_catch
-        (fun () ->
-          OS.mkdir parent 0o700)
-        (function
-        | Unix.Unix_error(Unix.ENOENT,_,_) ->
-          create_parents parent >>= fun () ->
-          OS.mkdir parent 0o700
-        | Unix.Unix_error(Unix.EEXIST,_,_) ->
-            return ()
-        | e -> fail e
-        ) ()
-    end;;
-
-  let maybe_mkdirs f dst =
-    try_catch
-      (fun () -> f dst)
-      (function
-        | Unix.Unix_error(Unix.ENOENT,_,_) | Sys_error _ ->
-          create_parents dst >>= fun () ->
-          f dst
-        | e -> fail e) ();;
-
-  let with_tmpfile tmpname name f =
-    try_catch
-      (fun () ->
-        OS.openfile tmpname [Unix.O_WRONLY; Unix.O_CREAT] 0o644 >>= fun fd ->
-        try_catch
-          (fun () ->
-            f fd >>= fun () ->
-            OS.close fd
-          )
-          (fun e -> OS.close fd >>= fun () -> fail e) () >>= fun () ->
-          OS.rename tmpname name
-      )
-      (fun e ->
-        (* TODO: should send e along even if OS.unlink raises *)
-        OS.unlink tmpname >>= fun () ->
-        fail e
-      ) ();;
-
-  let rec really_write fd str pos len =
-    if len > 0 then
-      OS.write fd str pos len >>= fun amount ->
-      really_write fd str (pos + amount) (len - amount)
-    else return ();;
-
-  let rec copy_stream_tofd stream fd () =
-    stream () >>= fun (str, pos, len) ->
-    if len > 0 then
-      really_write fd str pos len >>=
-      copy_stream_tofd stream fd
-    else return ();;
-
-  let metatable = Hashtbl.create 16
   let get_meta url : (string*string) list OS.t =
-    try
-      return (Hashtbl.find metatable url)
-    with Not_found ->
-      return []
+    let vol, path = file url in
+    find vol !volumes >>= fun volume ->
+    find path volume >>= fun (_, meta, _) ->
+    return meta
+
+  let etag_cnt = ref 0
 
   let put ?metafn src srcpos dsturl =
-    (* atomically create destination with given contents:
-     * copy to tmpfile in same directory and then rename if successful
-     * or unlink if not *)
-    let dst = file dsturl in
-    begin match metafn with
-    | None -> ()
-    | Some f -> Hashtbl.add metatable dsturl (f ())
-    end;
-    maybe_mkdirs
-      (fun dst ->
-        return (Filename.temp_file ~temp_dir:(Filename.dirname dst)
-         (Filename.basename dst) ".tmp")
-      )
-      dst >>= fun tmpname ->
-    with_tmpfile tmpname dst (fun fd ->
-      src.IO.seek srcpos >>= fun stream ->
-      copy_stream_tofd stream fd ()
-    );;
+    let vol, path = file dsturl in
+    find vol !volumes >>= fun volume ->
+    incr etag_cnt;
+    let meta = begin match metafn with
+    | None -> []
+    | Some f -> f ()
+    end in
+    src.IO.seek srcpos >>= fun stream ->
+    let buf = Buffer.create 128 in
+    IO.iter stream (fun (str,pos,len) ->
+        Buffer.add_substring buf str pos len;
+        return ()) >>= fun () ->
+    let contents = Buffer.contents buf in
+    let entry = {
+      IO.name = "/" ^ Netencoding.Url.encode vol ^ path;
+      size = Int64.of_int (String.length contents);
+      mtime = Unix.gettimeofday ();
+      etag = string_of_int !etag_cnt
+    }, meta, contents in
+    volumes := StringMap.add vol (StringMap.add path entry volume) !volumes;
+    return ()
 end

@@ -98,20 +98,12 @@ module OS = struct
     with Unix.Unix_error(Unix.EINTR, _, _) ->
       restart_eintr f v
   ;;
-  let mkdir name = restart_eintr (Unix.mkdir name)
-  let rmdir = restart_eintr Unix.rmdir
-  type dir_handle = Unix.dir_handle
-  let opendir = restart_eintr Unix.opendir
-  let readdir = restart_eintr Unix.readdir
-  let closedir = restart_eintr Unix.closedir
   type file_descr = Unix.file_descr
   let openfile name flags = restart_eintr (Unix.openfile name flags)
   let close = restart_eintr Unix.close
   let read fd buf pos = restart_eintr (Unix.read fd buf pos)
   let write fd buf pos = restart_eintr (Unix.write fd buf pos)
-  let rename src = restart_eintr (Unix.rename src)
   let unlink = restart_eintr Unix.unlink
-  let access name perms = restart_eintr (Unix.access name) perms
 
   let sleep t () =
     let finish = Unix.gettimeofday () +. t in
@@ -126,7 +118,6 @@ module OS = struct
 
   module LargeFile = struct
     let lseek fd pos = restart_eintr (Unix.LargeFile.lseek fd pos)
-    let lstat = restart_eintr Unix.LargeFile.lstat
     let fstat = restart_eintr Unix.LargeFile.fstat
   end
 end

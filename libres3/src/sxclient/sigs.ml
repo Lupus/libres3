@@ -221,12 +221,7 @@ module type EventIOSig = sig
 
   val with_resource : fn_open:('a -> 'b t) -> fn_close:('b -> unit t) -> ('b -> unit t) -> 'a -> unit t
   val with_file_write : string -> Unix.file_perm -> (output_stream -> unit t) -> unit t
-  val with_dir : string -> (string -> unit t) -> unit t
 
-  val mkdir: string -> Unix.file_perm -> unit t
-  val rmdir: string -> unit t
-  val lstat: string -> Unix.LargeFile.stats t
-  val rename: string -> string -> unit t
   val unlink: string -> unit t
   exception InputTooLarge of int
   val read_all : input:'a Stream.t -> max:int -> string t

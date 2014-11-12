@@ -36,26 +36,16 @@ let buffer_size = 128*1024
 let small_buffer_size = 4096
 module type OSMonad = sig
   type 'a t
-  (* directories *)
-  val mkdir: string -> Unix.file_perm -> unit t
-  val rmdir : string -> unit t
-  type dir_handle
-  val opendir : string -> dir_handle t
-  val readdir : dir_handle -> string t
-  val closedir : dir_handle -> unit t
   (* files *)
   type file_descr
   val openfile: string -> Unix.open_flag list -> Unix.file_perm -> file_descr t
   val close: file_descr -> unit t
   val read: file_descr -> string -> int -> int -> int t
-  val access: string -> Unix.access_permission list -> unit t
   val write: file_descr -> string -> int -> int -> int t
   val unlink: string -> unit t
-  val rename: string -> string -> unit t
   val sleep : float -> unit t
   module LargeFile: sig
     val lseek: file_descr -> int64 -> Unix.seek_command -> int64 t
-    val lstat: string -> Unix.LargeFile.stats t
     val fstat: file_descr -> Unix.LargeFile.stats t
   end
 end;;
@@ -259,10 +249,6 @@ module Make (M: Sigs.Monad) (OS: OSMonad with type 'a t = 'a M.t)
 
   let sleep = OS.sleep
 
-  let mkdir = OS.mkdir
-  let rmdir = OS.rmdir
-  let lstat = OS.LargeFile.lstat
-  let rename = OS.rename
   let unlink = OS.unlink
 
   let rec really_write out str pos len =
@@ -280,23 +266,6 @@ module Make (M: Sigs.Monad) (OS: OSMonad with type 'a t = 'a M.t)
         f (really_write out)
       )
       filename;;
-
-  let with_dir dirname fn_file =
-    let rec loop_dir dir =
-      OS.readdir dir >>= fn_file >>= fun () ->
-      loop_dir dir
-    in
-    try_catch
-      (with_resource
-        ~fn_open:OS.opendir
-        ~fn_close:OS.closedir
-        loop_dir)
-      (function
-      | End_of_file -> return ()
-      | e -> fail e
-      )
-      dirname
-    ;;
 
   let string_of_file filename =
     FileSource.with_source filename (fun source ->

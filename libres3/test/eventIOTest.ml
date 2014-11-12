@@ -127,29 +127,6 @@ end = struct
       IO.unlink name
     );;
 
-  let mkdir_maybe name =
-    IO.try_catch 
-      (fun () -> IO.mkdir name 0o700)
-      (function
-      (* TODO: put this into eventIO too *)
-      | Unix.Unix_error(Unix.EEXIST,_,_) -> return ()
-      | e -> IO.fail e)
-      ();;
-
-  let test_with_dir () =
-    M.run (
-      let name = "test.dir" in
-      mkdir_maybe name >>= fun () ->
-      mkdir_maybe (Filename.concat name "one") >>= fun () ->
-      let lst = ref [] in
-      IO.with_dir name (fun entry -> lst := entry :: !lst; return ()) >>= fun () ->
-      lst := List.sort String.compare !lst;
-      let expected = List.sort String.compare [".";"..";"one"] in
-      TestUtil.assert_eq_stringlist expected !lst;
-      IO.rmdir (Filename.concat name "one") >>= fun () ->
-      IO.rmdir name
-    );;
-
   let tests =
     "EventIO">:::[
       "basic monad">::test_monad;
@@ -163,6 +140,5 @@ end = struct
       "iter_s">::test_iter_s;
       "rev_map_p">::test_rev_map_p;
       "file write">::test_file_write;
-      "with_dir">::test_with_dir;
     ]
 end

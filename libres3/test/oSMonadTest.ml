@@ -61,90 +61,6 @@ end = struct
       !has_run
   ;;
 
-  let test_mkdir_enoent (_,name) =
-    expect_unix_error Unix.ENOENT (fun () ->
-      OS.mkdir (Filename.concat name "nonexistent") 0o700
-    );;
-
-  let test_rmdir_enoent (_,name) =
-    expect_unix_error Unix.ENOENT (fun () ->
-      OS.rmdir (Filename.concat name "nonexistent")
-    );;
-
-
-  let test_mkdir_eexist (dirname,_) =
-    expect_unix_error Unix.EEXIST (fun () ->
-      OS.mkdir dirname 0o700
-    );;
-
-  let test_mkdir_rmdir (_,name) =
-    run (
-      OS.mkdir name 0o700 >>= fun () ->
-      OS.rmdir name
-    );;
-
-  let test_empty_readdir (dirname,_) =
-    let ok = ref false in
-    run (
-      OS.opendir dirname >>= fun d ->
-      OS.readdir d >>= fun first ->
-      OS.readdir d >>= fun second ->
-      let l = List.fast_sort String.compare [first; second] in
-      assert_eq_stringlist ["."; ".."] l;
-      try_catch
-        (fun () ->
-          OS.readdir d >>= fun s ->
-          assert_failure (Printf.sprintf "Bad dir entry %s" s)
-        )
-        (function
-        | End_of_file ->
-            ok := true;
-            OS.closedir d
-        | e ->
-            assert_failure (Printf.sprintf "Unexpected exception %s"
-            (Printexc.to_string e))
-        )
-        ()
-    );
-    assert_bool "readdir test end not reached" (!ok)
-  ;;
-
-  let test_one_readdir (dirname,name) =
-    let ok = ref false in
-    run (
-      OS.openfile name [Unix.O_CREAT] 0o700 >>= fun fd ->
-      OS.close fd >>= fun () ->
-      OS.opendir dirname >>= fun d ->
-      OS.readdir d >>= fun first ->
-      OS.readdir d >>= fun second ->
-      OS.readdir d >>= fun third ->
-      let l = List.fast_sort String.compare [first; second; third] in
-      assert_eq_stringlist [".";"..";Filename.basename name] l;
-
-      try_catch
-        (fun () ->
-          OS.readdir d >>= fun s ->
-          assert_failure (Printf.sprintf "Bad dir entry %s" s)
-        )
-        (function
-        | End_of_file ->
-            ok := true;
-            OS.closedir d >>= fun () ->
-            OS.unlink name
-        | e ->
-            assert_failure (Printf.sprintf "Unexpected exception %s"
-            (Printexc.to_string e))
-        )
-        ()
-    );
-    assert_bool "readdir test end not reached" (!ok)
-  ;;
-
-  let test_opendir_enoent (_,name) =
-    expect_unix_error Unix.ENOENT (fun () ->
-      OS.opendir name
-    );;
-
   let test_openfile_enoent (_,name) =
     expect_unix_error Unix.ENOENT (fun () ->
       OS.openfile name [] 0o700
@@ -157,17 +73,6 @@ end = struct
       OS.openfile name [] 0o700 >>= fun fd ->
       OS.close fd >>= fun () ->
       OS.unlink name
-    );;
-
-  let test_rename (dirname,name) =
-    run (
-      OS.openfile name [Unix.O_CREAT] 0o700 >>= fun fd ->
-      OS.close fd >>= fun () ->
-      let name2 = Filename.concat dirname "new" in
-      OS.rename name name2 >>= fun () ->
-      OS.openfile name2 [] 0o700 >>= fun fd ->
-      OS.close fd >>= fun () ->
-      OS.unlink name2
     );;
 
   let test_write_read (_,name) =
@@ -209,16 +114,6 @@ end = struct
       OS.unlink name
     );;
 
-  let test_rename_enoent (dirname,name) =
-    expect_unix_error Unix.ENOENT (fun () ->
-      OS.rename name (Filename.concat dirname "test")
-    );;
-
-  let test_lstat_enoent (_,name) =
-    expect_unix_error Unix.ENOENT (fun () ->
-      OS.LargeFile.lstat name
-    );;
-
   let setup_tmpdir () =
     let name = Filename.temp_file "tmplibres3test" ".dir" in
     Sys.remove name;
@@ -226,7 +121,7 @@ end = struct
     name, Filename.concat name "testname";;
 
   let teardown_tmpdir (name, _) =
-    TestUtil.rmdirs name;;
+    Unix.rmdir name
 
   let bracket_tmpdir f =
     bracket setup_tmpdir f teardown_tmpdir;;
@@ -274,19 +169,9 @@ end = struct
     "OS">:::
       (List.map (fun (name, f) ->  name>::bracket_tmpdir f)
         [
-          "mkdir enoent", test_mkdir_enoent;
-          "mkdir eexist", test_mkdir_eexist;
-          "rmdir enoent", test_rmdir_enoent;
-          "opendir enoent", test_opendir_enoent;
           "openfile enoent", test_openfile_enoent;
           "unlink enoent", test_unlink_enoent;
-          "rename enoent", test_rename_enoent;
-          "lstat enoent", test_lstat_enoent;
           "openfile create", test_openfile_create;
-          "mkdir rmdir", test_mkdir_rmdir;
-          "readdir empty", test_empty_readdir;
-          "readdir one", test_one_readdir;
-          "rename", test_rename;
           "write_read", test_write_read;
           "write_read_seek", test_write_read_seek;
         ]

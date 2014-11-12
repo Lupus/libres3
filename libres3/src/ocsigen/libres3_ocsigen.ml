@@ -151,24 +151,6 @@ let rec mkdir_p dir ~perm =
   try_chown dir
 ;;
 
-(* this lacks some error-handling code *)
-let rec rmdirs dir =
-    let d = opendir dir in
-    try
-        while true; do
-            let dirent = readdir d in
-            if dirent <> "." && dirent <> ".." then
-            let entry = Filename.concat dir dirent in
-            if (stat entry).st_kind = S_DIR then
-                rmdirs entry
-            else
-                unlink entry
-        done
-    with
-    | End_of_file ->
-            closedir d;
-            rmdir dir;;
-
 let print_version () =
   Printf.printf "libres3 version %s\n%!" Version.version;
   exit 0

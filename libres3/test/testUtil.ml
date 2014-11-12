@@ -66,25 +66,6 @@ let string_of_list s = String.concat "," s
 let assert_eq_stringlist ?msg expected actual =
   assert_equal ?msg ~printer:string_of_list expected actual;;
 
-(* this lacks some error-handling code *)
-let rec rmdirs dir =
-    let d = Unix.opendir dir in
-    try
-        while true; do
-            let dirent = Unix.readdir d in
-            if dirent <> "." && dirent <> ".." then
-            let entry = Filename.concat dir dirent in
-            if (Unix.stat entry).Unix.st_kind = Unix.S_DIR then
-                rmdirs entry
-            else
-                Unix.unlink entry
-        done
-    with
-    | End_of_file ->
-            Unix.closedir d;
-            Unix.rmdir dir;;
-
-
 let assert_eq_sort_stringlist ?msg expected actual =
   let e = List.fast_sort String.compare expected
   and a = List.fast_sort String.compare actual in

@@ -244,7 +244,6 @@ let test_file_upload ?(enc=true) filename =
     };
     (* TODO: expected for first too! check for etag from bug #103 *)
     generate = (fun _ -> [
-      (* TODO: re-enable when SX supports this 
       Direct {
         name = "delete non-empty bucket";
         req = sign_request {
@@ -257,7 +256,7 @@ let test_file_upload ?(enc=true) filename =
           req_body = "";
         };
         expected = expect_error Error.BucketNotEmpty ("/"^bucketname)
-      };*)
+      };
       Direct {
         name = "newly created file is listable";
         req = sign_request {
@@ -476,7 +475,6 @@ let suite real = [
       is_head = true
     }
   };
-  (* TODO: re-enable when SX supports it 
   Direct {
     name = "404 on delete of nonexistent bucket";
     req = sign_request {
@@ -488,7 +486,7 @@ let suite real = [
       req_body = "";
     };
     expected = expect_error Error.NoSuchBucket ("/"^bucketname2)
-  };*)
+  };
   Chain {
     (* TODO: test bucket creation with UTF-8 names *)
     chain_name = "create/delete bucket";
@@ -637,12 +635,9 @@ let suite real = [
        * etc. *)
     ]);
     finish = (fun _ _ -> {
-(*TODO: re-enable when SX supports delete
- * name = "delete bucket";*)
-      name = "check bucket";
+      name = "delete bucket";
       req = sign_request {
-(*        meth = `DELETE;*)
-        meth = `HEAD;
+        meth = `DELETE;
         host = !Configfile.base_hostname;
         port = !Configfile.base_port;
         relative_url = "/" ^ bucketname;
@@ -654,10 +649,8 @@ let suite real = [
         headers_present = std_headers;
         headers_present_opt = std_headers_opt;
         check_body = (function "" -> true | _ -> false);
-(*        expected_code = 204;*)
-        expected_code = 200;
-(*        is_head = false*)
-        is_head = true
+        expected_code = 204;
+        is_head = false
       }
     })
   }
