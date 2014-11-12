@@ -119,6 +119,7 @@ module Make
 
   let return_string ~id ~id2 ~req ~status ?last_modified ~reply_headers ~content_type ?body_header str =
     let headers = add_std_headers ~id ~id2 reply_headers ~dbg_body:str in
+    let body_header = if req.meth = `HEAD then None else body_header in
     let body_header_len = match body_header with
       | Some s -> String.length s
       | None -> 0 in
