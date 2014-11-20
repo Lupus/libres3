@@ -79,10 +79,10 @@ module Make(M:Sigs.Monad)(OS:EventIO.OSMonad with type 'a t = 'a M.t) = struct
 
   let close_source _ = return ()
 
-  let copy_same _ _ =
+  let copy_same ?metafn ?filesize _ _ =
     return false (* no optimized copy, fallback to generic *)
 
-  let delete url =
+  let delete ?async url =
     match file url with
     | vol, ("" | "/") ->
       find vol !volumes >>= fun volume ->
@@ -100,13 +100,10 @@ module Make(M:Sigs.Monad)(OS:EventIO.OSMonad with type 'a t = 'a M.t) = struct
   let exists url =
     match file url with
     | vol, (""|"/") ->
-      if StringMap.mem vol !volumes then
-        return (Some 0L)
-      else return None
+      return (StringMap.mem vol !volumes)
     | vol, path ->
       find vol !volumes >>= fun volume ->
-      find path volume >>= fun (meta, _, _) ->
-      return (Some meta.IO.size)
+      return (StringMap.mem path volume)
 
   let is_prefix ~prefix str =
     let plen = String.length prefix in

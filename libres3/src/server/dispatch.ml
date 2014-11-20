@@ -465,9 +465,9 @@ module Make
   let head_bucket ~req ~canon bucket =
     let _, url = url_of_volpath ~canon bucket "" in
     U.exists url >>= function
-      | Some _ ->
+      | true ->
         return_empty ~req ~canon ~status:`Ok ~reply_headers:[]
-      | None ->
+      | false ->
          return_error Error.NoSuchBucket ["Bucket", bucket]
     ;;
 
@@ -527,6 +527,7 @@ module Make
     };;
 
   let meta_key = "libres3-etag-md5"
+  let meta_key_size = "libres3-filesize"
 
   let compute_meta ~canon url =
     match Headers.field_single_value canon.CanonRequest.headers
@@ -574,11 +575,11 @@ module Make
     );;
 
 
-  let put_metafn ~canon md5 digestref () =
+  let put_metafn ~canon md5 digestref size () =
     digestref := Cryptokit.transform_string (Cryptokit.Hexa.encode ())
       md5#result;
     let xamz_headers = canon.CanonRequest.headers.Headers.ro#fields in
-    add_meta_headers [meta_key, !digestref] xamz_headers
+    add_meta_headers [meta_key, !digestref; meta_key_size, Int64.to_string size] xamz_headers
 
   let put_object ~canon ~request src bucket path =
     let md5 = Cryptokit.Hash.md5 () in
@@ -587,7 +588,7 @@ module Make
       (fun () ->
         let _, url = url_of_volpath ~canon bucket path in
         let digestref = ref "" in
-        U.copy ~metafn:(put_metafn ~canon md5 digestref) source ~srcpos:0L url >>= fun () ->
+        U.copy ~metafn:(put_metafn ~canon md5 digestref src.U.meta.U.size) source ~srcpos:0L url >>= fun () ->
         return_empty ~canon ~req:request ~status:`Ok
           ~reply_headers:["ETag",quote !digestref]
       )
@@ -625,7 +626,8 @@ module Make
 
   let md5_of_url url =
     U.get_meta url >>= fun lst ->
-    return (List.assoc meta_key lst)
+    return (Int64.of_string (List.assoc meta_key_size lst),
+            List.assoc meta_key lst)
 
   let get_object ~req ~canon bucket path =
     (* TODO: check for .. *)
@@ -701,14 +703,14 @@ module Make
       )
       (fun e ->
         U.exists url >>= function
-        | Some _ -> fail e
-        | None ->
+        | true -> fail e
+        | false ->
           return_error Error.NoSuchBucket ["Bucket",bucket]
       ) () >>= fun (files, common_prefixes) ->
     begin if files = StringMap.empty then begin
       U.exists base >>= function
-        | Some _ -> return ()
-        | None ->
+        | true -> return ()
+        | false ->
           return_error Error.NoSuchBucket ["Bucket",bucket]
     end else return ()
     end >>= fun () ->
@@ -864,7 +866,7 @@ module Make
           "part",string_of_int part_number;
           "ExpectedETag",etag;
         ]
-      ) url >>= fun digest ->
+      ) url >>= fun (size, digest) ->
       let actual_etag = quote digest in
       if actual_etag <> etag then
         return_error Error.InvalidPart [
@@ -874,16 +876,10 @@ module Make
           "ActualETag",actual_etag
         ]
       else
-        U.exists url >>= function
-        | Some size -> return (size, url)
-        | None ->
-          return_error Error.InvalidPart [
-            "UploadId",uploadId;
-            "part",string_of_int part_number
-          ]
-    ) lst >|= List.fold_left (fun (filesize, names) (size, url) ->
-      Int64.add filesize size, url :: names
-    ) (0L, [])
+        let `Url u = url in return (size, u)
+    ) lst >|= List.fold_left (fun (min_partsize, filesize, names) (size, url) ->
+      min min_partsize size, Int64.add filesize size, url :: names
+    ) (Int64.max_int, 0L, [])
 
   let check_parts ~canon bucket path ~uploadId body =
     parse_input_xml_opt body "CompleteMultipartUpload"
@@ -929,14 +925,14 @@ module Make
       )
       (fun e ->
         U.exists url >>= function
-        | Some _ -> fail e
-        | None ->
+        | true -> fail e
+        | false ->
           return_error Error.NoSuchBucket ["Bucket",bucket]
       ) () >>= fun (files, common_prefixes) ->
     begin if files = StringMap.empty then begin
       U.exists base >>= function
-        | Some _ -> return ()
-        | None ->
+        | true -> return ()
+        | false ->
           return_error Error.NoSuchBucket ["Bucket",bucket]
     end else return ()
     end >>= fun () ->
@@ -959,18 +955,11 @@ module Make
     mpart_get_path ~canon bucket path ~uploadId ~part:""
     >>= fun (mpart_bucket, mpart_path) ->
     let base, url = url_of_volpath ~canon mpart_bucket mpart_path in
-    U.fold_list ~base url ~entry:(fun (filesize, names) entry ->
+    U.fold_list ~base url ~entry:(fun names entry ->
       let _, url = url_of_volpath ~canon mpart_bucket entry.U.name in
-      U.exists url >>= function
-      | Some partsize ->
-        return (Int64.add partsize filesize, entry.U.name :: names)
-      | None ->
-        return_error Error.InvalidPart [
-            "UploadId",uploadId;
-            "part",entry.U.name
-        ]
-      ) ~recurse:(fun _ -> true) (0L, []) >|= fun (filesize, names) ->
-    mpart_bucket, filesize, List.fast_sort String.compare names
+      return (entry.U.name :: names)
+    ) ~recurse:(fun _ -> true) [] >|= fun names ->
+    mpart_bucket, List.fast_sort String.compare names
 
   let mput_list_parts ~canon ~req bucket path ~uploadId =
     mpart_get_path ~canon bucket path ~uploadId ~part:""
@@ -985,7 +974,7 @@ module Make
               return_error Error.InvalidPart [
                 "UploadID", uploadId;
                 "part",string_of_int partNumber;
-              ]) url >>= fun etag ->
+              ]) url >>= fun (_, etag) ->
           return (Xml.tag "Part" [
               Xml.tag "PartNumber" [Xml.d (string_of_int partNumber)];
               Xml.tag "LastModified" [Xml.d (Util.format_date entry.U.mtime)];
@@ -1008,9 +997,9 @@ module Make
 
   let mput_delete_common ~canon ~request ~uploadId bucket path =
     list_parts ~canon ~uploadId bucket path
-    >>= fun (mpart_bucket, _, names) ->
+    >>= fun (mpart_bucket, names) ->
     IO.rev_map_p (fun name ->
-      U.delete (snd (url_of_volpath ~canon mpart_bucket name))
+      U.delete ~async:true (snd (url_of_volpath ~canon mpart_bucket name))
     ) names
 
   let mput_delete ~canon ~request ~uploadId bucket path =
@@ -1117,9 +1106,9 @@ module Make
   let multi_delete_objects ~canon ~request bucket ~body =
     let base, _ = url_of_volpath ~canon bucket "/" in
     U.exists base >>= function
-    | None ->
+    | false ->
       return_error Error.NoSuchBucket ["Bucket", bucket]
-    | Some _ ->
+    | true ->
       let perform = perform_multi_delete ~canon ~req:request bucket in
       parse_input_xml_opt body "Delete" parse_multi_delete perform
 
@@ -1128,15 +1117,14 @@ module Make
     IO.try_catch (fun (mpart_bucket, mpart_path) ->
     U.get_meta (snd (url_of_volpath ~canon mpart_bucket mpart_path))
     >>= fun metalst ->
-    check_parts ~canon bucket path ~uploadId body >>= fun (filesize, urls) ->
+    check_parts ~canon bucket path ~uploadId body >>= fun (min_partsize, filesize, urls) ->
     let key = canon.CanonRequest.user, uploadId in
     send_long_running ~canon ~req:request key (fun url ->
         let _, url = url_of_volpath ~canon bucket path in
-        U.with_urls_source urls filesize (fun src ->
-            (* TODO: base this on file revision, have get_meta return etag too! *)
-            let etag = uploadId ^ "-1" in
-            let meta = add_meta_headers [meta_key, etag] metalst in
-            U.copy ~metafn:(fun () -> meta) (`Source src) ~srcpos:0L url >>= fun () ->
+        let etag = uploadId ^ "-1" in
+        let meta = add_meta_headers [meta_key, etag] metalst in
+        U.copy ~metafn:(fun () -> meta) (`Urls (urls, filesize)) ~srcpos:0L url
+        >>= fun () ->
             mput_delete_common ~canon ~request ~uploadId bucket path >>= fun _ ->
             return (
               Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "CompleteMultipartUploadResult"
@@ -1147,7 +1135,6 @@ module Make
                   Xml.tag "ETag" [Xml.d (quote etag)];
                 ]
             )
-          )
       )
     ) (function
         | Unix.Unix_error(Unix.ENOENT,_,_) ->

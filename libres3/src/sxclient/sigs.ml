@@ -90,16 +90,16 @@ module type SXIOSig = sig
   (* operations *)
   val get_meta: [< `Url of url] -> (string*string) list M.t
   val copy: ?metafn:metafn ->
-      [< `Source of source | `Url of url] -> srcpos:int64 ->
+      [< `Source of source | `Url of url | `Urls of url list * int64] -> srcpos:int64 ->
       [< `Sink of sink | `Url of url | `Null] -> unit M.t
-  val delete: [< `Url of url ] -> unit M.t
+  val delete: ?async:bool -> [< `Url of url ] -> unit M.t
 
   (* create a volume, directory, or file as appropiate *)
   val create: ?replica:int -> [< `Url of url ] -> unit M.t
   val fold_list: base:[< `Url of url] -> [< `Url of url ] ->
         entry:('a -> entry -> 'a M.t) -> recurse:(string -> bool) -> 'a -> 'a M.t
 
-  val exists: [< `Url of url ] -> int64 option M.t
+  val exists: [< `Url of url ] -> bool M.t
   val check : [< `Url of url ] -> string option M.t
 
   (* sources *)
@@ -130,13 +130,13 @@ module type SXIOSig = sig
 
     (* true: optimized copy if scheme and authority matches
      * false: fallback to generic copy *)
-    val copy_same: Neturl.url -> Neturl.url -> bool M.t
+    val copy_same: ?metafn:metafn -> ?filesize:int64 -> Neturl.url list -> Neturl.url -> bool M.t
 
     val get_meta: Neturl.url -> (string*string) list M.t
     val put: ?metafn:metafn -> source -> int64 -> Neturl.url -> unit M.t
-    val delete: Neturl.url -> unit M.t
+    val delete: ?async:bool -> Neturl.url -> unit M.t
     val create: ?metafn:metafn -> ?replica:int -> Neturl.url -> unit M.t
-    val exists: Neturl.url -> int64 option M.t
+    val exists: Neturl.url -> bool M.t
 
     val fold_list: Neturl.url -> ('a -> entry -> 'a M.t) -> (string -> bool) -> 'a -> 'a M.t
   end

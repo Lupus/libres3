@@ -484,7 +484,13 @@ struct
           (* TODO: check that it doesn't have fractional part *)
           Int64.of_float f
       | _ ->
-          failwith "numeric field expected";;
+        failwith "numeric field expected";;
+
+    let filter_field_array field lst =
+      match filter_field_one field lst with
+      | `A a -> a
+      | _ ->
+          failwith "array field expected";;
 
     let filter_field_number field lst =
       match filter_field_one field lst with
@@ -776,8 +782,7 @@ struct
             let filesize = filter_field_int "fileSize" obj
             and etag = etag_of_revision (filter_field_one "fileRevision" obj)
             and blocksize = Int64.to_int (filter_field_int "blockSize" obj) in
-            begin match filter_field_one "fileData" obj with
-            | `A a ->
+            let a = filter_field_array "fileData" obj in
                 let hashes = List.rev (List.rev_map remove_obj a) in
                 (* split after DOWNLOAD_MAX_BLOCKS hashes *)
                 let split_map = ref (split_at_threshold blocksize (blocksize * download_max_blocks) hashes [] [] 0) in
@@ -799,10 +804,6 @@ struct
                     mtime = mtime;
                     etag = etag;
                 })
-            | p ->
-             AJson.pp_json p;
-             fail (Failure "Bad json reply format: array expected")
-            end
          | p ->
              List.iter AJson.pp_json p;
              fail (Failure "Bad json reply format: object expected")
@@ -1081,9 +1082,10 @@ struct
               fail (Failure "Bad json reply format: object expected")
     ;;
 
-    let job_get url reply =
+    let job_get ?(async=false) url reply =
       check_reply reply >>= fun () ->
-      AJson.json_parse_tree (P.input_of_async_channel reply.body) >>= function
+      if async then return ()
+      else AJson.json_parse_tree (P.input_of_async_channel reply.body) >>= function
         | [`O obj] ->
             let requestid = filter_field_string "requestId" obj
             and minPoll = filter_field_number "minPollInterval" obj
@@ -1313,37 +1315,117 @@ struct
     (* TODO: abort download*)
     return ()
 
-  let copy_same _ _ =
-    (* TODO: optimize sx to sx copy if same host: copy just hashlist *)
-    return false;;
+  let extract_hash = function
+    | `O [ `F (hash, _) ] -> `String hash
+    | p ->
+      AJson.pp_json p;
+      failwith "bad json hashlist format"
+
+  let extract_hashes lst = List.rev (List.rev_map extract_hash lst)
+
+  let get_hashlist src =
+    get_vol_nodelist src >>= fun (src_nodes, _) ->
+    make_request `GET src_nodes src >>= fun reply ->
+    expect_content_type reply "application/json" >>= fun () ->
+    json_parse_tree (P.input_of_async_channel reply.body) >>= function
+    | [`O obj] ->
+      return (filter_field_int "blockSize" obj,
+              filter_field_int "fileSize" obj,
+              extract_hashes (filter_field_array "fileData" obj))
+    | _ ->
+      failwith "bad json hash list"
+
+  let is_file_url url = match url_path ~encoded:true url with
+    | "" :: _dstvol :: _dstpath -> true
+    | _ -> false
+
+  let upload_hashes ?metafn hashes dst_nodes dst size =
+    try_catch (fun () ->
+        get_vol_nodelist dst >>= fun (dst_nodes, _) ->
+        let obj =
+          ("fileSize", `Float (Int64.to_float size)) ::
+          ("fileData", `Array hashes) ::
+          (build_meta metafn) in
+        let obj = List.rev_append (build_meta metafn) obj in
+        send_json dst_nodes dst (`Object obj) >>= fun reply ->
+        check_reply reply >>= fun () ->
+        begin AJson.json_parse_tree (P.input_of_async_channel reply.body) >>= function
+          | [`O [
+              `F ("uploadToken",[`String token]);
+              `F ("uploadData",[`O []])
+            ]] ->
+            let dst = Neturl.modify_url ~host:reply.req_host dst in
+            flush_token dst token >>= fun () ->
+            return true
+          | _ ->
+            return false
+        end
+      ) (function
+        | SXIO.Detail(Unix.Unix_error(Unix.ENOENT,_,_) as e ,_) ->
+          fail e
+        | e -> fail e) ()
+
+  let copy_same ?metafn ?filesize urls dst =
+    if not (is_file_url dst) then return false
+    else match filesize, urls with
+    | Some size, (first :: rest) when List.for_all is_file_url urls ->
+      locate_upload dst size >>= fun (_, dst_nodes, blocksize) ->
+      let bsize64 = Int64.of_int blocksize in
+      if Int64.div size bsize64 > 100000L then
+        return false
+      else begin
+        get_hashlist first >>= fun (first_blocksize, first_size, first_hashes) ->
+        if first_blocksize <> bsize64 then
+          return false
+        else
+          IO.rev_map_p get_hashlist rest >>= fun lst ->
+          match List.fold_left (fun (ok, sum_size, rev_hashes) (src_blocksize, src_size, src_hashes) ->
+              if src_blocksize <> bsize64 || Int64.rem sum_size bsize64 <> 0L then
+                false, 0L, []
+              else
+                ok, Int64.add sum_size src_size, List.rev_append src_hashes rev_hashes
+            ) (true, first_size, List.rev first_hashes) (List.rev lst) with
+          | false, _, _ -> return false
+          | true, sum_size, rev_hashes ->
+            if sum_size <> size then begin
+              Printf.printf "copy_same size mismatch: %Ld <> %Ld\n%!" sum_size size;
+              return false
+            end else
+              upload_hashes ?metafn (List.rev rev_hashes) dst_nodes dst size
+      end
+    | None, [ single_src ] when is_file_url single_src ->
+      get_hashlist single_src >>= fun (_, size, hashes) ->
+      get_vol_nodelist dst >>= fun (dst_nodes, _) ->
+      upload_hashes ?metafn hashes dst_nodes dst size
+    | _ -> return false
 
   let exists url =
     let p = pipeline () in
     token_of_user url >>= function
     | None ->
-      return None
+      return false
     | Some token ->
       begin match url_path ~encoded:true url with
       | "" :: _volume :: ("" :: [] | []) ->
           (* does volume exist? *)
           make_http_request p (request_of_url ~token `HEAD (locate url))
           >>= fun reply ->
-          begin match reply.status with
-          | `Ok -> return (Some 0L)
-          | _ -> return None
-          end
+          return (reply.status = `Ok)
       | "" :: _volume :: _path ->
-          (* does a file exist? *)
-          open_source url >>= fun (meta, _) ->
-          return (Some meta.XIO.size)
+        try_catch (fun () ->
+          get_vol_nodelist url >>= fun (nodes, _) ->
+          make_request `HEAD nodes url >>= fun reply ->
+          expect_content_type reply "application/json" >>= fun () ->
+          return true
+        ) (function
+        | SXIO.Detail(Unix.Unix_error(Unix.ENOENT, _,_), _) ->
+          return false
+        | e -> fail e) ()
       | _ ->
           (* can I fetch the nodeslist? *)
           make_http_request p (request_of_url ~token `HEAD (fetch_nodes url))
           >>= fun reply ->
-          begin match reply.status with
-          | `Ok -> return (Some 0L)
-          | _ -> return None
-          end
+          return (reply.status = `Ok)
       end
 
   let check url =
@@ -1419,7 +1501,7 @@ struct
       List.iter pp_json p;
       fail (Failure "bad acl list format2")
 
-  let delete url =
+  let delete ?async url =
     try_catch (fun () ->
     get_vol_nodelist url >>= fun (nodes, _) ->
     begin match url_path url ~encoded:true with
@@ -1438,7 +1520,7 @@ struct
     | _ -> return url
     end >>= fun url ->
     make_request `DELETE nodes url >>=
-    job_get url
+    job_get ?async url
     ) (function
         | SXIO.Detail (Unix.Unix_error((Unix.ENOENT|Unix.ENOTEMPTY),_,_) as e, _) ->
           fail e

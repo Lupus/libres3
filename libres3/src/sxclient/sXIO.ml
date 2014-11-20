@@ -103,11 +103,11 @@ module Make(M:Sigs.Monad) = struct
     with_urls_source : 'a. url list -> int64 -> (source -> 'a t) -> 'a t;
     fold_list: 'a. url -> ('a -> entry -> 'a t) -> (string -> bool) -> 'a -> 'a t;
     create: ?metafn:metafn -> ?replica:int -> url -> unit t;
-    exists: url -> int64 option t;
+    exists: url -> bool t;
     token_of_user: url -> string option t;
     check: url -> string option t;
-    delete: url -> unit t;
-    copy_same: url -> url -> bool t;
+    delete: ?async:bool -> url -> unit t;
+    copy_same: ?metafn:metafn -> ?filesize:int64 -> url list -> url -> bool t;
     get_meta: url -> (string*string) list t;
     put: ?metafn:metafn -> source -> int64 -> url -> unit t
   }
@@ -227,15 +227,19 @@ module Make(M:Sigs.Monad) = struct
   let check (`Url url) =
     (ops_of_url url).check url;;
 
-  let delete (`Url url) =
-    (ops_of_url url).delete url;;
+  let delete ?async (`Url url) =
+    (ops_of_url url).delete ?async url;;
 
   let put ?metafn dsturl source ~srcpos =
     (ops_of_url dsturl).put ?metafn source srcpos dsturl;;
 
   let with_src src f = match src with
     | `Source source -> f source
-    | `Url _ as srcurl -> with_url_source srcurl f;;
+    | `Url _ as srcurl -> with_url_source srcurl f
+    | `Urls (url :: _ as urls, filesize) ->
+      (ops_of_url url).with_urls_source urls filesize f
+    | `Urls ([], _ ) ->
+      let `Source s = of_string "" in f s
 
   let noop _ = return ()
 
@@ -256,13 +260,26 @@ module Make(M:Sigs.Monad) = struct
   let get_meta (`Url src) =
     (ops_of_url src).get_meta src
 
-  let copy ?metafn src ~srcpos dst = match src, dst with
-  | (`Url srcurl), (`Url dsturl) -> (* TODO: check that scheme/hosts match *)
-      (ops_of_url dsturl).copy_same srcurl dsturl >>= (function
-      | true -> return ()
-      | false -> generic_copy ?metafn src ~srcpos dst)
-  | (`Url _ | `Source _), (`Null | `Url _ | `Sink _) ->
-      generic_copy ?metafn src ~srcpos dst;;
+  let url_port_opt u = try Some (url_port u) with Not_found -> None
+  let same_cluster a b =
+    url_host a = url_host b &&
+    url_port_opt a = url_port_opt b &&
+    url_scheme a = url_scheme b
+  let same_clusters lst b = List.for_all (same_cluster b) lst
+
+  let copy ?metafn src ~srcpos dst =
+    begin match srcpos, src, dst with
+    | 0L, `Urls (srcurls, filesize), (`Url dsturl) when same_clusters srcurls dsturl ->
+      (ops_of_url dsturl).copy_same ?metafn ~filesize srcurls dsturl
+    | 0L, (`Url srcurl), (`Url dsturl) when same_cluster srcurl dsturl ->
+      (ops_of_url dsturl).copy_same ?metafn [ srcurl ] dsturl
+    | _, (`Source _ | `Url _ | `Urls _), (`Sink _ | `Url _ | `Null) -> return false
+    end >>= function
+    | true -> return ()
+    | false ->
+      generic_copy ?metafn src ~srcpos dst
+
+
 
   module type SchemeOps = sig
     type state
@@ -279,14 +296,14 @@ module Make(M:Sigs.Monad) = struct
 
     (* true: optimized copy if scheme and authority matches
      * false: fallback to generic copy *)
-    val copy_same: Neturl.url -> Neturl.url -> bool M.t
+    val copy_same: ?metafn:metafn -> ?filesize:int64 -> Neturl.url list -> Neturl.url -> bool M.t
 
     val get_meta: Neturl.url -> (string*string) list M.t
     val put: ?metafn:metafn -> source -> int64 -> Neturl.url -> unit M.t
-    val delete: Neturl.url -> unit M.t
+    val delete: ?async:bool -> Neturl.url -> unit M.t
     val create: ?metafn:metafn -> ?replica:int -> Neturl.url -> unit M.t
 
-    val exists: Neturl.url -> int64 option M.t
+    val exists: Neturl.url -> bool M.t
     val fold_list: Neturl.url ->
         ('a -> entry -> 'a t) -> (string -> bool) -> 'a -> 'a M.t
   end

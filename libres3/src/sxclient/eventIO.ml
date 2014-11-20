@@ -181,13 +181,11 @@ module Make (M: Sigs.Monad) (OS: OSMonad with type 'a t = 'a M.t)
     ;;
 
   let rev_map_p fn lst =
-    let rec mapper result = function
-      | [] -> return result
-      | hd :: tl ->
-          fn hd >>= fun r ->
-          mapper (r :: result) tl
-    in
-    mapper [] lst;;
+    List.fold_left (fun accum v ->
+        fn v >>= fun r ->
+        accum >>= fun a ->
+        return (r :: a)
+      ) (return []) lst
 
   module FileSource = MakeSource(struct
     type t = OS.file_descr * string
