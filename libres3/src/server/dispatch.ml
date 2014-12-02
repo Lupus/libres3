@@ -528,6 +528,7 @@ module Make
 
   let meta_key = "libres3-etag-md5"
   let meta_key_size = "libres3-filesize"
+  let meta_key_content_type = "libres3-content-type"
 
   let compute_meta ~canon url =
     match Headers.field_single_value canon.CanonRequest.headers
@@ -574,12 +575,18 @@ module Make
       ]
     );;
 
+  let content_type canon =
+    if canon.CanonRequest.content_type = "" then []
+    else [meta_key_content_type, canon.CanonRequest.content_type]
 
   let put_metafn ~canon md5 digestref size () =
     digestref := Cryptokit.transform_string (Cryptokit.Hexa.encode ())
       md5#result;
     let xamz_headers = canon.CanonRequest.headers.Headers.ro#fields in
-    add_meta_headers [meta_key, !digestref; meta_key_size, Int64.to_string size] xamz_headers
+    let libres3_keys = (meta_key, !digestref) ::
+                       (meta_key_size, Int64.to_string size) ::
+                       content_type canon in
+    add_meta_headers libres3_keys xamz_headers
 
   let put_object ~canon ~request src bucket path =
     let md5 = Cryptokit.Hash.md5 () in
@@ -631,12 +638,13 @@ module Make
 
   let get_object ~req ~canon bucket path =
     (* TODO: check for .. *)
-    (* TODO: get content-type, etag from metadata .. *)
     (* TODO: hash of hashlist to md5 mapping *)
-    let content_type = "application/octet-stream" in
     IO.try_catch (fun () ->
         let _, url = url_of_volpath ~canon bucket path in
         U.get_meta url >>= fun metalst ->
+        let content_type =
+          try List.assoc meta_key_content_type metalst
+          with Not_found -> "binary/octet-stream" in
         return_source url ~req ~canon ~content_type ~metalst
     ) (function
         | Unix_error((ENOENT|EISDIR),_,_)
@@ -956,7 +964,6 @@ module Make
     >>= fun (mpart_bucket, mpart_path) ->
     let base, url = url_of_volpath ~canon mpart_bucket mpart_path in
     U.fold_list ~base url ~entry:(fun names entry ->
-      let _, url = url_of_volpath ~canon mpart_bucket entry.U.name in
       return (entry.U.name :: names)
     ) ~recurse:(fun _ -> true) [] >|= fun names ->
     mpart_bucket, List.fast_sort String.compare names

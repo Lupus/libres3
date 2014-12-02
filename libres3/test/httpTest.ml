@@ -110,7 +110,6 @@ let check_reply expected reply =
       List.rev_map (fun (n,expected) ->
         n>:: (fun () ->
           let actual = List.assoc n reply.headers in
-          skip_if (n = "Content-Type" && expected <> actual) "Content-Type TODO";
           assert_eq_string expected actual
         )
       ) expected.headers_exact;
