@@ -1,5 +1,6 @@
 #!/bin/sh
 set -e
+cd ..
 SXDIR=../../sx
 PREFIX=`pwd`/test-libres3
 $PREFIX/sbin/libres3_ocsigen --stop || true
@@ -32,5 +33,6 @@ $sbindir/libres3_setup --no-ssl --s3-host libres3.skylable.com --s3-port 8008 --
 echo "list_cache_expires=0." >>$sysconfdir/libres3/libres3.conf
 $sbindir/libres3_ocsigen --no-ssl
 echo "Running tests"
-./netTest.native --no-ssl --s3cfg $sysconfdir/libres3/libres3-insecure.sample.s3cfg --backtrace 2>&1 | tee sx.log
+cd testsuite
+./run-test.sh $sysconfdir/libres3/libres3-insecure.sample.s3cfg 2>&1 | tee sx.log
 echo "OK"
