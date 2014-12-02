@@ -568,7 +568,7 @@ module Make
       | e -> IO.fail e
       ) () >>= fun (etag, lastmodified) ->
     return_xml_canon ~req:request ~canon ~status:`Ok ~reply_headers:[] (
-      Xml.tag "CopyObjectResult" [
+      Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "CopyObjectResult" [
         Xml.tag "LastModified" [Xml.d (Util.format_date lastmodified)];
         Xml.tag "ETag" [Xml.d (quote etag)]
       ]

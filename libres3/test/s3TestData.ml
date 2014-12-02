@@ -323,7 +323,7 @@ let test_file_upload ?(enc=true) filename =
         };
         expected =
           expect_xml_status_root `Ok
-          "" "CopyObjectResult"
+          reply_ns "CopyObjectResult"
       };
       (* TODO: chain? *)
       Direct {
