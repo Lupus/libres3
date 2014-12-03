@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
-S3CMD_BIN=$HOME/something/s3cmd/s3cmd
+S3CMD_BIN=s3cmd
 RANDGEN_BIN=randgen
 
 if [ $# -ne 1 ]; then
@@ -8,7 +8,7 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 echo "Running unit tests"
-# ../netTest.native --no-ssl --s3cfg $1 --backtrace -verbose
+./netTest.native --s3cfg $1 --backtrace -verbose
 echo "Running s3cmd tests"
 
 S3CMD="$S3CMD_BIN -c $1"
@@ -23,15 +23,15 @@ cleanup() {
     $S3CMD rb s3://$VOL1 s3://$VOL2 || true
 }
 
-#trap cleanup INT TERM EXIT
-#$S3CMD mb s3://$VOL1
+trap cleanup INT TERM EXIT
+$S3CMD mb s3://$VOL1
  $S3CMD mb s3://$VOL2
 # able to delete and recreate same volume
-#$S3CMD rb s3://$VOL2
-# $S3CMD mb s3://$VOL2
+$S3CMD rb s3://$VOL2
+$S3CMD mb s3://$VOL2
 # list empty bucket
-#$S3CMD ls s3://$VOL1
-#$S3CMD la
+$S3CMD ls s3://$VOL1
+$S3CMD la
 
 upload_download() {
     FILE=test.$1.$2
@@ -49,9 +49,9 @@ upload_download 0 0 s3://$VOL2
 # small file
 upload_download 4096 4096 s3://$VOL2
 # delete small file
-#$S3CMD rm s3://$VOL2/test.4096.4096
+$S3CMD rm s3://$VOL2/test.4096.4096
 # more small files
-#upload_download 4096 8192 s3://$VOL2
+upload_download 4096 8192 s3://$VOL2
 # sync
 $S3CMD sync inputs/ s3://$VOL2
 $S3CMD sync inputs/ s3://$VOL2
@@ -61,7 +61,6 @@ $S3CMD sync s3://$VOL2 outputs/ --debug
 $S3CMD sync s3://$VOL2 outputs/
 $S3CMD sync s3://$VOL2 inputs/
 diff -ru inputs/ outputs/
-exit 0
 # one multipart chunk
 MPART_CHUNK=15728640
 upload_download $MPART_CHUNK $MPART_CHUNK s3://$VOL1
