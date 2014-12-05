@@ -12,6 +12,10 @@ get_dist() {
 
 get_dist
 
+echo
+echo "STEP: Joining node 2 to node 1"
+echo
+
 sxadm cluster --mod\
     $DIST $SX_NODE_SIZE/$NODE_2_PORT_443_TCP_ADDR\
     sx://admin@$SX_CLUSTER_NAME
@@ -33,11 +37,30 @@ wait_sx () {
     echo "Finished $1"
 }
 
+echo
+echo "STEP: Waiting for join to finish"
+echo
+
 wait_sx "rebalance"
 get_dist
 
 #DIST=`echo "$DIST" | sed -e "s/$NODE_2_PORT_443_TCP_ADDR/$NODE_3_PORT_443_TCP_ADDR/"`
 DIST=`echo "$DIST" | cut -f3 -d\ |\
     sed -e "s/$NODE_2_PORT_443_TCP_ADDR/$NODE_3_PORT_443_TCP_ADDR/"`
+
+echo
+echo "STEP: --replace-faulty node3 replaces faulty node2, run it twice with &"
+echo
+
+sxadm cluster --replace-faulty $DIST sx://admin@$SX_CLUSTER_NAME&
+sleep 1
 sxadm cluster --replace-faulty $DIST sx://admin@$SX_CLUSTER_NAME
+
+echo
+echo "STEP: wait for both --replace-faulty commands to finish"
+echo
+
 wait_sx "replace faulty"
+wait
+#sxadm cluster --replace-faulty $DIST sx://admin@$SX_CLUSTER_NAME
+#wait_sx "replace faulty"

@@ -1,0 +1,6 @@
+FROM libres3_test__sx
+USER build
+ENV HOME /home/build
+ADD sx-node-ops.sh /home/build/sx-node-ops.sh
+ADD sx-node-ops2.sh /home/build/sx-node-ops2.sh
+CMD ["/bin/sh"]
