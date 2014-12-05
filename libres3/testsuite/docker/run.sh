@@ -52,6 +52,17 @@ for i in `seq 2 $N`; do
         /usr/local/sbin/sxsetup --config-file /root/sxsetup.conf --bare&
 done
 
+sudo docker rm --force ${IMG_PREFIX}_sx_client || true
+sudo docker run -d -t -i\
+        --name ${IMG_PREFIX}_sx_client\
+        -v `pwd`/sxsetup.conf:/home/build/sxsetup.conf:ro\
+        -v `pwd`/admin.key:/home/build/admin.key:ro\
+        --link $FIRST_NODE:first\
+        --link ${IMG_PREFIX}_sx_2:node_2\
+        --link ${IMG_PREFIX}_sx_3:node_3\
+        --link ${IMG_PREFIX}_sx_4:node_4\
+        ${IMG_PREFIX}_sx_client /bin/sh
+
 #sudo docker rm --force ${IMG_PREFIX}_libres3 || true
 #sudo docker run -d -t -i\
 #    --name ${IMG_PREFIX}_libres3\
@@ -73,7 +84,9 @@ done
 #            --batch'&
 
 wait
+sudo docker exec ${IMG_PREFIX}_sx_client /home/build/sx-node-ops.sh
 
+exit 0
 #sudo docker exec ${IMG_PREFIX}_libres3\
 #    cat /usr/local/etc/libres3/libres3.sample.s3cfg >libres3.sample.s3cfg
 

@@ -19,5 +19,6 @@ sed -e "s|@LIBRES3_URL@|$LIBRES3_URL|g"\
     libres3/Dockerfile.in >libres3/Dockerfile
 
 sudo time docker build -t ${IMG_PREFIX}_sx sx
+sudo time docker build -t ${IMG_PREFIX}_sx_client sx-client
 sudo time docker build -t ${IMG_PREFIX}_libres3 libres3
 sudo time docker build -t ${IMG_PREFIX}_libres3_test libres3-test
