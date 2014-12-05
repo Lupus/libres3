@@ -212,6 +212,14 @@ Executable net_test
   CompiledObject: Best
   BuildDepends: cryptokit, oUnit, netclient, server
 
+Executable randgen
+  Install: false
+  Path: test
+  Build$: flag(tests)
+  MainIs: randgen.ml
+  CompiledObject: Best
+  BuildDepends: ocplib-endian, unix
+
 Test misc
   Command: $misc_test
 

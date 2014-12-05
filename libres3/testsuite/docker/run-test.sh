@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 S3CMD_BIN=s3cmd
-RANDGEN_BIN=randgen
+RANDGEN_BIN=./randgen.native
 
 if [ $# -ne 1 ]; then
     echo "Usage: $0 </path/to/libres3.s3cfg>\n" >&2
