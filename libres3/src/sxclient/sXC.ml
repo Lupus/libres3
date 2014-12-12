@@ -1091,7 +1091,8 @@ struct
             and minPoll = filter_field_number "minPollInterval" obj
             and maxPoll = filter_field_number "maxPollInterval" obj in
             let pollurl = Neturl.modify_url
-              ~path:["";".results";requestid] url in
+                ~path:["";".results";requestid]
+                (Neturl.modify_url ~host:reply.req_host url) in
             job_poll url pollurl requestid minPoll maxPoll
         | p ->
               List.iter AJson.pp_json p;
