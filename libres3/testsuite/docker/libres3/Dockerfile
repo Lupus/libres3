@@ -23,5 +23,5 @@ ADD libres3.tar /usr/src/libres3/
 WORKDIR /usr/src/libres3/libres3
 RUN eval `opam config env` &&\
         ./configure --disable-docs --enable-tests --override ocamlbuildflags '-j 0'\
-        && make cov-build install
+        && make all install
 EXPOSE 8443

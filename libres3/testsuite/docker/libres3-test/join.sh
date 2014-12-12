@@ -10,7 +10,7 @@ libres3_setup --s3-host libres3.skylable.com --s3-port 8443\
     --batch
 
 cd /usr/src/libres3/libres3
-libres3_ocsigen --foreground&
+libres3 start
 echo "$SX_ADMIN_KEY" >admin.key
 sxinit sx://admin@$SX_CLUSTER_NAME --host-list=$NODE_1_PORT_443_TCP_ADDR\
     --batch-mode --auth-file admin.key
@@ -21,12 +21,7 @@ sxadm cluster --mod $SPEC\
     sx://$SX_CLUSTER_NAME
 
 eval `opam config env`
-#ocaml setup.ml -test
-# randgen must not be built with coverage testing enabled
-ocamlfind ocamlopt test/randgen.ml -package ocplib-endian,unix -linkpkg -o randgen.native
-
 testsuite/docker/run-test.sh /usr/local/etc/libres3/libres3.sample.s3cfg
-
-kill $!
-wait
-make cov-report
+for url in `sxls sx://admin@$SX_CLUSTER_NAME`; do
+    sxls $url --debug 2>&1|grep falling
+done

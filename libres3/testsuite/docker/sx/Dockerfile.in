@@ -1,0 +1,26 @@
+FROM debian:jessie
+# build-dependencies for SX
+RUN apt-get update && apt-get install --no-install-recommends -y\
+        git gcc make libc-dev\
+        libyajl-dev libcurl4-openssl-dev libfcgi-dev libssl-dev\
+        libwww-perl libjson-xs-perl libdigest-hmac-perl liburi-perl &&\
+    apt-get clean
+RUN useradd -m build -g staff
+WORKDIR /root
+RUN git clone @SX_URL@
+
+# cache the build for a certain revision
+WORKDIR /root/sx
+RUN git remote update && git checkout @SX_REV@ && ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var && make -j10
+
+# make check on separate line so it can be disabled easily
+#RUN make check -j10
+
+RUN make install -j10
+
+RUN rm -rf /home/build/sx
+
+USER root
+RUN ldconfig
+
+EXPOSE 443
