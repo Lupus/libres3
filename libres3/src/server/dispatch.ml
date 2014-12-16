@@ -1502,7 +1502,8 @@ module Make
             Error.ServiceUnavailable [
               "OutOfSpace",fn
             ]
-      | Ocsigen_stream.Interrupted (Ocsigen_http_com.Lost_connection _) ->
+      | Ocsigen_stream.Interrupted (Ocsigen_http_com.Lost_connection _)
+      | Lwt.Canceled ->
           (* do not send anything back to client, it has already disconnected *)
           fail Ocsigen_http_com.Aborted
       | e ->

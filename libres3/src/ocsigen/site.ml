@@ -35,13 +35,17 @@ module Server = struct
   type t = {
     mutable headers: Dispatch.headers option;
     mutable woken: bool;
+    mutable woken_body: bool;
     headers_wait: unit Lwt.t;
     headers_wake: unit Lwt.u;
-    mvar: (string * int * int) Lwt_mvar.t
+    mvar: (string * int * int) Lwt_mvar.t;
+    body_wait: t Lwt.t;
+    body_wake: t Lwt.u;
   }
   type u = t
   let send_data s data =
     Lwt_mvar.put s.mvar data
+
   let send_headers s ?body_header h =
     s.headers <- Some h;
     if not s.woken then begin
@@ -51,10 +55,10 @@ module Server = struct
       match body_header with
       | Some b ->
         Lwt.bind (send_data s (b, 0, String.length b))
-          (fun () -> Lwt.return s)
-      | None -> Lwt.return s
+          (fun () -> s.body_wait)
+      | None -> s.body_wait
     end else
-      Lwt.return s
+      s.body_wait
   let log _ str = Ocsigen_messages.warning str
 end
 
@@ -97,6 +101,10 @@ let return_eof server () =
 let stream_of_reply wait_eof server =
   let eof = wait_eof >>= return_eof server in
   let rec read () =
+    if not server.Server.woken_body then begin
+      Lwt.wakeup server.Server.body_wake server;
+      server.Server.woken_body <- true;
+    end;
     Lwt_mvar.take server.Server.mvar >>= fun (str, pos, len) ->
     if len = 0 then
       eof >>= fun () ->
@@ -108,7 +116,10 @@ let stream_of_reply wait_eof server =
       Ocsigen_stream.cont substr read
     end
   in
-  Ocsigen_stream.make read
+  Ocsigen_stream.make ~finalize:(fun _ ->
+      Lwt.cancel wait_eof;
+      Lwt.cancel server.Server.body_wait;
+      return ()) read
 ;;
 
 let stream_of arg pos =
@@ -147,9 +158,11 @@ let process_request dispatcher ri () =
   ) (Ocsigen_request_info.http_frame ri).frame_header.headers [] in
   let stream = stream_of_request ri in
   let w, u = Lwt.wait () in
+  let bw, bu = Lwt.task () in
   let server = {
     Server.headers = None;
     headers_wait = w; headers_wake = u;woken=false;
+    body_wait = bw; body_wake = bu;woken_body=false;
     mvar = Lwt_mvar.create_empty () } in
   let cl = match Ocsigen_request_info.content_length ri with
   | Some l -> l
