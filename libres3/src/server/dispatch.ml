@@ -1388,8 +1388,10 @@ module Make
           ~id:canon.CanonRequest.id ~id2:(CanonRequest.gen_debug ~canon)
           ~status:`Ok ~reply_headers:[] ~content_type:"text/html"
           Homepage.root
-      else
+      else if request.meth = `GET || request.meth = `HEAD then
         f libres3_all_users
+      else
+        return_error Error.AccessDenied ["MissingHeader", "Authorization"]
     | CanonRequest.AuthEmpty ->
         return_error Error.AccessDenied ["MissingHeader", "Authorization"]
     | CanonRequest.AuthMalformed s ->
