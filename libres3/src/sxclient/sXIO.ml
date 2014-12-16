@@ -98,6 +98,7 @@ module Make(M:Sigs.Monad) = struct
 
   let scheme_re = Netstring_str.regexp "^\\([a-zA-Z][a-zA-Z0-9+.-]*\\)://"
   let schemes = Hashtbl.create 16
+  type acl = [`UserID of string * string option | `UserName of string ] * [`Owner | `Read | `Write] list
   type op = {
     with_url_source : 'a. url -> (source -> 'a t) -> 'a t;
     with_urls_source : 'a. url list -> int64 -> (source -> 'a t) -> 'a t;
@@ -109,7 +110,10 @@ module Make(M:Sigs.Monad) = struct
     delete: ?async:bool -> url -> unit t;
     copy_same: ?metafn:metafn -> ?filesize:int64 -> url list -> url -> bool t;
     get_meta: url -> (string*string) list t;
-    put: ?metafn:metafn -> source -> int64 -> url -> unit t
+    put: ?metafn:metafn -> source -> int64 -> url -> unit t;
+    set_acl: url -> acl list -> unit t;
+    get_acl: url -> acl list t;
+    create_user: url -> string -> string t;
   }
   let scheme_ops : (string,op) Hashtbl.t = Hashtbl.create 16
 
@@ -227,6 +231,10 @@ module Make(M:Sigs.Monad) = struct
   let check (`Url url) =
     (ops_of_url url).check url;;
 
+  let set_acl (`Url url) acls = (ops_of_url url).set_acl url acls
+  let get_acl (`Url url) = (ops_of_url url).get_acl url
+  let create_user (`Url url) name = (ops_of_url url).create_user url name
+
   let delete ?async (`Url url) =
     (ops_of_url url).delete ?async url;;
 
@@ -302,8 +310,11 @@ module Make(M:Sigs.Monad) = struct
     val put: ?metafn:metafn -> source -> int64 -> Neturl.url -> unit M.t
     val delete: ?async:bool -> Neturl.url -> unit M.t
     val create: ?metafn:metafn -> ?replica:int -> Neturl.url -> unit M.t
-
     val exists: Neturl.url -> bool M.t
+    val set_acl : Neturl.url -> acl list -> unit M.t
+    val get_acl : Neturl.url -> acl list M.t
+    val create_user: Neturl.url -> string -> string M.t
+
     val fold_list: Neturl.url ->
         ('a -> entry -> 'a t) -> (string -> bool) -> 'a -> 'a M.t
   end
@@ -379,6 +390,9 @@ module Make(M:Sigs.Monad) = struct
       copy_same = O.copy_same;
       put = O.put;
       get_meta = O.get_meta;
+      create_user = O.create_user;
+      set_acl = O.set_acl;
+      get_acl = O.get_acl;
     }
 
     let register () =

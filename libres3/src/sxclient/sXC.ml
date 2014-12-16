@@ -1441,6 +1441,104 @@ struct
         )
       | e -> fail e) ()
 
+  let canon_id_of_name name =
+    let full = String.make 64 '\x00' in
+    String.blit name 0 full 0 (String.length name);
+    Cryptokit.transform_string (Cryptokit.Hexa.encode ()) full
+
+  let map_perm = function
+    | `String "read" -> `Read
+    | `String "write" -> `Write
+    | `String "owner" -> `Owner
+    | p ->
+      pp_json p;
+      failwith "bad ACL json"
+
+  let map_acl = function
+    | `F (name, [`A perms]) ->
+      `UserID (canon_id_of_name name, Some name), List.rev_map map_perm perms
+    | (p:json) ->
+      pp_json p;
+      failwith "bad ACL json"
+
+  let acl_url =
+    Neturl.modify_url ~encoded:true ~query:"o=acl" ~scheme:"http"
+        ~syntax:http_syntax
+
+  let get_acl url =
+    get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
+    let url = acl_url url in
+    make_request `GET cluster_nodes url >>= fun reply ->
+    expect_content_type reply "application/json" >>= fun () ->
+    let input = P.input_of_async_channel reply.body in
+    json_parse_tree input >>= function
+    | [`O obj] ->
+      return (List.rev_map map_acl obj)
+    | p ->
+      List.iter pp_json p;
+      fail (Failure "bad ACL format")
+
+  let has_op id op l =
+    List.mem_assoc id l &&
+    List.mem op (List.assoc id l)
+
+  let find_acl_op op a b =
+    (* op is part of 2nd list, but not the 1st list *)
+    List.find_all (fun (id, acl) ->
+      List.mem op acl && not (has_op id op a)
+    ) b
+
+  let map_string (id,_)  = `String id
+
+  let acl_op key l other = match l with
+    | [] -> other
+    | l -> (key, `Array (List.rev_map map_string l)) :: other
+
+  let json_of_acl old set =
+    acl_op "grant-read" (find_acl_op `Read old set) (
+      acl_op "grant-write" (find_acl_op `Write old set) (
+        acl_op "revoke-read" (find_acl_op `Read set old) (
+          acl_op "revoke-write" (find_acl_op `Write set old) [])))
+
+  let map_id = function
+    | `UserID(_, Some name), v -> name, v
+    | `UserID(id, _), v ->
+      let s = Cryptokit.transform_string (Hexa.decode ()) id in
+      let idx = try String.index s '\x00' with _ -> String.length s in
+      String.sub s 0 idx, v
+    | `UserName name, v -> name, v
+
+  let set_acl url acls =
+    get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
+    let url = acl_url url in
+    get_acl url >>= fun old_acl ->
+    let json = json_of_acl (List.rev_map map_id old_acl) (List.rev_map map_id acls) in
+    send_json cluster_nodes url (`Object json) >>=
+    check_reply
+
+  let create_user url name =
+    get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
+    let url = Neturl.modify_url ~encoded:true ~path:[""; ".users"] ~scheme:"http"
+        ~syntax:http_syntax ~user:!Config.key_id url in
+    try_catch (fun () ->
+        make_request `GET cluster_nodes
+          (Neturl.modify_url ~path:["";".users";name] url) >>= fun _ ->
+        return ""
+    ) (function
+        | SXIO.Detail (e, details) ->
+          let key = Cryptokit.transform_string (Cryptokit.Hexa.encode ())
+              (Random.string rng 20) in
+          let json = [
+            "userName", `String name;
+            "userType", `String "normal";
+            "userKey", `String key
+          ] in
+          send_json cluster_nodes url (`Object json) >>=
+          job_get url >>= fun () ->
+          return key
+        | e -> fail e
+    ) ()
+
   let create ?metafn ?(replica=(!Config.replica_count)) url =
     match url_path url ~encoded:true with
     | "" :: volume :: ([""] | []) ->

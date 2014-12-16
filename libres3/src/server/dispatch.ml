@@ -607,25 +607,79 @@ module Make
       ) ()
     ;;
 
-  let send_default_acl ~req ~canon =
+  let find_owner acl =
+    fst (List.find (fun (_, perm) -> List.mem `Owner perm) acl)
+
+  let canonical_id = function
+    | `UserID (id, Some displayname) ->
+      [
+        Xml.tag "ID" [Xml.d id];
+        Xml.tag "DisplayName" [Xml.d displayname]
+      ]
+    | _ -> failwith "TODO"
+
+  let map_permission = function
+    | [`Read] -> ["READ"]
+    | [`Write] -> ["WRITE"]
+    | l when List.mem `Owner l && List.mem `Read l && List.mem `Write l ->
+      ["FULL_CONTROL"]
+    | l when List.mem `Read l && List.mem `Write l ->
+      ["READ";"WRITE"]
+    | l when List.mem `Owner l -> ["READ_ACP"; "WRITE_ACP"]
+    | _ -> failwith "TODO: unknown permissions"
+
+  let libres3_authenticated_users = "libres3-authenticated-users"
+  let uri_authenticated_users = "http://acs.amazonaws.com/groups/global/AuthenticatedUsers"
+
+  let libres3_all_users = "libres3-all-users"
+  let uri_all_users = "http://acs.amazonaws.com/groups/global/AllUsers"
+
+  let libres3_log_delivery = "libres3-log-delivery"
+  let uri_log_delivery = "http://acs.amazonaws.com/groups/s3/LogDelivery"
+
+  let uri2user = [
+    uri_authenticated_users, libres3_authenticated_users;
+    uri_all_users, libres3_all_users;
+    uri_log_delivery, libres3_log_delivery ]
+
+  let user2uri = [
+    libres3_authenticated_users, uri_authenticated_users;
+    libres3_all_users, uri_all_users;
+    libres3_log_delivery, uri_log_delivery
+  ]
+
+  let grantee_of_id = function
+    | `UserID (_, Some name) as id ->
+      begin try
+        Xml.tag ~attrs:[
+          Xml.attr "xmlns:xsi" "http://www.w3.org/2001/XMLSchema-instance";
+          Xml.attr "xsi:type" "Group"
+        ] "Grantee" [
+          Xml.tag "URI" [ Xml.d (List.assoc name user2uri) ]
+        ]
+      with Not_found ->
+        Xml.tag ~attrs:[
+          Xml.attr "xmlns:xsi" "http://www.w3.org/2001/XMLSchema-instance";
+          Xml.attr "xsi:type" "CanonicalUser"
+        ] "Grantee" (canonical_id id)
+      end
+    | _ -> failwith "TODO"
+
+  let map_grant (id, perm) : CodedIO.Xml.t list =
+    (* TODO: detect special users and map back *)
+    List.rev_map (fun (s3_perm:string) ->
+        Xml.tag "Grant" [
+          grantee_of_id id;
+          Xml.tag "Permission" [Xml.d s3_perm]
+        ]) (map_permission perm)
+
+  let send_default_acl ~req ~canon bucket =
+    U.get_acl (fst (url_of_volpath ~canon bucket "")) >>= fun acl ->
+    let owner = find_owner acl in
     return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
       Xml.tag "AccessControlPolicy" [
-        Xml.tag "Owner" [
-          Xml.tag "ID" [Xml.d Configfile.owner_id];
-          Xml.tag "DisplayName" [Xml.d Configfile.owner_name]
-        ];
-        Xml.tag "AccessControlList" [
-          Xml.tag "Grant" [
-            Xml.tag ~attrs:[
-              Xml.attr "xmlns:xsi" "http://www.w3.org/2001/XMLSchema-instance";
-              Xml.attr "xsi:type" "CanonicalUser"
-            ] "Grantee" [
-              Xml.tag "ID" [Xml.d Configfile.owner_id];
-              Xml.tag "DisplayName" [Xml.d Configfile.owner_name];
-            ];
-            Xml.tag "Permission" [Xml.d "FULL_CONTROL"]
-          ]
-        ]
+        Xml.tag "Owner" (canonical_id owner);
+        Xml.tag "AccessControlList" (List.flatten (List.rev_map map_grant acl))
       ])
 
   let send_default_policy ~req ~canon =
@@ -1182,7 +1236,65 @@ module Make
            * we could reset the acl SX side too! *)
           return_empty ~req:request ~canon ~status:`Ok ~reply_headers:[]
         | _ ->
-          return_error Error.AccessDenied ["ACL","Changing ACLs is not supported"]
+          return_error Error.AccessDenied ["LibreS3ErrorMessage","Changing ACLs is not supported"]
+      )
+
+  let get_attr ns attr attrs =
+    snd (List.find (fun ((a_ns, a_name), _) ->
+        a_ns = ns && a_name = attr) attrs)
+
+  let map_acl_type = function
+    | "CanonicalUser", (`El (((_, "ID"), _), [`Data id])) :: _ ->
+      `UserID (id, None)
+    | "AmazonCustomerByEmail",
+      [`El (((_,"EmailAddress"),_), [`Data email])] ->
+      failwith "Email address not supported"
+    | "Group",
+      [`El (((_,"URI"),_), [`Data uri])] ->
+      `UserName (List.assoc uri uri2user)
+    | _ -> failwith "Bad grantee type"
+
+  let map_permission = function
+    | "READ" -> [ `Read ]
+    | "WRITE" -> [ `Write ]
+    | "READ_ACP" -> [ `Owner ]
+    | "WRITE_ACP" -> [ `Owner ]
+    | "FULL_CONTROL" -> [ `Owner; `Read; `Write]
+    | _ -> failwith "Unknown permission"
+
+  let map_acl x =  match x with
+    | `El (((_, "Grant"), _), [
+        `El (((_, "Grantee"), flags), grantee);
+        `El (((_, "Permission"),_), [`Data perm])]) ->
+      map_acl_type
+        ((get_attr "http://www.w3.org/2001/XMLSchema-instance" "type" flags),
+         grantee), map_permission perm
+    | #CodedIO.Xml.t ->
+      failwith "Bad xml" (* TODO: map to MalformedACLError *)
+
+  let create_special_users ~canon () =
+    List.fold_left (fun accum name ->
+        accum >>= fun _ ->
+        U.create_user (fst (url_of_volpath ~canon "" "")) name)
+      (return "") [ libres3_all_users; libres3_authenticated_users;
+                    libres3_log_delivery ]
+
+  let set_bucket_acl ~req ~canon ~request body bucket =
+    (* TODO: also look at x-amz-acl* headers, also at bucket creation time *)
+    parse_input_xml_opt body "AccessControlPolicy" (function
+        | [`El (((_,"Owner"), _), _); (* check owner/id if we really implement this *)
+           `El (((_,"AccessControlList"),_), lst)] ->
+          Some lst
+        | _ ->
+          None
+      ) (function
+        | Some l ->
+          create_special_users ~canon () >>= fun _ ->
+          U.set_acl (fst (url_of_volpath ~canon bucket "")) (List.rev_map map_acl l)
+          >>= fun () ->
+          return_empty ~req ~canon ~status:`Ok ~reply_headers:[]
+        | _ ->
+          return_error Error.MalformedACLError []
       )
 
   let dispatch_request ~request ~canon =
@@ -1198,8 +1310,8 @@ module Make
     | `GET, Bucket bucket, "/", params
       when List.mem_assoc "uploads" params && List.assoc "uploads" params = "" ->
         mpart_list ~canon ~req:request bucket params
-    | `GET, Bucket _, _, ["acl",""] ->
-        send_default_acl ~req:request ~canon
+    | `GET, Bucket bucket, _, ["acl",""] ->
+        send_default_acl ~req:request ~canon bucket
     | `GET, Bucket _, "/", ["policy",""] ->
         send_default_policy ~req:request ~canon
     | `GET, Bucket bucket, "/",params ->
@@ -1223,6 +1335,8 @@ module Make
           copy_object ~canon ~request body bucket path
         else
           put_object ~canon ~request body bucket path
+    | `PUT body, Bucket bucket, "/", ["acl",""] ->
+        set_bucket_acl ~req:request ~canon ~request body bucket
     | `PUT body, Bucket bucket, path, ["acl",""] ->
         set_object_acl ~canon ~request body bucket path
     | `POST body, Bucket bucket, "/", ["delete", ""] ->

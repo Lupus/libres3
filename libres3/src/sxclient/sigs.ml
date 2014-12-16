@@ -102,6 +102,11 @@ module type SXIOSig = sig
   val exists: [< `Url of url ] -> bool M.t
   val check : [< `Url of url ] -> string option M.t
 
+  type acl = [`UserID of string * string option | `UserName of string] * [`Owner | `Read | `Write] list
+  val set_acl: [< `Url of url] -> acl list -> unit M.t
+  val get_acl: [< `Url of url] -> acl list M.t
+  val create_user: [< `Url of url ] -> string -> string M.t
+
   (* sources *)
   val of_source: source -> [> `Source of source]
   val of_string: string -> [> `Source of source ]
@@ -137,6 +142,10 @@ module type SXIOSig = sig
     val delete: ?async:bool -> Neturl.url -> unit M.t
     val create: ?metafn:metafn -> ?replica:int -> Neturl.url -> unit M.t
     val exists: Neturl.url -> bool M.t
+
+    val set_acl : Neturl.url -> acl list -> unit M.t
+    val get_acl : Neturl.url -> acl list M.t
+    val create_user: Neturl.url -> string -> string M.t
 
     val fold_list: Neturl.url -> ('a -> entry -> 'a M.t) -> (string -> bool) -> 'a -> 'a M.t
   end

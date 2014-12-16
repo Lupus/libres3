@@ -185,4 +185,16 @@ module Make(M:Sigs.Monad)(OS:EventIO.OSMonad with type 'a t = 'a M.t) = struct
     }, meta, contents in
     volumes := StringMap.add vol (StringMap.add path entry volume) !volumes;
     return ()
+
+  let users = ref []
+  let create_user (_:Neturl.url) (name:string) =
+    users := name :: !users;
+    return ""
+
+  let acl_table = Hashtbl.create 16
+
+  let get_acl url = return (Hashtbl.find acl_table url)
+  let set_acl (url:Neturl.url) (acls : IO.acl list) =
+    Hashtbl.replace acl_table url acls;
+    return ()
 end
