@@ -219,7 +219,7 @@ module Make
           last_modified = Some mtime;
           content_type = Some content_type;
           content_length = Some size;
-          etag = None;
+          etag = Some (etag);
         } >>= send_source url ~canon ~first:0L
     | Some (first, last) as range ->
         if first > last then
@@ -1389,7 +1389,7 @@ module Make
           ~status:`Ok ~reply_headers:[] ~content_type:"text/html"
           Homepage.root
       else
-        return_error Error.AccessDenied ["MissingHeader", "Authorization"]
+        f libres3_all_users
     | CanonRequest.AuthEmpty ->
         return_error Error.AccessDenied ["MissingHeader", "Authorization"]
     | CanonRequest.AuthMalformed s ->
