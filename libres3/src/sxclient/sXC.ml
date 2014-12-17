@@ -812,11 +812,21 @@ struct
 
 
     let read (_, reader) = reader ()
+
+    (* drop hashes from start of list until we reach desired position *)
+    let rec seek_hashes bs target_pos hashes pos = match hashes with
+      | _ :: tl as l ->
+        let next = Int64.add pos bs in
+        if next > target_pos then l, pos
+        else seek_hashes bs target_pos tl next
+      | [] -> [], pos
+
     let seek s pos =
-      if pos = 0L then
+        let hashes, start = seek_hashes (Int64.of_int s.blocksize) pos s.hashes 0L in
         let split_map = ref (split_at_threshold s.blocksize
-                               (s.blocksize * download_max_blocks) s.hashes [] [] 0) in
-        let remaining = ref s.filesize in
+                               (s.blocksize * download_max_blocks) hashes [] [] 0) in
+        let remaining = ref (Int64.sub s.filesize start) in
+        let skip = ref (Int64.to_int (Int64.sub pos start)) in
         return (s, fun () ->
             match !split_map with
             | hd :: tl ->
@@ -825,11 +835,12 @@ struct
               let n = String.length reply in
               let len = min (Int64.of_int n) !remaining in
               remaining := Int64.sub !remaining len;
-              return (reply, 0, Int64.to_int len)
+              let offset = !skip in
+              skip := 0;
+              return (reply, offset, (Int64.to_int len) - offset)
             | [] ->
               return ("",0,0);
           )
-      else IO.fail (Failure "seeking not supported yet")
 
     let remove_leading_slash name =
       let n = String.length name in
