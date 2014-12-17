@@ -769,6 +769,14 @@ struct
       | _ ->
         failwith "bad revision format"
 
+    type state = {
+      hashes: AJson.json list;
+      blocksize: int;
+      filesize: int64;
+      url: Neturl.url;
+    }
+    type read_state = unit -> (string * int * int) M.t
+
     let get url =
      get_vol_nodelist url >>= fun (nodes, _) ->
      try_catch (fun () ->
@@ -783,27 +791,13 @@ struct
             and etag = etag_of_revision (filter_field_one "fileRevision" obj)
             and blocksize = Int64.to_int (filter_field_int "blockSize" obj) in
             let a = filter_field_array "fileData" obj in
-                let hashes = List.rev (List.rev_map remove_obj a) in
-                (* split after DOWNLOAD_MAX_BLOCKS hashes *)
-                let split_map = ref (split_at_threshold blocksize (blocksize * download_max_blocks) hashes [] [] 0) in
-                let remaining = ref filesize in
-                return ((fun () ->
-                  match !split_map with
-                  | hd :: tl ->
-                      split_map := tl;
-                      download_full_mem url blocksize (List.rev hd) >>= fun reply ->
-                      let n = String.length reply in
-                      let len = min (Int64.of_int n) !remaining in
-                      remaining := Int64.sub !remaining len;
-                      return (reply, 0, Int64.to_int len)
-                  | [] ->
-                    return ("",0,0);
-                  ), {
-                    name = "";
-                    size = filesize;
-                    mtime = mtime;
-                    etag = etag;
-                })
+            let hashes = List.rev (List.rev_map remove_obj a) in
+            (* split after DOWNLOAD_MAX_BLOCKS hashes *)
+            return ({ hashes = hashes; blocksize = blocksize;
+                      filesize = filesize; url = url;},
+                    { name = ""; size = filesize;
+                      mtime = mtime; etag = etag;
+                    })
          | p ->
              List.iter AJson.pp_json p;
              fail (Failure "Bad json reply format: object expected")
@@ -815,6 +809,27 @@ struct
         | SXIO.Detail(Unix.Unix_error(Unix.ENOENT,_,_) as e ,_) ->
             fail e
         | e -> fail e) ();;
+
+
+    let read (_, reader) = reader ()
+    let seek s pos =
+      if pos = 0L then
+        let split_map = ref (split_at_threshold s.blocksize
+                               (s.blocksize * download_max_blocks) s.hashes [] [] 0) in
+        let remaining = ref s.filesize in
+        return (s, fun () ->
+            match !split_map with
+            | hd :: tl ->
+              split_map := tl;
+              download_full_mem s.url s.blocksize (List.rev hd) >>= fun reply ->
+              let n = String.length reply in
+              let len = min (Int64.of_int n) !remaining in
+              remaining := Int64.sub !remaining len;
+              return (reply, 0, Int64.to_int len)
+            | [] ->
+              return ("",0,0);
+          )
+      else IO.fail (Failure "seeking not supported yet")
 
     let remove_leading_slash name =
       let n = String.length name in
@@ -1297,7 +1312,6 @@ struct
     | _ ->
         failwith "invalid URL";;
 
-  type state = unit -> (string * int * int) M.t
   let open_source url =
     get url >|= fun (reader, entry) ->
     {
@@ -1308,10 +1322,6 @@ struct
     },
     reader
 
-  let read reader = reader ()
-  let seek _ pos =
-    if pos = 0L then return ()
-    else IO.fail (Failure "seeking not supported yet")
   let close_source _ =
     (* TODO: abort download*)
     return ()

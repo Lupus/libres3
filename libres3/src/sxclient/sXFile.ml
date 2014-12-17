@@ -34,6 +34,7 @@
 
 module Make(M:Sigs.Monad)(OS:EventIO.OSMonad with type 'a t = 'a M.t) = struct
   type state = string * int ref
+  type read_state = unit
   let scheme = "file"
   let syntax = Hashtbl.find Neturl.common_url_syntax "file"
 
@@ -65,11 +66,11 @@ module Make(M:Sigs.Monad)(OS:EventIO.OSMonad with type 'a t = 'a M.t) = struct
     find name volume >>= fun (meta, _, contents) ->
     return (meta, (contents, ref 0))
 
-  let seek (_, fpos) pos =
+  let seek ((_, fpos) as s) pos =
     fpos := Int64.to_int pos;
-    return ()
+    return (s, ())
 
-  let read (contents, fpos) =
+  let read ((contents, fpos),_) =
     (* TODO: check that there is only one read in-flight on this fd? *)
     let pos = !fpos in
     let last = min (pos + Config.buffer_size) (String.length contents) in

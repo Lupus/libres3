@@ -291,6 +291,7 @@ module Make(M:Sigs.Monad) = struct
 
   module type SchemeOps = sig
     type state
+    type read_state
     val scheme : string
     val syntax: Neturl.url_syntax
 
@@ -298,8 +299,8 @@ module Make(M:Sigs.Monad) = struct
     val token_of_user: Neturl.url -> string option M.t
     val check: Neturl.url -> string option M.t
     val open_source: Neturl.url -> (entry * state) M.t
-    val seek: state -> int64 -> unit M.t
-    val read: state -> output_data M.t
+    val seek: state -> int64 -> (state * read_state) M.t
+    val read: (state * read_state) -> output_data M.t
     val close_source : state -> unit M.t
 
     (* true: optimized copy if scheme and authority matches
@@ -332,8 +333,8 @@ module Make(M:Sigs.Monad) = struct
   module RegisterURLScheme(O: SchemeOps) = struct
     let readurl state () = O.read state
     let seekurl state pos =
-      O.seek state pos >>= fun () ->
-      return (readurl state);;
+      O.seek state pos >>= fun read_state ->
+      return (readurl read_state);;
 
   let withurl url f =
       O.open_source url >>= fun (entry, state) ->
@@ -347,8 +348,8 @@ module Make(M:Sigs.Monad) = struct
 
     let rec read_urls current_source current_urls () =
       match !current_source with
-      | Some state ->
-          O.read state >>= fun (str, pos, len) ->
+      | Some ((state, _) as read_state) ->
+          O.read read_state >>= fun (str, pos, len) ->
           if len = 0 then begin
             O.close_source state >>= fun () ->
             current_source := None;
@@ -361,8 +362,8 @@ module Make(M:Sigs.Monad) = struct
           | url :: tl ->
             current_urls := tl;
             O.open_source url >>= fun (_, state) ->
-            O.seek state 0L >>= fun () ->
-            current_source := Some state;
+            O.seek state 0L >>= fun read_state ->
+            current_source := Some read_state;
             read_urls current_source current_urls ()
 
     let withurls urls filesize f =

@@ -122,6 +122,7 @@ module type SXIOSig = sig
 
   module type SchemeOps = sig
     type state
+    type read_state
     val scheme : string
     val syntax: Neturl.url_syntax
 
@@ -129,8 +130,8 @@ module type SXIOSig = sig
     val token_of_user : Neturl.url -> string option M.t
     val check: Neturl.url -> string option M.t
     val open_source: Neturl.url -> (entry * state) M.t
-    val seek: state -> int64 -> unit M.t
-    val read: state -> output_data M.t
+    val seek: state -> int64 -> (state * read_state) M.t
+    val read: (state * read_state) -> output_data M.t
     val close_source : state -> unit M.t
 
     (* true: optimized copy if scheme and authority matches
