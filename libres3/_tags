@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: a4180dd60263eb31a6803ad5bacd3379)
+# DO NOT EDIT (digest: c7333f6f78fde40c5881e8600e6a8891)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -245,7 +245,6 @@ true: annot, bin_annot
 <test/*.ml{,i,y}>: package(netstring)
 <test/*.ml{,i,y}>: package(netsys)
 <test/*.ml{,i,y}>: package(oUnit)
-<test/*.ml{,i,y}>: package(ocplib-endian)
 <test/*.ml{,i,y}>: package(ocsigenserver)
 <test/*.ml{,i,y}>: package(ssl)
 <test/*.ml{,i,y}>: package(str)
@@ -254,7 +253,12 @@ true: annot, bin_annot
 <test/*.ml{,i,y}>: use_anycache
 <test/*.ml{,i,y}>: use_server
 <test/*.ml{,i,y}>: use_sxclient
+# Executable randgen
+<test/randgen.{native,byte}>: package(ocplib-endian)
+<test/randgen.{native,byte}>: package(unix)
+<test/*.ml{,i,y}>: package(ocplib-endian)
+<test/*.ml{,i,y}>: package(unix)
 # OASIS_STOP
-<src/ocsigen/libres3_ocsigen.{native,byte}>: link_ocsigen
+<src/ocsigen/libres3_ocsigen.{native,byte}>: link_ocsigen,linkall
 <**/*.ml{,i}>: warn_A, warn_e, warn_z, warn_error_S,warn_error_U, annot, strict_sequence
 true: bin_annot
