@@ -249,7 +249,7 @@ let read_and_validate_opt opt ~key msg f x ?validate m =
   if opt then read_and_validate ~key msg f x ?validate m
   else m
 
-let update_s3cfg is_https host port key name =
+let update_s3cfg cert_file host port key name =
   Printf.printf "Updating '%s'\n" name;
   let lst = load_config name in
   let f = open_out (name ^ ".tmp") in
@@ -261,13 +261,16 @@ let update_s3cfg is_https host port key name =
   let lst = replace true lst "host_base" hostport [] in
   let lst = replace true lst "host_bucket" ("%(bucket)s." ^ hostport) [] in
 
-  let use_https = if is_https then "True" else "False" in
+  let use_https = if cert_file = None then "False" else "True" in
   let lst = replace true lst "use_https" use_https [] in
 
   let lst = replace false lst "cloudfront_host" host [] in
   let lst = replace false lst "simpledb_host" host [] in
-  let scheme = if is_https then "https" else "http" in
+  let scheme = if cert_file = None then "http" else "https" in
   let lst = replace false lst "website_endpoint" (scheme ^ "://" ^ hostport) [] in
+  let lst = match cert_file with
+    | Some cert -> replace true lst "ca_certs_file" cert []
+    | None -> lst in
   List.iter (function
     | KV (k,v) ->
       Printf.fprintf f "%s = %s\n" k v
@@ -452,12 +455,13 @@ let () =
     if !ssl then begin
       let portstr = StringMap.find "s3_ssl_port" generated in
       let port = int_of_string portstr in
-      update_s3cfg true s3_host port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.s3cfg");
-      update_s3cfg false s3_host 8008 admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
+      let cert_file = StringMap.find "s3_ssl_certificate_file" generated in
+      update_s3cfg (Some cert_file) s3_host port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.s3cfg");
+      update_s3cfg None s3_host 8008 admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
       generate_boto true s3_host port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.boto")
     end else begin
       let s3_port = StringMap.find "s3_port" generated in
-      update_s3cfg false s3_host (int_of_string s3_port) admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
+      update_s3cfg None s3_host (int_of_string s3_port) admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
       generate_boto false s3_host (int_of_string s3_port) admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.boto")
     end;
     if not !batch_mode then
