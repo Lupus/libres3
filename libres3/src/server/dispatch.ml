@@ -1389,7 +1389,12 @@ module Make
           ~status:`Ok ~reply_headers:[] ~content_type:"text/html"
           Homepage.root
       else if request.meth = `GET || request.meth = `HEAD then
-        f libres3_all_users
+        try_catch (fun () ->
+            f libres3_all_users)
+          (function
+            | Error.ErrorReply (Error.NoSuchBucket, _, _) ->
+              return_error Error.AccessDenied ["MissingHeader", "Authorization"]
+            | e -> fail e) ()
       else
         return_error Error.AccessDenied ["MissingHeader", "Authorization"]
     | CanonRequest.AuthEmpty ->
