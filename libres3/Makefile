@@ -46,7 +46,7 @@ $(SETUP): setup.ml
 
 # OASIS_STOP
 headache:
-	git ls-files -- src/ test/ | grep -Fv src/sxclient | grep -Fv src/anycache/ | grep -Fv .mldylib | grep -v ml.ab | grep -Fv netcgi_fcgip.ml | grep -Fv src/files | grep -Fv .mllib | grep -Fv .odocl | grep -Fv META | xargs headache -h _header.server 
+	git ls-files -- src/ test/ | grep -Fv src/sxclient | grep -Fv src/anycache/ | grep -Fv .mldylib | grep -v ml.ab | grep -Fv netcgi_fcgip.ml | grep -Fv src/files | grep -Fv .mllib | grep -Fv .odocl | grep -Fv META | grep -Fv homepage | grep -Fv murmur | xargs headache -h _header.server
 	git ls-files -- src/sxclient | grep -Fv .mllib | grep -Fv .mldylib | grep -Fv .odocl | grep -Fv https_clientp.ml | grep -Fv META | xargs headache -h _header.client
 	git ls-files -- src/anycache | grep -Fv .mllib | grep -Fv .mldylib | grep -Fv .odocl | grep -Fv https_clientp.ml | grep -Fv META | xargs headache -h _header.small
 
@@ -62,13 +62,19 @@ coverage:
 	$(SETUP) -clean
 	$(MAKE) cov
 
-cov:
+cov-build:
 	$(SETUP) -build -tag pkg_bisect -tag pkg_str -tag syntax_camlp4o -tag syntax_bisect_pp $(BUILDFLAGS)
-	rm -f bisect*.out
-	$(SETUP) -test $(TESTFLAGS)
+
+cov-report:
 	ln -s _build/version.ml version.ml
 	bisect-report.opt -html coverage.html bisect*.out -I _build
 	rm -f version.ml
+
+cov:
+	$(MAKE) cov-build
+	rm -f bisect*.out
+	$(SETUP) -test $(TESTFLAGS)
+	$(MAKE) cov-report
 	x-www-browser ./coverage.html/index.html
 update:
 	oasis setup

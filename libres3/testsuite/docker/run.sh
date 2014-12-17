@@ -66,7 +66,7 @@ sudo docker run -d -t -i\
 sudo docker rm --force ${IMG_PREFIX}_libres3 || true
 sudo docker run -d -t -i\
     --name ${IMG_PREFIX}_libres3\
-    -v `pwd`/sxsetup.conf:/home/build/sxsetup.conf:ro\
+    -v `pwd`/sxsetup.conf:/root/sxsetup.conf:ro\
     --link $FIRST_NODE:first\
     --link ${IMG_PREFIX}_sx_2:node_2\
     --link ${IMG_PREFIX}_sx_3:node_3\
@@ -76,15 +76,15 @@ sudo docker run -d -t -i\
 sudo docker exec ${IMG_PREFIX}_libres3\
     sh -x -c '\
         sed -e "s/SX_NODE_IP.*/SX_NODE_IP=$FIRST_PORT_443_TCP_ADDR/"\
-            /home/build/sxsetup.conf >/home/build/sxsetup.conf.first &&\
+            /root/sxsetup.conf >/root/sxsetup.conf.first &&\
         libres3_setup --s3-host libres3.skylable.com --s3-port 8443\
             --default-volume-size 10G\
             --default-replica 1\
-            --sxsetup-conf /home/build/sxsetup.conf.first\
+            --sxsetup-conf /root/sxsetup.conf.first\
             --batch'&
 
 wait
-# sudo docker exec ${IMG_PREFIX}_sx_client /home/build/sx-node-ops.sh
+# sudo docker exec ${IMG_PREFIX}_sx_client /root/sx-node-ops.sh
 
 #sudo docker exec ${IMG_PREFIX}_libres3\
 #    cat /usr/local/etc/libres3/libres3.sample.s3cfg >libres3.sample.s3cfg
@@ -92,9 +92,10 @@ wait
 sudo docker rm --force ${IMG_PREFIX}_libres3_test || true
 sudo docker run -t -i\
     --name ${IMG_PREFIX}_libres3_test\
-    -v `pwd`/sxsetup.conf:/home/build/sxsetup.conf:ro\
+    -v `pwd`/sxsetup.conf:/root/sxsetup.conf:ro\
     --link $FIRST_NODE:node_1\
     --link ${IMG_PREFIX}_sx_2:node_2\
     --link ${IMG_PREFIX}_sx_3:node_3\
     --link ${IMG_PREFIX}_sx_4:node_4\
     ${IMG_PREFIX}_libres3_test
+sudo docker cp ${IMG_PREFIX}_libres3_test:/usr/src/libres3/libres3/coverage.html coverage.html
