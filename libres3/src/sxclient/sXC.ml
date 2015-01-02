@@ -1535,7 +1535,7 @@ struct
     get_acl url >>= fun old_acl ->
     let json = json_of_acl (List.rev_map map_id old_acl) (List.rev_map map_id acls) in
     send_json cluster_nodes url (`Object json) >>=
-    check_reply
+    job_get url
 
   let create_user url name =
     get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
