@@ -554,7 +554,7 @@ struct
           | None ->
             (* no such user *)
             let user = Neturl.url_user url in
-            M.fail (SXIO.Detail(Unix.Unix_error(Unix.EPERM,"", user),[
+            M.fail (SXIO.Detail(Unix.Unix_error(Unix.EACCES,"", user),[
                 "SXErrorMessage",Printf.sprintf "Cannot retrieve token for user %S"
                   user
               ]))
