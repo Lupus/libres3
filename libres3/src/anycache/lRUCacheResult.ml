@@ -45,6 +45,7 @@ module Make(R : Result) = struct
 
   open R
   let return_some v = return (Some v)
+  let return_none _ = return None
   let get_opt cache key : ('a option, 'b) R.t =
     try LRUMap.find cache key >>= return_some
     with _ -> return None
@@ -53,7 +54,7 @@ module Make(R : Result) = struct
 
   let lookup cache key f =
     (* return value from cache if it exists *)
-    get_opt cache key >>= (function
+    R.catch (get_opt cache key) return_none >>= (function
         | Some data -> return data
         | None ->
           (*  start computing of the value:
