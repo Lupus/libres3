@@ -1300,6 +1300,12 @@ module Make
           return_error Error.MalformedACLError []
       )
 
+  let known_api (name, _) = match name with
+    | "acl" | "cors" | "delete" | "lifecycle" | "location" | "logging"
+    | "notification" | "policy" | "requestPayment" | "tagging" | "torrent"
+    | "uploadId" | "uploads" | "versioning" | "versions" | "website" -> true
+    | _ -> false
+
   let dispatch_request ~request ~canon =
     match
       canon.CanonRequest.req_method, canon.CanonRequest.bucket,
@@ -1321,7 +1327,7 @@ module Make
         list_bucket ~req:request ~canon bucket params
     | `HEAD, Bucket bucket, "/",_ ->
         head_bucket ~req:request ~canon bucket
-    | `GET, Bucket bucket, path, [] ->
+    | `GET, Bucket bucket, path, params when not (List.exists known_api params) ->
         (* TODO: use params! *)
         get_object ~req:request ~canon bucket path
     | `GET, Bucket bucket, path, ["uploadId", uploadId] ->
