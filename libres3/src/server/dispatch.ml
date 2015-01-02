@@ -675,12 +675,15 @@ module Make
 
   let send_default_acl ~req ~canon bucket =
     U.get_acl (fst (url_of_volpath ~canon bucket "")) >>= fun acl ->
-    let owner = find_owner acl in
-    return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
-      Xml.tag "AccessControlPolicy" [
-        Xml.tag "Owner" (canonical_id owner);
-        Xml.tag "AccessControlList" (List.flatten (List.rev_map map_grant acl))
-      ])
+    try
+      let owner = find_owner acl in
+      return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
+        Xml.tag "AccessControlPolicy" [
+          Xml.tag "Owner" (canonical_id owner);
+          Xml.tag "AccessControlList" (List.flatten (List.rev_map map_grant acl))
+        ])
+    with Not_found ->
+      return_error Error.AccessDenied ["LibreS3ErrorMessage","You are not the owner"]
 
   let send_default_policy ~req ~canon =
     return_error Error.NotSuchBucketPolicy []
