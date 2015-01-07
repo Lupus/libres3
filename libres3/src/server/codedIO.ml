@@ -67,3 +67,78 @@ module Xml = struct
     Buffer.contents buf
   ;;
 end
+
+module Json = struct
+  type t = [ `Null | `Bool of bool | `Float of float| `String of string
+           | `A of t list | `O of (string * t) list ]
+
+  exception Error of string
+
+  let rec value d = function
+    | `Lexeme `Os -> obj d []
+    | `Lexeme `As -> arr d []
+    | `Lexeme (`Null | `Bool _ | `String _ | `Float _ as v) -> v
+    | `Error e ->
+      let b = Buffer.create Configfile.small_buffer_size in
+      let fmt = Format.formatter_of_buffer b in
+      let (l1,c1),(l2,c2) = Jsonm.decoded_range d in
+      Format.fprintf fmt "Bad JSON at %d:%d-%d:%d: %a%!" l1 c1 l2 c2
+        Jsonm.pp_error e;
+      raise (Error (Buffer.contents b));
+    | `End | `Lexeme _ ->
+      raise (Error ("Unexpected end of JSON"));
+    | `Await -> assert false
+  and arr d vs = match Jsonm.decode d with
+    | `Lexeme `Ae -> `A (List.rev vs)
+    | v -> arr d (value d v :: vs)
+  and obj d ms = match Jsonm.decode d with
+    | `Lexeme `Oe -> `O (List.rev ms)
+    | `Lexeme `Name n ->
+      obj d ((n, value d (Jsonm.decode d)) :: ms)
+    | _ -> assert false
+
+  let of_string str : t =
+    let d = Jsonm.decoder (`String str) in
+    (value d (Jsonm.decode d))
+
+  let expect_obj = function
+    | `O o -> o
+    | #t -> raise (Error "JSON object expected")
+
+  let expect_array = function
+    | `A a -> List.rev a
+    | #t -> raise (Error ("JSON array expected"))
+
+  let expect_string = function
+    | `String s -> s
+    | #t -> raise (Error ("JSON string expected"))
+
+  let expect_array_or_string = function
+    | `A a -> List.rev_map expect_string a
+    | `String s -> [ s ]
+    | #t -> raise (Error ("JSON array expected"))
+
+  let to_string (json : t) =
+    let enc e l = ignore (Jsonm.encode e (`Lexeme l)) in
+    let rec value v k e = match v with
+      | `A vs -> arr vs k e
+      | `O ms -> obj ms k e
+      | `Null | `Bool _ | `Float _ | `String _ as v -> enc e v; k e
+    and arr vs k e = enc e `As; arr_vs vs k e
+    and arr_vs vs k e = match vs with
+      | v :: vs' -> value v (arr_vs vs' k) e
+      | [] -> enc e `Ae; k e
+    and obj ms k e = enc e `Os; obj_ms ms k e
+    and obj_ms ms k e = match ms with
+      | (n, v) :: ms -> enc e (`Name n); value v (obj_ms ms k) e
+      | [] -> enc e `Oe; k e
+    in
+    let b = Buffer.create Configfile.small_buffer_size in
+    let e = Jsonm.encoder ~minify:false (`Buffer b) in
+    let finish e = ignore (Jsonm.encode e `End) in
+    match json with
+    | `A _ | `O _ as json ->
+      value json finish e;
+      Buffer.contents b
+    | _ -> invalid_arg "invalid json text"
+end

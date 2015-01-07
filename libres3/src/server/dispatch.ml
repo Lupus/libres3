@@ -686,7 +686,12 @@ module Make
       return_error Error.AccessDenied ["LibreS3ErrorMessage","You are not the owner"]
 
   let send_default_policy ~req ~canon =
+
     return_error Error.NotSuchBucketPolicy []
+
+  let set_bucket_policy ~canon ~request body bucket =
+    return_error Error.NotSuchBucketPolicy []
+
 
   let md5_of_url url =
     U.get_meta url >>= fun lst ->
@@ -1338,6 +1343,8 @@ module Make
         get_object ~req:request ~canon bucket path
     | `PUT body, Bucket bucket, "/",[] ->
         create_bucket ~canon ~request body bucket
+    | `PUT body, Bucket bucket, "/", ["policy",""] ->
+        set_bucket_policy ~canon ~request body bucket
     | `PUT body, Bucket bucket, path,[] ->
         if Headers.has_header canon.CanonRequest.headers "x-amz-copy-source"
         then
