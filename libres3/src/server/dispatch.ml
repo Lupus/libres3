@@ -608,12 +608,18 @@ module Make
     ;;
 
   let find_owner acl =
-    fst (List.find (fun (_, perm) -> List.mem `Owner perm) acl)
+    let _, id, _ = (List.find (fun (_, _, perm) -> List.mem `Owner perm) acl) in
+    id
+
+  let canon_id_of_name name =
+    let full = String.make 64 '\x00' in
+    String.blit name 0 full 0 (String.length name);
+    Cryptokit.transform_string (Cryptokit.Hexa.encode ()) full
 
   let canonical_id = function
-    | `UserID (id, Some displayname) ->
+    | `UserName displayname ->
       [
-        Xml.tag "ID" [Xml.d id];
+        Xml.tag "ID" [Xml.d (canon_id_of_name displayname)];
         Xml.tag "DisplayName" [Xml.d displayname]
       ]
     | _ -> failwith "TODO"
@@ -628,28 +634,15 @@ module Make
     | l when List.mem `Owner l -> ["READ_ACP"; "WRITE_ACP"]
     | _ -> failwith "TODO: unknown permissions"
 
-  let libres3_authenticated_users = "libres3-authenticated-users"
-  let uri_authenticated_users = "http://acs.amazonaws.com/groups/global/AuthenticatedUsers"
-
   let libres3_all_users = "libres3-all-users"
   let uri_all_users = "http://acs.amazonaws.com/groups/global/AllUsers"
 
-  let libres3_log_delivery = "libres3-log-delivery"
-  let uri_log_delivery = "http://acs.amazonaws.com/groups/s3/LogDelivery"
-
-  let uri2user = [
-    uri_authenticated_users, libres3_authenticated_users;
-    uri_all_users, libres3_all_users;
-    uri_log_delivery, libres3_log_delivery ]
-
   let user2uri = [
-    libres3_authenticated_users, uri_authenticated_users;
     libres3_all_users, uri_all_users;
-    libres3_log_delivery, uri_log_delivery
   ]
 
   let grantee_of_id = function
-    | `UserID (_, Some name) as id ->
+    | `UserName name as id ->
       begin try
         Xml.tag ~attrs:[
           Xml.attr "xmlns:xsi" "http://www.w3.org/2001/XMLSchema-instance";
@@ -665,7 +658,7 @@ module Make
       end
     | _ -> failwith "TODO"
 
-  let map_grant (id, perm) : CodedIO.Xml.t list =
+  let map_grant (_, id, perm) : CodedIO.Xml.t list =
     (* TODO: detect special users and map back *)
     List.rev_map (fun (s3_perm:string) ->
         Xml.tag "Grant" [
@@ -673,10 +666,13 @@ module Make
           Xml.tag "Permission" [Xml.d s3_perm]
         ]) (map_permission perm)
 
+  let is_real (_,`UserName name,_) = name <> libres3_all_users
+
   let send_default_acl ~req ~canon bucket =
     U.get_acl (fst (url_of_volpath ~canon bucket "")) >>= fun acl ->
     try
       let owner = find_owner acl in
+      let acl = List.filter is_real acl in
       return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
         Xml.tag "AccessControlPolicy" [
           Xml.tag "Owner" (canonical_id owner);
@@ -685,13 +681,20 @@ module Make
     with Not_found ->
       return_error Error.AccessDenied ["LibreS3ErrorMessage","You are not the owner"]
 
-  let send_default_policy ~req ~canon =
+  let return_json ~req ~canon ~status ~reply_headers json =
+    return_string ~id:canon.CanonRequest.id ~id2:(CanonRequest.gen_debug ~canon)
+      ~content_type:"application/json"
+      ~req ~status ~reply_headers (CodedIO.Json.to_string json)
 
-    return_error Error.NotSuchBucketPolicy []
-
-  let set_bucket_policy ~canon ~request body bucket =
-    return_error Error.NotSuchBucketPolicy []
-
+  let get_bucket_policy ~req ~canon bucket =
+    U.get_acl (fst (url_of_volpath ~canon bucket "")) >>= fun acl ->
+    let has_anon_read = List.exists (fun (_,`UserName name,_) ->
+        name = libres3_all_users) acl in
+    if has_anon_read then
+      let policy = Policy.json_of_policy (Policy.build_anon_policy bucket) in
+      return_json ~req ~canon ~status:`Ok ~reply_headers:[] policy
+    else
+      return_error Error.NotSuchBucketPolicy []
 
   let md5_of_url url =
     U.get_meta url >>= fun lst ->
@@ -1247,63 +1250,38 @@ module Make
           return_error Error.AccessDenied ["LibreS3ErrorMessage","Changing ACLs is not supported"]
       )
 
-  let get_attr ns attr attrs =
-    snd (List.find (fun ((a_ns, a_name), _) ->
-        a_ns = ns && a_name = attr) attrs)
-
-  let map_acl_type = function
-    | "CanonicalUser", (`El (((_, "ID"), _), [`Data id])) :: _ ->
-      `UserID (id, None)
-    | "AmazonCustomerByEmail",
-      [`El (((_,"EmailAddress"),_), [`Data email])] ->
-      failwith "Email address not supported"
-    | "Group",
-      [`El (((_,"URI"),_), [`Data uri])] ->
-      `UserName (List.assoc uri uri2user)
-    | _ -> failwith "Bad grantee type"
-
-  let map_permission = function
-    | "READ" -> [ `Read ]
-    | "WRITE" -> [ `Write ]
-    | "READ_ACP" -> [ `Owner ]
-    | "WRITE_ACP" -> [ `Owner ]
-    | "FULL_CONTROL" -> [ `Owner; `Read; `Write]
-    | _ -> failwith "Unknown permission"
-
-  let map_acl x =  match x with
-    | `El (((_, "Grant"), _), [
-        `El (((_, "Grantee"), flags), grantee);
-        `El (((_, "Permission"),_), [`Data perm])]) ->
-      map_acl_type
-        ((get_attr "http://www.w3.org/2001/XMLSchema-instance" "type" flags),
-         grantee), map_permission perm
-    | #CodedIO.Xml.t ->
-      failwith "Bad xml" (* TODO: map to MalformedACLError *)
-
   let create_special_users ~canon () =
     List.fold_left (fun accum name ->
         accum >>= fun _ ->
         U.create_user (fst (url_of_volpath ~canon "" "")) name)
-      (return "") [ libres3_all_users; libres3_authenticated_users;
-                    libres3_log_delivery ]
+      (return "") [ libres3_all_users ]
 
-  let set_bucket_acl ~req ~canon ~request body bucket =
-    (* TODO: also look at x-amz-acl* headers, also at bucket creation time *)
-    parse_input_xml_opt body "AccessControlPolicy" (function
-        | [`El (((_,"Owner"), _), _); (* check owner/id if we really implement this *)
-           `El (((_,"AccessControlList"),_), lst)] ->
-          Some lst
-        | _ ->
-          None
-      ) (function
-        | Some l ->
+  let delete_bucket_policy ~canon ~request bucket =
+    let anon_read = `Revoke, `UserName libres3_all_users, [`Read] in
+    U.set_acl (fst (url_of_volpath ~canon bucket "")) [anon_read]
+
+  let set_bucket_policy ~canon ~request body bucket =
+    read_all ~input:body ~max:max_input_xml >>= fun json ->
+    try
+      let policy = Policy.of_string json in
+      if Policy.valid policy bucket then
+        if Policy.is_anon_bucket_policy policy bucket then
           create_special_users ~canon () >>= fun _ ->
-          U.set_acl (fst (url_of_volpath ~canon bucket "")) (List.rev_map map_acl l)
-          >>= fun () ->
-          return_empty ~req ~canon ~status:`Ok ~reply_headers:[]
-        | _ ->
-          return_error Error.MalformedACLError []
-      )
+          let anon_read = `Grant, `UserName libres3_all_users, [`Read] in
+          U.set_acl (fst (url_of_volpath ~canon bucket "")) [anon_read]
+        else
+          return_error Error.NotImplemented
+            ["LibreS3ErrorMessage",
+             "Only supported policy is \"Read-Only Permission to an Anonymous User\""]
+      else
+      return_error Error.InvalidPolicyDocument [ "Policy is not valid", "" ]
+    with
+    | CodedIO.Json.Error s ->
+      return_error Error.InvalidPolicyDocument [ "JSON format error", s ]
+    | s ->
+      return_error Error.InvalidPolicyDocument
+        ["Failed to parse policy", Printexc.to_string s]
+
 
   let known_api (name, _) = match name with
     | "acl" | "cors" | "delete" | "lifecycle" | "location" | "logging"
@@ -1326,8 +1304,8 @@ module Make
         mpart_list ~canon ~req:request bucket params
     | `GET, Bucket bucket, _, ["acl",""] ->
         send_default_acl ~req:request ~canon bucket
-    | `GET, Bucket _, "/", ["policy",""] ->
-        send_default_policy ~req:request ~canon
+    | `GET, Bucket bucket, "/", ["policy",""] ->
+        get_bucket_policy ~req:request ~canon bucket
     | `GET, Bucket bucket, "/",params ->
         list_bucket ~req:request ~canon bucket params
     | `HEAD, Bucket bucket, "/",_ ->
@@ -1352,7 +1330,8 @@ module Make
         else
           put_object ~canon ~request body bucket path
     | `PUT body, Bucket bucket, "/", ["acl",""] ->
-        set_bucket_acl ~req:request ~canon ~request body bucket
+      return_error Error.NotImplemented
+        ["LibreS3ErrorMessage", "Use a bucket policy instead"]
     | `PUT body, Bucket bucket, path, ["acl",""] ->
         set_object_acl ~canon ~request body bucket path
     | `POST body, Bucket bucket, "/", ["delete", ""] ->
@@ -1380,6 +1359,8 @@ module Make
         delete_object ~req:request ~canon bucket path
     | `DELETE, Bucket bucket, path, ["uploadId", uploadId] ->
         mput_delete ~canon ~request ~uploadId bucket path
+    | `DELETE, Bucket bucket, "/", ["policy",""] ->
+        delete_bucket_policy ~canon ~request bucket
     | meth, Bucket bucket, path,params ->
         return_error Error.MethodNotAllowed [
           ("NotImplemented", CanonRequest.string_of_method meth);

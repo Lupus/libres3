@@ -106,7 +106,7 @@ Document "api-client"
 
 Library server
   Path: src/server
-  Modules: Paths, Cmdline, Dispatch, Bucket, ServiceOps, BucketOps, ObjectOps, Error, CodedIO, CanonRequest, Cryptoutil, Util, Configfile, Pid, Murmur
+  Modules: Paths, Cmdline, Dispatch, Bucket, ServiceOps, BucketOps, ObjectOps, Error, CodedIO, CanonRequest, Cryptoutil, Util, Configfile, Pid, Murmur, Policy
   CompiledObject: Best
   BuildDepends: xmlm, netstring, netsys, str, cryptokit, sxclient, threads, ocsigenserver, ipaddr, ocplib-endian
   Install: false

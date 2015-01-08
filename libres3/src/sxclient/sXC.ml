@@ -1462,11 +1462,6 @@ struct
         )
       | e -> fail e) ()
 
-  let canon_id_of_name name =
-    let full = String.make 64 '\x00' in
-    String.blit name 0 full 0 (String.length name);
-    Cryptokit.transform_string (Cryptokit.Hexa.encode ()) full
-
   let map_perm = function
     | `String "read" -> `Read
     | `String "write" -> `Write
@@ -1477,7 +1472,7 @@ struct
 
   let map_acl = function
     | `F (name, [`A perms]) ->
-      `UserID (canon_id_of_name name, Some name), List.rev_map map_perm perms
+      `Grant, `UserName name, List.rev_map map_perm perms
     | (p:json) ->
       pp_json p;
       failwith "bad ACL json"
@@ -1499,41 +1494,27 @@ struct
       List.iter pp_json p;
       fail (Failure "bad ACL format")
 
-  let has_op id op l =
-    List.mem_assoc id l &&
-    List.mem op (List.assoc id l)
+  let find_acl_op dir op l =
+    List.find_all (fun (gr, id, acl) ->
+        gr = dir && List.mem op acl
+    ) l
 
-  let find_acl_op op a b =
-    (* op is part of 2nd list, but not the 1st list *)
-    List.find_all (fun (id, acl) ->
-      List.mem op acl && not (has_op id op a)
-    ) b
-
-  let map_string (id,_)  = `String id
+  let map_string (_, `UserName id,_)  = `String id
 
   let acl_op key l other = match l with
     | [] -> other
     | l -> (key, `Array (List.rev_map map_string l)) :: other
 
-  let json_of_acl old set =
-    acl_op "grant-read" (find_acl_op `Read old set) (
-      acl_op "grant-write" (find_acl_op `Write old set) (
-        acl_op "revoke-read" (find_acl_op `Read set old) (
-          acl_op "revoke-write" (find_acl_op `Write set old) [])))
-
-  let map_id = function
-    | `UserID(_, Some name), v -> name, v
-    | `UserID(id, _), v ->
-      let s = Cryptokit.transform_string (Hexa.decode ()) id in
-      let idx = try String.index s '\x00' with _ -> String.length s in
-      String.sub s 0 idx, v
-    | `UserName name, v -> name, v
+  let json_of_acl set =
+    acl_op "grant-read" (find_acl_op `Grant `Read set) (
+      acl_op "grant-write" (find_acl_op `Grant `Write set) (
+        acl_op "revoke-read" (find_acl_op `Revoke `Read set) (
+          acl_op "revoke-write" (find_acl_op `Revoke `Write set) [])))
 
   let set_acl url acls =
     get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
     let url = acl_url url in
-    get_acl url >>= fun old_acl ->
-    let json = json_of_acl (List.rev_map map_id old_acl) (List.rev_map map_id acls) in
+    let json = json_of_acl acls in
     send_json cluster_nodes url (`Object json) >>=
     job_get url
 

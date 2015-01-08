@@ -102,7 +102,7 @@ module type SXIOSig = sig
   val exists: [< `Url of url ] -> bool M.t
   val check : [< `Url of url ] -> string option M.t
 
-  type acl = [`UserID of string * string option | `UserName of string] * [`Owner | `Read | `Write] list
+  type acl = [`Grant | `Revoke] * [`UserName of string] * [`Owner | `Read | `Write] list
   val set_acl: [< `Url of url] -> acl list -> unit M.t
   val get_acl: [< `Url of url] -> acl list M.t
   val create_user: [< `Url of url ] -> string -> string M.t

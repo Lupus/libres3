@@ -36,7 +36,19 @@ module type Element = sig
   val name: string
   val of_string  : string -> t
   val matches : element:t -> t -> bool
+  val to_string: t -> string
 end
+
+let map_string s = `String s
+let arr_or_string v : Json.t = match v with
+  | [] -> `A []
+  | [ one ] -> `String one
+  | l -> `A (List.rev_map map_string l)
+
+let arr_or_item = function
+  | [] -> `A []
+  | [ one ] -> one
+  | l -> `A l
 
 module Elements(E: Element) = struct
   type t = Incl of E.t list | Excl of E.t list
@@ -51,16 +63,22 @@ module Elements(E: Element) = struct
   let matches element = function
     | Incl l -> List.exists (E.matches ~element) l
     | Excl l -> not (List.exists (E.matches ~element) l)
+
+  let to_json key = function
+    | Incl l -> key, arr_or_string (List.rev_map E.to_string l)
+    | Excl l -> key, arr_or_string (List.rev_map E.to_string l)
 end
 
 module Action = struct
   type t = string
   let name = "Action"
   let of_string s = s
+  let to_string s = s
   let matches ~element s = element = s
 end
 
 module Actions = Elements(Action)
+
 
 module Principal = struct
   type t = Anon | AWS of string list | Federated of string | Service of string |
@@ -68,10 +86,10 @@ module Principal = struct
   let of_string_json = function
     | `String "*" -> Anon
     | `O obj -> begin match obj with
-        | ["AWS", a] -> AWS (Json.expect_array_or_string a)
-        | ["Federated", v] -> Federated (Json.expect_string v)
-        | ["Service", s] -> Service (Json.expect_string s)
-        | ["CanonicalUser", u] -> CanonicalUser (Json.expect_string u)
+        | ["AWS", a] -> AWS (CodedIO.Json.expect_array_or_string a)
+        | ["Federated", v] -> Federated (CodedIO.Json.expect_string v)
+        | ["Service", s] -> Service (CodedIO.Json.expect_string s)
+        | ["CanonicalUser", u] -> CanonicalUser (CodedIO.Json.expect_string u)
         | [f, _] -> failwith ("Unknown principal type " ^ f)
         | _ -> failwith "Invalid principal JSON"
       end
@@ -80,6 +98,12 @@ module Principal = struct
   let matches ~element = function
     | Anon -> true
     | p -> element = p
+  let to_json = function
+    | Anon -> `String "*"
+    | AWS l -> `O ["AWS", `A (List.rev_map map_string l)]
+    | Federated f -> `O ["Federated", `String f]
+    | Service s  -> `O ["Service", `String s]
+    | CanonicalUser u -> `O ["CanonicalUser", `String u]
 end
 
 module Principals = struct
@@ -92,6 +116,14 @@ module Principals = struct
   let matches element l =
     List.exists (Principal.matches ~element) l.incl &&
     not (List.exists (Principal.matches ~element) l.excl)
+
+  let to_json_key key = function
+    | [] -> []
+    | l -> [ key, arr_or_item (List.rev_map Principal.to_json l) ]
+
+  let to_json key p : (string * Json.t) list =
+    List.rev_append (to_json_key key p.incl)
+      (to_json_key ("Not" ^ key) p.excl)
 end
 
 module Resource = struct
@@ -119,6 +151,8 @@ module Resource = struct
   let is_bucket ~bucket = function
     | policy_bucket :: _ -> policy_bucket = bucket
     | _ -> false
+  let to_string s =
+    String.concat ":" ["arn";"aws";"s3";"";""; Neturl.join_path s]
 end
 module Resources = Elements(Resource)
 
@@ -128,7 +162,7 @@ type statement = {
   principals: Principals.t;
   actions: Actions.t;
   resources: Resources.t;
-  condition: (string * Json.t) list;
+  condition: (string * CodedIO.Json.t) list;
 }
 
 type t = {
@@ -163,7 +197,7 @@ module Stmt = struct
     not_action: string list;
     resource: string list;
     not_resource: string list;
-    condition: (string * Json.t) list;
+    condition: (string * CodedIO.Json.t) list;
   }
 
   let empty = {
@@ -184,7 +218,7 @@ module Stmt = struct
     | _ -> failwith "Invalid Effect"
 
   let fold accum = function
-    | "Sid", sid -> { accum with sid = Some (Json.expect_string sid) }
+    | "Sid", sid -> { accum with sid = Some (CodedIO.Json.expect_string sid) }
     | "Effect", e -> { accum with effect = Some (parse_effect e) }
     | "Principal", p ->
       { accum with principal = [Principal.of_string_json p] }
@@ -192,16 +226,16 @@ module Stmt = struct
       { accum with not_principal = [Principal.of_string_json p] }
     | "Action", a ->
       { accum with
-        action = Json.expect_array_or_string a }
+        action = CodedIO.Json.expect_array_or_string a }
     | "NotAction", a ->
       { accum with
-        not_action = Json.expect_array_or_string a }
+        not_action = CodedIO.Json.expect_array_or_string a }
     | "Resource", a ->
-      { accum with resource = Json.expect_array_or_string a }
+      { accum with resource = CodedIO.Json.expect_array_or_string a }
     | "NotResource", a ->
-      { accum with not_resource = Json.expect_array_or_string a }
+      { accum with not_resource = CodedIO.Json.expect_array_or_string a }
     | "Condition", c ->
-      { accum with condition = (Json.expect_obj c) }
+      { accum with condition = (CodedIO.Json.expect_obj c) }
     | f, _ -> failwith ("Unknown field " ^ f)
 end
 
@@ -219,25 +253,55 @@ let valid_statement s =
   }
 
 let map_statement json =
-  valid_statement (List.fold_left Stmt.fold Stmt.empty (Json.expect_obj json))
+  valid_statement (List.fold_left Stmt.fold Stmt.empty (CodedIO.Json.expect_obj json))
 
 let fold_toplevel accum = function
-  | "Version", v -> { accum with version = Json.expect_string v }
-  | "Id", id -> { accum with id = Some (Json.expect_string id) }
+  | "Version", v -> { accum with version = CodedIO.Json.expect_string v }
+  | "Id", id -> { accum with id = Some (CodedIO.Json.expect_string id) }
   | "Statement", stmt ->
     { accum with
-      statements = List.rev_map map_statement (Json.expect_array stmt) }
+      statements = List.rev_map map_statement (CodedIO.Json.expect_array stmt) }
   | f, _ -> failwith ("Unknown field " ^ f)
 
 let of_string s =
-  let json = Json.expect_obj (Json.of_string s) in
+  let json = CodedIO.Json.expect_obj (CodedIO.Json.of_string s) in
   List.fold_left fold_toplevel empty json
 
 let is_anon_bucket_policy p bucket =
   valid p bucket && match p.statements with
   | [ { effect = Allow;
         principals = { Principals.incl = [Principal.Anon]; excl = [] };
-        actions = Actions.Incl [ "s3:GetObject" ];
+        actions = Actions.Incl [ "s3:GetObject" ]; _
       } ]
     -> true
   | _ -> false
+
+let build_anon_policy bucket = {
+  version = "2012-10-17"; id = None;
+  statements = [{
+    sid = None;
+    effect = Allow;
+    principals = Principals.of_lists ([Principal.Anon], []);
+    actions = Actions.of_lists (["s3:GetObject"], []);
+    resources = Resources.of_lists ([Printf.sprintf "arn:aws:s3:::%s/*" bucket], []);
+    condition = []
+    }]
+}
+
+let json_of_stmt s =
+  `O (("Effect", if s.effect = Allow then `String "Allow" else `String "Deny") ::
+      List.rev_append (Principals.to_json "Principal" s.principals)
+        (
+          Actions.to_json "Action" s.actions ::
+          Resources.to_json "Resource" s.resources
+          ::
+          if s.condition = [] then [] else ["Condition", `O s.condition]
+        )
+    )
+
+let json_of_policy p : Json.t =
+  `O [
+    "Version", `String p.version;
+    (* TODO: id *)
+    "Statement", `A (List.rev_map json_of_stmt p.statements)
+  ]

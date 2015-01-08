@@ -27,6 +27,7 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
+let small_buffer_size = 128
 module Xml = struct
   type t = t Xmlm.frag
 
@@ -61,7 +62,7 @@ module Xml = struct
   let conv_id (x:t) = x
 
   let to_string ?decl tree =
-    let buf = Buffer.create Configfile.small_buffer_size in
+    let buf = Buffer.create small_buffer_size in
     let out = Xmlm.make_output ~ns_prefix:(fun s -> Some "xml") ?decl (`Buffer buf) in
     Xmlm.output_doc_tree conv_id out (None, tree);
     Buffer.contents buf
@@ -79,7 +80,7 @@ module Json = struct
     | `Lexeme `As -> arr d []
     | `Lexeme (`Null | `Bool _ | `String _ | `Float _ as v) -> v
     | `Error e ->
-      let b = Buffer.create Configfile.small_buffer_size in
+      let b = Buffer.create small_buffer_size in
       let fmt = Format.formatter_of_buffer b in
       let (l1,c1),(l2,c2) = Jsonm.decoded_range d in
       Format.fprintf fmt "Bad JSON at %d:%d-%d:%d: %a%!" l1 c1 l2 c2
@@ -133,7 +134,7 @@ module Json = struct
       | (n, v) :: ms -> enc e (`Name n); value v (obj_ms ms k) e
       | [] -> enc e `Oe; k e
     in
-    let b = Buffer.create Configfile.small_buffer_size in
+    let b = Buffer.create small_buffer_size in
     let e = Jsonm.encoder ~minify:false (`Buffer b) in
     let finish e = ignore (Jsonm.encode e `End) in
     match json with
