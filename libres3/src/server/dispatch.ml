@@ -471,15 +471,20 @@ module Make
          return_error Error.NoSuchBucket ["Bucket", bucket]
     ;;
 
-  let fake_owner =
+  let canon_id_of_name name =
+    let full = String.make 64 '\x00' in
+    String.blit name 0 full 0 (String.length name);
+    Cryptokit.transform_string (Cryptokit.Hexa.encode ()) full
+
+  let owner name =
       [
           (* TODO: use real uid once SX supports it *)
-          Xml.tag "ID" [Xml.d Configfile.owner_id];
-          Xml.tag "DisplayName" [ Xml.d Configfile.owner_name]
+          Xml.tag "ID" [Xml.d (canon_id_of_name name)];
+          Xml.tag "DisplayName" [ Xml.d name]
       ]
 
   module StringSet = Set.Make(String)
-  let list_bucket_files2 l common =
+  let list_bucket_files2 owner_name l common =
     let contents = StringMap.fold (fun name (size, mtime, etag) accum ->
       (Xml.tag "Contents" [
         Xml.tag "Key" [Xml.d name];
@@ -489,7 +494,7 @@ module Make
         Xml.tag "ETag" [Xml.d (quote etag)];
         Xml.tag "Size" [Xml.d (Int64.to_string size)];
         Xml.tag "StorageClass" [Xml.d "STANDARD"];
-        Xml.tag "Owner" fake_owner
+        Xml.tag "Owner" (owner owner_name)
       ]) :: accum
     ) l [] in
     StringSet.fold (fun name accum ->
@@ -611,10 +616,10 @@ module Make
     let _, id, _ = (List.find (fun (_, _, perm) -> List.mem `Owner perm) acl) in
     id
 
-  let canon_id_of_name name =
-    let full = String.make 64 '\x00' in
-    String.blit name 0 full 0 (String.length name);
-    Cryptokit.transform_string (Cryptokit.Hexa.encode ()) full
+  let get_owner ~canon bucket =
+    U.get_acl (fst (url_of_volpath ~canon bucket "")) >>= fun acl ->
+    let `UserName owner = find_owner acl in
+    return owner
 
   let canonical_id = function
     | `UserName displayname ->
@@ -787,7 +792,8 @@ module Make
           return_error Error.NoSuchBucket ["Bucket",bucket]
     end else return ()
     end >>= fun () ->
-    let xml = list_bucket_files2 files common_prefixes in
+    get_owner ~canon bucket >>= fun owner ->
+    let xml = list_bucket_files2 owner files common_prefixes in
     return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
         Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "ListBucketResult" (
           List.rev_append [
@@ -958,7 +964,7 @@ module Make
     parse_input_xml_opt body "CompleteMultipartUpload"
       parse_parts (get_part_sizes ~canon bucket path ~uploadId)
 
-  let list_bucket_uploads l common =
+  let list_bucket_uploads owner_name l common =
     let _, contents = StringMap.fold (fun name (size, mtime, md5) (lastkey, accum) ->
       let name = Filename.dirname name in
       let key = Filename.dirname name in
@@ -969,8 +975,8 @@ module Make
       else key, (Xml.tag "Upload" [
         Xml.tag "Key" [Xml.d key];
         Xml.tag "UploadId" [Xml.d uploadId];
-        Xml.tag "Initiator" fake_owner;
-        Xml.tag "Owner" fake_owner;
+        Xml.tag "Initiator" (owner owner_name);
+        Xml.tag "Owner" (owner owner_name);
         Xml.tag "StorageClass" [Xml.d "STANDARD"];
         Xml.tag "Initiated" [Xml.d (
           Util.format_date mtime)
@@ -1009,7 +1015,9 @@ module Make
           return_error Error.NoSuchBucket ["Bucket",bucket]
     end else return ()
     end >>= fun () ->
-    let xml = list_bucket_uploads files common_prefixes in
+    U.get_acl (fst (url_of_volpath ~canon mpart_bucket "")) >>= fun acl ->
+    let `UserName owner = find_owner acl in
+    let xml = list_bucket_uploads owner files common_prefixes in
     return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
         Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "ListMultipartUploadsResult" (
           List.rev_append [
@@ -1057,11 +1065,12 @@ module Make
       ) ~recurse:(fun _ -> true) [] >>= fun parts ->
     (* TODO: support maxParts *)
     (* TODO: check consistency of uploadId with bucket/path *)
+    get_owner ~canon mpart_bucket >>= fun owner_name ->
     return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
       Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "ListPartsResult" (List.rev (List.rev_append parts [
           Xml.tag "StorageClass" [Xml.d "STANDARD"];
-          Xml.tag "Owner" fake_owner;
-          Xml.tag "Initiator" fake_owner;
+          Xml.tag "Owner" (owner owner_name);
+          Xml.tag "Initiator" (owner owner_name);
           Xml.tag "UploadId" [Xml.d uploadId];
           Xml.tag "Key" [Xml.d (String.sub path 1 (String.length path-1))];
           Xml.tag "Bucket" [Xml.d bucket]
@@ -1218,6 +1227,22 @@ module Make
         | e -> IO.fail e
     )
 
+  let list_all_buckets all owner_name =
+    Xml.tag ~attrs:[Xml.attr "xmlns" Configfile.reply_ns] "ListAllMyBucketsResult" [
+      Xml.tag "Owner" (owner owner_name);
+      Xml.tag "Buckets" (
+        List.rev_map (fun name ->
+            Xml.tag "Bucket" [
+              Xml.tag "Name" [Xml.d name];
+              Xml.tag "CreationDate" [
+                (* TODO: SX should send ctime! *)
+                Xml.d (Util.format_date 0.)
+              ]
+            ]
+          ) all
+      )
+    ];;
+
   let list_buckets request canon =
     let base, url = url_of_volpath ~canon "" "" in
     let buckets = ref [] in
@@ -1231,8 +1256,14 @@ module Make
         end;
         false
     ) () >>= fun () ->
+    let self = canon.CanonRequest.user in
+    IO.rev_map_p (fun bucket ->
+    get_owner ~canon bucket >>= fun owner_name ->
+    return (if owner_name = self then bucket else "")) !buckets >>= fun buckets ->
+    let buckets = List.filter (fun s -> s <> "") buckets in
     return_xml_canon ~req:request ~canon ~status:`Ok ~reply_headers:[]
-      (ServiceOps.list_all_buckets !buckets);;
+      (list_all_buckets buckets self);;
+
 
   let set_object_acl ~canon ~request body _ _ =
     parse_input_xml_opt body "AccessControlPolicy" (function
@@ -1426,7 +1457,7 @@ module Make
               "Hint","Your S3 access key must be set to your SX user name"
             ]
         end
-      | None -> f ""
+      | None -> f !Config.key_id
 
   let handle_request_real request =
     let id = RequestId.generate () in

@@ -135,6 +135,8 @@ module Make(M:Sigs.Monad)(OS:EventIO.OSMonad with type 'a t = 'a M.t) = struct
           accum >>= fun accum -> filter_fold f path accum e
         ) volume (return accum)
 
+  let acl_table = Hashtbl.create 16
+
   let create ?metafn ?replica url =
     match file url with
     | vol, ("" | "/") ->
@@ -142,6 +144,8 @@ module Make(M:Sigs.Monad)(OS:EventIO.OSMonad with type 'a t = 'a M.t) = struct
         fail (Unix.Unix_error(Unix.EEXIST, "create", vol))
       else begin
         volumes := StringMap.add vol StringMap.empty !volumes;
+        Hashtbl.replace acl_table url [`Grant, `UserName !Config.key_id,
+                                       [`Owner;`Read;`Write]];
         return ();
       end
     | vol, path ->
@@ -192,7 +196,6 @@ module Make(M:Sigs.Monad)(OS:EventIO.OSMonad with type 'a t = 'a M.t) = struct
     users := name :: !users;
     return ""
 
-  let acl_table = Hashtbl.create 16
 
   let get_acl url = return (Hashtbl.find acl_table url)
   let set_acl (url:Neturl.url) (acls : IO.acl list) =
