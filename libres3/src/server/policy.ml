@@ -53,7 +53,10 @@ let arr_or_item = function
 module Elements(E: Element) = struct
   type t = Incl of E.t list | Excl of E.t list
 
-  let map_uniq l = List.rev_map E.of_string (List.sort_uniq String.compare l)
+  module StringSet = Set.Make(String)
+  let sort_uniq l =
+    StringSet.elements (List.fold_left (fun accum s -> StringSet.add s accum) StringSet.empty l)
+  let map_uniq l = List.rev_map E.of_string (sort_uniq l)
   let of_lists = function
     | [], [] -> failwith ("Must specify either " ^ E.name ^ " or Not"^E.name)
     | incl, [] -> Incl (map_uniq incl)
