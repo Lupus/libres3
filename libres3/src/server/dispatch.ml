@@ -1408,6 +1408,15 @@ module Make
     | `GET, Bucket "", "/",[] -> true
     | _ -> false
 
+  let is_s3_get_object canon =
+    match
+      canon.CanonRequest.req_method, canon.CanonRequest.bucket,
+      canon.CanonRequest.path, CanonRequest.actual_query_params canon
+    with
+    | (`GET | `HEAD), Bucket _, path, [] ->
+      path <> "" && path <> "/"
+    | _ -> false
+
   let validate_authorization ~request ~canon f =
     match CanonRequest.parse_authorization canon with
     | CanonRequest.AuthNone ->
@@ -1416,7 +1425,7 @@ module Make
           ~id:canon.CanonRequest.id ~id2:(CanonRequest.gen_debug ~canon)
           ~status:`Ok ~reply_headers:[] ~content_type:"text/html"
           Homepage.root
-      else if request.meth = `GET || request.meth = `HEAD then
+      else if is_s3_get_object canon then
         try_catch (fun () ->
             f libres3_all_users)
           (function
