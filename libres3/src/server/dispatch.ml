@@ -892,7 +892,8 @@ module Make
     let uploadId = Cryptoutil.base64url_encode (Buffer.contents buf) in
     mpart_get_path ~canon bucket path ~uploadId ~part:"0" >>= fun (mpart_bucket, mpart_path) ->
     let _, url = url_of_volpath ~canon mpart_bucket mpart_path in
-    let meta = add_meta_headers [] canon.CanonRequest.headers.Headers.ro#fields in
+    let default_meta = content_type canon in
+    let meta = add_meta_headers default_meta canon.CanonRequest.headers.Headers.ro#fields in
     U.copy (U.of_string "") ~metafn:(fun () -> meta) ~srcpos:0L url >>= fun () ->
     return_xml_canon ~req:request ~canon ~status:`Ok ~reply_headers:[] (
       Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "InitiateMultipartUploadResult"
@@ -1218,7 +1219,9 @@ module Make
     send_long_running ~canon ~req:request key (fun url ->
         let _, url = url_of_volpath ~canon bucket path in
         let etag = uploadId ^ "-1" in
-        let meta = add_meta_headers [meta_key, etag] metalst in
+        let content_type = List.assoc meta_key_content_type metalst in
+        let meta = add_meta_headers [meta_key, etag;
+                                     meta_key_content_type, content_type] metalst in
         U.copy ~metafn:(fun () -> meta) (`Urls (urls, filesize)) ~srcpos:0L url
         >>= fun () ->
             mput_delete_common ~canon ~request ~uploadId bucket path >>= fun _ ->
