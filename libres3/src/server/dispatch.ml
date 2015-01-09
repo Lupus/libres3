@@ -535,13 +535,25 @@ module Make
   let meta_key_size = "libres3-filesize"
   let meta_key_content_type = "libres3-content-type"
 
+  let default_mime_type = "binary/octet-stream"
+  let content_type canon =
+    if canon.CanonRequest.content_type = "" then
+      [meta_key_content_type, default_mime_type]
+    else [meta_key_content_type, canon.CanonRequest.content_type]
+
   let compute_meta ~canon url =
     match Headers.field_single_value canon.CanonRequest.headers
             "x-amz-metadata-directive" "COPY" with
     | "COPY" ->
       U.get_meta url
     | "REPLACE" ->
-      return canon.CanonRequest.headers.Headers.ro#fields
+      IO.try_catch (fun () ->
+          U.get_meta url >>= fun metalst ->
+          return [meta_key, List.assoc meta_key metalst]
+      ) (fun _ -> return []) () >>= fun etag_meta ->
+      (* keep libres3-specific metadata *)
+      return (List.rev_append (List.rev_append etag_meta (content_type canon))
+        (canon.CanonRequest.headers.Headers.ro#fields))
     | d ->
       return_error Error.InvalidRequest ["Invalid-x-amz-metadata-directive", d]
 
@@ -550,8 +562,7 @@ module Make
     (* TODO: check for copying onto self and allow only if meta is set to
       REPLACE *)
     compute_meta ~canon source >>= fun metalst ->
-    U.copy source ~srcpos:0L ~metafn:(fun () ->
-      add_meta_headers [] metalst) url >>= fun () ->
+    U.copy source ~srcpos:0L ~metafn:(fun () -> metalst) url >>= fun () ->
     (* TODO: check for .., check Content-MD5, store it,
      * and store Content-Type*)
     return (etag, mtime);;
@@ -579,12 +590,6 @@ module Make
         Xml.tag "ETag" [Xml.d (quote etag)]
       ]
     );;
-
-  let default_mime_type = "binary/octet-stream"
-  let content_type canon =
-    if canon.CanonRequest.content_type = "" then
-      [meta_key_content_type, default_mime_type]
-    else [meta_key_content_type, canon.CanonRequest.content_type]
 
   let put_metafn ~canon md5 digestref size () =
     digestref := Cryptokit.transform_string (Cryptokit.Hexa.encode ())
