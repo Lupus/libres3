@@ -580,8 +580,10 @@ module Make
       ]
     );;
 
+  let default_mime_type = "binary/octet-stream"
   let content_type canon =
-    if canon.CanonRequest.content_type = "" then []
+    if canon.CanonRequest.content_type = "" then
+      [meta_key_content_type, default_mime_type]
     else [meta_key_content_type, canon.CanonRequest.content_type]
 
   let put_metafn ~canon md5 digestref size () =
@@ -706,6 +708,13 @@ module Make
     return (Int64.of_string (List.assoc meta_key_size lst),
             List.assoc meta_key lst)
 
+  let mime_assoc =
+    (* load system mime.types, and fallback to internal if not available *)
+    let types =
+      try Ocsigen_charset_mime.parse_mime_types ~filename:"/etc/mime.types"
+      with _ -> Ocsigen_charset_mime.default_mime_assoc () in
+    Ocsigen_charset_mime.set_default_mime types default_mime_type
+
   let get_object ~req ~canon bucket path =
     (* TODO: check for .. *)
     (* TODO: hash of hashlist to md5 mapping *)
@@ -714,7 +723,8 @@ module Make
         U.get_meta url >>= fun metalst ->
         let content_type =
           try List.assoc meta_key_content_type metalst
-          with Not_found -> "binary/octet-stream" in
+          with Not_found ->
+            Ocsigen_charset_mime.find_mime path mime_assoc in
         return_source url ~req ~canon ~content_type ~metalst
     ) (function
         | Unix_error((ENOENT|EISDIR),_,_)
