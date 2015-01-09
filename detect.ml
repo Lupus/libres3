@@ -235,7 +235,7 @@ end = struct
     if v <> "" then
     Unix.putenv env (
       if old = "" || old = v then v
-      else (old ^ ":" ^ v)
+      else (old ^ " " ^ v)
     )
   ;;
 
