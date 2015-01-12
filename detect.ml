@@ -552,12 +552,17 @@ end = struct
       (List.rev_map depname deps)
   ;;
 
+  let not_starts_with ~start str =
+    let i = String.length start in
+    not (i <= String.length str && String.sub str 0 i = start)
+
   let generate_main f main builds =
     let args = List.tl (Array.to_list Sys.argv) in
     let dir = Filename.concat ".." main in
 
     fprintf f "let build_all _ _ =\n";
     print_cmd_env f dir;
+    let args = List.filter (not_starts_with ~start:"--includedir=") args in
     print_cmd f "configure"
       (append
         ["./configure";"--override";"ocamlbuildflags";"-j 0";
