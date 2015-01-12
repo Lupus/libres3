@@ -625,8 +625,12 @@ module Make
 
   let get_owner ~canon bucket =
     U.get_acl (fst (url_of_volpath ~canon bucket "")) >>= fun acl ->
-    let `UserName owner = find_owner acl in
-    return owner
+    try
+      let `UserName owner = find_owner acl in
+      return owner
+    with Not_found ->
+      (* we cannot determine the owner unless we are the owner or an admin *)
+      return "libres3-default"
 
   let canonical_id = function
     | `UserName displayname ->
