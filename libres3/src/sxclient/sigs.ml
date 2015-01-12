@@ -229,8 +229,14 @@ module type EventIOSig = sig
   type filestate
   val with_file: string -> (filestate Source.t -> 'a t) -> 'a t
 
+  type file_descr
+
   val with_resource : fn_open:('a -> 'b t) -> fn_close:('b -> unit t) -> ('b -> unit t) -> 'a -> unit t
-  val with_file_write : string -> Unix.file_perm -> (output_stream -> unit t) -> unit t
+  val with_tempfile : (file_descr -> 'a t) -> 'a t
+  val really_write : file_descr -> string -> int -> int -> unit t
+  val really_read : file_descr -> string -> int -> int -> int t
+  val lseek: file_descr -> int64 -> unit t
+  val rng : Cryptokit.Random.rng
 
   val unlink: string -> unit t
   exception InputTooLarge of int

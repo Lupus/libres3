@@ -249,21 +249,43 @@ module Make (M: Sigs.Monad) (OS: OSMonad with type 'a t = 'a M.t)
 
   let unlink = OS.unlink
 
+  type file_descr = OS.file_descr
+
+  let rec really_read fd buf pos n =
+    if n > 0 then
+      OS.read fd buf pos n >>= fun amount ->
+      if amount = 0 then return pos
+      else really_read fd buf (pos + amount) (n - amount)
+    else return pos
+
   let rec really_write out str pos len =
     if len <= 0 then return ()
     else
       OS.write out str pos len >>= fun amount ->
       really_write out str (pos + amount) (len - amount);;
 
-  let with_file_write filename perm f =
+  let lseek fd pos =
+    OS.LargeFile.lseek fd pos Unix.SEEK_SET >>= fun _ -> return ()
+
+  (* TODO: create a temporary dir, and create all tmpfiles there *)
+  let rng = Cryptokit.Random.device_rng "/dev/urandom"
+
+  let tempfilename () =
+    let rand = Cryptokit.Random.string rng 16 in
+    let hex = Cryptokit.transform_string (Cryptokit.Hexa.encode ()) rand in
+    Filename.concat (Netsys_tmp.tmp_directory ())
+      (Printf.sprintf "libres3_upload_%s.tmp" hex)
+
+  let tmp_open name =
+    OS.openfile name [Unix.O_RDWR; Unix.O_CREAT; Unix.O_EXCL] 0o600 >>=
+    fun fd -> OS.unlink name >>= fun () -> return fd
+
+  let with_tempfile f =
+    let tmpfile = tempfilename () in
     with_resource
-      ~fn_open:(fun name ->
-        OS.openfile name [Unix.O_WRONLY; Unix.O_CREAT] perm)
+      ~fn_open:tmp_open
       ~fn_close:OS.close
-      (fun out ->
-        f (really_write out)
-      )
-      filename;;
+      f tmpfile;;
 
   let string_of_file filename =
     FileSource.with_source filename (fun source ->

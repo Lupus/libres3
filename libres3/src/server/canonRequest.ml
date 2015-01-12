@@ -316,15 +316,14 @@ type auth_v4 = {
 let scope_of_credential c =
   String.concat "/" [ c.date_ymd; c.region; c.service; "aws4_request" ]
 
-let string_to_sign_v4 auth ?body ~canon_req =
+let string_to_sign_v4 auth ?sha256 ~canon_req =
   let absolute_uri =  canon_req.lpath in
   let signed_headers =
     Headers.StringSet.elements (Headers.StringSet.union auth.signed_headers
       (Headers.filter_names_set must_sign_header canon_req.headers)) in
-  let payloadhash = match body with
+  let payloadhash = match sha256 with
   | None -> "STREAMING-AWS4-HMAC-SHA256-PAYLOAD"
-  | Some s ->
-    Cryptoutil.sha256 s in
+  | Some s -> Cryptokit.transform_string (Cryptokit.Hexa.encode ()) s in
   let canonical_request = String.concat "\n" [
     string_of_method canon_req.req_method;
     uri_encode ~encode_slash:false absolute_uri;

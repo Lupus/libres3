@@ -989,26 +989,12 @@ struct
       ;;
 
     (* TODO: these would belong in eventIO *)
-    let rec really_read fd buf pos n =
-      if n > 0 then
-        OS.read fd buf pos n >>= fun amount ->
-        if amount = 0 then return pos
-        else really_read fd buf (pos + amount) (n - amount)
-    else return pos
-
-    let rec really_write out str pos len =
-      if len <= 0 then return ()
-      else
-        OS.write out str pos len >>= fun amount ->
-        really_write out str (pos + amount) (len - amount);;
-
-
     let rec compute_hashes_loop uuid tmpfd stream buf blocksize lst map pos stop =
       if pos >= stop then return (lst, map, stop)
       else begin
       String.fill buf.buf 0 (String.length buf.buf) '\x00';
       read_block stream buf 0 blocksize >>= fun status ->
-      really_write tmpfd buf.buf 0 (String.length buf.buf) >>= fun () ->
+      IO.really_write tmpfd buf.buf 0 (String.length buf.buf) >>= fun () ->
       if status = EOF then return (lst, map, pos)
       else
         let h = Hash.sha1 () in
@@ -1042,8 +1028,8 @@ struct
           let seekpos = StringMap.find hash map in
 (*          Printf.printf "Uploading hash %s from offset %Ld\n" hash seekpos;*)
           let offset = Int64.sub seekpos offset in
-          OS.LargeFile.lseek tmpfd offset Unix.SEEK_SET >>= fun _ ->
-          really_read tmpfd buf.buf pos blocksize >>= function
+          IO.lseek tmpfd offset >>= fun _ ->
+          IO.really_read tmpfd buf.buf pos blocksize >>= function
           | 0 -> fail (Failure "eof when trying to read hash")
           | _ ->
               return (pos + blocksize)
@@ -1251,23 +1237,14 @@ struct
           let url = if extendseq > 0L then
             Neturl.modify_url url ~path:["";".upload";token] ~encoded:false
           else url in
-          OS.LargeFile.lseek tmpfd 0L Unix.SEEK_SET >>= fun _ ->
+          IO.lseek tmpfd 0L >>= fun _ ->
           let metafn_final = if endpos = size then metafn else None in
           upload_part ?metafn:metafn_final nodes url (pos, tmpfd) blocksize hashes map size extendseq >>= fun (host, token) ->
           let url = Neturl.modify_url ~host url in
-          OS.LargeFile.lseek tmpfd 0L Unix.SEEK_SET >>= fun _ ->
+          IO.lseek tmpfd 0L >>= fun _ ->
           upload_chunks ?metafn buf tmpfd [host] url size uuid stream blocksize endpos token
       end
     ;;
-
-    (* TODO: create a temporary dir, and create all tmpfiles there *)
-    let rng = Random.device_rng "/dev/urandom"
-
-    let tempfilename () =
-      let rand = Random.string rng 16 in
-      let hex = transform_string (Hexa.encode ()) rand in
-      Filename.concat (Netsys_tmp.tmp_directory ())
-        (Printf.sprintf "libres3_upload_%s.tmp" hex)
 
     let put ?metafn src srcpos url =
       let host = url_host url in
@@ -1279,21 +1256,12 @@ struct
         (* TODO: handle no such volume errors *)
         locate_upload url size >>= fun (uuid, nodes, blocksize) ->
         let url = Neturl.modify_url ~host url in
-        let tmpfile = tempfilename () in
         src.XIO.seek 0L >>= fun stream ->
-        (* TODO: better error handling *)
-          OS.openfile tmpfile [Unix.O_RDWR; Unix.O_CREAT; Unix.O_EXCL] 0o600 >>= fun tmpfd ->
-        let buf = {
-          buf = String.make blocksize '\x00';
-          str = ""; pos = 0; n = 0 } in
-        try_catch (fun () ->
-          upload_chunks ?metafn buf tmpfd nodes url size uuid stream blocksize srcpos "" >>= fun () ->
-          OS.close tmpfd >>= fun () ->
-          OS.unlink tmpfile
-        ) (fun e ->
-          OS.close tmpfd >>= fun () ->
-          OS.unlink tmpfile >>= fun () ->
-          fail e) ()
+        IO.with_tempfile (fun tmpfd ->
+            let buf = {
+              buf = String.make blocksize '\x00';
+              str = ""; pos = 0; n = 0 } in
+            upload_chunks ?metafn buf tmpfd nodes url size uuid stream blocksize srcpos "")
     | _ ->
         fail (Failure "can only put a file (not a volume or the root)")
 
@@ -1529,7 +1497,7 @@ struct
     ) (function
         | SXIO.Detail (e, details) ->
           let key = Cryptokit.transform_string (Cryptokit.Hexa.encode ())
-              (Random.string rng 20) in
+              (Random.string IO.rng 20) in
           let json = [
             "userName", `String name;
             "userType", `String "normal";

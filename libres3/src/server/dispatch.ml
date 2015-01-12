@@ -307,7 +307,8 @@ module Make
     | (`DELETE | `GET | `HEAD | `POST _| `PUT _) as a -> a
     | _ -> `UNSUPPORTED
 
-  let max_input_xml = 65536
+  let max_input_xml = 5*1048576
+  let max_input_mem = 65536L
 
   let read_all ~input ~max =
     let buf = Buffer.create Configfile.small_buffer_size in
@@ -515,21 +516,49 @@ module Make
       U.with_url_source url (fun source -> return source.U.meta) >>= fun meta ->
       return (url, meta.U.mtime, meta.U.etag)
 
-  let md5_stream2 md5 stream () =
+  let hash_stream2 hash stream () =
     stream () >>= fun (str,pos,len) ->
     if len > 0 then
-      md5#add_substring str pos len;
+      hash#add_substring str pos len;
     return (str, pos, len);;
 
-  let md5_seek_source2 md5 source pos =
+  let hash_seek_source2 hash source pos =
     source.U.seek pos >>= fun stream ->
-    return (md5_stream2 md5 stream);;
+    return (hash_stream2 hash stream);;
 
-  let md5_source2 md5 source =
+  let hash_source2 hash source =
     `Source {
       U.meta = source.U.meta;
-      seek = md5_seek_source2 md5 source
+      seek = hash_seek_source2 hash source
     };;
+
+  let fd_seek fd pos =
+    IO.lseek fd pos >>= fun () ->
+    return (fun () ->
+        let buf = String.make Config.buffer_size '\x00' in
+        IO.really_read fd buf 0 (String.length buf) >>= fun amount ->
+        return (buf, 0, amount)
+    )
+
+  let filter_sha256 input f =
+    if input.U.meta.U.size <= max_input_mem then
+      read_all ~max:(Int64.to_int input.U.meta.U.size) ~input >>= fun str ->
+      let sha256 = Cryptokit.hash_string (Cryptokit.Hash.sha256 ()) str in
+      f (U.of_string str) ~sha256
+    else
+      IO.with_tempfile (fun tmpfd ->
+          let sha256 = Cryptokit.Hash.sha256 () in
+          U.copy (hash_source2 sha256 input) ~srcpos:0L (U.of_sink (fun pos ->
+              IO.lseek tmpfd pos >>= fun () ->
+              return (fun (buf, pos, len) -> IO.really_write tmpfd buf pos len)))
+          >>= fun () ->
+          IO.lseek tmpfd 0L >>= fun () ->
+          let source = U.of_source {
+              U.meta = input.U.meta;
+              seek = fd_seek tmpfd
+            } in
+          f source ~sha256:sha256#result
+        );;
 
   let meta_key = "libres3-etag-md5"
   let meta_key_size = "libres3-filesize"
@@ -602,7 +631,7 @@ module Make
 
   let put_object ~canon ~request src bucket path =
     let md5 = Cryptokit.Hash.md5 () in
-    let source = md5_source2 md5 src in
+    let source = hash_source2 md5 src in
     IO.try_catch
       (fun () ->
         let _, url = url_of_volpath ~canon bucket path in
@@ -1494,7 +1523,9 @@ module Make
       path <> "" && path <> "/"
     | _ -> false
 
-  let validate_authorization ~request ~canon f =
+  let empty_sha256 = Cryptokit.hash_string (Cryptokit.Hash.sha256 ()) ""
+
+  let validate_authorization ~request ~canon =
     match CanonRequest.parse_authorization canon with
     | CanonRequest.AuthNone ->
       if is_root_get canon then
@@ -1504,7 +1535,8 @@ module Make
           Homepage.root
       else if is_s3_get_object canon then
         try_catch (fun () ->
-            f libres3_all_users)
+            dispatch_request ~request
+              ~canon:{ canon with CanonRequest.user = libres3_all_users })
           (function
             | Error.ErrorReply (Error.NoSuchBucket, _, _) ->
               return_error Error.AccessDenied ["MissingHeader", "Authorization"]
@@ -1529,28 +1561,41 @@ module Make
         U.token_of_user (U.of_neturl url) >>= begin function
         | Some hmac_key ->
           (* TODO: body *)
-          let canonical_request, string_to_sign =
-            CanonRequest.string_to_sign_v4 auth ~body:"" ~canon_req:canon in
-          let expected_signature =
-            CanonRequest.sign_string_v4 ~key:hmac_key credential string_to_sign in
-          if expected_signature <> signature then
-            return_error Error.SignatureDoesNotMatch [
-              ("StringToSign", string_to_sign);
-              ("CanonicalRequest", canonical_request);
-              ("Host", canon.CanonRequest.host);
-              ("UndecodedPath", canon.CanonRequest.undecoded_uri_path);
-              ("Bucket", Bucket.to_string canon.CanonRequest.bucket);
-              ("Hint", "Your S3 secret key should be set to your SX key and your S3 access key should be set to your SX username")
-            ]
-          else
-            f user
-
+          let f ~sha256 ~canon =
+            let canonical_request, string_to_sign =
+              CanonRequest.string_to_sign_v4 auth ~sha256 ~canon_req:canon in
+            let expected_signature =
+              CanonRequest.sign_string_v4 ~key:hmac_key credential string_to_sign in
+            if expected_signature <> signature then
+              return_error Error.SignatureDoesNotMatch [
+                ("StringToSign", string_to_sign);
+                ("CanonicalRequest", canonical_request);
+                ("Host", canon.CanonRequest.host);
+                ("UndecodedPath", canon.CanonRequest.undecoded_uri_path);
+                ("Bucket", Bucket.to_string canon.CanonRequest.bucket);
+                ("Hint", "Your S3 secret key should be set to your SX key and your S3 access key should be set to your SX username")
+              ]
+            else
+              dispatch_request ~request
+                ~canon:{ canon with CanonRequest.user = user }
+          in
+          begin match canon.CanonRequest.req_method with
+            | `PUT body ->
+              filter_sha256 body (fun (`Source input) ~sha256 ->
+                  f ~sha256 ~canon:{ canon with CanonRequest.req_method = `PUT input })
+            | `POST body ->
+              filter_sha256 body (fun (`Source input) ~sha256 ->
+                  f ~sha256 ~canon:{ canon with CanonRequest.req_method = `POST input })
+            | _ -> f ~sha256:empty_sha256 ~canon
+          end
         | None ->
             return_error Error.InvalidAccessKeyId [
               "Hint","Your S3 access key must be set to your SX user name"
             ]
         end
-      | None -> f ""
+      | None ->
+        dispatch_request ~request
+          ~canon:{ canon with CanonRequest.user = "" }
       end
     | CanonRequest.Authorization (user, signature) ->
       match !Configfile.sx_host with
@@ -1570,13 +1615,16 @@ module Make
               ("Hint", "Your S3 secret key should be set to your SX key and your S3 access key should be set to your SX username")
             ]
           else
-            f user
+            dispatch_request ~request
+              ~canon:{ canon with CanonRequest.user = user }
         | None ->
             return_error Error.InvalidAccessKeyId [
               "Hint","Your S3 access key must be set to your SX user name"
             ]
         end
-      | None -> f !Config.key_id
+      | None ->
+        dispatch_request ~request
+          ~canon:{ canon with CanonRequest.user = user }
 
   let handle_request_real request =
     let id = RequestId.generate () in
@@ -1590,9 +1638,7 @@ module Make
           "/" ^ (Bucket.to_string  canon.CanonRequest.bucket) ^
           canon.CanonRequest.path in
       IO.try_catch (fun () ->
-        validate_authorization ~request ~canon (fun user ->
-          dispatch_request ~request ~canon:{ canon with CanonRequest.user = user }
-        )
+        validate_authorization ~request ~canon
       )
       (function
       | Error.ErrorReply (code, details, headers) ->

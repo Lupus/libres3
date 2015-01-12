@@ -116,17 +116,6 @@ end = struct
       TestUtil.assert_eq_intlist [12;11;10;9] l
     );;
 
-  let test_file_write () =
-    M.run (
-      let name = "test-file-write"
-      and expected = "foo" in
-      IO.with_file_write name 0o700 (fun out ->
-        out expected 0 (String.length expected)) >>= fun () ->
-      IO.string_of_file name >>= fun actual ->
-      assert_equal ~printer:id expected actual;
-      IO.unlink name
-    );;
-
   let tests =
     "EventIO">:::[
       "basic monad">::test_monad;
@@ -139,6 +128,5 @@ end = struct
       ];
       "iter_s">::test_iter_s;
       "rev_map_p">::test_rev_map_p;
-      "file write">::test_file_write;
     ]
 end

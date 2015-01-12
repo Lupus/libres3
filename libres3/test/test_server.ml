@@ -89,7 +89,10 @@ let test_request_parse_sign_v4 (data,expected_canonical,body) =
     assert_str_equal ~msg:"bucket" data.expected_bucket (Bucket.to_string canon_req.bucket);
     match CanonRequest.parse_authorization canon_req with
     | AuthorizationV4 (authv4, expected_signature) ->
-      let canonical, tosign = string_to_sign_v4 authv4 ?body:body ~canon_req in
+      let sha256 = match body with
+        | Some s -> Some (Cryptokit.hash_string (Cryptokit.Hash.sha256 ()) s)
+        | None -> None in
+      let canonical, tosign = string_to_sign_v4 authv4 ?sha256 ~canon_req in
       assert_str_equal ~msg:"canonical request" expected_canonical canonical;
       assert_str_equal ~msg:"string-to-sign-v4" data.expected_tosign tosign;
       let signature =

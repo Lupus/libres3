@@ -122,6 +122,8 @@ let stream_of_reply wait_eof server =
       return ()) read
 ;;
 
+let max_input_mem = 65536L
+
 let stream_of arg pos =
   if pos <> 0L then
     fail (Failure "position is not 0 in input")
@@ -135,10 +137,11 @@ let stream_of arg pos =
         return (buf, 0, String.length buf)
     );;
 
-let source_of arg size = {
-  SXIO.meta = { SXIO.name = ""; SXIO.size = size; SXIO.mtime = 0.; SXIO.etag = "" };
-  SXIO.seek = stream_of arg
-}
+let source_of arg size =
+  return (`Source {
+      SXIO.meta = { SXIO.name = ""; SXIO.size = size; SXIO.mtime = 0.; SXIO.etag = "" };
+      SXIO.seek = stream_of arg
+    })
 
 let empty_stream () = Ocsigen_stream.of_string ""
 
@@ -167,7 +170,7 @@ let process_request dispatcher ri () =
   let cl = match Ocsigen_request_info.content_length ri with
   | Some l -> l
   | None -> 0L in
-  let source = source_of stream cl in
+  source_of stream cl >>= fun (`Source source) ->
   let req_method = conv_method (Ocsigen_request_info.meth ri) source in
   let undecoded_url = match (Ocsigen_request_info.http_frame ri).frame_header.mode with
   | Query (_, url) -> url

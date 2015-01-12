@@ -10,10 +10,12 @@ let data_dir =
   Arg.current := 1;
   Sys.argv.(1)
 
+module StringSet = Set.Make(String)
 let list_tests () =
   let files = Array.to_list (Sys.readdir data_dir) in
-  List.sort_uniq String.compare
-    (List.rev_map Filename.chop_extension files)
+  let sort_uniq l =
+    StringSet.elements (List.fold_left (fun accum s -> StringSet.add s accum) StringSet.empty l) in
+  sort_uniq (List.rev_map Filename.chop_extension files)
 
 let nl = Netstring_str.regexp "\r?\n"
 
@@ -21,7 +23,8 @@ let load name ext =
   let path = Filename.concat data_dir (name ^ "." ^ ext) in
   let f = open_in path in
   let len = in_channel_length f in
-  let s = really_input_string f len in
+  let s = String.make len '\x00' in
+  really_input f s 0 len;
   close_in f;
   Netstring_str.global_replace nl "\n" s
 
@@ -75,7 +78,8 @@ let sigv4_test name =
       let canon_req, body = parse_req signed_req in
       match CanonRequest.parse_authorization canon_req with
       | AuthorizationV4 (authv4, expected_signature) ->
-        let canonical, tosign = string_to_sign_v4 authv4 ~body:body ~canon_req in
+        let sha256 = Cryptokit.hash_string (Cryptokit.Hash.sha256 ()) body in
+        let canonical, tosign = string_to_sign_v4 authv4 ~sha256 ~canon_req in
         assert_str_equal ~msg:"canonical request" expected_canonical canonical;
         assert_str_equal ~msg:"string-to-sign-v4" expected_string_to_sign tosign;
         let signature =
