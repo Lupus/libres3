@@ -634,7 +634,6 @@ module Make
         Xml.tag "ID" [Xml.d (canon_id_of_name displayname)];
         Xml.tag "DisplayName" [Xml.d displayname]
       ]
-    | _ -> failwith "TODO"
 
   let map_permission = function
     | [`Read] -> ["READ"]
@@ -653,6 +652,8 @@ module Make
     libres3_all_users, uri_all_users;
   ]
 
+  let uri2user = List.rev_map (fun (a, b) -> (b, a)) user2uri
+
   let grantee_of_id = function
     | `UserName name as id ->
       begin try
@@ -668,7 +669,6 @@ module Make
           Xml.attr "xsi:type" "CanonicalUser"
         ] "Grantee" (canonical_id id)
       end
-    | _ -> failwith "TODO"
 
   let map_grant (_, id, perm) : CodedIO.Xml.t list =
     (* TODO: detect special users and map back *)
@@ -692,6 +692,80 @@ module Make
         ])
     with Not_found ->
       return_error Error.AccessDenied ["LibreS3ErrorMessage","You are not the owner"]
+
+  let get_attr ns attr attrs =
+    snd (List.find (fun ((a_ns, a_name), _) ->
+        a_ns = ns && a_name = attr) attrs)
+
+  let id_of_canonical id =
+    try
+      let name = Cryptokit.transform_string (Cryptokit.Hexa.decode ()) id in
+      try
+        String.sub name 0 (String.index name '\x00')
+      with Not_found -> name
+    with _ -> "id:" ^ id
+
+  let map_acl_type = function
+    | "CanonicalUser", (`El (((_, "ID"), _), [`Data id])) :: _ ->
+      `UserName (id_of_canonical id)
+    | "AmazonCustomerByEmail",
+      [`El (((_,"EmailAddress"),_), [`Data email])] ->
+      failwith "Email address not supported"
+    | "Group",
+      [`El (((_,"URI"),_), [`Data uri])] ->
+      `UserName (List.assoc uri uri2user)
+    | _ -> failwith "Bad grantee type"
+
+  let map_permission = function
+    | "READ" -> [ `Read ]
+    | "WRITE" -> [ `Write ]
+    | "READ_ACP" -> [ `Owner ]
+    | "WRITE_ACP" -> [ `Owner ]
+    | "FULL_CONTROL" -> [ `Owner; `Read; `Write]
+    | _ -> failwith "Unknown permission"
+
+  let map_acl x =  match x with
+    | `El (((_, "Grant"), _), [
+        `El (((_, "Grantee"), flags), grantee);
+        `El (((_, "Permission"),_), [`Data perm])]) ->
+      `Grant, map_acl_type
+        ((get_attr "http://www.w3.org/2001/XMLSchema-instance" "type" flags),
+         grantee), map_permission perm
+    | #CodedIO.Xml.t ->
+      failwith "Bad xml" (* TODO: map to MalformedACLError *)
+
+  let canon_acl_map (op, user, acl) = op, user, List.stable_sort Pervasives.compare acl
+
+  let canon_acl a =
+    List.stable_sort Pervasives.compare (List.rev_map canon_acl_map a)
+
+  let is_acl_equivalent a b =
+    (canon_acl a) = (canon_acl b)
+
+  let set_noop_acl ~canon ~request body bucket =
+    (* TODO: also look at x-amz-acl* headers *)
+    parse_input_xml_opt body "AccessControlPolicy" (function
+        | [`El (((_,"Owner"), _), _); (* check owner/id if we really implement this *)
+           `El (((_,"AccessControlList"),_), lst)] ->
+          Some lst
+        | _ ->
+          None
+      ) (function
+        | Some l ->
+          let url, _ = url_of_volpath ~canon bucket "" in
+          U.get_acl url >>= fun current_acl ->
+          let new_acl = List.rev_map map_acl l in
+          (* We cannot set ACL because in SX we only have a single ACL for entire
+            bucket and all objects inside it, whereas S3 has ACL for bucket operations and object
+            operations *)
+          if is_acl_equivalent current_acl new_acl then
+            return_empty ~req:request ~canon ~status:`Ok ~reply_headers:[]
+          else
+            return_error Error.NotImplemented
+              ["LibreS3ErrorMessage", "Use bucket policies instead"]
+        | _ ->
+          return_error Error.MalformedACLError []
+      )
 
   let return_json ~req ~canon ~status ~reply_headers json =
     return_string ~id:canon.CanonRequest.id ~id2:(CanonRequest.gen_debug ~canon)
@@ -1283,22 +1357,6 @@ module Make
       (list_all_buckets buckets self);;
 
 
-  let set_object_acl ~canon ~request body _ _ =
-    parse_input_xml_opt body "AccessControlPolicy" (function
-        | [`El (((_,"Owner"), _), _); (* check owner/id if we really implement this *)
-           `El (((_,"AccessControlList"),_), lst)] ->
-          Some lst
-        | _ ->
-          None
-      ) (function
-        | Some [] ->
-          (* grant only owner full-access: treat as no-op,
-           * we could reset the acl SX side too! *)
-          return_empty ~req:request ~canon ~status:`Ok ~reply_headers:[]
-        | _ ->
-          return_error Error.AccessDenied ["LibreS3ErrorMessage","Changing ACLs is not supported"]
-      )
-
   let create_special_users ~canon () =
     List.fold_left (fun accum name ->
         accum >>= fun _ ->
@@ -1378,11 +1436,8 @@ module Make
           copy_object ~canon ~request body bucket path
         else
           put_object ~canon ~request body bucket path
-    | `PUT body, Bucket bucket, "/", ["acl",""] ->
-      return_error Error.NotImplemented
-        ["LibreS3ErrorMessage", "Use a bucket policy instead"]
-    | `PUT body, Bucket bucket, path, ["acl",""] ->
-        set_object_acl ~canon ~request body bucket path
+    | `PUT body, Bucket bucket, _, ["acl",""] ->
+        set_noop_acl ~request ~canon body bucket
     | `POST body, Bucket bucket, "/", ["delete", ""] ->
         multi_delete_objects ~canon ~request bucket ~body
     | `POST _, Bucket bucket, path,["uploads",""] ->
