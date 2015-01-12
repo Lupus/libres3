@@ -224,7 +224,7 @@ let info = function
       `Forbidden
   | InvalidPolicyDocument ->
       "InvalidPolicyDocument",
-      "The form does is not compliant with the policy document.",
+      "The content of form does not meet the conditions specified in the policy document.",
       `Bad_request
   | InvalidRange ->
       "InvalidRange",
