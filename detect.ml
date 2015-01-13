@@ -750,7 +750,7 @@ end = struct
     ;;
 
   let pkg_findlib =
-    ocaml_dependency "findlib" build_ocamlfind;;
+    ocaml_dependency "findlib" build_ocamlfind ~version:(fun v -> v >=? "1.5.0")
 
   let clib_dependency name ~header ~lib ~fn install =
     dependency name (check_clib ~name ~header ~lib ~fn) (Install install);;
@@ -925,14 +925,14 @@ let pkg_cstruct = ocaml_dependency "cstruct" (Build (fun _ ->
   ~deps:[dep_ocamlbuild; pkg_ocplib_endian; pkg_ounit; camlp4_dep]
   ~version:(fun v -> v >=? "1.0.1")
 
-let pkg_iopage = ocaml_dependency "io-page" ~cmi:("io-page","io_page.cmi","io_page.cmxa") (Build (fun _ ->
-  build_oasis "3rdparty/libs/io-page" ~findlibnames:["io-page"] ~flags:[]))
-  ~deps:[dep_ocamlbuild; pkg_cstruct; pkg_ounit ]
+let pkg_base64 = ocaml_dependency "base64" (Build (fun _ ->
+  build_oasis "3rdparty/libs/base64" ~findlibnames:["base64"] ~flags:[]))
+  ~deps:[pkg_findlib]
 
 let pkg_dns = ocaml_dependency "dns" (Build (fun _ ->
   build_oasis "3rdparty/libs/ocaml-dns" ~findlibnames:["dns";"dns.lwt"] ~flags:["--enable-lwt"]))
-  ~deps:[dep_ocamlbuild; pkg_lwt; pkg_cstruct; pkg_re; pkg_ipaddr; pkg_iopage ]
-  ~version:(fun v -> v >=? "0.9.0")
+ ~deps:[dep_ocamlbuild; pkg_lwt; pkg_cstruct; pkg_re; pkg_ipaddr; pkg_base64 ]
+  ~version:(fun v -> v >=? "0.10.0")
 
 (* Main dependencies of libres3 *)
 let deps_default = [ pkg_ocamlnet; pkg_jsonm; pkg_xmlm; pkg_cryptokit; pkg_ounit; pkg_ssl ];;

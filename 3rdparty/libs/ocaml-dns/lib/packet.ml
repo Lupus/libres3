@@ -243,7 +243,7 @@ let rdata_to_string = function
   | DNSKEY (flags, alg, key)
     -> (sprintf "DNSKEY (%d, %s, %s)"
           flags (dnssec_alg_to_string alg)
-          (Base64.encode key)
+          (B64.encode key)
     )
   | HINFO (cpu, os) -> sprintf "HINFO (%s, %s)" cpu os
   | ISDN (a, sa)
@@ -275,7 +275,7 @@ let rdata_to_string = function
   | SRV (x, y, z, n)
     -> sprintf "SRV (%d,%d,%d, %s)" x y z (domain_name_to_string n)
   | TXT sl -> sprintf "TXT (%s)" (String.concat "" sl)
-  | UNKNOWN (x, bs) -> sprintf "UNKNOWN (%d) '%s'" x (Base64.encode bs)
+  | UNKNOWN (x, bs) -> sprintf "UNKNOWN (%d) '%s'" x (B64.encode bs)
   (* | UNSPEC bs -> sprintf "UNSPEC (%s)" bs*)
   | WKS (a, y, s) ->
     sprintf "WKS (%s, %d, %s)" (Ipaddr.V4.to_string a) (byte_to_int y) s
@@ -287,11 +287,11 @@ let rdata_to_string = function
       sprintf "RRSIG (%s %s %d %ld %ld %ld %d %s %s)"
         (rr_type_to_string typ)
         (dnssec_alg_to_string alg) (int_of_char lbl) orig_ttl exp_ts inc_ts
-        tag (Name.domain_name_to_string name) (Base64.encode sign)
+        tag (Name.domain_name_to_string name) (B64.encode sign)
   | SIG  (alg, exp_ts, inc_ts, tag, name, sign) ->
       sprintf "SIG (UNUSED %s 0 0 %ld %ld %d %s %s)"
         (dnssec_alg_to_string alg) exp_ts inc_ts
-        tag (Name.domain_name_to_string name) (Base64.encode sign)
+        tag (Name.domain_name_to_string name) (B64.encode sign)
    | DS (keytag, alg, digest_t, digest)
     -> (sprintf "DS (%d,%s,%s, '%s')" keytag
           (dnssec_alg_to_string alg) (digest_alg_to_string digest_t)
@@ -391,13 +391,15 @@ cstruct rr {
 type rr = {
   name  : domain_name;
   cls   : rr_class;
+  flush : bool;  (* mDNS cache flush bit *)
   ttl   : int32;
   rdata : rdata;
 }
 
 let rr_to_string rr =
-  sprintf "%s <%s|%ld> [%s]"
+  sprintf "%s <%s%s|%ld> [%s]"
     (domain_name_to_string rr.name) (rr_class_to_string rr.cls)
+    (if rr.flush then ",flush" else "")
     rr.ttl (rdata_to_string rr.rdata)
 
 type q_type =
@@ -824,21 +826,30 @@ let q_class_to_string x =
 let string_to_q_class x =
   string_to_q_class ("Q_"^x)
 
+type q_unicast = QM | QU
+
+let q_unicast_to_string x =
+  match x with
+  | QM -> "QM"
+  | QU -> "QU"
+
 cstruct q {
   uint16_t typ;
   uint16_t cls
 } as big_endian
 
 type question = {
-  q_name  : domain_name;
-  q_type  : q_type;
-  q_class : q_class;
+  q_name    : domain_name;
+  q_type    : q_type;
+  q_class   : q_class;
+  q_unicast : q_unicast;
 }
 
 let question_to_string q =
-  sprintf "%s. <%s|%s>"
+  sprintf "%s. <%s|%s%s>"
     (domain_name_to_string q.q_name)
     (q_type_to_string q.q_type) (q_class_to_string q.q_class)
+    (if q.q_unicast = QU then "|QU" else "")
 
 let parse_question names base buf =
   let q_name, (base,buf) = parse_name names base buf in
@@ -848,19 +859,24 @@ let parse_question names base buf =
       | None -> failwith (sprintf "parse_question: typ %d" typ)
       | Some typ -> typ
   in
-  let q_class =
+  let q_class, q_unicast =
     let cls = get_q_cls buf in
-    match int_to_q_class cls with
+    (* mDNS uses bit 15 as the unicast-response bit *)
+    let q_unicast = if (((cls lsr 15) land 1) = 1) then QU else QM in
+    match int_to_q_class (cls land 0x7FFF) with
       | None -> failwith (sprintf "parse_question: cls %d" cls)
-      | Some cls -> cls
+      | Some cls -> cls, q_unicast
   in
-  { q_name; q_type; q_class }, (base+sizeof_q, Cstruct.shift buf sizeof_q)
+  { q_name; q_type; q_class; q_unicast; }, (base+sizeof_q, Cstruct.shift buf sizeof_q)
 
 let marshal_question ?(compress=true) (names, base, buf) q =
   let names, base, buf = marshal_name names base buf q.q_name in
   set_q_typ buf (q_type_to_int q.q_type);
-  set_q_cls buf (q_class_to_int q.q_class);
+  let q_unicast = (if q.q_unicast = QU then 1 else 0) in
+  set_q_cls buf ((q_unicast lsl 15) lor (q_class_to_int q.q_class));
   names, base+sizeof_q, Cstruct.shift buf sizeof_q
+
+exception Not_implemented
 
 let parse_rdata names base t cls ttl buf =
   (** Drop remainder of buf to stop parsing and demuxing. *)
@@ -897,7 +913,7 @@ let parse_rdata names base t cls ttl buf =
         let inc_ts = Cstruct.BE.get_uint32 buf 12 in
         let tag = Cstruct.BE.get_uint16 buf 16 in
         let buf = Cstruct.shift buf 18 in
-        let (name, (len, buf)) = Name.parse_name names 0 buf in
+        let (name, (len, buf)) = Name.parse_name names (base+18) buf in
         let sign = Cstruct.to_string buf in
           RRSIG (typ, alg, lbl, orig_ttl, exp_ts, inc_ts, tag, name, sign)
 
@@ -912,7 +928,7 @@ let parse_rdata names base t cls ttl buf =
         let inc_ts = Cstruct.BE.get_uint32 buf 12 in
         let tag = Cstruct.BE.get_uint16 buf 16 in
         let buf = Cstruct.shift buf 18 in
-        let (name, (len, buf)) = Name.parse_name names 0 buf in
+        let (name, (len, buf)) = Name.parse_name names (base+18) buf in
         let sign = Cstruct.to_string buf in
           SIG (alg, exp_ts, inc_ts, tag, name, sign)
 
@@ -921,7 +937,7 @@ let parse_rdata names base t cls ttl buf =
     | RR_AAAA -> AAAA (Ipaddr.V6.of_int64 ((BE.get_uint64 buf 0),(BE.get_uint64 buf 8)))
 
     | RR_AFSDB -> AFSDB (BE.get_uint16 buf 0,
-                         buf |> parse_name names (base+2) |> stop)
+                         Cstruct.shift buf 2 |> parse_name names (base+2) |> stop)
 
     | RR_CNAME -> CNAME (buf |> parse_name names base |> stop)
 
@@ -950,7 +966,7 @@ let parse_rdata names base t cls ttl buf =
         let key = Cstruct.shift buf 4 |> to_string in
           DS(tag, alg, digest, key)
     | RR_NSEC ->
-        let (name, (len, buf)) = Name.parse_name names 0 buf in
+        let (name, (base, buf)) = Name.parse_name names base buf in
         NSEC (name, [(char_of_int 0), (char_of_int 0), buf] )
 
     | RR_HINFO -> let cpu, buf = parse_charstr buf in
@@ -970,25 +986,25 @@ let parse_rdata names base t cls ttl buf =
 
     | RR_MG -> MG (buf |> parse_name names base |> stop)
 
-    | RR_MINFO -> let rm, (o,buf) = buf |> parse_name names base in
-                  let em = buf |> parse_name names (base+o) |> stop in
+    | RR_MINFO -> let rm, (base,buf) = buf |> parse_name names base in
+                  let em = buf |> parse_name names base |> stop in
                   MINFO (rm, em)
 
     | RR_MR -> MR (buf |> parse_name names base |> stop)
 
     | RR_MX -> MX (BE.get_uint16 buf 0,
-                   Cstruct.shift buf 2 |> parse_name names base |> stop)
+                   Cstruct.shift buf 2 |> parse_name names (base+2) |> stop)
 
     | RR_NS -> NS (buf |> parse_name names base |> stop)
 
     | RR_PTR -> PTR (buf |> parse_name names base |> stop)
 
-    | RR_RP -> let mbox, (o,buf) = buf |> parse_name names base in
-               let txt = buf |> parse_name names (base+o) |> stop in
+    | RR_RP -> let mbox, (base,buf) = buf |> parse_name names base in
+               let txt = buf |> parse_name names base |> stop in
                RP (mbox, txt)
 
     | RR_RT -> RT (BE.get_uint16 buf 0,
-                   Cstruct.shift buf 2 |> parse_name names base |> stop)
+                   Cstruct.shift buf 2 |> parse_name names (base+2) |> stop)
 
     | RR_SOA ->
         let mn, (base, buf) = parse_name names base buf in
@@ -1006,7 +1022,7 @@ let parse_rdata names base t cls ttl buf =
           SRV (get_uint16 buf 0, (* prio *)
                get_uint16 buf 2, (* weight *)
                get_uint16 buf 4, (* port *)
-               parse_name names (base+6) buf |> stop
+               Cstruct.shift buf 6 |> parse_name names (base+6) |> stop
           ))
 
     | RR_TXT ->
@@ -1031,6 +1047,7 @@ let parse_rdata names base t cls ttl buf =
     | RR_X25 ->
         let x25,_ = parse_charstr buf in
         X25 x25
+    | _ -> raise Not_implemented
 
   let marshal_rdata names ?(compress=true) base rdbuf = function
     | A ip ->
@@ -1182,6 +1199,7 @@ let parse_rdata names base t cls ttl buf =
     | UNKNOWN (typ, data) ->
         Cstruct.blit_from_string data 0 rdbuf 0 (String.length data);
         RR_UNSPEC, names, (String.length data)
+    | _ -> raise Not_implemented
 
   let compare_rdata a_rdata b_rdata =
     match (a_rdata, b_rdata) with
@@ -1232,7 +1250,7 @@ let parse_rr names base buf =
           | Some cls -> cls in
         let data = Cstruct.to_string
         (Cstruct.sub buf sizeof_rr rdlen) in
-        ({name; cls; ttl; rdata=UNKNOWN(t, data) },
+        ({name; cls; flush=false; ttl; rdata=UNKNOWN(t, data) },
           ((base+sizeof_rr+rdlen), Cstruct.shift buf (sizeof_rr+rdlen))
         )
     | Some typ ->
@@ -1240,21 +1258,25 @@ let parse_rr names base buf =
         let rdlen = get_rr_rdlen buf in
         let cls = get_rr_cls buf in
         let rdata =
-        let rdbuf = Cstruct.sub buf sizeof_rr rdlen in
+          let rdbuf = Cstruct.sub buf sizeof_rr rdlen in
           parse_rdata names (base+sizeof_rr) typ cls ttl rdbuf
-          in
-        match (typ, (get_rr_cls buf |> int_to_rr_class)) with
-          | (RR_OPT, _) ->
-              ({ name; cls=RR_IN; ttl; rdata },
+        in
+        match typ with
+          | RR_OPT ->
+              ({ name; cls=RR_IN; flush=false; ttl; rdata },
                ((base+sizeof_rr+rdlen),
                Cstruct.shift buf (sizeof_rr+rdlen))
               )
-          | (_, (Some cls)) ->
-              ({ name; cls; ttl; rdata },
-               ((base+sizeof_rr+rdlen),
-               Cstruct.shift buf (sizeof_rr+rdlen))
-              )
-          | (_, None) -> failwith "parse_rr: unknown class"
+          | _ ->
+            (* mDNS uses bit 15 as cache flush flag *)
+            let flush = (((cls lsr 15) land 1) = 1) in
+            match ((cls land 0x7FFF) |> int_to_rr_class) with
+              | Some cls ->
+                  ({ name; cls; flush; ttl; rdata },
+                   ((base+sizeof_rr+rdlen),
+                   Cstruct.shift buf (sizeof_rr+rdlen))
+                  )
+              | None -> failwith "parse_rr: unknown class"
 
 let marshal_rr ?(compress=true) (names, base, buf) rr =
   let names, base, buf = marshal_name ~compress names base
@@ -1280,9 +1302,11 @@ let marshal_rr ?(compress=true) (names, base, buf) rr =
       let _ = set_rr_cls buf (rr_class_to_int rr.cls) in
       let _ = set_rr_ttl buf rr.ttl in
         ()
-    | _ ->
-       set_rr_cls buf (rr_class_to_int rr.cls);
-       set_rr_ttl buf rr.ttl
+  | _ ->
+      let flush = (if rr.flush then 1 else 0) in
+      let cls = rr_class_to_int rr.cls in
+      set_rr_cls buf ((flush lsl 15) lor cls);
+      set_rr_ttl buf rr.ttl
   in
   names, base+rdlen, Cstruct.shift buf (sizeof_rr+rdlen)
 

@@ -1,6 +1,6 @@
 (*
  * Copyright (c) 2011 Richard Mortier <mort@cantab.net>
- * Copyright (c) 2011 Anil Madhavapeddy <anil@recoil.org>
+ * Copyright (c) 2011-2014 Anil Madhavapeddy <anil@recoil.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -236,12 +236,20 @@ type rdata =
 val hex_of_string : string -> string
 val rdata_to_string : rdata -> string
 val rdata_to_rr_type : rdata -> rr_type
+
 val marshal_rdata: int Name.Map.t ->
   ?compress:bool -> int -> t -> rdata -> rr_type *  int Name.Map.t * int
+(** Marshal the RR data into the DNS binary format.  Raises [Not_implemented]
+    if the RR type is known but the logic is not implemented in the library
+    yet. *)
+
 val compare_rdata : rdata -> rdata -> int
 
+exception Not_implemented
+
 (** Parse an RDATA element from a packet, given the set of already encountered
-    names, a starting index, and the type of the RDATA. *)
+    names, a starting index, and the type of the RDATA. Raises [Not_implemented]
+    if the RR type is not recognized. *)
 val parse_rdata :
   (int, label) Hashtbl.t -> int -> rr_type -> int -> int32 -> t -> rdata
 
@@ -253,6 +261,7 @@ val rr_class_to_string : rr_class -> string
 type rr = {
   name  : domain_name;
   cls   : rr_class;
+  flush : bool;  (* mDNS cache flush bit *)
   ttl   : int32;
   rdata : rdata;
 }
@@ -276,11 +285,16 @@ type q_class = Q_IN | Q_CS | Q_CH | Q_HS | Q_NONE | Q_ANY_CLS
 val q_class_to_string : q_class -> string
 val string_to_q_class : string -> q_class option
 
+(** mDNS unicast response bit. *)
+type q_unicast = QM | QU
+val q_unicast_to_string : q_unicast -> string
+
 (** A question, with the usual conversion functions. *)
 type question = {
-  q_name  : domain_name;
-  q_type  : q_type;
-  q_class : q_class;
+  q_name    : domain_name;
+  q_type    : q_type;
+  q_class   : q_class;
+  q_unicast : q_unicast;
 }
 val question_to_string : question -> string
 val parse_question :
@@ -304,7 +318,6 @@ val rcode_to_string : rcode -> string
 
 (** The [detail] field from the DNS header, with the usual conversion
     functions. *)
-
 type detail = {
   qr: qr;
   opcode: opcode;

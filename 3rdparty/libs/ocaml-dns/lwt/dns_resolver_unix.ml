@@ -1,7 +1,7 @@
 (*
- * Copyright (c) 2014 Anil Madhavapeddy <anil@recoil.org>
  * Copyright (c) 2012 Richard Mortier <mort@cantab.net>
- * Copyright (c) 2013 David Sheets <sheets@alum.mit.edu>
+ * Copyright (c) 2013-2014 David Sheets <sheets@alum.mit.edu>
+ * Copyright (c) 2014 Anil Madhavapeddy <anil@recoil.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -25,12 +25,14 @@ open Dns_resolver
 
 module DP = Dns.Packet
 
+let log_warn s = eprintf "WARN: %s\n%!" s
+
 let buflen = 4096
-let ns = "8.8.8.8"
+let ns = Ipaddr.of_string_exn "8.8.8.8"
 let port = 53
 
 let sockaddr addr port =
-  Lwt_unix.(ADDR_INET (Unix.inet_addr_of_string addr, port))
+  Lwt_unix.(ADDR_INET (Ipaddr_unix.to_inet_addr addr, port))
 
 let sockaddr_to_string = Lwt_unix.(function
   | ADDR_INET (a,p) -> sprintf "%s/%d" (Unix.string_of_inet_addr a) p
@@ -44,7 +46,13 @@ let outfd addr port =
 
 let connect_to_resolver server port =
   let dst = sockaddr server port in
-  let ofd = outfd "0.0.0.0" 0 in
+  let ofd = outfd Ipaddr.(V4 V4.any) 0 in
+  let cleanfn () = catch (fun () ->
+    Lwt_unix.close ofd
+  ) (fun e ->
+    log_warn (sprintf "%s\n%!" (Printexc.to_string e));
+    return ()
+  ) in
   let timerfn () = Lwt_unix.sleep 5.0 in
   let txfn buf =
     Lwt_bytes.sendto ofd buf 0 (Dns.Buf.length buf) [] dst 
@@ -56,29 +64,27 @@ let connect_to_resolver server port =
     let buf = Dns.Buf.sub buf 0 len in
     match f buf with
     | None -> rxfn f
-    | Some r ->
-        Lwt_unix.close ofd >>= fun () ->
-        return r
+    | Some r -> return r
   in
-  txfn, rxfn, timerfn
+  { txfn; rxfn; timerfn; cleanfn }
 
 let resolve client
     ?(dnssec=false)
-    (server:string) (dns_port:int)
+    server dns_port
     (q_class:DP.q_class) (q_type:DP.q_type)
     (q_name:domain_name) =
    let commfn = connect_to_resolver server dns_port in
    resolve client ~dnssec commfn q_class q_type q_name
 
 let gethostbyname
-    ?(server:string = ns) ?(dns_port:int = port)
+    ?(server = ns) ?(dns_port = port)
     ?(q_class:DP.q_class = DP.Q_IN) ?(q_type:DP.q_type = DP.Q_A)
     name =
    let commfn = connect_to_resolver server dns_port in
    gethostbyname ~q_class ~q_type commfn name
 
 let gethostbyaddr
-    ?(server:string = ns) ?(dns_port:int = port)
+    ?(server = ns) ?(dns_port = port)
     ?(q_class:DP.q_class = DP.Q_IN) ?(q_type:DP.q_type = DP.Q_PTR)
     addr
     =
@@ -89,13 +95,13 @@ open Dns.Resolvconf
 
 type t = {
   client : (module CLIENT);
-  servers : (string * int) list;
+  servers : (Ipaddr.t * int) list;
   search_domains : string list;
 }
 
 type config = [
   | `Resolv_conf of string
-  | `Static of (string * int) list * string list
+  | `Static of (Ipaddr.t * int) list * string list
 ]
 
 module Resolv_conf = struct

@@ -6,10 +6,9 @@ PREFIX ?= /usr/local
 NAME=dns
 
 LWT ?= $(shell if ocamlfind query lwt.unix >/dev/null 2>&1; then echo --enable-lwt; fi)
-MIRAGE ?= $(shell if ocamlfind query mirage-net >/dev/null 2>&1; then echo --enable-mirage; fi)
-ifneq ($(MIRAGE_OS),xen)
+MIRAGE ?= $(shell if ocamlfind query tcpip >/dev/null 2>&1; then echo --enable-mirage; fi)
+ASYNC ?= $(shell if ocamlfind query async >/dev/null 2>&1; then echo --enable-async; fi)
 TESTS ?= --enable-tests
-endif
 
 -include Makefile.config
 
@@ -39,3 +38,7 @@ install:
 setup.bin: setup.ml
 	ocamlopt.opt -o $@ $< || ocamlopt -o $@ $< || ocamlc -o $@ $<
 	$(RM) setup.cmx setup.cmi setup.o setup.cmo
+
+test: build
+	./setup.bin -test
+
