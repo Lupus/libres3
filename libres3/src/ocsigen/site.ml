@@ -285,8 +285,26 @@ let noop e =
   Ocsigen_messages.warning (Printf.sprintf "version check error: %s" (Printexc.to_string e));
   return ()
 
+let test_resolve resolver name =
+  Dns_resolver_unix.gethostbyname resolver name >>= fun lst ->
+  if lst = [] then begin
+    Ocsigen_messages.warning
+      (Printf.sprintf "Failed to lookup hostname %s via DNS" name);
+    Ocsigen_messages.warning "S3 clients may not be able to access this server properly!"
+  end else begin
+    let ips = String.concat ", " (List.rev_map Ipaddr.to_string lst) in
+    Ocsigen_messages.console2 (Printf.sprintf "%s resolves to %s" name ips);
+  end;
+  return ()
+
+let dns_check_wildcard resolver =
+  ignore (test_resolve resolver !Configfile.base_hostname);
+  ignore (test_resolve resolver (Printf.sprintf "test%d.%s"
+                  (Random.bits ()) !Configfile.base_hostname))
+
 let rec dns_check_loop resolver url =
   try_catch (check_url resolver) noop url >>= fun () ->
+  dns_check_wildcard resolver;
   OS.sleep !Configfile.check_interval >>= fun () ->
   dns_check_loop resolver url
 
@@ -298,6 +316,7 @@ let periodic_check () =
       ~scheme:"sx" ~user:!Config.key_id ~port:!Config.sx_port
       ~host ~path:[""] SXC.syntax) in
     Dns_resolver_unix.create () >>= fun resolver->
+    dns_check_wildcard resolver;
     OS.sleep !Configfile.initial_interval >>= fun () ->
     dns_check_loop resolver url
 
