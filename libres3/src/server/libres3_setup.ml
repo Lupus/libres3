@@ -31,13 +31,15 @@ let print_version () =
   Printf.printf "libres3 setup version %s\n%!" Version.version;
   exit 0
 
+
 let sxsetup_conf = ref ""
 let open_errmsg = ref false
 let s3_host = ref ""
 let default_replica = ref ""
 let default_volume_size = ref ""
 let ssl = ref true
-let s3_port = ref ""
+let s3_http_port = ref ""
+let s3_https_port = ref ""
 let batch_mode = ref false
 
 let is_space c = c = ' ' || (c >= '\t' && c <= '\r') 
@@ -62,8 +64,10 @@ let trim s =
 let spec = [
   "--s3-host", Arg.Set_string s3_host,
     " Base hostname to use (equivalent to; s3.amazonaws.com, host_base in .s3cfg)";
-  "--s3-port", Arg.Set_string s3_port,
-    " Port to use for LibreS3";
+  "--s3-http-port", Arg.Set_string s3_http_port,
+    " HTTP port to use for LibreS3";
+  "--s3-https-port", Arg.Set_string s3_https_port,
+    " HTTPS port to use for LibreS3";
   "--default-replica", Arg.Set_string default_replica,
     " Default volume replica count"
   ;
@@ -213,40 +217,36 @@ let port_validate portstr =
   | None -> ()
   | Some str -> failwith str
 
-let validate_one ~key f ?validate m =
+let validate_one ~key f m =
   let value = f () in
   try
     let _, validator, _ = List.find (fun (k,_,_) -> k = key) Configfile.entries in
     validator value;
-    begin match validate with
-    | Some extra_validator -> extra_validator value
-    | None -> ()
-    end;
     StringMap.add key value m
   with Failure msg as e ->
     Printf.eprintf "Invalid value for '%s=%s': %s\n" key value msg;
     raise e
 
-let rec validate_loop ~key f ?validate m =
-  try validate_one ~key f ?validate m
-  with Failure _ -> validate_loop ~key f ?validate m
+let rec validate_loop ~key f m =
+  try validate_one ~key f m
+  with Failure _ -> validate_loop ~key f m
 
-let validate_and_add ~key ?default ?validate f m =
+let validate_and_add ~key ?default f m =
   match default with
-  | None -> validate_loop ~key f ?validate m
+  | None -> validate_loop ~key f m
   | Some default_fn ->
-      try validate_one ~key default_fn ?validate m
-      with Not_found | Failure _ -> validate_loop ~key f ?validate m
+      try validate_one ~key default_fn m
+      with Not_found | Failure _ -> validate_loop ~key f m
 
-let validate_and_add_opt opt ~key ?default ?validate f m  =
-  if opt then validate_and_add ~key ?default f ?validate m
+let validate_and_add_opt opt ~key ?default f m  =
+  if opt then validate_and_add ~key ?default f m
   else m
 
-let read_and_validate ~key msg ?validate f x m =
-  validate_and_add ~key ~default:(f x) (read_value msg) ?validate m
+let read_and_validate ~key msg f x m =
+  validate_and_add ~key ~default:(f x) (read_value msg) m
 
-let read_and_validate_opt opt ~key msg f x ?validate m =
-  if opt then read_and_validate ~key msg f x ?validate m
+let read_and_validate_opt opt ~key msg f x m =
+  if opt then read_and_validate ~key msg f x m
   else m
 
 let update_s3cfg cert_file host port key name =
@@ -411,14 +411,14 @@ let () =
       |> validate_and_add_opt !ssl ~key:"s3_ssl_certificate_file" ~default:(fun () ->
           Filename.concat Configure.sysconfdir "ssl/certs/libres3.pem")
           (read_value "SSL certificate file")
-      |> (
-        let key = if !ssl then "s3_ssl_port" else "s3_port" in
-        let port_msg = if !ssl then "S3 SSL port" else "S3 port" in
-        validate_and_add ~key ~default:(fun () ->
-          if !s3_port <> "" then !s3_port
-          else load "LIBRES3_PORT" ()) (read_value port_msg)
-              ~validate:port_validate
-        )
+      |> (if !ssl then
+          validate_and_add ~key:"s3_https_port" ~default:(fun () ->
+              if !s3_https_port <> "" then !s3_https_port
+              else load "LIBRES3_HTTPS_PORT" ()) (read_value "S3 HTTPS port")
+          else fun m -> m)
+      |> validate_and_add ~key:"s3_http_port" ~default:(fun () ->
+              if !s3_http_port <> "" then !s3_http_port
+              else load "LIBRES3_HTTP_PORT" ()) (read_value "S3 HTTP port")
       |> validate_and_add ~key:"volume_size" ~default:(fun () ->
           if !default_volume_size <> "" then !default_volume_size
           else load "LIBRES3_VOLUMESIZE" ())
@@ -453,17 +453,15 @@ let () =
     let s3_host = StringMap.find "s3_host" generated in
     let admin_key = StringMap.find "secret_key" generated in
     if !ssl then begin
-      let portstr = StringMap.find "s3_ssl_port" generated in
+      let portstr = StringMap.find "s3_https_port" generated in
       let port = int_of_string portstr in
       let cert_file = StringMap.find "s3_ssl_certificate_file" generated in
       update_s3cfg (Some cert_file) s3_host port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.s3cfg");
-      update_s3cfg None s3_host 8008 admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
       generate_boto true s3_host port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.boto")
-    end else begin
-      let s3_port = StringMap.find "s3_port" generated in
-      update_s3cfg None s3_host (int_of_string s3_port) admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
-      generate_boto false s3_host (int_of_string s3_port) admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.boto")
     end;
+    let s3_port = int_of_string (StringMap.find "s3_http_port" generated) in
+    update_s3cfg None s3_host s3_port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
+    generate_boto false s3_host s3_port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.boto");
     if not !batch_mode then
       ask_start ();
   with

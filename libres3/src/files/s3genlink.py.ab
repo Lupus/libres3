@@ -3,7 +3,7 @@
 # [Credentials]
 # aws_access_key_id = <your-SX-username>
 # aws_secret_access_key = <your-SX-auth-token>
-# s3_host=<s3_host from libres3.conf>:<s3_port from libres3.conf>
+# s3_host=<s3_host from libres3.conf>:<s3_https_port from libres3.conf>
 # [Boto]
 # is_secure = True
 #

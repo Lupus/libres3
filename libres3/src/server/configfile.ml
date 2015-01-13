@@ -89,14 +89,37 @@ let validate_directory path =
 
 let base64_re = regexp "^[A-Za-z0-9+/]+$"
 
-let validate_secret_key s =
-  validate_string ~desc:"SX access token" ~expect:"base64-encoded auth token"
-    base64_re s
+let expect_length str expected =
+  let n = String.length str in
+  if n <> expected then
+    failwith (Printf.sprintf "Invalid length %d, expected %d" n expected)
+
+let validate_secret_key token =
+  try
+    expect_length token 56;
+    try
+      let decoded = Netencoding.Base64.decode token in
+      let expected_bin = 56 / 4 * 3 in
+      expect_length decoded expected_bin;
+      let padding_0 = Char.code decoded.[expected_bin-2]
+      and padding_1 = Char.code decoded.[expected_bin-1] in
+      if padding_0 <> 0 || padding_1 <> 0 then
+        failwith (Printf.sprintf "Invalid padding in token: %02x%02x" padding_0 padding_1);
+      let sub = "CLUSTER/ALLNODE/ROOT/USER" in
+      if String.sub token 0 (String.length sub) = sub then
+        failwith "You cannot use the cluster key: use the admin key instead!";
+      token
+    with Invalid_argument _ ->
+      failwith "expected base64-encoded string"
+  with Failure msg ->
+    failwith ("Invalid SX access token (secret key): " ^ msg)
 
 let dns_re = regexp "^[a-zA-Z0-9-]+\\(\\.[a-zA-Z0-9-]+\\)*$"
 
-let validate_dns_name =
-  validate_string ~desc:"DNS name" ~expect:"alphanumeric or hyphen" dns_re
+let validate_dns_name name =
+  if Ipaddr.of_string name <> None then
+    failwith "Hostname expected, but IP address found";
+  validate_string ~desc:"DNS name" ~expect:"alphanumeric or hyphen" dns_re name
 
 let parse_ip s =
   Ipaddr.of_string_exn s
@@ -222,13 +245,13 @@ let entries : (string * (string -> unit) * string) list = [
       " Base hostname to use (equivalent of s3.amazonaws.com, host_base in .s3cfg)";
     "s3_listen_ip", expect_opt parse_ip base_listen_ip,
       " Bind to specified IP (default: any IPv4/IPv6. To bind to IPv4 only use 0.0.0.0)";
-    "s3_port", expect parse_port base_port,
-      " Bind to specified port";
-    "s3_ssl_port", expect parse_port base_ssl_port,
-      " Bind to specified port for HTTPS";
-    "s3_ssl_certificate_file", expect_opt validate_filename ssl_certificate_file,
+    "s3_http_port", expect parse_port base_port,
+      " Bind to specified HTTP port";
+    "s3_https_port", expect parse_port base_ssl_port,
+      " Bind to specified HTTPS port";
+    "s3_ssl_certificate_file", expect_opt validate_readable ssl_certificate_file,
       " The path to the SSL certificate";
-    "s3_ssl_privatekey_file", expect_opt validate_filename ssl_privatekey_file,
+    "s3_ssl_privatekey_file", expect_opt validate_readable ssl_privatekey_file,
       " The path to the SSL certificate's private key";
     "sx_host", expect_opt validate_host sx_host,
       " Hostname of an SX cluster node";
