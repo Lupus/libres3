@@ -55,9 +55,15 @@ let base64_decode s =
 let hmac_sha1 key b =
   hash_string (MAC.hmac_sha1 key) (Buffer.contents b)
 
+let hmac_sha256 key s =
+  hash_string (MAC.hmac_sha256 key) s
+
 let sign_str key s =
   let hmac = hash_string (MAC.hmac_sha1 key) s in
   base64_encode hmac;;
 
 let to_hex s =
   Cryptokit.transform_string (Cryptokit.Hexa.encode ()) s;;
+
+let sha256 s =
+  to_hex (hash_string (Hash.sha256 ()) s)

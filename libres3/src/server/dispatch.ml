@@ -510,7 +510,7 @@ module Make
         "x-amz-copy-source" "") in
       let source_bucket, source_path =
         Util.url_split_first_component (Neturl.split_path source) in
-      let decoded_path = Netencoding.Url.decode source_path in
+      let decoded_path = CanonRequest.uri_decode source_path in
       let _, url = url_of_volpath ~canon source_bucket decoded_path in
       U.with_url_source url (fun source -> return source.U.meta) >>= fun meta ->
       return (url, meta.U.mtime, meta.U.etag)
@@ -1519,6 +1519,39 @@ module Make
       return_error Error.InvalidSecurity ["BadAuthorization", "Multiple occurences of Authorization header"]
     | CanonRequest.AuthExpired ->
       return_error Error.ExpiredToken []
+    | CanonRequest.AuthorizationV4 (auth, signature) ->
+      let credential = auth.CanonRequest.credential in
+      let user = credential.CanonRequest.keyid in
+      begin match !Configfile.sx_host with
+      | Some host ->
+        let url = Neturl.make_url ~encoded:false ~scheme:"sx" ~host ~path:[""]
+          ~user SXC.syntax in
+        U.token_of_user (U.of_neturl url) >>= begin function
+        | Some hmac_key ->
+          (* TODO: body *)
+          let canonical_request, string_to_sign =
+            CanonRequest.string_to_sign_v4 auth ~body:"" ~canon_req:canon in
+          let expected_signature =
+            CanonRequest.sign_string_v4 ~key:hmac_key credential string_to_sign in
+          if expected_signature <> signature then
+            return_error Error.SignatureDoesNotMatch [
+              ("StringToSign", string_to_sign);
+              ("CanonicalRequest", canonical_request);
+              ("Host", canon.CanonRequest.host);
+              ("UndecodedPath", canon.CanonRequest.undecoded_uri_path);
+              ("Bucket", Bucket.to_string canon.CanonRequest.bucket);
+              ("Hint", "Your S3 secret key should be set to your SX key and your S3 access key should be set to your SX username")
+            ]
+          else
+            f user
+
+        | None ->
+            return_error Error.InvalidAccessKeyId [
+              "Hint","Your S3 access key must be set to your SX user name"
+            ]
+        end
+      | None -> f ""
+      end
     | CanonRequest.Authorization (user, signature) ->
       match !Configfile.sx_host with
       | Some host ->

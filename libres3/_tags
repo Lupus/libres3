@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 80301cf018585e5c4b416f6647fe002d)
+# DO NOT EDIT (digest: 1178c6963e11e7c2637438be5c6e440f)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -315,6 +315,24 @@ true: annot, bin_annot
 <test/netTest.{native,byte}>: use_anycache
 <test/netTest.{native,byte}>: use_server
 <test/netTest.{native,byte}>: use_sxclient
+# Executable sigv4_test
+<test/sigv4Test.{native,byte}>: package(cryptokit)
+<test/sigv4Test.{native,byte}>: package(equeue-ssl)
+<test/sigv4Test.{native,byte}>: package(ipaddr)
+<test/sigv4Test.{native,byte}>: package(jsonm)
+<test/sigv4Test.{native,byte}>: package(netclient)
+<test/sigv4Test.{native,byte}>: package(netstring)
+<test/sigv4Test.{native,byte}>: package(netsys)
+<test/sigv4Test.{native,byte}>: package(oUnit)
+<test/sigv4Test.{native,byte}>: package(ocplib-endian)
+<test/sigv4Test.{native,byte}>: package(ocsigenserver)
+<test/sigv4Test.{native,byte}>: package(ssl)
+<test/sigv4Test.{native,byte}>: package(str)
+<test/sigv4Test.{native,byte}>: package(threads)
+<test/sigv4Test.{native,byte}>: package(xmlm)
+<test/sigv4Test.{native,byte}>: use_anycache
+<test/sigv4Test.{native,byte}>: use_server
+<test/sigv4Test.{native,byte}>: use_sxclient
 <test/*.ml{,i,y}>: package(cryptokit)
 <test/*.ml{,i,y}>: package(equeue-ssl)
 <test/*.ml{,i,y}>: package(ipaddr)

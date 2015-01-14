@@ -212,6 +212,14 @@ Executable net_test
   CompiledObject: Best
   BuildDepends: cryptokit, oUnit, netclient, server
 
+Executable sigv4_test
+  Install: false
+  Path: test
+  Build$: flag(tests)
+  MainIs: sigv4Test.ml
+  CompiledObject: Best
+  BuildDepends: cryptokit, oUnit, server
+
 Test misc
   Command: $misc_test
 

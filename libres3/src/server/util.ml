@@ -64,6 +64,9 @@ let raw_path_after raw_url prefix =
 let format_date unix_timestamp =
   Netdate.format ~fmt:"%Y-%m-%dT%H:%M:%S.000Z" (Netdate.create unix_timestamp);;
 
+let format_date_iso8601_timestamp unix_timestamp =
+  Netdate.format ~fmt:"%Y%m%dT%H%M%SZ" (Netdate.create unix_timestamp)
+
 let sanitize_path path =
   let normalized = Neturl.norm_path (Neturl.split_path path) in
   if List.exists (function | ".." -> true | _ -> false) normalized then

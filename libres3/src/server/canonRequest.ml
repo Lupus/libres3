@@ -40,6 +40,7 @@ module StringMap = Map.Make(String)
 type ('a,'b) t = {
   req_method: ('a,'b) methods;
   bucket: Bucket.t;
+  lpath: string;
   path: string;
   orig_uri: string;
   content_md5: string;
@@ -50,6 +51,7 @@ type ('a,'b) t = {
   expires: string;
   undecoded_uri_path: string;
   headers: Headers.t;
+  query_params_multi: Headers.StringSet.t StringMap.t;
   query_params: string StringMap.t;
   id: RequestId.t;
   user : string;
@@ -113,8 +115,39 @@ let canonicalized_resource c =
             )) in
   (prefix_bucket c.bucket) ^ c.undecoded_uri_path ^ subresources
 
-let split_query_re = regexp "[&;]"
-let split_param_re = regexp "="
+let split_query_re = regexp_string "&"
+let split_param_re = regexp_string "="
+
+let hex2int = function
+  | '0'..'9' as c -> Char.code c - Char.code '0'
+  | 'a'..'f' as c -> Char.code c - Char.code 'a' + 10
+  | 'A'..'F' as c -> Char.code c - Char.code 'A' + 10
+  | _ -> invalid_arg ""
+
+(* best effort decoder, don't fail if string is not properly encoded *)
+let rec decode_loop b s pos =
+  if pos = String.length s then Buffer.contents b
+  else match s.[pos] with
+  | '+' ->
+    Buffer.add_char b ' ';
+    decode_loop b s (pos+1)
+  | '%' when pos+2 < String.length s ->
+    let next =
+    try
+      let c = Char.chr (((hex2int s.[pos+1]) lsl 4) lor (hex2int s.[pos+2])) in
+      Buffer.add_char b c;
+      pos+3
+    with Invalid_argument _ ->
+      Buffer.add_char b '%';
+      pos+1 in
+    decode_loop b s next
+  | c ->
+    Buffer.add_char b c;
+    decode_loop b s (pos+1)
+
+let uri_decode s =
+  let b = Buffer.create (String.length s) in
+  decode_loop b s 0
 
 let parse_query encoded_query =
   try
@@ -123,15 +156,18 @@ let parse_query encoded_query =
       let name, value =
         match Netstring_str.bounded_split split_param_re nameval 2 with
         | name :: value :: [] ->
-            Netencoding.Url.decode name, Netencoding.Url.decode value
+            uri_decode name, uri_decode value
         | name :: [] ->
-            Netencoding.Url.decode name, ""
+            uri_decode name, ""
         | _ ->
             raise (Error.ErrorReply(Error.InvalidURI,["querypart",nameval],[]))
       in
-      StringMap.add name value accum) StringMap.empty params
-  with Not_found ->
-    StringMap.empty;;
+      let old  =
+        try StringMap.find name accum
+        with Not_found ->  Headers.StringSet.empty in
+      StringMap.add name (Headers.StringSet.add value old) accum) StringMap.empty params
+  with
+  | Not_found -> StringMap.empty
 
 let base_syntax =
   { (Hashtbl.find Neturl.common_url_syntax "http")
@@ -153,6 +189,11 @@ let transform_path = function
     path ^ ".sxnewdir"
   | path -> path
 
+let merge s =
+  match Headers.StringSet.elements s with
+  | [ one ] -> one
+  | multi -> String.concat "\x00" multi
+
 let canonicalize_request ~id req_method
   {req_headers=req_headers; undecoded_url=undecoded_url} =
   let headers = Headers.build header_overrides req_headers in
@@ -164,7 +205,8 @@ let canonicalize_request ~id req_method
    * fixup_url_string doesn't help with [ either.
    * Do the safe thing: decode the URL path, and encode it again *)
   let bucket, undecoded_uri_path = Bucket.from_url hurl undecoded_url in
-  let decoded = Neturl.split_path (Netencoding.Url.decode undecoded_uri_path) in
+  let decoded = Neturl.norm_path (Neturl.split_path
+                                    (uri_decode undecoded_uri_path)) in
   let absolute_url = Neturl.modify_url hurl ~path:decoded ~encoded:false in
   let query =
     try
@@ -174,7 +216,8 @@ let canonicalize_request ~id req_method
         String.sub undecoded_url (qpos+1) len
       else ""
     with Not_found -> "" in
-  let query_params = parse_query query in
+  let query_params_multi = parse_query query in
+  let query_params = StringMap.map merge query_params_multi in
   let lpath = Neturl.join_path (Neturl.url_path ~encoded:false absolute_url) in
   let path = transform_path lpath in
   {
@@ -188,8 +231,10 @@ let canonicalize_request ~id req_method
     host = host;
     bucket = bucket;
     headers = headers;
+    lpath  = lpath;
     path = path;
     undecoded_uri_path = undecoded_uri_path;
+    query_params_multi = query_params_multi;
     query_params = query_params;
     id = id;
     user = ""
@@ -199,7 +244,7 @@ let string_to_sign canon_req =
   let b = Buffer.create Configfile.small_buffer_size in
   let add s =
     Buffer.add_string b s;
-    Buffer.add_char b '\n' in
+    Buffer.add_char b '\n' in 
   add (string_of_method canon_req.req_method);
   add canon_req.content_md5;
   add canon_req.content_type;
@@ -211,8 +256,105 @@ let string_to_sign canon_req =
   Buffer.add_string b (canonicalized_resource canon_req);
   Buffer.contents b;;
 
+(* implement encoding exactly as in AWS4 signatures *)
+let uri_encode ?(encode_slash=true) input =
+  let b = Buffer.create Configfile.small_buffer_size in
+  String.iter (fun ch ->
+      if (ch >= 'A' && ch <= 'Z') ||
+         (ch >= 'a' && ch <= 'z') ||
+         (ch >= '0' && ch <= '9') ||
+         ch == '_' || ch == '-' || ch == '~' || ch == '.' then
+        Buffer.add_char b ch
+      else if ch = '/' && not encode_slash then
+        Buffer.add_char b ch
+      else begin
+        Printf.bprintf b "%%%02X" (Char.code ch)
+      end
+    ) input;
+  Buffer.contents b
+
+let uri_encode_params l =
+  String.concat "&" (List.rev (List.rev_map (fun (k, vl) ->
+      let key = uri_encode k in
+      let lst = match Headers.StringSet.elements vl with
+        | [] -> [""]
+        | l -> l in
+      String.concat "&" (List.rev (List.rev_map (fun v ->
+          key ^ "=" ^ (uri_encode v)) lst))
+    ) l))
+
+let starts_with s with_ =
+  let n = String.length with_ in
+  String.length s >= n && String.sub s 0 n = with_
+
+let must_sign_header header =
+  header = "host" || header = "content-type" ||
+  starts_with header "x-amz-"
+
+let trim v = v (* already trimmed? *)
+
+let canonical_headers canon_req signed_headers =
+  let headers = canon_req.headers in
+  String.concat "\n" (List.rev (List.rev_map (fun header ->
+      let v = String.concat ","
+          (List.sort String.compare (Headers.field_values headers header)) in
+      header ^ ":" ^ (trim v)
+  ) signed_headers))
+
+type credential_v4 = {
+  keyid: string;
+  date_ymd: string;
+  region: string;
+  service: string;
+}
+
+type auth_v4 = {
+  signed_headers: Headers.StringSet.t;
+  credential: credential_v4;
+}
+
+let scope_of_credential c =
+  String.concat "/" [ c.date_ymd; c.region; c.service; "aws4_request" ]
+
+let string_to_sign_v4 auth ?body ~canon_req =
+  let absolute_uri =  canon_req.lpath in
+  let signed_headers =
+    Headers.StringSet.elements (Headers.StringSet.union auth.signed_headers
+      (Headers.filter_names_set must_sign_header canon_req.headers)) in
+  let payloadhash = match body with
+  | None -> "STREAMING-AWS4-HMAC-SHA256-PAYLOAD"
+  | Some s ->
+    Cryptoutil.sha256 s in
+  let canonical_request = String.concat "\n" [
+    string_of_method canon_req.req_method;
+    uri_encode ~encode_slash:false absolute_uri;
+    uri_encode_params (StringMap.bindings canon_req.query_params_multi);
+    canonical_headers canon_req signed_headers;
+    "";
+    String.concat ";" signed_headers;
+    payloadhash
+    ] in
+  canonical_request,
+  String.concat "\n" [
+    "AWS4-HMAC-SHA256";
+    Util.format_date_iso8601_timestamp canon_req.date;
+    scope_of_credential auth.credential;
+    Cryptoutil.sha256 canonical_request
+  ]
+
+let signing_key_v4 key credentials =
+  let d_key = Cryptoutil.hmac_sha256 ("AWS4" ^ key) credentials.date_ymd in
+  let dr_key = Cryptoutil.hmac_sha256 d_key credentials.region in
+  let drs_key = Cryptoutil.hmac_sha256 dr_key credentials.service in
+  Cryptoutil.hmac_sha256 drs_key "aws4_request"
+
+let sign_string_v4 ~key credentials stringtosign =
+  Cryptoutil.to_hex (Cryptoutil.hmac_sha256 (signing_key_v4 key credentials) stringtosign)
+
 type auth_header =
-  | AuthEmpty | AuthNone | AuthMalformed of string | AuthDuplicate | AuthExpired | Authorization of string * string
+  | AuthEmpty | AuthNone | AuthMalformed of string | AuthDuplicate | AuthExpired
+  | Authorization of string * string
+  | AuthorizationV4 of auth_v4 * string
 
 let did_expire expires =
   if expires = "" then false
@@ -220,6 +362,19 @@ let did_expire expires =
     try float (int_of_string expires) < Unix.gettimeofday ()
     with _ -> true (* consider expired if malformed *)
 ;;
+
+let split_semicolon = Netstring_str.regexp_string ";"
+
+let set_of_header_list s =
+  List.fold_left (fun accum h -> Headers.StringSet.add h accum)
+    Headers.StringSet.empty (Netstring_str.split split_semicolon s)
+
+let split_slash = Netstring_str.regexp_string "/"
+let parse_credential c =
+  match Netstring_str.bounded_split split_slash c 5 with
+  | [ keyid; date_ymd; region; service; "aws4_request" ] ->
+    { keyid = keyid; date_ymd = date_ymd; region = region; service = service }
+  | _ -> failwith ("Cannot parse credential: " ^ c)
 
 let parse_authorization req =
   match Headers.field_values req.headers "authorization" with
@@ -236,11 +391,21 @@ let parse_authorization req =
       else
         Authorization (keyid, signature)
   | auth :: [] ->
-      begin try
-        Scanf.sscanf auth "AWS %s@:%s" (fun a b -> Authorization (a,b))
+    begin try
+        Scanf.sscanf auth "AWS4-HMAC-SHA256 Credential=%s@, SignedHeaders=%s@, Signature=%s"
+          (fun credential signed_headers signature ->
+             AuthorizationV4 ({
+                 signed_headers = set_of_header_list signed_headers;
+                 credential = parse_credential credential
+               }, signature)
+          )
       with
       | Scanf.Scan_failure s | Failure s ->
-          AuthMalformed s
+        begin try
+            Scanf.sscanf auth "AWS %s@:%s" (fun a b -> Authorization (a,b))
+          with | Scanf.Scan_failure s | Failure s ->
+            AuthMalformed s
+        end
       | End_of_file -> AuthMalformed "too short"
       end
   | _ ->

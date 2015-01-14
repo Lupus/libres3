@@ -75,7 +75,58 @@ let test_request_parse_sign data =
     let valid = validate canon_req tosign in
     assert_equal ~msg:"signature" data.expected_valid valid;
     assert_str_equal ~msg:"path" data.expected_path canon_req.path;
+    );;
+
+let secret_key_v4 = "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY"
+let test_request_parse_sign_v4 (data,expected_canonical,body) =
+  data.name>::(fun () ->
+    let meth = map_method data.req_method in
+    let canon_req =
+      canonicalize_request ~id:(RequestId.generate ()) meth {
+        req_headers = data.headers;
+        undecoded_url = data.orig_url
+      } in
+    assert_str_equal ~msg:"bucket" data.expected_bucket (Bucket.to_string canon_req.bucket);
+    match CanonRequest.parse_authorization canon_req with
+    | AuthorizationV4 (authv4, expected_signature) ->
+      let canonical, tosign = string_to_sign_v4 authv4 ?body:body ~canon_req in
+      assert_str_equal ~msg:"canonical request" expected_canonical canonical;
+      assert_str_equal ~msg:"string-to-sign-v4" data.expected_tosign tosign;
+      let signature =
+        sign_string_v4 ~key:secret_key_v4 authv4.credential tosign
+      in
+      let valid = signature = expected_signature in
+      if data.expected_valid then
+        assert_str_equal ~msg:"signature" expected_signature signature
+      else
+        assert_equal ~msg:"sig should be invalid" data.expected_valid valid;
+      assert_str_equal ~msg:"path" data.expected_path canon_req.path;
+    | AuthMalformed s ->
+      assert_failure ("cannot parse auth header: " ^ s)
+    | AuthNone -> assert_failure ("auth = none")
+    | AuthEmpty ->  assert_failure "auth empty"
+    | AuthDuplicate -> assert_failure "auth duplicate"
+    | AuthExpired -> assert_failure "auth expired"
+    | Authorization (a,_) -> assert_failure ("bad auth version: " ^ a)
   );;
+
+let request_data_v4 = [
+  {
+    name = "GET with parameters";
+    headers = [
+      "Date", "Mon, 09 Sep 2011 23:36:00 GMT";
+      "Host", "host.foo.com";
+      "Authorization", "AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE/20110909/us-east-1/host/aws4_request, SignedHeaders=date;host, Signature=be7148d34ebccdc6423b19085378aa0bee970bdc61d144bd1a8c48c33079ab09"
+    ];
+    req_method = `GET;
+    orig_url = "/?foo=Zoo&foo=aha";
+    expected_tosign =
+      "AWS4-HMAC-SHA256\n20110909T233600Z\n20110909/us-east-1/host/aws4_request\ne25f777ba161a0f1baf778a87faf057187cf5987f17953320e3ca399feb5f00d";
+    expected_valid = true;
+    expected_bucket = "host.foo.com";
+    expected_path = "/";
+  }, "GET\n/\nfoo=Zoo&foo=aha\ndate:Mon, 09 Sep 2011 23:36:00 GMT\nhost:host.foo.com\n\ndate;host\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", Some ""
+]
 
 let request_data = [
   {
@@ -210,10 +261,54 @@ let request_data = [
   }
 ]
 
+type sig_v4_test = {
+  cred: string;
+  signing_key: int array;
+  signature : string;
+  string_to_sign: string
+}
+
+let sig_v4_data = [{
+    cred = "keyid/20110909/us-east-1/iam/aws4_request";
+    signing_key = [|152; 241; 216; 137; 254; 196; 244; 66; 26; 220; 82; 43; 171;
+                    12; 225; 248; 46; 105; 41; 194; 98; 237; 21; 229; 169; 76;
+                    144; 239; 209; 227; 176; 231|];
+    signature =
+      "ced6826de92d2bdeed8f846f0bf508e8559e98e4b0199114b84c54174deb456c";
+    string_to_sign="AWS4-HMAC-SHA256\n20110909T233600Z\n20110909/us-east-1/iam/aws4_request\n3511de7e95d28ecd39e9513b642aee07e54f4941150d8df8bf94b328ef7e55e2"
+  }]
+
+let ia_of_str s =
+  Array.init (String.length s) (fun i -> Char.code s.[i])
+
+module IADiff = OUnitDiff.ListSimpleMake(struct
+    type t = int
+    let compare = ( - )
+    let pp_printer = Format.pp_print_int
+    let pp_print_sep = OUnitDiff.pp_comma_separator
+  end
+  )
+
+let assert_ia_equal ~msg a b =
+  IADiff.assert_equal ~msg (Array.to_list a) (Array.to_list b)
+
+let test_deriv_sign_v4 d =
+  "signing key test">::(fun () ->
+      let credentials = parse_credential d.cred in
+      let signing_key = signing_key_v4 secret_key_v4 credentials in
+      assert_ia_equal ~msg:"signing key" d.signing_key (ia_of_str signing_key);
+      let signature = sign_string_v4 ~key:secret_key_v4 credentials d.string_to_sign
+      in
+      assert_str_equal ~msg:"signature" d.signature signature)
+
 let suite =
   "Request">::: [
     "signing">:::
       List.map test_request_parse_sign request_data;
+    "deriv-sign-v4">:::
+      List.map test_deriv_sign_v4 sig_v4_data;
+    "canon-signing-v4">:::
+      List.map test_request_parse_sign_v4 request_data_v4;
   ]
 ;;
 

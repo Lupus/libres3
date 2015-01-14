@@ -54,8 +54,9 @@ let build overrides l =
     names = names
   };;
 
-let filter_names f h =
-  StringSet.elements (StringSet.filter f h.names);;
+let filter_names_set f h = StringSet.filter f h.names
+
+let filter_names f h = StringSet.elements (filter_names_set f h)
 
 let field_values h name = h.ro#multiple_field name
 
@@ -74,8 +75,17 @@ let get_range h =
 let get_date h =
   try
     Nethttp.Header.get_date h.ro
-  with Not_found ->
-    0.;;
+  with
+  | Nethttp.Bad_header_field _ ->
+    Scanf.sscanf (h.ro#field "Date")
+        "%04d%02d%02dT%02d%02d%02dZ" (fun y m d hh mm ss ->
+          Netdate.since_epoch {
+            Netdate.year = y; month = m; day = d;
+            hour = hh; minute = mm; second = ss;
+            nanos = 0; zone = 0; week_day = -1
+          }
+        )
+  | Not_found -> 0.
 
 let orig_field_value h name =
   try
