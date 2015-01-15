@@ -72,19 +72,21 @@ let get_range h =
   with Not_found ->
     None;;
 
+let parse_iso8601 date =
+  Scanf.sscanf date
+    "%04d%02d%02dT%02d%02d%02dZ" (fun y m d hh mm ss ->
+        Netdate.since_epoch {
+          Netdate.year = y; month = m; day = d;
+          hour = hh; minute = mm; second = ss;
+          nanos = 0; zone = 0; week_day = -1
+        }
+      )
+
 let get_date h =
   try
     Nethttp.Header.get_date h.ro
   with
-  | Nethttp.Bad_header_field _ ->
-    Scanf.sscanf (h.ro#field "Date")
-        "%04d%02d%02dT%02d%02d%02dZ" (fun y m d hh mm ss ->
-          Netdate.since_epoch {
-            Netdate.year = y; month = m; day = d;
-            hour = hh; minute = mm; second = ss;
-            nanos = 0; zone = 0; week_day = -1
-          }
-        )
+  | Nethttp.Bad_header_field _ -> parse_iso8601 (h.ro#field "Date")
   | Not_found -> 0.
 
 let orig_field_value h name =

@@ -57,7 +57,7 @@ let map_method = function
 let validate canon tosign =
   let expected_signature = Cryptoutil.sign_str !Config.secret_access_key tosign in
   match CanonRequest.parse_authorization canon with
-  | Authorization (_, signature) ->
+  | Authorization (_, signature,_) ->
       signature = expected_signature
   | _ -> false
 
@@ -78,7 +78,8 @@ let test_request_parse_sign data =
     );;
 
 let secret_key_v4 = "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY"
-let test_request_parse_sign_v4 (data,expected_canonical,body) =
+let secret_key_v2 = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+let test_request_parse_sign_v4 (key, data,expected_canonical,body) =
   data.name>::(fun () ->
     let meth = map_method data.req_method in
     let canon_req =
@@ -88,7 +89,7 @@ let test_request_parse_sign_v4 (data,expected_canonical,body) =
       } in
     assert_str_equal ~msg:"bucket" data.expected_bucket (Bucket.to_string canon_req.bucket);
     match CanonRequest.parse_authorization canon_req with
-    | AuthorizationV4 (authv4, expected_signature) ->
+    | AuthorizationV4 (authv4, expected_signature,_) ->
       let sha256 = match body with
         | Some s -> Some (Cryptokit.hash_string (Cryptokit.Hash.sha256 ()) s)
         | None -> None in
@@ -96,7 +97,7 @@ let test_request_parse_sign_v4 (data,expected_canonical,body) =
       assert_str_equal ~msg:"canonical request" expected_canonical canonical;
       assert_str_equal ~msg:"string-to-sign-v4" data.expected_tosign tosign;
       let signature =
-        sign_string_v4 ~key:secret_key_v4 authv4.credential tosign
+        sign_string_v4 ~key authv4.credential tosign
       in
       let valid = signature = expected_signature in
       if data.expected_valid then
@@ -109,12 +110,11 @@ let test_request_parse_sign_v4 (data,expected_canonical,body) =
     | AuthNone -> assert_failure ("auth = none")
     | AuthEmpty ->  assert_failure "auth empty"
     | AuthDuplicate -> assert_failure "auth duplicate"
-    | AuthExpired -> assert_failure "auth expired"
-    | Authorization (a,_) -> assert_failure ("bad auth version: " ^ a)
+    | Authorization (a,_,_) -> assert_failure ("bad auth version: " ^ a)
   );;
 
 let request_data_v4 = [
-  {
+  secret_key_v4, {
     name = "GET with parameters";
     headers = [
       "Date", "Mon, 09 Sep 2011 23:36:00 GMT";
@@ -128,7 +128,23 @@ let request_data_v4 = [
     expected_valid = true;
     expected_bucket = "host.foo.com";
     expected_path = "/";
-  }, "GET\n/\nfoo=Zoo&foo=aha\ndate:Mon, 09 Sep 2011 23:36:00 GMT\nhost:host.foo.com\n\ndate;host\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", Some ""
+  }, "GET\n/\nfoo=Zoo&foo=aha\ndate:Mon, 09 Sep 2011 23:36:00 GMT\nhost:host.foo.com\n\ndate;host\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", Some "" ;
+  secret_key_v2,
+  {
+    name = "pre-signed GET v4 URL";
+    headers = [
+      "Host", "examplebucket.s3.amazonaws.com"
+    ];
+    req_method = `GET;
+    orig_url =
+      "/test.txt?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20130524%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20130524T000000Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=aeeed9bbccd4d02ee5c0109b86d86835f995330da4c265957d157751f604d404";
+    expected_tosign =
+      "AWS4-HMAC-SHA256\n20130524T000000Z\n20130524/us-east-1/s3/aws4_request\n3bfa292879f6447bbcda7001decf97f4a54dc650c8942174ae0a9121cf58ad04";
+    expected_valid = true;
+    expected_bucket = "examplebucket";
+    expected_path = "/test.txt"
+  },
+  "GET\n/test.txt\nX-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20130524%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20130524T000000Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host\nhost:examplebucket.s3.amazonaws.com\n\nhost\nUNSIGNED-PAYLOAD", Some ""
 ]
 
 let request_data = [
@@ -317,7 +333,7 @@ let suite =
 
 let _ =
   Config.key_id := "AKIAIOSFODNN7EXAMPLE";
-  Config.secret_access_key := "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY";
+  Config.secret_access_key := secret_key_v2;
   Configfile.base_hostname := "s3.amazonaws.com";
   run_test_tt_main suite
 ;;

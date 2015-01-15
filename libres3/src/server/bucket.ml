@@ -43,13 +43,13 @@ let from_url url orig_full_path =
     (* "legacy" style URL: /bucket/path, extract bucket from the URL: *)
     let bucket, path = Util.url_split_first_component
       (Neturl.split_path opath) in
-    Bucket bucket, path
+    false, Bucket bucket, path
   else
     (* virtual hosting style URL: Host: bucket.<base_hostname>; URL: /path *)
     let base_hostname_suffix = "." ^ !Configfile.base_hostname in
     (* extract bucket from Host *)
     let bucket = Util.string_before_suffix url_host base_hostname_suffix in
-    Bucket bucket, opath
+    true, Bucket bucket, opath
 ;;
 
 let to_string (Bucket s) = s

@@ -1429,7 +1429,11 @@ module Make
     | "uploadId" | "uploads" | "versioning" | "versions" | "website" -> true
     | _ -> false
 
-  let dispatch_request ~request ~canon =
+  let dispatch_request ~request ~canon expires =
+    match expires with
+    | Some e when e < Unix.gettimeofday () ->
+        return_error Error.ExpiredToken []
+    | _ ->
     match
       canon.CanonRequest.req_method, canon.CanonRequest.bucket,
       canon.CanonRequest.path, CanonRequest.actual_query_params canon
@@ -1535,7 +1539,7 @@ module Make
           Homepage.root
       else if is_s3_get_object canon then
         try_catch (fun () ->
-            dispatch_request ~request
+            dispatch_request None ~request
               ~canon:{ canon with CanonRequest.user = libres3_all_users })
           (function
             | Error.ErrorReply (Error.NoSuchBucket, _, _) ->
@@ -1549,9 +1553,7 @@ module Make
       return_error Error.InvalidSecurity ["BadAuthorization", s]
     | CanonRequest.AuthDuplicate ->
       return_error Error.InvalidSecurity ["BadAuthorization", "Multiple occurences of Authorization header"]
-    | CanonRequest.AuthExpired ->
-      return_error Error.ExpiredToken []
-    | CanonRequest.AuthorizationV4 (auth, signature) ->
+    | CanonRequest.AuthorizationV4 (auth, signature,expires) ->
       let credential = auth.CanonRequest.credential in
       let user = credential.CanonRequest.keyid in
       begin match !Configfile.sx_host with
@@ -1577,7 +1579,7 @@ module Make
               ]
             else
               dispatch_request ~request
-                ~canon:{ canon with CanonRequest.user = user }
+                ~canon:{ canon with CanonRequest.user = user } expires
           in
           begin match canon.CanonRequest.req_method with
             | `PUT body ->
@@ -1590,14 +1592,15 @@ module Make
           end
         | None ->
             return_error Error.InvalidAccessKeyId [
-              "Hint","Your S3 access key must be set to your SX user name"
+              "Hint","Your S3 access key must be set to your SX user name";
+              "AccessKeyID", user
             ]
         end
       | None ->
         dispatch_request ~request
-          ~canon:{ canon with CanonRequest.user = "" }
+          ~canon:{ canon with CanonRequest.user = "" } expires
       end
-    | CanonRequest.Authorization (user, signature) ->
+    | CanonRequest.Authorization (user, signature, expires) ->
       match !Configfile.sx_host with
       | Some host ->
         let url = Neturl.make_url ~encoded:false ~scheme:"sx" ~host ~path:[""]
@@ -1616,7 +1619,7 @@ module Make
             ]
           else
             dispatch_request ~request
-              ~canon:{ canon with CanonRequest.user = user }
+              ~canon:{ canon with CanonRequest.user = user } expires
         | None ->
             return_error Error.InvalidAccessKeyId [
               "Hint","Your S3 access key must be set to your SX user name"
@@ -1624,7 +1627,7 @@ module Make
         end
       | None ->
         dispatch_request ~request
-          ~canon:{ canon with CanonRequest.user = user }
+          ~canon:{ canon with CanonRequest.user = user } expires
 
   let handle_request_real request =
     let id = RequestId.generate () in

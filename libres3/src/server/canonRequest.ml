@@ -55,6 +55,7 @@ type ('a,'b) t = {
   query_params: string StringMap.t;
   id: RequestId.t;
   user : string;
+  is_virtual_hosted: bool
 }
 
 
@@ -204,7 +205,7 @@ let canonicalize_request ~id req_method
    * for example [.
    * fixup_url_string doesn't help with [ either.
    * Do the safe thing: decode the URL path, and encode it again *)
-  let bucket, undecoded_uri_path = Bucket.from_url hurl undecoded_url in
+  let is_virtual_hosted, bucket, undecoded_uri_path = Bucket.from_url hurl undecoded_url in
   let decoded = Neturl.norm_path (Neturl.split_path
                                     (uri_decode undecoded_uri_path)) in
   let absolute_url = Neturl.modify_url hurl ~path:decoded ~encoded:false in
@@ -237,7 +238,8 @@ let canonicalize_request ~id req_method
     query_params_multi = query_params_multi;
     query_params = query_params;
     id = id;
-    user = ""
+    user = "";
+    is_virtual_hosted = is_virtual_hosted
   };;
 
 let string_to_sign canon_req =
@@ -311,23 +313,31 @@ type credential_v4 = {
 type auth_v4 = {
   signed_headers: Headers.StringSet.t;
   credential: credential_v4;
+  auth_date: float;
+  payloadhash: string option;
 }
 
 let scope_of_credential c =
   String.concat "/" [ c.date_ymd; c.region; c.service; "aws4_request" ]
 
 let string_to_sign_v4 auth ?sha256 ~canon_req =
-  let absolute_uri =  canon_req.lpath in
+  let absolute_uri =
+    if canon_req.is_virtual_hosted then canon_req.lpath
+    else "/" ^(Bucket.to_string canon_req.bucket) ^ canon_req.lpath
+  in
   let signed_headers =
     Headers.StringSet.elements (Headers.StringSet.union auth.signed_headers
       (Headers.filter_names_set must_sign_header canon_req.headers)) in
-  let payloadhash = match sha256 with
-  | None -> "STREAMING-AWS4-HMAC-SHA256-PAYLOAD"
-  | Some s -> Cryptokit.transform_string (Cryptokit.Hexa.encode ()) s in
+  let payloadhash = match auth.payloadhash, sha256 with
+  | Some s, _ -> s
+  | None, None -> "STREAMING-AWS4-HMAC-SHA256-PAYLOAD"
+  | None, Some s -> Cryptokit.transform_string (Cryptokit.Hexa.encode ()) s in
+  let params = StringMap.remove "X-Amz-Signature" canon_req.query_params_multi
+  in
   let canonical_request = String.concat "\n" [
     string_of_method canon_req.req_method;
     uri_encode ~encode_slash:false absolute_uri;
-    uri_encode_params (StringMap.bindings canon_req.query_params_multi);
+    uri_encode_params (StringMap.bindings params);
     canonical_headers canon_req signed_headers;
     "";
     String.concat ";" signed_headers;
@@ -336,7 +346,7 @@ let string_to_sign_v4 auth ?sha256 ~canon_req =
   canonical_request,
   String.concat "\n" [
     "AWS4-HMAC-SHA256";
-    Util.format_date_iso8601_timestamp canon_req.date;
+    Util.format_date_iso8601_timestamp auth.auth_date;
     scope_of_credential auth.credential;
     Cryptoutil.sha256 canonical_request
   ]
@@ -351,14 +361,14 @@ let sign_string_v4 ~key credentials stringtosign =
   Cryptoutil.to_hex (Cryptoutil.hmac_sha256 (signing_key_v4 key credentials) stringtosign)
 
 type auth_header =
-  | AuthEmpty | AuthNone | AuthMalformed of string | AuthDuplicate | AuthExpired
-  | Authorization of string * string
-  | AuthorizationV4 of auth_v4 * string
+  | AuthEmpty | AuthNone | AuthMalformed of string | AuthDuplicate
+  | Authorization of string * string * float option
+  | AuthorizationV4 of auth_v4 * string * float option
 
-let did_expire expires =
-  if expires = "" then false
+let did_expire_v4 date expires =
+  if expires = "" then true
   else
-    try float (int_of_string expires) < Unix.gettimeofday ()
+    try (date +. float (int_of_string expires)) < Unix.gettimeofday ()
     with _ -> true (* consider expired if malformed *)
 ;;
 
@@ -378,6 +388,22 @@ let parse_credential c =
 let parse_authorization req =
   match Headers.field_values req.headers "authorization" with
   | [] ->
+      let v4_algo = get_query_param_opt req.query_params "X-Amz-Algorithm" in
+      if v4_algo = "AWS4-HMAC-SHA256" then begin
+        let credential = get_query_param_opt req.query_params "X-Amz-Credential"
+        and date = Headers.parse_iso8601 (get_query_param_opt req.query_params "X-Amz-Date")
+        and expires = get_query_param_opt req.query_params "X-Amz-Expires"
+        and signed = get_query_param_opt req.query_params "X-Amz-SignedHeaders"
+        and signature = get_query_param_opt req.query_params "X-Amz-Signature"
+        in
+        let expiration = date +. float (int_of_string expires) in
+        AuthorizationV4 ({
+            signed_headers = set_of_header_list signed;
+            credential = parse_credential credential;
+            auth_date = date;
+            payloadhash = Some "UNSIGNED-PAYLOAD"
+          }, signature, Some expiration)
+      end else
       let keyid = get_query_param_opt req.query_params "AWSAccessKeyId"
       and signature = get_query_param_opt req.query_params "Signature"
       and expires = req.expires in
@@ -385,23 +411,23 @@ let parse_authorization req =
         AuthNone
       else if keyid = "" || signature = "" || expires = "" then
         AuthEmpty
-      else if did_expire expires then
-        AuthExpired
       else
-        Authorization (keyid, signature)
+        Authorization (keyid, signature, Some (float (int_of_string expires)))
   | auth :: [] ->
     begin try
         Scanf.sscanf auth "AWS4-HMAC-SHA256 Credential=%s@, SignedHeaders=%s@, Signature=%s"
           (fun credential signed_headers signature ->
              AuthorizationV4 ({
                  signed_headers = set_of_header_list signed_headers;
-                 credential = parse_credential credential
-               }, signature)
+                 credential = parse_credential credential;
+                 auth_date = req.date;
+                 payloadhash = None
+               }, signature, None)
           )
       with
       | Scanf.Scan_failure s | Failure s ->
         begin try
-            Scanf.sscanf auth "AWS %s@:%s" (fun a b -> Authorization (a,b))
+            Scanf.sscanf auth "AWS %s@:%s" (fun a b -> Authorization (a,b, None))
           with | Scanf.Scan_failure s | Failure s ->
             AuthMalformed s
         end

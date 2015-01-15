@@ -77,7 +77,7 @@ let sigv4_test name =
       and expected_string_to_sign = load name "sts" in
       let canon_req, body = parse_req signed_req in
       match CanonRequest.parse_authorization canon_req with
-      | AuthorizationV4 (authv4, expected_signature) ->
+      | AuthorizationV4 (authv4, expected_signature,_) ->
         let sha256 = Cryptokit.hash_string (Cryptokit.Hash.sha256 ()) body in
         let canonical, tosign = string_to_sign_v4 authv4 ~sha256 ~canon_req in
         assert_str_equal ~msg:"canonical request" expected_canonical canonical;
@@ -91,8 +91,7 @@ let sigv4_test name =
       | AuthNone -> assert_failure ("auth = none")
       | AuthEmpty ->  assert_failure "auth empty"
       | AuthDuplicate -> assert_failure "auth duplicate"
-      | AuthExpired -> assert_failure "auth expired"
-      | Authorization (a,_) -> assert_failure ("bad auth version: " ^ a)
+      | Authorization (a,_,_) -> assert_failure ("bad auth version: " ^ a)
     with Sys_error msg ->
       skip_if true msg
   )

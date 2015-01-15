@@ -31,5 +31,5 @@
  * hence private *)
 type t = private Bucket of string
 (* Parse an absolute URL and return the bucket name and path. *)
-val from_url : Neturl.url -> string -> t * string
+val from_url : Neturl.url -> string -> bool *t * string
 val to_string: t -> string
