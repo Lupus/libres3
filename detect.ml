@@ -476,6 +476,10 @@ end = struct
     )
   ;;
 
+  module StringSet = Set.Make(String)
+  let sort_uniq l =
+    StringSet.elements (List.fold_left (fun accum s -> StringSet.add s accum)
+      StringSet.empty l)
   let string_of_list lst =
     let buf = Buffer.create 128 in
     Buffer.add_char buf '[';
@@ -484,7 +488,7 @@ end = struct
       Buffer.add_string buf e;
       Buffer.add_char buf '"';
       Buffer.add_char buf ';';
-    ) lst;
+    ) (sort_uniq lst);
     Buffer.add_char buf ']';
     Buffer.contents buf;;
 
@@ -532,9 +536,12 @@ end = struct
   (* TODO: dependencies should be on META.
    * also handle uninstall; and install failures! *)
   let depname name =
+    let name =
+    try String.sub name 0 (String.index name '.')
+    with Not_found -> name in
     Filename.concat (Filename.concat "lib/ocaml/site-lib" name) "META";;
 
-  let generate_rule f name prods deps =
+  let generate_rule ?stamp f name prods deps =
     let sdeps = List.fast_sort String.compare deps in
     let udeps = List.fold_left (fun accum d ->
       match accum with
@@ -543,7 +550,8 @@ end = struct
       | _ -> d :: accum) [] sdeps in
     let rdeps = if udeps = prods then [] else udeps in
     let name = gname name in
-    fprintf f "\trule \"build %s\" ~prods:%s ~deps:%s build_%s;\n"
+    fprintf f "\trule %s \"build %s\" ~prods:%s ~deps:%s build_%s;\n"
+      (match stamp with Some s -> sprintf "~stamp:\"%s\"" s | None -> "")
       name (string_of_list prods) (string_of_list rdeps) name;;
 
   let generate_rule_meta f (name,b,deps) =
@@ -560,20 +568,25 @@ end = struct
     let args = List.tl (Array.to_list Sys.argv) in
     let dir = Filename.concat ".." main in
 
-    fprintf f "let build_all _ _ =\n";
+    fprintf f "let build_configure _ _ =\n";
     print_cmd_env f dir;
     let args = List.filter (not_starts_with ~start:"--includedir=") args in
     print_cmd f "configure"
       (append
         ["./configure";"--override";"ocamlbuildflags";"-j 0";
+          "--override";"native_dynlink";"false";
           if want_ocsigen then "--enable-ocsigen" else "--disable-ocsigen";
           "--disable-docs";
           "--enable-tests"
         ]
         args
       );
+    fprintf f "\tcmd_configure;;\n";
+    fprintf f "let build_all _ _ =\n";
+    print_cmd_env f dir;
     print_cmd f "build" ["ocaml";"setup.ml";"-build"];
-    fprintf f "\tSeq [cmd_configure; cmd_build ];;\n";
+    fprintf f "\tSeq [ cmd_build ];;\n";
+    fprintf f "let build_allforce a b = build_all a b;;\n";
 
     List.iter (fun target ->
       fprintf f "let build_%s _ _ =\n" target;
@@ -608,10 +621,12 @@ end = struct
     fprintf f "\n";
     let deps = Builds.fold (fun (_,b,_) accum ->
       List.rev_append (List.rev_map depname b.findlibnames) accum) builds [] in
-    generate_rule f "all" ["all.target"] deps;
-    generate_rule f "install" ["install.target"] ["all.target"];
+    generate_rule ~stamp:"configure.stamp" f "configure" [] deps;
+    generate_rule ~stamp:"build.stamp" f "all" [] ["configure.stamp"];
+    generate_rule f "allforce" ["all.target"] ["configure.stamp"];
+    generate_rule f "install" ["install.target"] ["build.stamp"];
     generate_rule f "uninstall" ["uninstall.target"] [];
-    generate_rule f "test" ["test.target"] ["all.target"];
+    generate_rule f "test" ["test.target"] ["build.stamp"];
     generate_rule f "clean" ["clean.target"] [];
     fprintf f "| _ -> ()\n";
     fprintf f "end;;\n";
@@ -791,6 +806,7 @@ let pkg_pcre = ocaml_dependency "pcre" (Build (fun _ ->
   ~deps:[
     clib_dependency "libpcre" ~header:"pcre.h" ~lib:["pcre"] ~fn:"pcre_version()"
       install_pcre;
+    pkg_findlib
   ] ~version:(fun ver -> ver >=? "6.0.1");;
 
 (* OpenSSL *)
@@ -802,7 +818,7 @@ let pkg_ssl =
     ))
     ~deps:[clib_dependency "libssl"
       ~header:"openssl/ssl.h" ~lib:["ssl";"crypto"] ~fn:"(void)SSL_library_init ()" install_ssl;
-      gnu_make_dep
+      gnu_make_dep; pkg_findlib
     ]
     ~version:(fun v -> v >=? "0.4.4")
 ;;
@@ -831,15 +847,17 @@ let pkg_ocamlnet =
     make = [gnu_make;"all";"opt"];
     install = [gnu_make;"install"];
     uninstall = [gnu_make;"uninstall"];
-  })) ~deps_opt:[gnu_make_dep; pkg_pcre; pkg_ssl];;
+  })) ~deps:[pkg_findlib] ~deps_opt:[gnu_make_dep; pkg_pcre; pkg_ssl ];;
 
 (* xmlm *)
 let pkg_xmlm = ocaml_dependency "xmlm" (Build (fun _ ->
-  build_pkgopkg "3rdparty/libs/xmlm" ~findlibname:"xmlm" ~flags:[])) ~deps:[dep_ocamlbuild];;
+  build_pkgopkg "3rdparty/libs/xmlm" ~findlibname:"xmlm" ~flags:[]))
+  ~deps:[dep_ocamlbuild; pkg_findlib];;
 
 (* uutf *)
 let pkg_uutf = ocaml_dependency "uutf" (Build (fun _ ->
-  build_pkgopkg "3rdparty/libs/uutf" ~findlibname:"uutf" ~flags:[])) ~deps:[dep_ocamlbuild];;
+  build_pkgopkg "3rdparty/libs/uutf" ~findlibname:"uutf" ~flags:[]))
+  ~deps:[dep_ocamlbuild; pkg_findlib];;
 
 (* jsonm *)
 let pkg_jsonm = ocaml_dependency "jsonm" (Build (fun _ ->
@@ -849,23 +867,23 @@ let pkg_jsonm = ocaml_dependency "jsonm" (Build (fun _ ->
 (* jsonm *)
 let pkg_ipaddr = ocaml_dependency "ipaddr" (Build (fun _ ->
   build_oasis "3rdparty/libs/ipaddr" ~findlibnames:["ipaddr"] ~flags:[]))
-  ~deps:[dep_ocamlbuild]
+  ~deps:[dep_ocamlbuild; pkg_findlib]
   ~version:(fun v -> v >=? "2.2.0") ;;
 
 (* cryptokit *)
 let pkg_cryptokit = ocaml_dependency "cryptokit" (Build (fun _ ->
   build_oasis "3rdparty/libs/cryptokit" ~flags:[] ~findlibnames:["cryptokit"]
-)) ~deps:[dep_ocamlbuild] ~version:(fun ver -> ver >=? "1.3");;
+)) ~deps:[dep_ocamlbuild; pkg_findlib] ~version:(fun ver -> ver >=? "1.3");;
 
 (* oUnit *)
 let pkg_ounit = ocaml_dependency "oUnit" (Build (fun _ ->
   build_oasis "3rdparty/libs/ounit" ~flags:[] ~findlibnames:["oUnit"]
-)) ~deps:[dep_ocamlbuild; camlp4_dep];;
+)) ~deps:[dep_ocamlbuild; pkg_findlib];;
 
 (* React *)
 let pkg_react = ocaml_dependency "react" (Build (fun _ ->
   build_pkgopkg2 "3rdparty/libs/react" ~flags:[] ~findlibname:"react"
-)) ~deps:[dep_ocamlbuild] ~version:(fun v -> v >=? "1.1.0");;
+)) ~deps:[dep_ocamlbuild; pkg_findlib] ~version:(fun v -> v >=? "1.1.0");;
 
 (* Lwt *)
 let pkg_lwt = ocaml_dependency "lwt" ~findlibnames:["lwt";"lwt.unix";"lwt.ssl"]
@@ -886,7 +904,7 @@ let pkg_lwt = ocaml_dependency "lwt" ~findlibnames:["lwt";"lwt.unix";"lwt.ssl"]
 let pkg_tyxml = ocaml_dependency "tyxml" ~cmi:("tyxml","html5.cmi","tyxml.cmxa") (Build (fun _ ->
   build_oasis "3rdparty/libs/tyxml" ~findlibnames:["tyxml"] ~flags:[]))
     ~version:(fun v -> v >=? "2.0.1")
-  ~deps:[pkg_ocamlnet; camlp4of_dep; camlp4rf_dep; camlp4_dep]
+  ~deps:[pkg_findlib; pkg_uutf; camlp4of_dep; camlp4rf_dep; camlp4_dep]
 ;;
 
 (* Ocsigenserver *)
@@ -905,28 +923,30 @@ let pkg_ocsigenserver = ocaml_dependency "ocsigenserver"
   ] ~findlibnames:["ocsigenserver"]
 )) ~version:(fun v -> v >=? "2.5.0") (* always build *)
   ~deps:[
-  gnu_make_dep; camlp4_dep; pkg_findlib; pkg_pcre; pkg_ocamlnet; pkg_react; pkg_ssl; pkg_lwt; pkg_cryptokit; pkg_tyxml; pkg_ipaddr
+  gnu_make_dep; pkg_findlib; pkg_pcre; pkg_ocamlnet; pkg_react; pkg_ssl; pkg_lwt; pkg_cryptokit; pkg_tyxml; pkg_ipaddr
 ]
 
 let pkg_re = ocaml_dependency "re" (Build (fun _ ->
   build_oasis "3rdparty/libs/ocaml-re" ~findlibnames:["re";"re.posix"] ~flags:[]))
-  ~deps:[dep_ocamlbuild]
+  ~deps:[dep_ocamlbuild; pkg_findlib]
 
 let pkg_optcomp = ocaml_dependency "optcomp" ~cmi:("optcomp","pa_optcomp.cmi","optcomp.cmxa") (Build (fun _ ->
   build_oasis "3rdparty/libs/optcomp" ~findlibnames:["optcomp"] ~flags:[]))
-  ~deps:[dep_ocamlbuild; camlp4_dep]
+  ~deps:[dep_ocamlbuild; camlp4_dep; pkg_findlib]
 
 let pkg_ocplib_endian = ocaml_dependency "ocplib-endian" ~cmi:("ocplib-endian","endianString.cmi","ocplib_endian.cmxa") (Build (fun _ ->
   build_oasis "3rdparty/libs/ocplib-endian" ~findlibnames:["ocplib-endian"] ~flags:[]))
-~deps:[dep_ocamlbuild; pkg_findlib; pkg_optcomp; camlp4_dep]
+  ~deps:[dep_ocamlbuild; pkg_findlib; pkg_optcomp; camlp4_dep]
 
 let pkg_cstruct = ocaml_dependency "cstruct" (Build (fun _ ->
   build_oasis "3rdparty/libs/ocaml-cstruct" ~findlibnames:["cstruct";"cstruct.lwt"] ~flags:["--enable-lwt"]))
   ~deps:[dep_ocamlbuild; pkg_ocplib_endian; pkg_ounit; camlp4_dep]
+  ~deps_opt:[pkg_lwt]
   ~version:(fun v -> v >=? "1.0.1")
 
 let pkg_base64 = ocaml_dependency "base64" (Build (fun _ ->
-  build_oasis "3rdparty/libs/base64" ~findlibnames:["base64"] ~flags:[]))
+    build_oasis "3rdparty/libs/base64" ~findlibnames:["base64"] ~flags:[]))
+    ~cmi:("base64","b64.cmi","base64.cmxa")
   ~deps:[pkg_findlib]
 
 let pkg_dns = ocaml_dependency "dns" (Build (fun _ ->
