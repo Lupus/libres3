@@ -380,8 +380,13 @@ let () =
       try
         let v = load "SX_USE_SSL" () = "yes" in
         if v <> !ssl then
-          Printf.eprintf "Warning: SX and LibreS3 SSL mode mismatch!\n";
-        v
+          let is_secure = function true -> "secure" | false -> "insecure" in
+          Printf.eprintf
+            "ERROR: SX (%s) and LibreS3 (%s) SSL mode mismatch!\n"
+            (is_secure v) (is_secure !ssl);
+          prerr_endline "Run libres3_setup with --no-ssl to disable SSL support (NOT RECOMMENDED!)";
+          exit 3
+        else v
       with _ -> true in
     let sx_server_port_msg =
       if sx_use_ssl then "SX server HTTPS port"
