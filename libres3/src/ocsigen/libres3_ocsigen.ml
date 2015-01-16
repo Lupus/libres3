@@ -278,6 +278,7 @@ let run_server commandpipe =
     Unix.dup2 dev_null Unix.stderr;
     Unix.close dev_null
   end;
+  Lwt_main.at_exit Lwt_unix.wait_for_jobs;
   Ocsigen_server.start_server ();
   exit 0
 

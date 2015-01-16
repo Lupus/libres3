@@ -1048,7 +1048,8 @@ let rec wait_connection use_ssl port socket =
 
 
 let stop m n =
-  errlog m; exit n
+  Lwt_unix.run (Lwt_log.error m);
+  exit n
 
 (** Thread waiting for events on a the listening port *)
 let listen use_ssl (addr, port) wait_end_init =
