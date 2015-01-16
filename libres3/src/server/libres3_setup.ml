@@ -298,13 +298,13 @@ let generate_boto secure host port key name =
 let ask_start () =
   let init_d_script = "/etc/init.d/libres3" in
   let sbin_script = Filename.concat Configure.sbindir "libres3" in
-  let has_init_d_script = Sys.file_exists init_d_script
+  let use_init_d_script = Unix.geteuid () = 0 && (Sys.file_exists init_d_script)
   and has_sbin_script = Sys.file_exists sbin_script in
 
-  if has_init_d_script || has_sbin_script then
+  if use_init_d_script || has_sbin_script then
     Printf.printf "\n%!";
     if read_yes_no true "Do you want to start LibreS3 now?" then begin
-      let exec = if has_init_d_script then init_d_script else sbin_script in
+      let exec = if use_init_d_script then init_d_script else sbin_script in
       let cmd = exec ^ " restart" in
       match Unix.system cmd with
       | Unix.WEXITED 0 -> ()
