@@ -75,17 +75,19 @@ module Json = struct
 
   exception Error of string
 
-  let rec value d = function
-    | `Lexeme `Os -> obj d []
-    | `Lexeme `As -> arr d []
-    | `Lexeme (`Null | `Bool _ | `String _ | `Float _ as v) -> v
-    | `Error e ->
+  let err d e =
       let b = Buffer.create small_buffer_size in
       let fmt = Format.formatter_of_buffer b in
       let (l1,c1),(l2,c2) = Jsonm.decoded_range d in
       Format.fprintf fmt "Bad JSON at %d:%d-%d:%d: %a%!" l1 c1 l2 c2
         Jsonm.pp_error e;
-      raise (Error (Buffer.contents b));
+      raise (Error (Buffer.contents b));;
+
+  let rec value d = function
+    | `Lexeme `Os -> obj d []
+    | `Lexeme `As -> arr d []
+    | `Lexeme (`Null | `Bool _ | `String _ | `Float _ as v) -> v
+    | `Error e -> err d e
     | `End | `Lexeme _ ->
       raise (Error ("Unexpected end of JSON"));
     | `Await -> assert false
@@ -96,7 +98,8 @@ module Json = struct
     | `Lexeme `Oe -> `O (List.rev ms)
     | `Lexeme `Name n ->
       obj d ((n, value d (Jsonm.decode d)) :: ms)
-    | _ -> assert false
+    | `Error e -> err d e
+    | _ -> raise (Error ("Expected object end or name"))
 
   let of_string str : t =
     let d = Jsonm.decoder (`String str) in
