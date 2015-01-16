@@ -901,12 +901,23 @@ struct
         )
 
     let parse_volume = function
-    | `F (name,[`O _meta]) ->
-        name
+    | `F (name,[`O _meta]) -> name
     | p ->
         pp_json p;
         failwith "bad volumeslist format"
     ;;
+
+    let filter_opt l =
+      List.fold_left (fun accum -> function
+          | Some e -> e :: accum | None -> accum) [] l
+
+    let remove_volumes_filters url l =
+      IO.rev_map_p (fun vol ->
+          let url = Neturl.modify_url url ~path:[""; vol] in
+          IO.try_catch (fun () ->
+              get_vol_nodelist url >>= fun _ -> return (Some vol))
+            (fun _ -> return None) ()) l >>= fun lst ->
+      return (filter_opt lst)
 
     let volumelist url =
       get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
@@ -918,7 +929,7 @@ struct
        | [`O obj] ->
           begin match filter_field_one "volumeList" obj with
           | `O files ->
-            return (List.rev_map parse_volume files)
+            remove_volumes_filters url (List.rev_map parse_volume files)
           | p ->
             pp_json p;
             fail (Failure "bad volumes list format")
