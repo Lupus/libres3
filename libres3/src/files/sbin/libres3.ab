@@ -30,7 +30,7 @@ case "\$1" in
         ;;
 
     restart)
-        \$0 stop || exit 1
+        \$0 stop >/dev/null || exit 1
         \$0 start || exit 1
         ;;
 
