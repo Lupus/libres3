@@ -1461,9 +1461,11 @@ struct
         ~syntax:http_syntax
 
   let get_acl url =
-    get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
+    (* cluster_nodelist would suffice, but vol_nodelist gives better error msg
+      (404 instead of 500) *)
+    get_vol_nodelist url >>= fun (nodes, _) ->
     let url = acl_url url in
-    make_request `GET cluster_nodes url >>= fun reply ->
+    make_request `GET nodes url >>= fun reply ->
     expect_content_type reply "application/json" >>= fun () ->
     let input = P.input_of_async_channel reply.body in
     json_parse_tree input >>= function
@@ -1491,7 +1493,7 @@ struct
           acl_op "revoke-write" (find_acl_op `Revoke `Write set) [])))
 
   let set_acl url acls =
-    get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
+    get_vol_nodelist url >>= fun (cluster_nodes, _) ->
     let url = acl_url url in
     let json = json_of_acl acls in
     send_json cluster_nodes url (`Object json) >>=

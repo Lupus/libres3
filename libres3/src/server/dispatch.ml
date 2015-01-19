@@ -1397,6 +1397,7 @@ module Make
       (return "") [ libres3_all_users ]
 
   let delete_bucket_policy ~canon ~request bucket =
+    create_special_users ~canon () >>= fun _ ->
     let anon_read = `Revoke, `UserName libres3_all_users, [`Read] in
     U.set_acl (fst (url_of_volpath ~canon bucket "")) [anon_read]
 
