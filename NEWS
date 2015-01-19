@@ -1,3 +1,21 @@
+1.0
+---
+
+This is the first stable release of Skylable LibreS3. The changes
+from 0.9 include:
+
+  * support for publicly readable buckets:
+    + bucket policy for public/anonymous access to objects
+    + easily host a public website or files
+    + range requests: stream and seek videos directly from LibreS3!
+    + Content-Type support
+    + more efficient ETag and 304 (Not Modified) handling
+  * better integration with s3cmd, including:
+    + --encrypt and metadata support
+    + --ca-certs support
+    + more efficient mv/cp and ls
+    + AWS Signature Version 4 support
+
 0.9 (Final Beta)
 ----------------
 

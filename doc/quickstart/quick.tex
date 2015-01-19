@@ -11,16 +11,22 @@
     \rule{\textwidth}{1.6pt}\\[\baselineskip]
 \end{center}
 
-%\definecolor{lightblue}{rgb}{.780,.886,.953}
-\definecolor{lightblue}{rgb}{.835,.910,.965}
 \lstset {
     escapeinside=\^\^,
     frame=single,
     breaklines=true,
-    backgroundcolor=\color{lightblue},
+    backgroundcolor=\color{black},
+    %backgroundcolor=\color{lightblue},
+    basicstyle=\scriptsize\color{white}\ttfamily
 }
 
-\LARGE
+\newcommand{\marked}[1]{\color{yellow}\textbf{#1}}
+\newcommand{\markedG}[1]{\color{green}\textbf{#1}}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+%\definecolor{lightblue}{rgb}{.780,.886,.953}
+\definecolor{lightblue}{rgb}{.835,.910,.965}
+
 \chapter{Introduction}
 
 \indent LibreS3 is a robust Open Source implementation of the Amazon S3 service,
@@ -29,7 +35,7 @@ supporting a subset of the S3 REST API.
 Standard S3 client libraries and tools can be used to access it (for example s3cmd, python-boto, DragonDisk, etc.) .
 
 LibreS3 uses Skylable \SX as the storage backend, which provides data
-deduplication and replication.\\
+deduplication and replication.
 
 \section*{Useful links}
 \begin{itemize}
@@ -56,31 +62,31 @@ development versions:
     \item GNU Make and m4
 \end{itemize}
 For example, on Debian run:
-\small
+
 \begin{lstlisting}
 # apt-get install ocaml-native-compilers camlp4-extra libssl-dev libpcre3-dev make m4
 \end{lstlisting}
-\LARGE
+
 On Fedora run:
-\small
+
 \begin{lstlisting}
 # yum install ocaml /usr/bin/camlp4of /usr/bin/camlp4rf /usr/bin/camlp4 pcre-devel openssl-devel make m4 ncurses-devel
 \end{lstlisting}
-\LARGE
+
 
 \newpage
 \section*{Compilation}
 
 Follow the standard installation procedure. To install
 LibreS3 into the default location (\verb+/usr/local+):
-\small
+
 \begin{lstlisting}
 $ ./configure && make
 # make install
 \end{lstlisting}
 The rest of the manual assumes that LibreS3 was installed from a binary
 package, so some paths may be different.
-\LARGE
+
 
 \chapter{Configuration}
 
@@ -96,22 +102,22 @@ on the same or different hosts.
 
 S3 buckets require a wildcard A record pointing to the IP address (1.2.3.4 below) of the
 host running LibreS3, for example:
-\small
+
 \begin{lstlisting}
 *.libres3.example.com. A 1.2.3.4
 libres3.example.com. A 1.2.3.4
 \end{lstlisting}
-\LARGE
+
 
 In case you don't have control over the DNS you'll have to modify the \verb|/etc/hosts| file
 of each client machine and add a line for each bucket you want to access:
-\small
+
 \begin{lstlisting}
 libres3.example.com 1.2.3.4
 bucket1.libres3.example.com 1.2.3.4
 bucket2.libres3.example.com 1.2.3.4
 \end{lstlisting}
-\LARGE
+
 
 \section*{Setting up a LibreS3 node}
 
@@ -123,16 +129,16 @@ Please make sure the default volume replica count setting is less or equal
 to the number of nodes in the SX cluster.
 
 In the examples below we assume you
-have an \SX cluster running on \verb|sx.example.com| and you want to run
+have an \SX cluster running and you want to run
 LibreS3 on \verb|libres3.example.com|.
 
 Example setup with sxsetup.conf:
-\small
+
 \begin{lstlisting}
 # libres3_setup  --sxsetup-conf /etc/sxserver/sxsetup.conf
 Successfully loaded SX configuration from '/etc/sxserver/sxsetup.conf'
 
-S3 (DNS) name: libres3.skylable.com
+S3 (DNS) name: libres3.example.com
 
 Generating default SSL certificate and key in /etc/ssl/certs/libres3.pem and /etc/ssl/private/libres3.key
 Generating a 2048 bit RSA private key
@@ -162,16 +168,16 @@ Loading configuration from /etc/libres3/libres3.conf
 Waiting for server to start (5s) ... OK
 . ok
 \end{lstlisting}
-\LARGE
+
 
 Example without sxsetup.conf:
 \footnote{you can use 'sxadm node --info /var/lib/sxserver/storage/' on the SX node to find out the required information}
-\small
+
 \begin{lstlisting}
 # libres3_setup
 Admin key or path to key-file: 0DPiKuNIrrVmD8IUCuw1hQxNqZfJ0hlBUgyckAolodd4C/4r4ecY3QAA
 
-SX server IP/DNS name: 172.30.42.12
+SX server IP/DNS name: sx.example.com
 
 SX server HTTPS port: 443
 
@@ -179,7 +185,7 @@ Run as user: nobody
 
 Run as group: nogroup
 
-S3 (DNS) name: libres3.skylable.com
+S3 (DNS) name: libres3.example.com
 
 Generating default SSL certificate and key in /etc/ssl/certs/libres3.pem and /etc/ssl/private/libres3.key
 Generating a 2048 bit RSA private key
@@ -210,12 +216,12 @@ Loading configuration from /etc/libres3/libres3.conf
 Waiting for server to start (5s) ... OK
 . ok 
 \end{lstlisting}
-\LARGE
+
 
 To start/stop LibreS3\footnote{LibreS3 and SX will communicate using SSL by
 default. For debugging purposes you can configure SX with 'sxsetup --no-ssl' and then you have to start LibreS3 with --no-ssl}:
 
-\small
+
 \begin{lstlisting}
 # libres3 start
 Starting LibreS3
@@ -232,7 +238,7 @@ Loading configuration from /etc/libres3/libres3.conf
 Sending TERM to PID 28245 ... 
 Waiting for PID 28245 ...
 \end{lstlisting}
-\LARGE
+
 
 If the server doesn't start, please check the log files for details.
 
@@ -243,13 +249,12 @@ You can now connect to it with your favorite S3 client.
 \section*{s3cmd}
 
 You can use the generated s3cfg config file
-\footnote{\verb|etc/libres3/libres3.sample.s3cfg|}
+\footnote{\verb|/etc/libres3/libres3.sample.s3cfg|}
  or configure s3cmd from scratch.
 Below we assume that your LibreS3
 is running on \verb|"libres3.example.com"| and it supports SSL.
 The important s3cmd configuration settings are:
 
-\small
 \begin{lstlisting}
 ^\textbf{use\_https}^ True
 ^\textbf{host\_base}^ libres3.example.com:8443
@@ -258,62 +263,218 @@ The important s3cmd configuration settings are:
 ^\textbf{secret\_key}^ <your-sx-key>
 ^\textbf{ca\_certs\_file}^ s/etc/ssl/certs/libres3.pem
 \end{lstlisting}
-\LARGE
+
 
 In case you don't use SSL, please use the port 8008 instead of 8443, and set
 \verb|"use_https"| to \verb|"False"|. Once you've configured s3cmd check
 that it properly connects to LibreS3:
-\small
+
 \begin{lstlisting}
 $ s3cmd ls --debug 2>&1 | grep host
 \end{lstlisting}
-\LARGE
+
 
 Supported s3cmd commands:
 \begin{description}
     \item[Bucket] \verb|mb|, \verb|rb|, \verb|ls|, \verb|la|, \verb|du|, \verb|info|,
 		\verb|setpolicy|, \verb|delpolicy|,
-		\verb|multipart|, , \verb||
+		\verb|multipart|
     \item[Object] \verb|put|, \verb|get|, \verb|del|, \verb|sync|, \verb|info|,
         \verb|cp|, \verb|modify|, \verb|mv|, \verb|abortmp|, \verb|listmp|,
         \verb|signurl|
         
 \end{description}
 
+\subsection*{Encrypted files}
+
+You can set \verb|gpg_passphrase| in \verb|.s3cfg| and use
+\verb|s3cmd --encrypt| to upload/download encrypted files.
+
+\subsection*{Caveats}
+
+Certificate verification changed in Python version 2.7.9+, and you'll need
+an s3cmd version newer than 1.5.0-rc1 to match.
+The .s3cfg must contain a \verb|ca_certs_file| entry pointing to the certificate
+of the LibreS3 server, otherwise certificate verification (and thus HTTPS
+connections will fail).
+Note that wildcard SSL certificates only match one level, i.e.
+a certificate for \verb|*.s3.example.com| is valid for \verb|a.s3.example.com|,
+but it is NOT valid for \verb|a.b.s3.example.com|, hence you avoid using
+bucket names which contain dots.
+
 \section*{Python-boto}
 
 S3 clients using Python boto are configured in \verb|~/.boto|,
-or you can use the generated \footnote{\verb|etc/libres3/libres3.sample.boto|} file.
+or you can use the generated \footnote{\verb|/etc/libres3/libres3.sample.boto|} file.
 A typical configuration looks as follows:
-\small
+
 \begin{lstlisting}
 [Credentials]
 aws_access_key_id=<your-sx-username>
 aws_secret_access_key=<your-sx-key>
-s3_host=libres3.example.com:8443
+s3_host=libres3.example.com
+s3_port=8443
 [Boto]
 is_secure = True
 \end{lstlisting}
-\LARGE
+
 
 Note that setting \verb|"s3_host"| will override the hostname you give to
 applications on the command-line. If you are using an application that allows
 setting the S3 hostname on the command-line, you might want to use that instead.
+Note that old version of python-boto require the port to be on \verb|s3_host|
+instead of \verb|s3_port|.
+
+\section*{s3fs-fuse}
+
+S3FS can be used to provide a FUSE-based file system backed by LibreS3.
+
+You must specify the SX username and access token in \verb|~/.passwd-s3fs|,
+the URL for your LibreS3 server with \verb|-o url|, and the certificate
+used by LibreS3 in \verb|CURL_CA_BUNDLE|:
+\begin{lstlisting}
+$ cat >~/.passwd-s3fs <<EOF
+admin:0DPiKuNIrrVmD8IUCuw1hQxNqZfJ0hlBUgyckAolodd4C/4r4ecY3QAA
+EOF
+$ chmod 0600 ~/.passwd-s3fs
+$ mkdir ~/libres3-vol1
+$ CURL_CA_BUNDLE=/etc/ssl/certs/libres3.pem s3fs -o url=https://libres3.example.com:8443 vol1 ~/libres3-vol1 -o uid=1000
+\end{lstlisting}
+
+If you want to access LibreS3 unencrypted for debugging purposes then:
+\begin{lstlisting}
+$ s3fs -o url=http://libres3.example.com:8008 vol1 ~/libres3-vol1 -o uid=1000
+\end{lstlisting}
+
+\subsection*{Caveats}
+
+If s3fs fails to connect to LibreS3 it quits without an error message,
+and the next time you access the mountpoint you get an error,
+including trying to start s3fs again:
+\begin{lstlisting}
+$ touch ~/libres3-vol1/x
+touch: cannot touch ‘/home/USER/libres3-vol1/x’: Transport endpoint is not connected
+$ s3fs ...
+s3fs: unable to access MOUNTPOINT /home/USER/libres3-vol1: Transport endpoint is not connected
+$ fusermount -u ~/libres3-vol1
+$ s3fs ...
+\end{lstlisting}
+
+You'll have to manually unmount and it is useful to run \verb|s3fs| in the
+foreground to see the actual error message:
+\begin{lstlisting}
+$ fusermount -u ~/libres3-vol1
+$ CURL_CA_BUNDLE=/etc/ssl/certs/libres3.pem s3fs -o url=https://libres3.example.com:8443 vol1 ~/libres3-vol1 -o uid=1000 -f
+[\cdots]
+\end{lstlisting}
+
+Common errors are using the wrong user/token in ~/.passwd-s3fs, or
+s3fs reading the wrong passwd-s3fs (from /etc for example), or that you don't have permissions to access the volume, etc.
 
 \section*{Other clients}
 For information on other clients please refer to our wiki:
 \url{http://wiki.skylable.com/wiki/LibreS3_Clients}
 
+\chapter*{Public access to objects}
+\section*{Signed URLs}
+
+To create a signed URL valid for 24 hours for retrieving the object \verb|x| from the bucket \verb|vol1|:
+\begin{lstlisting}
+# s3cmd -c /etc/libres3/libres3.sample.s3cfg signurl s3://vol1/x `date -d '24 hours' +%s` | sed -e 's/http:/https:/'
+https://vol1.libres3.example.com:8443/x?AWSAccessKeyId=admin&Expires=1421780366&Signature=uT1uzWiRKOcr%2F459zjLvmWoMTSg%3D
+\end{lstlisting}
+
+The URL can be pasted into a browser, and used with curl or wget to download the file without additional authorization. After 24 hours the URL expires and can't be used anymore.
+
+There is also a python script as a sample for writing your applications that
+would generate signed URLs:
+\begin{lstlisting}
+$ git clone http://git.skylable.com/experimental
+$ cd experimental/s3genlink
+# BOTO_CONFIG=/etc/libres3/libres3.sample.boto ./s3genlink.py vol1/x
+\end{lstlisting}
+
+\section*{Public read-only access to objects}
+
+Signing URLs can be inconvenient if you want to make all objects in a bucket
+publicly accessible.
+In this case you can enable public access to all objects in a bucket by setting
+a bucket policy (replace \verb|vol1| with the name of your bucket):
+\begin{lstlisting}
+$ cat >anon.json <<EOF
+{"Version":"2012-10-17",
+ "Statement" : [{ "Sid":"AddPerm",
+    "Effect": "Allow", "Principal": "*",
+    "Action": ["s3:GetObject"],
+    "Resource":["arn:aws:s3:::vol1/*"]}]}
+EOF
+# s3cmd -c /etc/libres3/libres3.sample.s3cfg setpolicy anon.json s3://vol1
+# s3cmd -c /etc/libres3/libres3.sample.s3cfg info s3://vol1
+[\cdots]
+$ wget vol1.libres3.example.com:8008/x
+$ wget libres3.example.com:8008/vol1/x
+\end{lstlisting}
+
+To disable public access just delete the policy:
+
+\begin{lstlisting}
+# s3cmd -c /etc/libres3/libres3.sample.s3cfg delpolicy s3://vol1
+\end{lstlisting}
+
+Note that for public/anonymous users only downloading individual objects is
+permitted -- listing the bucket's contents is not.
+
+There are some scripts to help managing public buckets:
+\begin{lstlisting}
+$ git clone http://git.skylable.com/experimental
+$ cd experimental/s3publicvol
+# BOTO_CONFIG=/etc/libres3/libres3.sample.boto ./s3publicvol.py vol1/x
+Using access key id: admin
+Turning on public access for bucket vol1
+# BOTO_CONFIG=/etc/libres3/libres3.sample.boto ./s3policy.py vol1/x
+Using access key id: admin
+Bucket vol1 has an access policy:
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::vol1/*"
+    }
+  ]
+}
+# BOTO_CONFIG=/etc/libres3/libres3.sample.boto ./s3privatevol.py vol1/x
+Using access key id: admin
+Turning off public access for bucket vol1
+# BOTO_CONFIG=/etc/libres3/libres3.sample.boto ./s3policy.py vol1/x
+Using access key id: admin
+Bucket vol1 is private
+\end{lstlisting}
+
+Note that using ACLs to set individual objects as publicly accessible
+is not supported.
+
+\section*{Setting Content-Type}
+
+An object's Content-Type on download will match the value used on upload
+via LibreS3.
+If you use s3cmd to upload or copy your files the Content-Type will usually be guessed
+correctly already, but you can override it with \verb|--mime-type=|.
+For files uploaded via SX the Content-Type is guessed automatically based on
+file extension.
+
 \chapter{Troubleshooting}
-In case you face a problem connecting to your LibreS3 server, please check
+If you face a problem connecting to your LibreS3 server, please check
 the log files located at:\\ \verb|/var/log/libres3/*.log|\\
 You can also enable logging of full HTTP requests with:
-\small
+
 \begin{lstlisting}
 # export LIBRES3_DEBUG=1
 # libres3 restart
 \end{lstlisting}
-\LARGE
+
 For more information and FAQ please visit \url{http://wiki.skylable.com}.
 
 If you can't find your solution there, please subscribe to our mailing list
