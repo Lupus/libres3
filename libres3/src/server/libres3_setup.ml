@@ -217,26 +217,30 @@ let port_validate portstr =
   | None -> ()
   | Some str -> failwith str
 
-let validate_one ~key f m =
+let validate_one ?validate ~key f m =
   let value = f () in
   try
     let _, validator, _ = List.find (fun (k,_,_) -> k = key) Configfile.entries in
     validator value;
+    begin match validate with
+    | Some extra_validator -> extra_validator value
+    | None -> ()
+    end;
     StringMap.add key value m
   with Failure msg as e ->
     Printf.eprintf "Invalid value for '%s=%s': %s\n" key value msg;
     raise e
 
-let rec validate_loop ~key f m =
-  try validate_one ~key f m
-  with Failure _ -> validate_loop ~key f m
+let rec validate_loop ?validate ~key f m =
+  try validate_one ?validate ~key f m
+  with Failure _ -> validate_loop ?validate ~key f m
 
-let validate_and_add ~key ?default f m =
+let validate_and_add ?validate ~key ?default f m =
   match default with
-  | None -> validate_loop ~key f m
+  | None -> validate_loop ?validate ~key f m
   | Some default_fn ->
-      try validate_one ~key default_fn m
-      with Not_found | Failure _ -> validate_loop ~key f m
+      try validate_one ?validate ~key default_fn m
+      with Not_found | Failure _ -> validate_loop ?validate ~key f m
 
 let validate_and_add_opt opt ~key ?default f m  =
   if opt then validate_and_add ~key ?default f m
@@ -417,11 +421,11 @@ let () =
           Filename.concat Configure.sysconfdir "ssl/certs/libres3.pem")
           (read_value "SSL certificate file")
       |> (if !ssl then
-          validate_and_add ~key:"s3_https_port" ~default:(fun () ->
+          validate_and_add ~key:"s3_https_port" ~validate:port_validate ~default:(fun () ->
               if !s3_https_port <> "" then !s3_https_port
               else load "LIBRES3_HTTPS_PORT" ()) (read_value "S3 HTTPS port")
           else fun m -> m)
-      |> validate_and_add ~key:"s3_http_port" ~default:(fun () ->
+      |> validate_and_add ~key:"s3_http_port" ~validate:port_validate ~default:(fun () ->
               if !s3_http_port <> "" then !s3_http_port
               else load "LIBRES3_HTTP_PORT" ()) (read_value "S3 HTTP port")
       |> validate_and_add ~key:"volume_size" ~default:(fun () ->
