@@ -289,9 +289,10 @@ let generate_boto secure host port key name =
   let f = open_out (name ^ ".tmp") in
   (* restrict access to the file because it contains keys *)
   Unix.fchmod (Unix.descr_of_out_channel f) 0o600;
-  Printf.fprintf f "[Credentials]\ns3_host=%s:%d\n" host port;
-  output_string f ("# For newer versions of python-boto you should\n" ^
-    "# drop the port from s3_host and use s3_port instead\n");
+  Printf.fprintf f "[Credentials]\ns3_host=%s\n" host;
+  Printf.fprintf f "[Credentials]\ns3_port=%d\n" port;
+  output_string f ("# For older versions of python-boto you should\n" ^
+    "# put the port on s3_host instead\n");
   Printf.fprintf f "aws_secret_access_key=%s\n" key;
   Printf.fprintf f "aws_access_key_id=%s\n" !Config.key_id;
   Printf.fprintf f "\n[Boto]\nis_secure=%s\n"
