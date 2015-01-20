@@ -12,7 +12,7 @@ storage backend, which automatically provides data deduplication and
 replication.
 
 To get started please see the
-[quickstart documentation](http://www.skylable.com/products/libres3/quickstart/)
+[manual](http://www.skylable.com/products/libres3/manual/)
 
 For more information visit the [home page](http://www.skylable.com/products/libres3).
 
