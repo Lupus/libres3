@@ -1,5 +1,14 @@
 #!/bin/sh
+if test "\$#" -ne 1;  then
+    echo "Usage: \$0 <DNS name>"
+    exit 1
+fi
 DNS_NAME="\$1"
+case "\$DNS_NAME" in
+    -*)
+        echo "Usage: \$0 <DNS name>"
+        exit 1
+esac
 if test -z "\$DNS_NAME"; then
     echo "DNS name cannot be empty!"
     exit 1
