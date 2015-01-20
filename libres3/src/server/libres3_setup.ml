@@ -389,7 +389,10 @@ let () =
           Printf.eprintf
             "ERROR: SX (%s) and LibreS3 (%s) SSL mode mismatch!\n"
             (is_secure v) (is_secure !ssl);
-          prerr_endline "Run libres3_setup with --no-ssl to disable SSL support (NOT RECOMMENDED!)";
+          if v then
+            prerr_endline "Run libres3_setup without --no-ssl to enable SSL support"
+          else
+            prerr_endline "Run libres3_setup with --no-ssl to disable SSL support (NOT RECOMMENDED!)";
           exit 3
         else v
       with _ -> true in

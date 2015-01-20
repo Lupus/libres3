@@ -215,7 +215,6 @@ let initialize config pipe =
     "--debug", Arg.Unit (fun () ->
       set_veryverbose ();
       set_debugmode true), " Turn on verbose/debug messages";
-    "--no-ssl", Arg.Clear Config.sx_ssl, ""
   ] in
 
   Cmdline.parse_cmdline extra_spec;
@@ -227,6 +226,14 @@ let initialize config pipe =
   if !status then begin
     Pid.print_status !Configfile.pidfile;
     exit 0
+  end;
+  begin match !Configfile.ssl_certificate_file, !Configfile.ssl_privatekey_file with
+  | None, None ->
+    Config.sx_ssl := false;
+    let msg = "Running in INSECURE mode. It is recommended that you enable SSL instead!" in
+    Ocsigen_messages.console2 msg;
+    Ocsigen_messages.warning msg;
+  | _ -> ()
   end;
   Cmdline.validate_configuration conf;
 
