@@ -400,7 +400,7 @@ and the next time you access the mountpoint you get an error,
 including trying to start s3fs again:
 \begin{lstlisting}
 $ touch ~/libres3-vol1/x
-touch: cannot touch ‘/home/USER/libres3-vol1/x’: Transport endpoint is not connected
+touch: cannot touch '/home/USER/libres3-vol1/x': Transport endpoint is not connected
 $ s3fs ...
 s3fs: unable to access MOUNTPOINT /home/USER/libres3-vol1: Transport endpoint is not connected
 $ fusermount -u ~/libres3-vol1
@@ -412,7 +412,7 @@ foreground to see the actual error message:
 \begin{lstlisting}
 $ fusermount -u ~/libres3-vol1
 $ CURL_CA_BUNDLE=/etc/ssl/certs/libres3.pem s3fs -o url=https://libres3.example.com:8443 vol1 ~/libres3-vol1 -o uid=1000 -f
-[\cdots]
+[...]
 \end{lstlisting}
 
 Common errors are using the wrong user/token in ~/.passwd-s3fs, or
@@ -457,7 +457,7 @@ $ cat >anon.json <<EOF
 EOF
 # s3cmd -c /etc/libres3/libres3.sample.s3cfg setpolicy anon.json s3://vol1
 # s3cmd -c /etc/libres3/libres3.sample.s3cfg info s3://vol1
-[\cdots]
+[...]
 $ wget vol1.libres3.example.com:8008/x
 $ wget libres3.example.com:8008/vol1/x
 \end{lstlisting}
