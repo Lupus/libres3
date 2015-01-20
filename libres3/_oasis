@@ -155,7 +155,8 @@ Executable libres3_ocsigen
     ../files/s3genlink.py ($docdir/),
     ../files/info.log ($localstatedir/log/libres3/),
     ../../README ($docdir/),
-    ../../COPYING ($docdir/)
+    ../../COPYING ($docdir/),
+    ../../doc/manual/manual.pdf ($docdir/)
 
 Executable libres3_setup
   Path: src/server
