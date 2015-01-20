@@ -57,6 +57,7 @@ Library anycache
 Library "anycache.test"
   Path: src/anycache
   Install: false
+  Build$: flag(tests)
   Modules: AnycacheTest
   BuildDepends: anycache, oUnit
 
