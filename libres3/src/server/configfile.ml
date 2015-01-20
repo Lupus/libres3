@@ -296,5 +296,7 @@ let entries : (string * (string -> unit) * string) list = [
     (* for backwards compatibility *)
     deprecated ~old:"user" ~use:"run-as" expect_opt validate_username user;
     deprecated ~old:"group" ~use:"run-as" expect_opt validate_username group;
-    deprecated ~old:"pid_file" ~use:"pidfile" expect (fun s -> s) pidfile
+    deprecated ~old:"pid_file" ~use:"pidfile" expect (fun s -> s) pidfile;
+    deprecated ~old:"s3_ssl_port" ~use:"s3_https_port" expect parse_port base_ssl_port;
+    deprecated ~old:"s3_port" ~use:"s3_htts_port" expect parse_port base_port;
 ]
