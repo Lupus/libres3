@@ -97,5 +97,9 @@ let orig_field_value h name =
 let make_content_range bytes =
   let h = new Netmime.basic_mime_header [] in
   Nethttp.Header.set_content_range h bytes;
+  let cr = h#field "Content-Range" in
+  if String.length cr < 6 || String.sub cr 0 6 <> "bytes" then
+    h#update_field "Content-Range" ("bytes " ^ cr);
+  assert (Nethttp.Header.get_content_range h = bytes);
   Nethttp.Header.set_accept_ranges h ["bytes"];
   h#fields;;
