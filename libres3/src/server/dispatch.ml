@@ -1524,8 +1524,8 @@ module Make
       canon.CanonRequest.req_method, canon.CanonRequest.bucket,
       canon.CanonRequest.path, CanonRequest.actual_query_params canon
     with
-    | (`GET | `HEAD), Bucket _, path, [] ->
-      path <> "" && path <> "/"
+    | (`GET | `HEAD), Bucket _, path, params ->
+      path <> "" && path <> "/" && not (List.exists known_api params)
     | _ -> false
 
   let empty_sha256 = Cryptokit.hash_string (Cryptokit.Hash.sha256 ()) ""
