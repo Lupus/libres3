@@ -10,7 +10,7 @@ wait_sx () {
     while true; do
         sxadm cluster --info sx://admin@$SX_CLUSTER_NAME >tmp ||\
             { cat tmp; sleep 1; continue; }
-        if grep 'Operations in progress' tmp >/dev/null; then
+        if grep 'State of op' tmp >/dev/null; then
             echo
             echo "Waiting for $1"
             cat tmp
@@ -25,7 +25,7 @@ wait_sx () {
 
 get_dist
 
-DIST=`echo "$DIST" | cut -f3 -d\ |\
+DIST=`echo "$DIST" |cut -f3 -d\ |
     sed -e "s/$NODE_2_PORT_443_TCP_ADDR/$NODE_3_PORT_443_TCP_ADDR/"`
 
 echo

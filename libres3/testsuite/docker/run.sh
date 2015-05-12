@@ -43,6 +43,7 @@ sudo docker exec $FIRST_NODE\
     /usr/local/sbin/sxsetup --config-file /root/sxsetup.conf --wait
 
 N=3
+chmod 0600 admin.key
 for i in `seq 2 $N`; do
     sudo docker rm --force ${IMG_PREFIX}_sx_$i || true
     sudo docker run -d -t -i\
