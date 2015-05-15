@@ -51,7 +51,6 @@ end = struct
 
   exception TestException of string
 
-  let id x = x
   let print_exn_opt = function
     | None -> "N/A"
     | Some e -> Printexc.to_string e;;

@@ -177,241 +177,230 @@ let murmur_tests =
       0xe29bfcc26ddd1da9L;
     |])
 
-let policy_anon = "{
-  \"Version\":\"2012-10-17\",
-  \"Statement\":[{
-	\"Sid\":\"AddPerm\",
-        \"Effect\":\"Allow\",
-	  \"Principal\": \"*\",
-      \"Action\":[\"s3:GetObject\"],
-      \"Resource\":[\"arn:aws:s3:::examplebucket/*\"
-      ]
-    }
-  ]
+let policy_anon = "{\
+  \"Version\":\"2012-10-17\",\
+  \"Statement\":[{\
+	\"Sid\":\"AddPerm\",\
+        \"Effect\":\"Allow\",\
+	  \"Principal\": \"*\",\
+      \"Action\":[\"s3:GetObject\"],\
+      \"Resource\":[\"arn:aws:s3:::examplebucket/*\"\
+      ]\
+    }\
+  ]\
   }"
 
 let examples= [|
-  "{
-  \"Version\":\"2012-10-17\",
-  \"Statement\":[{
-	\"Sid\":\"AddCannedAcl\",
-        \"Effect\":\"Allow\",
-	  \"Principal\": {
-            \"AWS\": [\"arn:aws:iam::111122223333:root\",\"arn:aws:iam::444455556666:root\"]
-         },
-	  \"Action\":[\"s3:PutObject\",\"s3:PutObjectAcl\"
-      ],
-      \"Resource\":[\"arn:aws:s3:::examplebucket/*\"
-      ],
-      \"Condition\":{
-        \"StringEquals\":{
-          \"s3:x-amz-acl\":[\"public-read\"]
-        }
-      }
-    }
-  ]
+  "{\
+  \"Version\":\"2012-10-17\",\
+  \"Statement\":[{\
+	\"Sid\":\"AddCannedAcl\",\
+        \"Effect\":\"Allow\",\
+	  \"Principal\": {\
+            \"AWS\": [\"arn:aws:iam::111122223333:root\",\"arn:aws:iam::444455556666:root\"]\
+         },\
+	  \"Action\":[\"s3:PutObject\",\"s3:PutObjectAcl\"\
+      ],\
+      \"Resource\":[\"arn:aws:s3:::examplebucket/*\"\
+      ],\
+      \"Condition\":{\
+        \"StringEquals\":{\
+          \"s3:x-amz-acl\":[\"public-read\"]\
+        }\
+      }\
+    }\
+  ]\
 }","examplebucket",false;
-  "
-  {
-    \"Version\": \"2012-10-17\",
-    \"Id\": \"S3PolicyId1\",
-    \"Statement\": [
-        {
-            \"Sid\": \"IPAllow\",
-            \"Effect\": \"Allow\",
-            \"Principal\": \"*\",
-            \"Action\": \"s3:*\",
-            \"Resource\": \"arn:aws:s3:::examplebucket/*\",
-            \"Condition\" : {
-                \"IpAddress\" : {
-                    \"aws:SourceIp\": \"54.240.143.0/24\" 
-                },
-                \"NotIpAddress\" : {
-                    \"aws:SourceIp\": \"54.240.143.188/32\" 
-                } 
-            } 
-        } 
-    ]
-}
-  ","examplebucket",false;
-  "
-  {
-  \"Version\":\"2012-10-17\",
-  \"Id\":\"http referer policy example\",
-  \"Statement\":[
-    {
-      \"Sid\":\"Allow get requests originated from www.example.com and example.com\",
-      \"Effect\":\"Allow\",
-      \"Principal\":\"*\",
-      \"Action\":\"s3:GetObject\",
-      \"Resource\":\"arn:aws:s3:::examplebucket/*\",
-      \"Condition\":{
-        \"StringLike\":{
-          \"aws:Referer\":[
-            \"http://www.example.com/*\",
-            \"http://example.com/*\"
-          ]
-        }
-      }
-    }
-  ]
-}
-  ","examplebucket",true;
-  "
-  {
-   \"Version\": \"2012-10-17\",
-   \"Id\": \"http referer policy example\",
-   \"Statement\": [
-      {
-         \"Sid\": \"Allow get requests referred by www.mysite.com and mysite.com\",
-         \"Effect\": \"Allow\",
-         \"Principal\": \"*\",
-         \"Action\": \"s3:GetObject\",
-         \"Resource\": \"arn:aws:s3:::examplebucket/*\",
-         \"Condition\": {
-            \"StringLike\": {
-               \"aws:Referer\": [
-                  \"http://www.example.com/*\",
-                  \"http://example.com/*\"
-               ]
-            }
-         }
-      },
-      {
-         \"Sid\": \"Explicit deny to ensure requests are allowed only from specific referer.\",
-         \"Effect\": \"Deny\",
-         \"Principal\": \"*\",
-         \"Action\": \"s3:*\",
-         \"Resource\": \"arn:aws:s3:::examplebucket/*\",
-         \"Condition\": {
-            \"StringNotLike\": {
-               \"aws:Referer\": [
-                  \"http://www.example.com/*\",
-                  \"http://example.com/*\"
-               ]
-            }
-         }
-      }
-   ]
-}
-  ","examplebucket",false;
-  "{
-	\"Version\":\"2012-10-17\",
-	\"Id\":\"PolicyForCloudFrontPrivateContent\",
-	\"Statement\":[{
-			\"Sid\":\" Grant a CloudFront Origin Identity access to support private content\",
-			\"Effect\":\"Allow\",
-			\"Principal\":{
-			\"CanonicalUser\":\"79a59df900b949e55d96a1e698fbacedfd6e09d98eacf8f8d5218e7cd47ef2be\"
-			},
-			\"Action\":\"s3:GetObject\",
-			\"Resource\":\"arn:aws:s3:::example-bucket/*\"
-		}
-	]
-}
-  ","example-bucket",false;
-    "
-    {
-   \"Version\": \"2012-10-17\",
-   \"Id\": \"123\",
-   \"Statement\": [
-      {
-         \"Sid\": \"\",
-         \"Effect\": \"Deny\",
-         \"Principal\": \"*\",
-         \"Action\": \"s3:**\",
-         \"Resource\": \"arn:aws:s3:::examplebucket/taxdocuments/*\",
-         \"Condition\": { \"Null\": { \"aws:MultiFactorAuthAge\": true }}
-      }
-   ]
-}
-    ","examplebucket",false;
-    "
-    {
-   \"Version\": \"2012-10-17\",
-   \"Id\": \"123\",
-   \"Statement\": [
-      {
-         \"Sid\": \"\",
-         \"Effect\": \"Deny\",
-         \"Principal\": \"*\",
-         \"Action\": \"s3:*\",
-         \"Resource\": \"arn:aws:s3:::examplebucket/taxdocuments/*\",
-         \"Condition\": { \"Null\": { \"aws:MultiFactorAuthAge\": true } }
-      },
-      {
-         \"Sid\": \"\",
-         \"Effect\": \"Allow\",
-         \"Principal\": \"*\",
-         \"Action\": [\"s3:GetObject\"],
-         \"Resource\": \"arn:aws:s3:::examplebucket/*\"
-      }
-   ]
-}
-    ","examplebucket",false;
-    "
-    {
-   \"Version\": \"2012-10-17\",
-   \"Id\": \"123\",
-   \"Statement\": [
-      {
-         \"Sid\": \"\",
-         \"Effect\": \"Deny\",
-         \"Principal\": \"*\",
-         \"Action\": \"s3:*\",
-         \"Resource\": \"arn:aws:s3:::examplebucket/taxdocuments/*\",
-         \"Condition\": {\"Null\": {\"aws:MultiFactorAuthAge\": true }
-         }
-      },
-      {
-         \"Sid\": \"\",
-         \"Effect\": \"Deny\",
-         \"Principal\": \"*\",
-         \"Action\": \"s3:*\",
-         \"Resource\": \"arn:aws:s3:::examplebucket/taxdocuments/*\",
-         \"Condition\": {\"NumericGreaterThan\": {\"aws:MultiFactorAuthAge\": 3600 } }
-      },
-      {
-         \"Sid\": \"\",
-         \"Effect\": \"Allow\",
-         \"Principal\": \"*\",
-         \"Action\": [\"s3:GetObject\"],
-         \"Resource\": \"arn:aws:s3:::examplebucket/*\"
-      }
-   ]
-}
-    ","examplebucket",false;
-    "
-    {
-   \"Version\":\"2012-10-17\",
-   \"Statement\":[
-      {
-         \"Sid\":\"111\",
-         \"Effect\":\"Allow\",
-         \"Principal\":{
-            \"AWS\":\"1111111111\"
-         },
-         \"Action\":\"s3:PutObject\",
-         \"Resource\":\"arn:aws:s3:::examplebucket/*\"
-      },
-      {
-         \"Sid\":\"112\",
-         \"Effect\":\"Deny\",
-         \"Principal\":{
-            \"AWS\":\"1111111111\"
-         },
-         \"Action\":\"s3:PutObject\",
-         \"Resource\":\"arn:aws:s3:::examplebucket/*\",
-         \"Condition\":{
-            \"StringNotEquals\":{
-               \"s3:x-amz-grant-full-control\":[
-                  \"emailAddress=xyz@amazon.com\"
-               ]
-            }
-         }
-      }
-   ]
-}
+  "\
+  {\
+    \"Version\": \"2012-10-17\",\
+     \"Id\": \"S3PolicyId1\",\
+    \"Statement\": [\
+        {\
+            \"Sid\": \"IPAllow\",\
+            \"Effect\": \"Allow\",\
+            \"Principal\": \"*\",\
+            \"Action\": \"s3:*\",\
+            \"Resource\": \"arn:aws:s3:::examplebucket/*\",\
+            \"Condition\" : {\
+                \"IpAddress\" : {\
+                    \"aws:SourceIp\": \"54.240.143.0/24\" \
+                },\
+                \"NotIpAddress\" : {\
+                    \"aws:SourceIp\": \"54.240.143.188/32\"\
+                }\
+            }\
+        }\
+    ]\
+  }","examplebucket",false;
+  "\
+  {\
+  \"Version\":\"2012-10-17\",\
+  \"Id\":\"http referer policy example\",\
+  \"Statement\":[\
+    {\
+      \"Sid\":\"Allow get requests originated from www.example.com and example.com\",\
+      \"Effect\":\"Allow\",\
+      \"Principal\":\"*\",\
+      \"Action\":\"s3:GetObject\",\
+      \"Resource\":\"arn:aws:s3:::examplebucket/*\",\
+      \"Condition\":{\
+        \"StringLike\":{\
+          \"aws:Referer\":[\
+            \"http://www.example.com/*\",\
+            \"http://example.com/*\"\
+          ]\
+        }\
+      }\
+    }\
+  ]\
+ }","examplebucket",true;
+  "\
+  {\
+   \"Version\": \"2012-10-17\",\
+   \"Id\": \"http referer policy example\",\
+   \"Statement\": [\
+      {\
+         \"Sid\": \"Allow get requests referred by www.mysite.com and mysite.com\",\
+         \"Effect\": \"Allow\",\
+         \"Principal\": \"*\",\
+         \"Action\": \"s3:GetObject\",\
+         \"Resource\": \"arn:aws:s3:::examplebucket/*\",\
+         \"Condition\": {\
+            \"StringLike\": {\
+               \"aws:Referer\": [\
+                  \"http://www.example.com/*\",\
+                  \"http://example.com/*\"\
+               ]\
+            }\
+         }\
+      },\
+      {\
+         \"Sid\": \"Explicit deny to ensure requests are allowed only from specific referer.\",\
+         \"Effect\": \"Deny\",\
+         \"Principal\": \"*\",\
+         \"Action\": \"s3:*\",\
+         \"Resource\": \"arn:aws:s3:::examplebucket/*\",\
+         \"Condition\": {\
+            \"StringNotLike\": {\
+               \"aws:Referer\": [\
+                  \"http://www.example.com/*\",\
+                  \"http://example.com/*\"\
+               ]\
+            }\
+         }\
+      }\
+   ]\
+  }","examplebucket",false;
+  "{\
+	\"Version\":\"2012-10-17\",\
+	\"Id\":\"PolicyForCloudFrontPrivateContent\",\
+	\"Statement\":[{\
+			\"Sid\":\" Grant a CloudFront Origin Identity access to support private content\",\
+			\"Effect\":\"Allow\",\
+			\"Principal\":{\
+			\"CanonicalUser\":\"79a59df900b949e55d96a1e698fbacedfd6e09d98eacf8f8d5218e7cd47ef2be\"\
+			},\
+			\"Action\":\"s3:GetObject\",\
+			\"Resource\":\"arn:aws:s3:::example-bucket/*\"\
+		}\
+	]\
+    }","example-bucket",false;
+    "{\
+   \"Version\": \"2012-10-17\",\
+   \"Id\": \"123\",\
+   \"Statement\": [\
+      {\
+         \"Sid\": \"\",\
+         \"Effect\": \"Deny\",\
+         \"Principal\": \"*\",\
+         \"Action\": \"s3:**\",\
+         \"Resource\": \"arn:aws:s3:::examplebucket/taxdocuments/*\",\
+         \"Condition\": { \"Null\": { \"aws:MultiFactorAuthAge\": true }}\
+      }\
+   ]\
+  }","examplebucket",false;
+    "{\
+   \"Version\": \"2012-10-17\",\
+   \"Id\": \"123\",\
+   \"Statement\": [\
+      {\
+         \"Sid\": \"\",\
+         \"Effect\": \"Deny\",\
+         \"Principal\": \"*\",\
+         \"Action\": \"s3:*\",\
+         \"Resource\": \"arn:aws:s3:::examplebucket/taxdocuments/*\",\
+         \"Condition\": { \"Null\": { \"aws:MultiFactorAuthAge\": true } }\
+      },\
+      {\
+         \"Sid\": \"\",\
+         \"Effect\": \"Allow\",\
+         \"Principal\": \"*\",\
+         \"Action\": [\"s3:GetObject\"],\
+         \"Resource\": \"arn:aws:s3:::examplebucket/*\"\
+      }\
+   ]\
+   }","examplebucket",false;
+    "{\
+   \"Version\": \"2012-10-17\",\
+   \"Id\": \"123\",\
+   \"Statement\": [\
+      {\
+         \"Sid\": \"\",\
+         \"Effect\": \"Deny\",\
+         \"Principal\": \"*\",\
+         \"Action\": \"s3:*\",\
+         \"Resource\": \"arn:aws:s3:::examplebucket/taxdocuments/*\",\
+         \"Condition\": {\"Null\": {\"aws:MultiFactorAuthAge\": true }\
+         }\
+      },\
+      {\
+         \"Sid\": \"\",\
+         \"Effect\": \"Deny\",\
+         \"Principal\": \"*\",\
+         \"Action\": \"s3:*\",\
+         \"Resource\": \"arn:aws:s3:::examplebucket/taxdocuments/*\",\
+         \"Condition\": {\"NumericGreaterThan\": {\"aws:MultiFactorAuthAge\": 3600 } }\
+      },\
+      {\
+         \"Sid\": \"\",\
+         \"Effect\": \"Allow\",\
+         \"Principal\": \"*\",\
+         \"Action\": [\"s3:GetObject\"],\
+         \"Resource\": \"arn:aws:s3:::examplebucket/*\"\
+      }\
+   ]\
+  }","examplebucket",false;
+    "{\
+   \"Version\":\"2012-10-17\",\
+   \"Statement\":[\
+      {\
+         \"Sid\":\"111\",\
+         \"Effect\":\"Allow\",\
+         \"Principal\":{\
+            \"AWS\":\"1111111111\"\
+         },\
+         \"Action\":\"s3:PutObject\",\
+         \"Resource\":\"arn:aws:s3:::examplebucket/*\"\
+      },\
+      {\
+         \"Sid\":\"112\",\
+         \"Effect\":\"Deny\",\
+         \"Principal\":{\
+            \"AWS\":\"1111111111\"\
+         },\
+         \"Action\":\"s3:PutObject\",\
+         \"Resource\":\"arn:aws:s3:::examplebucket/*\",\
+         \"Condition\":{\
+            \"StringNotEquals\":{\
+               \"s3:x-amz-grant-full-control\":[\
+                  \"emailAddress=xyz@amazon.com\"\
+               ]\
+            }\
+         }\
+      }\
+   ]\
+}\
     ","examplebucket",false|]
 let policy_tests =
   "Bucket policy" >::: ("anon" >:: (fun () ->
