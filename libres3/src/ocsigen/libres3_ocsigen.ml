@@ -231,7 +231,7 @@ let initialize config pipe =
   | None, None ->
     Config.sx_ssl := false;
     let msg = "Running in INSECURE mode. It is recommended that you enable SSL instead!" in
-    Ocsigen_messages.console2 msg;
+    Ocsigen_messages.console (fun () -> msg);
     Ocsigen_messages.warning msg;
   | _ -> ()
   end;

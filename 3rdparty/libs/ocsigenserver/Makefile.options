@@ -26,7 +26,7 @@ endif
 ## but also to generate src/baselib/ocsigen_config.ml and src/files/META
 
 ifeq "$(PREEMPTIVE)" "YES"
-LWT_EXTRA_PACKAGE:=lwt.extra
+LWT_EXTRA_PACKAGE:=lwt.preemptive
 endif
 
 BASE_PACKAGE := lwt ipaddr

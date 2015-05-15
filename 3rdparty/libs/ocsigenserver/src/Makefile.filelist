@@ -74,10 +74,12 @@ PLUGINS_IMPL += extensions/deflatemod.cmo
 endif
 
 ifeq "$(OCSIPERSISTSQLITE)" "YES"
+PLUGINS_INTF += extensions/ocsipersist.cmi
 PLUGINS_IMPL += extensions/ocsipersist-sqlite.cma
 endif
 
 ifeq "$(OCSIPERSISTDBM)" "YES"
+PLUGINS_INTF += extensions/ocsipersist.cmi
 PLUGINS_IMPL += extensions/ocsipersist-dbm.cma
 PLUGINS_BIN += extensions/ocsipersist-dbm/ocsidbm
 PLUGINS_NATBIN := extensions/ocsipersist-dbm/ocsidbm.opt

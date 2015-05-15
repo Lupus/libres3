@@ -454,12 +454,12 @@ if [ "$with_camlzip" -gt 0 ]; then
     fi
 fi
 
-# Check Lwt.extra
+# Check lwt.preemptive
 if [ "$with_preempt" -gt 0 ]; then
-    if test_library lwt.extra; then
+    if test_library lwt.preemptive; then
 	echo -n
     elif [ "$with_preempt" -gt 1 ]; then
-	fail_library lwt.extra "Missing support for 'extra' in lwt."
+	fail_library lwt.extra "Missing support for 'preemptive' in lwt."
     else
 	with_preempt=0
     fi

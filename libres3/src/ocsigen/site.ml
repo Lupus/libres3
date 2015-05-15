@@ -241,7 +241,7 @@ let upgrade_msg security (maj,min) (srcmaj,srcmin) =
 let dns_check resolver dns =
   query_txt resolver dns >>= function
   | [] ->
-      Ocsigen_messages.console2 (Printf.sprintf "Cannot check version: no TXT record for '%s'" dns);
+      Ocsigen_messages.console (fun () ->  (Printf.sprintf "Cannot check version: no TXT record for '%s'" dns));
       return ()
   | ver :: [] ->
       begin try
@@ -255,11 +255,11 @@ let dns_check resolver dns =
         );
         return ()
       with _ ->
-        Ocsigen_messages.console2 "Cannot check version: bad version received";
+        Ocsigen_messages.console (fun () ->  "Cannot check version: bad version received");
         return ()
       end
   | _ ->
-      Ocsigen_messages.console2 (
+      Ocsigen_messages.console (fun () ->
         Printf.sprintf "Cannot check version: too many TXT records for '%s'" dns);
       return ()
 
@@ -296,7 +296,7 @@ let test_resolve resolver name =
     Ocsigen_messages.warning "S3 clients may not be able to access this server properly!"
   end else begin
     let ips = String.concat ", " (List.rev_map Ipaddr.to_string lst) in
-    Ocsigen_messages.console2 (Printf.sprintf "%s resolves to %s" name ips);
+    Ocsigen_messages.console (fun () ->  (Printf.sprintf "%s resolves to %s" name ips));
   end;
   return ()
 
@@ -325,7 +325,7 @@ let periodic_check () =
 
 let fun_site _ config_info _ _ _ _ =
   Configfile.base_hostname := config_info.default_hostname;
-  Ocsigen_messages.console2 (
+  Ocsigen_messages.console (fun () ->
     Printf.sprintf "LibreS3 default hostname: %s"  !Configfile.base_hostname
   );
   begin try
@@ -334,7 +334,7 @@ let fun_site _ config_info _ _ _ _ =
   with _ -> () end;
   Default.register ();
   let dispatcher = Lwt_main.run (OcsigenServer.init ()) in
-  Ocsigen_messages.console2 "Startup complete";
+  Ocsigen_messages.console (fun () ->  "Startup complete");
   let _ = periodic_check () in
   function
     | Req_not_found (_, request) ->
