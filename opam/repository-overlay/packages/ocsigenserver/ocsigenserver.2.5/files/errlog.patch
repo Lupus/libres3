@@ -1,0 +1,13 @@
+diff -ru ocsigenserver.2.5/src/server/ocsigen_server.ml ocsigenserver/src/server/ocsigen_server.ml
+--- ocsigenserver.2.5/src/server/ocsigen_server.ml	2015-05-15 13:32:15.029284464 +0300
++++ ocsigenserver/src/server/ocsigen_server.ml	2015-05-15 13:25:41.253907135 +0300
+@@ -1048,7 +1048,8 @@
+ 
+ 
+ let stop m n =
+-  errlog m; exit n
++  Lwt_unix.run (Lwt_log.error m);
++  exit n
+ 
+ (** Thread waiting for events on a the listening port *)
+ let listen use_ssl (addr, port) wait_end_init =

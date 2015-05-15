@@ -1,0 +1,24 @@
+diff -ru ocsigenserver.2.5/src/Makefile.filelist ocsigenserver-patched/src/Makefile.filelist
+--- ocsigenserver.2.5/src/Makefile.filelist	2014-09-30 18:15:49.000000000 +0300
++++ ocsigenserver-patched/src/Makefile.filelist	2015-05-15 13:22:09.796392345 +0300
+@@ -54,7 +54,6 @@
+ PLUGINS_INTF := extensions/ocsigen_comet.cmi       \
+                 extensions/accesscontrol.cmi       \
+                 extensions/authbasic.cmi           \
+-                extensions/ocsipersist.cmi         \
+ 
+ PLUGINS_IMPL := extensions/staticmod.cmo           \
+                 extensions/cgimod.cmo              \
+@@ -75,10 +74,12 @@
+ endif
+ 
+ ifeq "$(OCSIPERSISTSQLITE)" "YES"
++PLUGINS_INTF += extensions/ocsipersist.cmi
+ PLUGINS_IMPL += extensions/ocsipersist-sqlite.cma
+ endif
+ 
+ ifeq "$(OCSIPERSISTDBM)" "YES"
++PLUGINS_INTF += extensions/ocsipersist.cmi
+ PLUGINS_IMPL += extensions/ocsipersist-dbm.cma
+ PLUGINS_BIN += extensions/ocsipersist-dbm/ocsidbm
+ PLUGINS_NATBIN := extensions/ocsipersist-dbm/ocsidbm.opt
