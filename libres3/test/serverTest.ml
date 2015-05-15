@@ -28,10 +28,7 @@
 (**************************************************************************)
 
 open OUnit
-module Make(SXIO:Sigs.SXIOSig)(IO: Sigs.EventIOSig with type 'a t = 'a SXIO.M.t)
-: sig
-  val tests : test
-end = struct
+module IO = EventIO
   module Server = struct
     type t = {
       mutable hstatus: Nethttp.http_status;
@@ -80,7 +77,7 @@ end = struct
   end
 
 
-  module D = Dispatch.Make(SXIO)(IO)(Server)
+  module D = Dispatch.Make(Server)
   let test_init () =
     SXIO.M.run (D.init ());;
 
@@ -130,4 +127,3 @@ end = struct
     "server">:::[
       build_tests dispatcher "queries";
     ]
-end

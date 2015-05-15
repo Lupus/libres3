@@ -29,10 +29,9 @@
 
 open OUnit
 open TestUtil
-module Make(M:Sigs.Monad)(OS: EventIO.OSMonad with type 'a t = 'a M.t) : sig
-  val tests: test
-end = struct
-  open M
+module M = EventIO.Monad
+module OS = EventIO.OS
+open M
 
   let id x = x
 
@@ -179,4 +178,3 @@ end = struct
       [
         "large file">:: bracket_largefile test_largefile
       ]
-end

@@ -63,9 +63,9 @@ module Server = struct
 end
 
 open Ocsigen_http_frame.Http_header
-open SXLwt
+open EventIO
 module OcsigenServer =
-  Dispatch.Make(SXIO)(IO)(Server)
+  Dispatch.Make(Server)
 module D = Dispatch
 
 let conv_method m src = match m with
@@ -87,8 +87,6 @@ let convert_headers h =
   List.fold_left (fun a (name, value) ->
     Http_headers.add (Http_headers.name name) value a
   ) Http_headers.empty h;;
-
-open Monad
 
 let empty_read () =
   Ocsigen_stream.empty None
@@ -332,7 +330,6 @@ let fun_site _ config_info _ _ _ _ =
     Ssl.set_cipher_list !Ocsigen_http_client.sslcontext
       "ECDHE-RSA-AES256-SHA384:AES256-SHA256:RC4:HIGH:!MD5:!aNULL:!EDH:!AESGCM";
   with _ -> () end;
-  Default.register ();
   let dispatcher = Lwt_main.run (OcsigenServer.init ()) in
   Ocsigen_messages.console (fun () ->  "Startup complete");
   let _ = periodic_check () in

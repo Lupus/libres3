@@ -50,22 +50,9 @@ type reply = {
   req_host: string;
 }
 
-module type Pipeline = sig
-  type 'a t
-  type pipeline
-  val start_pipeline : unit -> pipeline
-  val stop_pipeline : pipeline -> unit
-  val make_http_request : pipeline -> request -> reply t
-  val make_cached_request : pipeline -> key:string -> request -> string
-  t
-  val input_of_async_channel: string -> (unit -> (string *int * int) t)
-end
-
 let () = Ssl.init ~thread_safe:true ();;
-module MakePipeline (M:Sigs.Monad)(W:Sigs.ThreadMonad with type 'a t = 'a M.t)
-: (Pipeline with type 'a t = 'a M.t) = struct
-  module M = M
-  type 'a t = 'a M.t
+  module M = EventIO.Monad
+  module W = EventIO.Thread
   open Http_client
   exception HTTP_Job_Callback of http_call * (http_call -> unit)
     (* This is not an exception in the usual sense, but simply a tagged
@@ -233,4 +220,3 @@ module MakePipeline (M:Sigs.Monad)(W:Sigs.ThreadMonad with type 'a t = 'a M.t)
       end else
         return ("",0,0)
   ;;
-end

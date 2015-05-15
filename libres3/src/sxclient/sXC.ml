@@ -48,7 +48,7 @@ let syntax = {
   url_enable_relative = true;
 }
 
-module AsyncJson (M: Sigs.Monad) = struct
+module AsyncJson = struct
   type json_element = [`Bool of bool | `Float of float | `Null | `String of string]
   type json_container = [`Array | `Object | `Field of string]
   type 'a json_mapper = {
@@ -62,7 +62,7 @@ module AsyncJson (M: Sigs.Monad) = struct
 
   type 'a json_state = {
     d: Jsonm.decoder;
-    input: unit -> (string * int * int) M.t;
+    input: unit -> (string * int * int) Lwt.t;
     mutable parents: (json_container * 'a * 'a json_mapper) list;
     mutable state: 'a;
     mutable mapper: 'a json_mapper;
@@ -229,17 +229,11 @@ module AsyncJson (M: Sigs.Monad) = struct
   ;;
 end
 
-module Make
-  (M:Sigs.Monad)
-  (OS:EventIO.OSMonad with type 'a t = 'a M.t)
-  (W: Sigs.ThreadMonad with type 'a t = 'a M.t)
-  : SXIO.Make(M).SchemeOps =
-struct
   (* TODO: implement tmpfile buffer here *)
-  module IO = EventIO.Make(M)(OS)
-  module XIO = SXIO.Make(M)
+  module IO = EventIO
+  module XIO = SXIO
 
-  module P = Http.MakePipeline(IO.Op)(W)
+  module P = Http
 
   (* max upload chunk size, for now we use this as
    * the multipart part-size too *)
@@ -262,6 +256,7 @@ struct
   let scheme = "sx"
   let syntax = syntax
   open IO.Op
+
   let rec foldl base volume f lst accum =
     match lst with
     | hd :: tl ->
@@ -318,7 +313,7 @@ struct
       req_headers = ("Authorization", auth) :: headers
     }
 
-    module Json = AsyncJson(IO.Op)
+    module Json = AsyncJson
     open Json
 
     exception SXProto of string
@@ -366,7 +361,7 @@ struct
         !Config.sx_port
 
     let delay ms =
-      OS.sleep (ms /. 1000.)
+      Lwt_unix.sleep (ms /. 1000.)
 
     let request_of_url ~token meth ?(req_body="") url =
       let syntax = url_syntax_of_url url in
@@ -504,8 +499,8 @@ struct
       | _ ->
           failwith "string field expected";;
 
-  module AJson = AsyncJson(IO.Op)
-  module UserCache = LRUCacheMonad.Make(M)
+  module AJson = AsyncJson
+  module UserCache = LRUCacheMonad.Make(EventIO.Monad)
   let usercache = UserCache.create 10
 
   let token_of_user url =
@@ -775,7 +770,7 @@ struct
       filesize: int64;
       url: Neturl.url;
     }
-    type read_state = unit -> (string * int * int) M.t
+    type read_state = unit -> (string * int * int) Lwt.t
 
     let get url =
      get_vol_nodelist url >>= fun (nodes, _) ->
@@ -1608,4 +1603,3 @@ struct
           fail e
         | e -> fail e)
       ();;
-end

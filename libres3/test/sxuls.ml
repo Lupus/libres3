@@ -27,7 +27,6 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
-open SXLwt
 let fmt_time t =
   Netdate.format ~fmt:"%Y-%m-%d %H:%M:%S UTC" (Netdate.create t);;
 let print_entry () entry =
@@ -42,7 +41,6 @@ let recurse dir =
   true;;
 
 let () =
-  Default.register ();
   Printexc.record_backtrace true;
   if (Array.length Sys.argv) <> 3 then begin
     Printf.eprintf "Usage: %s /path/to/admin.key <URL>\n" Sys.argv.(0);

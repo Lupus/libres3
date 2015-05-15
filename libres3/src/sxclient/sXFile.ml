@@ -32,7 +32,8 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
-module Make(M:Sigs.Monad)(OS:EventIO.OSMonad with type 'a t = 'a M.t) = struct
+module M = EventIO.Monad
+module OS = EventIO.OS
   type state = string * int ref
   type read_state = unit
   let scheme = "file"
@@ -47,7 +48,7 @@ module Make(M:Sigs.Monad)(OS:EventIO.OSMonad with type 'a t = 'a M.t) = struct
       let path = Neturl.join_path path in
       volume, path
     | path -> failwith ("Bad path: " ^ (Neturl.join_path path))
-  module IO = SXIO.Make(M)
+  module IO = SXIO
 
   module StringMap = Map.Make(String)
   let volumes = ref StringMap.empty
@@ -160,7 +161,7 @@ module Make(M:Sigs.Monad)(OS:EventIO.OSMonad with type 'a t = 'a M.t) = struct
       volumes := StringMap.add vol (StringMap.add path entry volume) !volumes;
       return ()
 
-  let get_meta url : (string*string) list OS.t =
+  let get_meta url : (string*string) list M.t =
     let vol, path = file url in
     find vol !volumes >>= fun volume ->
     find path volume >>= fun (_, meta, _) ->
@@ -201,4 +202,3 @@ module Make(M:Sigs.Monad)(OS:EventIO.OSMonad with type 'a t = 'a M.t) = struct
   let set_acl (url:Neturl.url) (acls : IO.acl list) =
     Hashtbl.replace acl_table url acls;
     return ()
-end

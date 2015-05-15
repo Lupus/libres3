@@ -32,15 +32,8 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
-module Make
-  (M:Sigs.Monad)
-  (OS:EventIO.OSMonad with type 'a t = 'a M.t)
-  (W: Sigs.ThreadMonad with type 'a t = 'a M.t) =
-struct
-  module IO = SXIO.Make(M)
-  module RegisterFile = IO.RegisterURLScheme(SXFile.Make(M)(OS))
-  module RegisterSX = IO.RegisterURLScheme(SXC.Make(M)(OS)(W))
-  let register () =
-    RegisterFile.register ();
-    RegisterSX.register ()
-end
+module RegisterFile = SXIO.RegisterURLScheme(SXFile)
+module RegisterSX = SXIO.RegisterURLScheme(SXC)
+let () =
+  RegisterFile.register ();
+  RegisterSX.register ()

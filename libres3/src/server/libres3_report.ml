@@ -109,8 +109,7 @@ let dump_cfg_file out path =
     )
   with _ -> ()
 
-open SXLwt
-open IO.Op
+open EventIO
 
 let check_host host =
   let url = Neturl.make_url ~encoded:false
@@ -149,7 +148,6 @@ let resolve_host out ~kind host =
 
 let check_sx_hosts out sxhost =
   let addrs = resolve_host out ~kind:"SX" sxhost in
-  Default.register ();
   eprintf "Checking connection ... %!";
   (* check all hosts in parallel *)
   let check_results = List.rev_map (function

@@ -28,24 +28,13 @@
 (**************************************************************************)
 
 open OUnit
-module Make
-  (M:Sigs.Monad)
-  (W:Sigs.ThreadMonad with type 'a t = 'a M.t)
-  (OS:EventIO.OSMonad with type 'a t = 'a M.t):
-sig
-  val tests: string -> test
-end = struct
-  module MonadTest = MonadTest.MakeTests(M)
-  module OSTest = OSMonadTest.Make(M)(OS)
-  module IO = EventIO.Make(M)(OS)
-  module IOTest = EventIOTest.Make(M)(IO)
-  module Default = SXDefaultIO.Make(M)(OS)(W)
-  let _ =
-    Default.register ();
-  module SXIO =  Default.IO
-  module ServerTest = ServerTest.Make(SXIO)(IO)
+module OS = EventIO.OS
+  module OSTest = OSMonadTest
+  module IO = EventIO
+  module IOTest = EventIOTest
+  module Default = SXDefaultIO
   module AnycacheTest = AnycacheTest.Make(struct
-      include M
+      include EventIO.Monad
       let delay = OS.sleep
       let name = "cache"
   end)
@@ -58,4 +47,3 @@ end = struct
       IOTest.tests;
       ServerTest.tests
     ]
-end

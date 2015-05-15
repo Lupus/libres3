@@ -27,11 +27,9 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
-open SXLwt
 open Lwt
 
 let () =
-  Default.register ();
   if (Array.length Sys.argv) <> 4 then begin
     Printf.eprintf "Usage: %s /path/to/admin.key <source URL> <destination URL>\n" Sys.argv.(0);
     exit 1;

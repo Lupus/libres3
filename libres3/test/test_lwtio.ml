@@ -28,7 +28,7 @@
 (**************************************************************************)
 
 open OUnit
-module M = FunctorTests.Make(SXLwt.Monad)(SXLwt.Thread)(SXLwt.OS)
+module M = FunctorTests
 
 let _ =
   run_test_tt_main (M.tests "lwtio");;

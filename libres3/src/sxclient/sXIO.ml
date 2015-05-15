@@ -34,9 +34,8 @@
 
 exception Detail of exn * (string * string) list
 type metafn = unit -> (string * string) list
-module Make(M:Sigs.Monad) = struct
+module M = EventIO.Monad
   include M
-  module M = M
   type output_data = string * int * int
   type input_stream = unit -> output_data t
   type output_stream = output_data -> unit t
@@ -319,16 +318,6 @@ module Make(M:Sigs.Monad) = struct
     val fold_list: Neturl.url ->
         ('a -> entry -> 'a t) -> (string -> bool) -> 'a -> 'a M.t
   end
-  let try_finally fn_try fn_finally value =
-    try_catch
-      fn_try
-      (fun e ->
-        (* run finally, ignoring any exceptions, and reraise original *)
-        try_catch fn_finally (fun _ -> return ()) value >>= fun () ->
-        fail e) value >>= fun result ->
-      fn_finally value >>= fun () ->
-      return result
-  ;;
 
   module RegisterURLScheme(O: SchemeOps) = struct
     let readurl state () = O.read state
@@ -338,7 +327,7 @@ module Make(M:Sigs.Monad) = struct
 
   let withurl url f =
       O.open_source url >>= fun (entry, state) ->
-      try_finally
+      EventIO.try_finally
         (fun () ->
           f { meta = entry; seek = seekurl state }
         )
@@ -422,4 +411,3 @@ module Make(M:Sigs.Monad) = struct
 
   let () =
     Printexc.register_printer sxio_printer
-end

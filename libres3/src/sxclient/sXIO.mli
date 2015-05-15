@@ -33,4 +33,4 @@
 (**************************************************************************)
 
 exception Detail of exn * (string * string) list
-module Make(M:Sigs.Monad): Sigs.SXIOSig with module M = M
+include Sigs.SXIOSig with module M = EventIO.Monad

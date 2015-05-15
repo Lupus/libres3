@@ -28,9 +28,8 @@
 (**************************************************************************)
 
 open OUnit
-module Make(M:Sigs.Monad)(IO:Sigs.EventIOSig with type 'a t = 'a M.t) : sig
-  val tests: test
-end = struct
+module M = EventIO.Monad
+module IO = EventIO
   open IO.Op
 
   let test_monad () =
@@ -128,4 +127,3 @@ end = struct
       "iter_s">::test_iter_s;
       "rev_map_p">::test_rev_map_p;
     ]
-end

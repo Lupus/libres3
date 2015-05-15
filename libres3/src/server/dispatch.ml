@@ -68,9 +68,9 @@ module type Sig = sig
   val init : unit -> t monad
   val handle_request: t -> 'a request -> unit monad
 end
+module U = SXIO
+module IO = EventIO
 module Make
-  (U: Sigs.SXIOSig)
-  (IO: Sigs.EventIOSig with type 'a t = 'a U.M.t)
   (S: Server with type 'a monad = 'a U.M.t)
 : (Sig with type source = U.source
        and type 'a monad = 'a U.M.t

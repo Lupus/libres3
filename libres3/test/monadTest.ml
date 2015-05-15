@@ -28,19 +28,7 @@
 (**************************************************************************)
 
 open OUnit
-module Make(M:Sigs.Monad) : sig
-  type ('a,'b,'c) t = {
-    name: string;
-    value: unit -> 'a;
-    f: 'a -> 'b M.t;
-    g: 'b -> 'c M.t;
-    print_a: ('a -> string) option;
-    print_b: ('b -> string) option;
-    print_c: ('c -> string) option;
-  }
-
-  val tests : ('a,'b,'c) t -> test
-end = struct
+    module M = EventIO.Monad
     (* f and g can have side-effects, so
      * we need a function that constructs the same value,
      * instead of just a value (which would be modified by multiple calls to f).
@@ -241,12 +229,7 @@ end = struct
         )
       ]
     ]
-end
 
-module MakeTests(M:Sigs.Monad): sig
-  val tests: test
-end = struct
-  module Build = Make(M)
   open M
 
   let id x = x
@@ -271,8 +254,8 @@ end = struct
   let tests =
     "monad">:::
     [
-      Build.tests {
-        Build.name = "basic";
+      tests {
+        name = "basic";
         value = (fun () -> 42);
         f = f_int;
         g = g_float;
@@ -280,8 +263,8 @@ end = struct
         print_b = Some string_of_float;
         print_c = Some id;
       };
-      Build.tests {
-        Build.name = "side-effect";
+      tests {
+        name = "side-effect";
         value = (fun () -> ref 4);
         f = f_ref;
         g = g_ref;
@@ -290,5 +273,3 @@ end = struct
         print_c = Some string_of_int;
       }
     ]
-
-end
