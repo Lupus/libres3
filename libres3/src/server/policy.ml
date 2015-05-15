@@ -192,7 +192,7 @@ let valid p bucket =
 
 module Stmt = struct
   type t = {
-    sid: string option;
+    stmt_sid: string option;
     effect: effect option;
     principal: Principal.t list;
     not_principal: Principal.t list;
@@ -204,7 +204,7 @@ module Stmt = struct
   }
 
   let empty = {
-    sid = None;
+    stmt_sid = None;
     effect = None;
     principal = [];
     not_principal = [];
@@ -221,7 +221,7 @@ module Stmt = struct
     | _ -> failwith "Invalid Effect"
 
   let fold accum = function
-    | "Sid", sid -> { accum with sid = Some (CodedIO.Json.expect_string sid) }
+    | "Sid", sid -> { accum with stmt_sid = Some (CodedIO.Json.expect_string sid) }
     | "Effect", e -> { accum with effect = Some (parse_effect e) }
     | "Principal", p ->
       { accum with principal = [Principal.of_string_json p] }
@@ -247,7 +247,7 @@ let valid_statement s =
   | None -> failwith "Invalid statement: effect not specified"
   | Some e ->
   {
-    sid = s.Stmt.sid;
+    sid = s.Stmt.stmt_sid;
     effect = e;
     principals = Principals.of_lists (s.Stmt.principal, s.Stmt.not_principal);
     actions = Actions.of_lists (s.Stmt.action, s.Stmt.not_action);
