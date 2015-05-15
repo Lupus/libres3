@@ -27,7 +27,8 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
-open SXThread
+open SXLwt
+open Lwt
 
 let () =
   Default.register ();
@@ -42,16 +43,18 @@ let () =
   Config.secret_access_key := input_line f;
   close_in f;
   try
-    let size = SXIO.with_url_source (SXIO.of_url src) (fun source () ->
-      source.SXIO.meta.SXIO.size) () in
-    Printf.printf "Data size: %Ld\n" size;
-    let t0 = Unix.gettimeofday () in
-    SXIO.copy (SXIO.of_url src) ~srcpos:0L (SXIO.of_url dst) ();
-    let t1 = Unix.gettimeofday () in
-    let delta = t1 -. t0 in
-    let mb = (Int64.to_float size) /. 1048576.0 in
-    Printf.printf "Transferred %.3f MiB bytes in %.3fs: %f MiB/s\n"
-      mb delta (mb /. delta);
+    Lwt_main.run (
+      SXIO.with_url_source (SXIO.of_url src) (fun source ->
+          return source.SXIO.meta.SXIO.size) >>= fun size ->
+      Printf.printf "Data size: %Ld\n" size;
+      let t0 = Unix.gettimeofday () in
+      SXIO.copy (SXIO.of_url src) ~srcpos:0L (SXIO.of_url dst) >>= fun () ->
+      let t1 = Unix.gettimeofday () in
+      let delta = t1 -. t0 in
+      let mb = (Int64.to_float size) /. 1048576.0 in
+      Printf.printf "Transferred %.3f MiB bytes in %.3fs: %f MiB/s\n"
+        mb delta (mb /. delta);
+      return_unit)
   with e ->
     Printf.eprintf "%s: %s\n%!" Sys.argv.(0) (Printexc.to_string e);
     Printexc.print_backtrace stderr;

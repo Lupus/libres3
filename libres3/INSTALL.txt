@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: e6f9130f72687eaa18d1850576e4ac70) *)
+(* DO NOT EDIT (digest: e7300bbfef20409231399ec776815ea7) *)
 
 This is the INSTALL file for the libres3 distribution.
 
@@ -11,31 +11,31 @@ Dependencies
 
 In order to compile this package, you will need:
 
-* ocaml (>= 3.12.1) for all, test directio, test lwtio, test misc,
-  test server, doc api-client, doc api-server
+* ocaml (>= 3.12.1) for all, test lwtio, test misc, test server,
+  doc api-client, doc api-server
 * findlib (>= 1.2.8)
-* oUnit for library anycache.test, executable directio_test,
-  executable lwtio_test, executable misc_test, executable net_test,
-  executable server_test, executable sigv4_test
+* oUnit for library anycache.test, executable lwtio_test,
+  executable misc_test, executable net_test, executable server_test,
+  executable sigv4_test
 * netclient (>= 3.7.4) for library sxclient, executable net_test
 * netstring for library server, library sxclient, executable libres3_report,
   executable libres3_setup
 * jsonm for library sxclient
 * cryptokit (>= 1.3) for library server, library sxclient,
-  executable directio_test, executable lwtio_test, executable misc_test,
-  executable net_test, executable sigv4_test
+  executable lwtio_test, executable misc_test, executable net_test,
+  executable sigv4_test
 * ssl (>= 0.4.4) for library sxclient
 * equeue-ssl for library sxclient
-* lwt (>= 2.4.2) for library sxclient.lwt
+* lwt for library sxclient
 * xmlm for library server
 * netsys for library server, executable libres3_ocsigen
 * ocsigenserver for library server, executable libres3_ocsigen
 * ipaddr for library server, executable libres3_report,
   executable libres3_setup
 * ocplib-endian for library server
-* netcgi2 for executable libres3_fcgi
 * dns for library libres3_site
 * re for library libres3_site, executable libres3_report
+* base64 for executable libres3_report
 
 Installing
 ==========

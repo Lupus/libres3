@@ -27,14 +27,15 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
-open SXThread
+open SXLwt
 let fmt_time t =
   Netdate.format ~fmt:"%Y-%m-%d %H:%M:%S UTC" (Netdate.create t);;
-let print_entry () entry () =
+let print_entry () entry =
   Printf.printf "%s %20Ld %s\n"
     (fmt_time entry.SXIO.mtime)
     entry.SXIO.size
-    entry.SXIO.name;;
+    entry.SXIO.name;
+  Lwt.return_unit
 
 let recurse dir =
   Printf.printf "DIR: %s\n" dir;
@@ -53,7 +54,7 @@ let () =
   Config.secret_access_key := input_line f;
   close_in f;
   try
-    SXIO.fold_list ~base:(SXIO.of_url "/") (SXIO.of_url url) ~entry:print_entry ~recurse () ()
+    Lwt_main.run (SXIO.fold_list ~base:(SXIO.of_url "/") (SXIO.of_url url) ~entry:print_entry ~recurse ())
   with e ->
     Printexc.print_backtrace stderr;
     Printf.eprintf "Error: %s\n" (Printexc.to_string e);;

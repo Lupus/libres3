@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: f0f8146568d2e0416be9d5509ce375e9) *)
+(* DO NOT EDIT (digest: 6cceb8d7decb6f427647fa2ebd52344a) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -612,8 +612,6 @@ let package_default =
           ("anycache", ["src/anycache"], []);
           ("anycache.test", ["src/anycache"], []);
           ("sxclient", ["src/sxclient"], []);
-          ("sxclient.lwt", ["src/sxclient/lwt"], []);
-          ("sxclient.thread", ["src/sxclient/thread"], []);
           ("server", ["src/server"], []);
           ("libres3_site", ["src/ocsigen"], [])
        ];
@@ -621,20 +619,10 @@ let package_default =
      flags = [];
      includes =
        [
-          ("test",
-            [
-               "src/anycache";
-               "src/server";
-               "src/sxclient/lwt";
-               "src/sxclient/thread"
-            ]);
-          ("src/sxclient/thread", ["src/sxclient"]);
-          ("src/sxclient/lwt", ["src/sxclient"]);
+          ("test", ["src/anycache"; "src/server"; "src/sxclient"]);
           ("src/sxclient", ["src/anycache"]);
-          ("src/server", ["src/sxclient"; "src/sxclient/lwt"]);
-          ("src/ocsigen", ["src/server"; "src/sxclient/lwt"]);
-          ("src/fcgi", ["src"; "src/server"; "src/sxclient/thread"]);
-          ("src", ["src/fcgi"; "src/server"; "src/sxclient/thread"])
+          ("src/server", ["src/sxclient"]);
+          ("src/ocsigen", ["src/server"; "src/sxclient"])
        ]
   }
   ;;
@@ -643,7 +631,7 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 647 "myocamlbuild.ml"
+# 635 "myocamlbuild.ml"
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch dispatch_default;;
 let default_version =

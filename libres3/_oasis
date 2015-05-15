@@ -36,14 +36,6 @@ PostBuildCommand:
 
 BuildTools: ocamlbuild
 
-Flag ocsigen
-  Description: build ocsigen-based standalone server
-  Default: true
-
-Flag fcgi
-  Description: build fcgi-based server (for development only)
-  Default: false
-
 Flag internaldocs
   Description: build internal docs
   Default: false
@@ -64,38 +56,23 @@ Library "anycache.test"
 Library sxclient
   Path: src/sxclient
   Install: false
-  Modules: Sigs, EventIO, SXIO, SXFile, SXC, SXDefaultIO, Config
+  Modules: SXLwt, Sigs, EventIO, SXIO, SXFile, SXC, SXDefaultIO, Config
   InternalModules: Http
-  BuildDepends: netclient (>= 3.7.4), netstring, threads, jsonm, cryptokit (>= 1.3), ssl (>= 0.4.4), equeue-ssl, anycache
+  BuildDepends: netclient (>= 3.7.4), netstring, threads, jsonm, cryptokit (>= 1.3), ssl (>= 0.4.4), equeue-ssl, anycache, lwt.unix
   CompiledObject: Best
-
-Library "sxclient.lwt"
-  Path: src/sxclient/lwt
-  Modules: SXLwt
-  Build$: flag(ocsigen)
-  Install: false
-  CompiledObject: Best
-  BuildDepends: sxclient, lwt.unix (>= 2.4.2)
-
-Library "sxclient.thread"
-  Path: src/sxclient/thread
-  Modules: SXThread
-  Install: false
-  CompiledObject: Best
-  BuildDepends: sxclient, threads
 
 Executable "sxuls"
   Install: false
   Path: test/
   MainIs: sxuls.ml
-  BuildDepends: sxclient.thread
+  BuildDepends: sxclient
   CompiledObject: Best
 
 Executable "sxucp"
   Install: false
   Path: test/
   MainIs: sxucp.ml
-  BuildDepends: sxclient.thread
+  BuildDepends: sxclient
   CompiledObject: Best
 
 Document "api-client"
@@ -103,7 +80,7 @@ Document "api-client"
   Type:	ocamlbuild (0.3)
   BuildTools+: ocamldoc
   XOcamlBuildPath: src/
-  XOcamlbuildLibraries: sxclient, sxclient.thread, sxclient.lwt
+  XOcamlbuildLibraries: sxclient
 
 Library server
   Path: src/server
@@ -121,27 +98,15 @@ Document "api-server"
   XOcamlBuildPath: src/
   XOcamlbuildLibraries: server 
 
-Executable libres3_fcgi
-  Path: src
-  Build$: flag(fcgi)
-  Install: false
-  MainIs: fcgi/libres3_fcgi.ml
-  CompiledObject: Best
-  BuildDepends: server, sxclient.thread, netcgi2
-  Install: true
-
 Library libres3_site
   Path: src/ocsigen
-  Build$: flag(ocsigen)
   Modules: Site
   CompiledObject: Best
-  BuildDepends: server, threads, sxclient.lwt, dns.lwt, re.posix
+  BuildDepends: server, threads, sxclient, dns.lwt, re.posix
   Install: false
 
 Executable libres3_ocsigen
   Path: src/ocsigen
-  Build$: flag(ocsigen)
-  Install$: flag(ocsigen)
   MainIs: libres3_ocsigen.ml
   BuildDepends: netsys,ocsigenserver,libres3_site
   CompiledObject: Best
@@ -170,7 +135,7 @@ Executable libres3_report
   Path: src/server
   Install: true
   MainIs: libres3_report.ml
-  BuildDepends: unix, netstring, ipaddr, sxclient.lwt, re.posix
+  BuildDepends: unix, netstring, ipaddr, sxclient, re.posix, base64
   CompiledObject: Best
 
 Executable server_test
@@ -178,24 +143,16 @@ Executable server_test
   Path: test
   Build$: flag(tests)
   MainIs: test_server.ml
-  BuildDepends: oUnit, server, sxclient.thread
+  BuildDepends: oUnit, server, sxclient
   CompiledObject: Best
-
-Executable directio_test
-  Install: false
-  Path: test
-  Build$: flag(tests)
-  MainIs: test_directio.ml
-  CompiledObject: Best
-  BuildDepends: cryptokit, oUnit, sxclient.thread, server, anycache.test
 
 Executable lwtio_test
   Install: false
   Path: test
-  Build$: flag(tests) && flag(ocsigen)
+  Build$: flag(tests)
   MainIs: test_lwtio.ml
   CompiledObject: Best
-  BuildDepends: cryptokit, oUnit, sxclient.lwt,  server, anycache.test
+  BuildDepends: cryptokit, oUnit, sxclient,  server, anycache.test
 
 Executable misc_test
   Install: false
@@ -228,9 +185,5 @@ Test misc
 Test server
   Command: $server_test
 
-Test directio
-  Command: $directio_test
-
 Test lwtio
   Command: $lwtio_test
-  Run$: flag(ocsigen)

@@ -1,5 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: dd57e9f03c7e52672d87037dfcb226a0)
+# DO NOT EDIT (digest: b1ae6dcfdfe4166344db35d2603b677c)
+sxclient/SXLwt
 sxclient/Sigs
 sxclient/EventIO
 sxclient/SXIO
@@ -7,6 +8,4 @@ sxclient/SXFile
 sxclient/SXC
 sxclient/SXDefaultIO
 sxclient/Config
-sxclient/thread/SXThread
-sxclient/lwt/SXLwt
 # OASIS_STOP

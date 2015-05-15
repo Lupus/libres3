@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 1178c6963e11e7c2637438be5c6e440f)
+# DO NOT EDIT (digest: 028088faa79e9ebf82313e2aa3e3ae54)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -25,56 +25,34 @@ true: annot, bin_annot
 <src/sxclient/*.ml{,i,y}>: package(cryptokit)
 <src/sxclient/*.ml{,i,y}>: package(equeue-ssl)
 <src/sxclient/*.ml{,i,y}>: package(jsonm)
+<src/sxclient/*.ml{,i,y}>: package(lwt.unix)
 <src/sxclient/*.ml{,i,y}>: package(netclient)
 <src/sxclient/*.ml{,i,y}>: package(netstring)
 <src/sxclient/*.ml{,i,y}>: package(ssl)
 <src/sxclient/*.ml{,i,y}>: package(threads)
 <src/sxclient/*.ml{,i,y}>: use_anycache
-# Library sxclient.lwt
-"src/sxclient/lwt/sxclient.lwt.cmxs": use_sxclient.lwt
-<src/sxclient/lwt/*.ml{,i,y}>: package(cryptokit)
-<src/sxclient/lwt/*.ml{,i,y}>: package(equeue-ssl)
-<src/sxclient/lwt/*.ml{,i,y}>: package(jsonm)
-<src/sxclient/lwt/*.ml{,i,y}>: package(lwt.unix)
-<src/sxclient/lwt/*.ml{,i,y}>: package(netclient)
-<src/sxclient/lwt/*.ml{,i,y}>: package(netstring)
-<src/sxclient/lwt/*.ml{,i,y}>: package(ssl)
-<src/sxclient/lwt/*.ml{,i,y}>: package(threads)
-<src/sxclient/lwt/*.ml{,i,y}>: use_anycache
-<src/sxclient/lwt/*.ml{,i,y}>: use_sxclient
-# Library sxclient.thread
-"src/sxclient/thread/sxclient.thread.cmxs": use_sxclient.thread
-<src/sxclient/thread/*.ml{,i,y}>: package(cryptokit)
-<src/sxclient/thread/*.ml{,i,y}>: package(equeue-ssl)
-<src/sxclient/thread/*.ml{,i,y}>: package(jsonm)
-<src/sxclient/thread/*.ml{,i,y}>: package(netclient)
-<src/sxclient/thread/*.ml{,i,y}>: package(netstring)
-<src/sxclient/thread/*.ml{,i,y}>: package(ssl)
-<src/sxclient/thread/*.ml{,i,y}>: package(threads)
-<src/sxclient/thread/*.ml{,i,y}>: use_anycache
-<src/sxclient/thread/*.ml{,i,y}>: use_sxclient
 # Executable sxuls
 <test/sxuls.{native,byte}>: package(cryptokit)
 <test/sxuls.{native,byte}>: package(equeue-ssl)
 <test/sxuls.{native,byte}>: package(jsonm)
+<test/sxuls.{native,byte}>: package(lwt.unix)
 <test/sxuls.{native,byte}>: package(netclient)
 <test/sxuls.{native,byte}>: package(netstring)
 <test/sxuls.{native,byte}>: package(ssl)
 <test/sxuls.{native,byte}>: package(threads)
 <test/sxuls.{native,byte}>: use_anycache
 <test/sxuls.{native,byte}>: use_sxclient
-<test/sxuls.{native,byte}>: use_sxclient.thread
 # Executable sxucp
 <test/sxucp.{native,byte}>: package(cryptokit)
 <test/sxucp.{native,byte}>: package(equeue-ssl)
 <test/sxucp.{native,byte}>: package(jsonm)
+<test/sxucp.{native,byte}>: package(lwt.unix)
 <test/sxucp.{native,byte}>: package(netclient)
 <test/sxucp.{native,byte}>: package(netstring)
 <test/sxucp.{native,byte}>: package(ssl)
 <test/sxucp.{native,byte}>: package(threads)
 <test/sxucp.{native,byte}>: use_anycache
 <test/sxucp.{native,byte}>: use_sxclient
-<test/sxucp.{native,byte}>: use_sxclient.thread
 # Library server
 "src/server/server.cmxs": use_server
 <src/server/*.ml{,i,y}>: package(netsys)
@@ -82,61 +60,6 @@ true: annot, bin_annot
 <src/server/*.ml{,i,y}>: package(ocsigenserver)
 <src/server/*.ml{,i,y}>: package(str)
 <src/server/*.ml{,i,y}>: package(xmlm)
-# Executable libres3_fcgi
-<src/fcgi/libres3_fcgi.{native,byte}>: package(cryptokit)
-<src/fcgi/libres3_fcgi.{native,byte}>: package(equeue-ssl)
-<src/fcgi/libres3_fcgi.{native,byte}>: package(ipaddr)
-<src/fcgi/libres3_fcgi.{native,byte}>: package(jsonm)
-<src/fcgi/libres3_fcgi.{native,byte}>: package(netcgi2)
-<src/fcgi/libres3_fcgi.{native,byte}>: package(netclient)
-<src/fcgi/libres3_fcgi.{native,byte}>: package(netstring)
-<src/fcgi/libres3_fcgi.{native,byte}>: package(netsys)
-<src/fcgi/libres3_fcgi.{native,byte}>: package(ocplib-endian)
-<src/fcgi/libres3_fcgi.{native,byte}>: package(ocsigenserver)
-<src/fcgi/libres3_fcgi.{native,byte}>: package(ssl)
-<src/fcgi/libres3_fcgi.{native,byte}>: package(str)
-<src/fcgi/libres3_fcgi.{native,byte}>: package(threads)
-<src/fcgi/libres3_fcgi.{native,byte}>: package(xmlm)
-<src/fcgi/libres3_fcgi.{native,byte}>: use_anycache
-<src/fcgi/libres3_fcgi.{native,byte}>: use_server
-<src/fcgi/libres3_fcgi.{native,byte}>: use_sxclient
-<src/fcgi/libres3_fcgi.{native,byte}>: use_sxclient.thread
-<src/*.ml{,i,y}>: package(cryptokit)
-<src/*.ml{,i,y}>: package(equeue-ssl)
-<src/*.ml{,i,y}>: package(ipaddr)
-<src/*.ml{,i,y}>: package(jsonm)
-<src/*.ml{,i,y}>: package(netcgi2)
-<src/*.ml{,i,y}>: package(netclient)
-<src/*.ml{,i,y}>: package(netstring)
-<src/*.ml{,i,y}>: package(netsys)
-<src/*.ml{,i,y}>: package(ocplib-endian)
-<src/*.ml{,i,y}>: package(ocsigenserver)
-<src/*.ml{,i,y}>: package(ssl)
-<src/*.ml{,i,y}>: package(str)
-<src/*.ml{,i,y}>: package(threads)
-<src/*.ml{,i,y}>: package(xmlm)
-<src/*.ml{,i,y}>: use_anycache
-<src/*.ml{,i,y}>: use_server
-<src/*.ml{,i,y}>: use_sxclient
-<src/*.ml{,i,y}>: use_sxclient.thread
-<src/fcgi/*.ml{,i,y}>: package(cryptokit)
-<src/fcgi/*.ml{,i,y}>: package(equeue-ssl)
-<src/fcgi/*.ml{,i,y}>: package(ipaddr)
-<src/fcgi/*.ml{,i,y}>: package(jsonm)
-<src/fcgi/*.ml{,i,y}>: package(netcgi2)
-<src/fcgi/*.ml{,i,y}>: package(netclient)
-<src/fcgi/*.ml{,i,y}>: package(netstring)
-<src/fcgi/*.ml{,i,y}>: package(netsys)
-<src/fcgi/*.ml{,i,y}>: package(ocplib-endian)
-<src/fcgi/*.ml{,i,y}>: package(ocsigenserver)
-<src/fcgi/*.ml{,i,y}>: package(ssl)
-<src/fcgi/*.ml{,i,y}>: package(str)
-<src/fcgi/*.ml{,i,y}>: package(threads)
-<src/fcgi/*.ml{,i,y}>: package(xmlm)
-<src/fcgi/*.ml{,i,y}>: use_anycache
-<src/fcgi/*.ml{,i,y}>: use_server
-<src/fcgi/*.ml{,i,y}>: use_sxclient
-<src/fcgi/*.ml{,i,y}>: use_sxclient.thread
 # Library libres3_site
 "src/ocsigen/libres3_site.cmxs": use_libres3_site
 # Executable libres3_ocsigen
@@ -160,7 +83,6 @@ true: annot, bin_annot
 <src/ocsigen/libres3_ocsigen.{native,byte}>: use_libres3_site
 <src/ocsigen/libres3_ocsigen.{native,byte}>: use_server
 <src/ocsigen/libres3_ocsigen.{native,byte}>: use_sxclient
-<src/ocsigen/libres3_ocsigen.{native,byte}>: use_sxclient.lwt
 <src/ocsigen/*.ml{,i,y}>: package(cryptokit)
 <src/ocsigen/*.ml{,i,y}>: package(dns.lwt)
 <src/ocsigen/*.ml{,i,y}>: package(equeue-ssl)
@@ -181,12 +103,12 @@ true: annot, bin_annot
 <src/ocsigen/*.ml{,i,y}>: use_libres3_site
 <src/ocsigen/*.ml{,i,y}>: use_server
 <src/ocsigen/*.ml{,i,y}>: use_sxclient
-<src/ocsigen/*.ml{,i,y}>: use_sxclient.lwt
 # Executable libres3_setup
 <src/server/libres3_setup.{native,byte}>: package(ipaddr)
 <src/server/libres3_setup.{native,byte}>: package(netstring)
 <src/server/libres3_setup.{native,byte}>: package(unix)
 # Executable libres3_report
+<src/server/libres3_report.{native,byte}>: package(base64)
 <src/server/libres3_report.{native,byte}>: package(cryptokit)
 <src/server/libres3_report.{native,byte}>: package(equeue-ssl)
 <src/server/libres3_report.{native,byte}>: package(ipaddr)
@@ -200,7 +122,7 @@ true: annot, bin_annot
 <src/server/libres3_report.{native,byte}>: package(unix)
 <src/server/libres3_report.{native,byte}>: use_anycache
 <src/server/libres3_report.{native,byte}>: use_sxclient
-<src/server/libres3_report.{native,byte}>: use_sxclient.lwt
+<src/server/*.ml{,i,y}>: package(base64)
 <src/server/*.ml{,i,y}>: package(cryptokit)
 <src/server/*.ml{,i,y}>: package(equeue-ssl)
 <src/server/*.ml{,i,y}>: package(ipaddr)
@@ -214,12 +136,12 @@ true: annot, bin_annot
 <src/server/*.ml{,i,y}>: package(unix)
 <src/server/*.ml{,i,y}>: use_anycache
 <src/server/*.ml{,i,y}>: use_sxclient
-<src/server/*.ml{,i,y}>: use_sxclient.lwt
 # Executable server_test
 <test/test_server.{native,byte}>: package(cryptokit)
 <test/test_server.{native,byte}>: package(equeue-ssl)
 <test/test_server.{native,byte}>: package(ipaddr)
 <test/test_server.{native,byte}>: package(jsonm)
+<test/test_server.{native,byte}>: package(lwt.unix)
 <test/test_server.{native,byte}>: package(netclient)
 <test/test_server.{native,byte}>: package(netstring)
 <test/test_server.{native,byte}>: package(netsys)
@@ -233,28 +155,6 @@ true: annot, bin_annot
 <test/test_server.{native,byte}>: use_anycache
 <test/test_server.{native,byte}>: use_server
 <test/test_server.{native,byte}>: use_sxclient
-<test/test_server.{native,byte}>: use_sxclient.thread
-# Executable directio_test
-<test/test_directio.{native,byte}>: package(cryptokit)
-<test/test_directio.{native,byte}>: package(equeue-ssl)
-<test/test_directio.{native,byte}>: package(ipaddr)
-<test/test_directio.{native,byte}>: package(jsonm)
-<test/test_directio.{native,byte}>: package(netclient)
-<test/test_directio.{native,byte}>: package(netstring)
-<test/test_directio.{native,byte}>: package(netsys)
-<test/test_directio.{native,byte}>: package(oUnit)
-<test/test_directio.{native,byte}>: package(ocplib-endian)
-<test/test_directio.{native,byte}>: package(ocsigenserver)
-<test/test_directio.{native,byte}>: package(ssl)
-<test/test_directio.{native,byte}>: package(str)
-<test/test_directio.{native,byte}>: package(threads)
-<test/test_directio.{native,byte}>: package(xmlm)
-<test/test_directio.{native,byte}>: use_anycache
-<test/test_directio.{native,byte}>: use_anycache.test
-<test/test_directio.{native,byte}>: use_server
-<test/test_directio.{native,byte}>: use_sxclient
-<test/test_directio.{native,byte}>: use_sxclient.thread
-<test/*.ml{,i,y}>: use_sxclient.thread
 # Executable lwtio_test
 <test/test_lwtio.{native,byte}>: package(cryptokit)
 <test/test_lwtio.{native,byte}>: package(equeue-ssl)
@@ -275,15 +175,13 @@ true: annot, bin_annot
 <test/test_lwtio.{native,byte}>: use_anycache.test
 <test/test_lwtio.{native,byte}>: use_server
 <test/test_lwtio.{native,byte}>: use_sxclient
-<test/test_lwtio.{native,byte}>: use_sxclient.lwt
-<test/*.ml{,i,y}>: package(lwt.unix)
 <test/*.ml{,i,y}>: use_anycache.test
-<test/*.ml{,i,y}>: use_sxclient.lwt
 # Executable misc_test
 <test/test_misc.{native,byte}>: package(cryptokit)
 <test/test_misc.{native,byte}>: package(equeue-ssl)
 <test/test_misc.{native,byte}>: package(ipaddr)
 <test/test_misc.{native,byte}>: package(jsonm)
+<test/test_misc.{native,byte}>: package(lwt.unix)
 <test/test_misc.{native,byte}>: package(netclient)
 <test/test_misc.{native,byte}>: package(netstring)
 <test/test_misc.{native,byte}>: package(netsys)
@@ -302,6 +200,7 @@ true: annot, bin_annot
 <test/netTest.{native,byte}>: package(equeue-ssl)
 <test/netTest.{native,byte}>: package(ipaddr)
 <test/netTest.{native,byte}>: package(jsonm)
+<test/netTest.{native,byte}>: package(lwt.unix)
 <test/netTest.{native,byte}>: package(netclient)
 <test/netTest.{native,byte}>: package(netstring)
 <test/netTest.{native,byte}>: package(netsys)
@@ -320,6 +219,7 @@ true: annot, bin_annot
 <test/sigv4Test.{native,byte}>: package(equeue-ssl)
 <test/sigv4Test.{native,byte}>: package(ipaddr)
 <test/sigv4Test.{native,byte}>: package(jsonm)
+<test/sigv4Test.{native,byte}>: package(lwt.unix)
 <test/sigv4Test.{native,byte}>: package(netclient)
 <test/sigv4Test.{native,byte}>: package(netstring)
 <test/sigv4Test.{native,byte}>: package(netsys)
@@ -337,6 +237,7 @@ true: annot, bin_annot
 <test/*.ml{,i,y}>: package(equeue-ssl)
 <test/*.ml{,i,y}>: package(ipaddr)
 <test/*.ml{,i,y}>: package(jsonm)
+<test/*.ml{,i,y}>: package(lwt.unix)
 <test/*.ml{,i,y}>: package(netclient)
 <test/*.ml{,i,y}>: package(netstring)
 <test/*.ml{,i,y}>: package(netsys)
