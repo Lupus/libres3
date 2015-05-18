@@ -75,7 +75,6 @@ module AsyncJson = struct
     mutable mapper: 'a json_mapper;
   }
 
-  open M
   type decoded = [`End | `Error of Jsonm.error | `Lexeme of Jsonm.lexeme]
 
   let rec decode s =
@@ -516,7 +515,7 @@ end
     Lwt.catch (fun () ->
         UserCache.lookup_exn usercache user (fun _ ->
             if user = !Config.key_id then
-              M.return (Some !Config.secret_access_key)
+              Lwt.return (Some !Config.secret_access_key)
             else
             make_request_token ~token:!Config.secret_access_key `GET url >>= fun reply ->
             json_parse_tree (P.input_of_async_channel reply.body) >>= function
@@ -528,20 +527,20 @@ end
               b64#put_string (transform_string (Hexa.decode ()) key);
               b64#put_string "\x00\x00";
               b64#finish;
-              M.return (Some b64#get_string)
+              Lwt.return (Some b64#get_string)
             | lst ->
               List.iter AJson.pp_json lst;
               failwith "bad user info json"
           )
       ) (function
         | SXIO.Detail(Unix.Unix_error(Unix.ENOENT, _,_), _) ->
-            M.return None
-        | e -> M.fail e
+            Lwt.return None
+        | e -> Lwt.fail e
       )
 
     let choose_error = function
       | e :: _ ->
-          M.fail e
+          Lwt.fail e
       | [] ->
           failwith "empty error list"
 
@@ -555,7 +554,7 @@ end
           | None ->
             (* no such user *)
             let user = Neturl.url_user url in
-            M.fail (SXIO.Detail(Unix.Unix_error(Unix.EACCES,"", user),[
+            Lwt.fail (SXIO.Detail(Unix.Unix_error(Unix.EACCES,"", user),[
                 "SXErrorMessage",Printf.sprintf "Cannot retrieve token for user %S"
                   user
               ]))
@@ -870,7 +869,7 @@ end
     (* SX is too slow when listing directories on large volumes,
      * cache the data until bug #415 is fixed *)
     (* TODO: pendinglist *)
-    module ListCache = Pendinglimit.Make(M)(struct
+    module ListCache = Pendinglimit.Make(Lwt)(struct
         type t = string * string
         let compare = Pervasives.compare
     end)

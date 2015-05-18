@@ -52,8 +52,22 @@ type reply = {
 }
 
 let () = Ssl.init ~thread_safe:true ();;
-  module M = Lwt
-  module W = EventIO.Thread
+let bad_result = Lwt.make_error (Failure "http dispatch")
+
+let result f =
+  try Lwt.make_value (f ())
+  with e -> Lwt.make_error e
+
+let wait () =
+  let waiter, wakener = Lwt.wait () in
+  let result = ref bad_result in
+  let notif_id = Lwt_unix.make_notification ~once:true (fun () ->
+      Lwt.wakeup_result wakener !result) in
+  waiter, (fun r ->
+      result := r;
+      Lwt_unix.send_notification notif_id
+    )
+
   open Http_client
   exception HTTP_Job_Callback of http_call * (http_call -> unit)
     (* This is not an exception in the usual sense, but simply a tagged
@@ -102,7 +116,7 @@ let () = Ssl.init ~thread_safe:true ();;
 	    | _ ->
 	      raise Equeue.Reject  (* The event is not for us *)
     );
-    handler_added (W.result (fun () -> ()));
+    Event.sync (Event.send handler_added ());
     (* Now start the event queue. It returns when all jobs are done and
      * the keep_alive_group is cleared.
     *)
@@ -125,20 +139,20 @@ let () = Ssl.init ~thread_safe:true ();;
     let w = Unixqueue.new_wait_id esys in
     Unixqueue.add_resource esys keep_alive_group (Unixqueue.Wait w,(-1.0));
     Printf.printf "Starting http pipeline ... %!";
-    let wait_handler_added, handler_added = W.wait () in
+    let handler_added = Event.new_channel () in
     let thread = Thread.create http_thread (esys, keep_alive_group, handler_added) in
-    Lwt_unix.run wait_handler_added;
+    Event.sync (Event.receive handler_added);
     Printf.printf " http pipeline up!\n%!";
     esys, keep_alive_group, thread
   ;;
 
   let http_call (esys,_,_) (call, host) =
-    let waiter, wakener = W.wait () in
+    let waiter, wakener = wait () in
     let handle_reply = fun call ->
       (* this runs in http_thread *)
       match call#status with
       | `Http_protocol_error e ->
-          wakener (W.result (fun () -> raise (Http_protocol e)))
+          wakener (result (fun () -> raise (Http_protocol e)))
       | _ ->
           let reply = {
             headers = (call#response_header :> Netmime.mime_header_ro);
@@ -147,7 +161,7 @@ let () = Ssl.init ~thread_safe:true ();;
             req_host = host;
             status = call#response_status
           } in
-        wakener (W.result (fun () -> reply ))
+        wakener (result (fun () -> reply ))
       in
 
     (* the callback is needed when it fails to connect *)
@@ -184,17 +198,17 @@ let () = Ssl.init ~thread_safe:true ();;
   let return_http_error status =
     raise (HttpCode status)
 
-  module MCache = LRUCacheMonad.Make(M)
+  module MCache = LRUCacheMonad.Make(Lwt)
   let cache = MCache.create 1000
 
   let perform_cached_request esys request =
     let call, _ = call_of_request request in
     if not call#is_idempotent then
-      M.fail (Invalid_argument "cached request only valid on GET and HEAD")
+      Lwt.fail (Invalid_argument "cached request only valid on GET and HEAD")
     else begin
-      let waiter, wakener = W.wait () in
+      let waiter, wakener = wait () in
       let cb = (fun call ->
-        wakener (W.result (fun () ->
+        wakener (result (fun () ->
           match call#response_status with
           | `Ok ->
               call#response_body#value
@@ -212,7 +226,7 @@ let () = Ssl.init ~thread_safe:true ();;
      )
   ;;
 
-  open M
+  open Lwt
   let input_of_async_channel str =
     let first = ref true in fun () ->
       if !first then begin

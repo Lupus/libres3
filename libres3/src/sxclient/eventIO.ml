@@ -32,35 +32,8 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
-let buffer_size = 128*1024
-let small_buffer_size = 4096
-type output_data = string * int * int
-module Thread = struct
-  type 'a wakener = 'a Lwt.result -> unit
-  let bad_result = Lwt.make_error (Failure "http dispatch")
-
-  let result f =
-    try
-      Lwt.make_value (f ())
-    with e ->
-      Lwt.make_error e
-    ;;
-
-  let wait () =
-    let waiter, wakener = Lwt.wait () in
-    let result = ref bad_result in
-    let notif_id = Lwt_unix.make_notification ~once:true (fun () ->
-      Lwt.wakeup_result wakener !result) in
-    waiter, (fun r ->
-      result := r;
-      Lwt_unix.send_notification notif_id
-    )
-  ;;
-end
-
 module OS = Lwt_unix
 open Lwt
-type output_stream = string -> int -> int -> unit Lwt.t
 
 let try_finally fn_try fn_finally value =
   Lwt.catch (fun () -> fn_try value)
