@@ -32,9 +32,16 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
-open Sigs
 open Http
 open Neturl
+open Lwt
+
+type entry = {
+  name: string;
+  size: int64;
+  mtime: float;
+  etag: string;
+}
 (* TODO: use token_of_user in make_request and write wrapper without *)
 let syntax = {
   Neturl.null_url_syntax with
@@ -255,17 +262,16 @@ end
 
   let scheme = "sx"
   let syntax = syntax
-  open IO.Op
 
   let rec foldl base volume f lst accum =
     match lst with
     | hd :: tl ->
         f accum {
           XIO.name =
-            "/" ^ (Netencoding.Url.encode volume) ^ "/" ^ hd.Sigs.name;
-          XIO.size = hd.Sigs.size;
-          XIO.mtime = hd.Sigs.mtime;
-          XIO.etag = hd.Sigs.etag;
+            "/" ^ (Netencoding.Url.encode volume) ^ "/" ^ hd.name;
+          XIO.size = hd.size;
+          XIO.mtime = hd.mtime;
+          XIO.etag = hd.etag;
         } >>= foldl base volume f tl
     | [] ->
         return accum;;
@@ -404,7 +410,7 @@ end
     ;;
 
     let detail_of_reply reply =
-      try_catch (fun () ->
+      Lwt.catch (fun () ->
         expect_content_type reply "application/json" >>= fun () ->
         json_parse_tree (P.input_of_async_channel reply.body) >>= function
           | [`O obj] ->
@@ -417,7 +423,7 @@ end
           | _ -> return ""
         )
         (fun e ->
-          return ("Unparsable reply" ^ (Printexc.to_string e))) ();;
+          return ("Unparsable reply" ^ (Printexc.to_string e)));;
 
     let make_http_request p url =
       P.make_http_request p url >>= fun reply ->
@@ -500,14 +506,14 @@ end
           failwith "string field expected";;
 
   module AJson = AsyncJson
-  module UserCache = LRUCacheMonad.Make(EventIO.Monad)
+  module UserCache = LRUCacheMonad.Make(Lwt)
   let usercache = UserCache.create 10
 
   let token_of_user url =
     let user = Neturl.url_user url in
     let url = Neturl.remove_from_url ~query:true (Neturl.modify_url
       ~path:["";".users";user] url ~scheme:"http") in
-    try_catch (fun () ->
+    Lwt.catch (fun () ->
         UserCache.lookup_exn usercache user (fun _ ->
             if user = !Config.key_id then
               M.return (Some !Config.secret_access_key)
@@ -531,7 +537,7 @@ end
         | SXIO.Detail(Unix.Unix_error(Unix.ENOENT, _,_), _) ->
             M.return None
         | e -> M.fail e
-      ) ()
+      )
 
     let choose_error = function
       | e :: _ ->
@@ -541,7 +547,7 @@ end
 
     let rec make_request_loop meth ?req_body nodes url errors = match nodes with
     | node :: rest ->
-      try_catch (fun () ->
+      Lwt.catch (fun () ->
           let url = Neturl.modify_url ~host:node url in
           token_of_user url >>= function
           | Some token ->
@@ -555,16 +561,16 @@ end
               ]))
       ) (fun e ->
         make_request_loop meth ?req_body rest url (e :: errors)
-      ) ()
+      )
     | [] ->
         choose_error errors
 
     let make_request meth ?req_body nodes url =
-      try_catch (fun () ->
+      Lwt.catch (fun () ->
         make_request_loop meth ?req_body nodes url []
       ) (fun _ ->
         make_request_loop meth ?req_body nodes url []
-      ) ()
+      )
 
     module StringSet = Set.Make(String)
     let last_nodelist = ref ([], "")
@@ -774,7 +780,7 @@ end
 
     let get url =
      get_vol_nodelist url >>= fun (nodes, _) ->
-     try_catch (fun () ->
+     Lwt.catch (fun () ->
        make_request `GET nodes url >>= fun reply ->
        try
          let mtime = Nethttp.Header.get_last_modified reply.headers in
@@ -803,7 +809,7 @@ end
       (function
         | SXIO.Detail(Unix.Unix_error(Unix.ENOENT,_,_) as e ,_) ->
             fail e
-        | e -> fail e) ();;
+        | e -> fail e);;
 
 
     let read (_, reader) = reader ()
@@ -907,11 +913,11 @@ end
           | Some e -> e :: accum | None -> accum) [] l
 
     let remove_volumes_filters url l =
-      IO.rev_map_p (fun vol ->
+      Lwt_list.rev_map_p (fun vol ->
           let url = Neturl.modify_url url ~path:[""; vol] in
-          IO.try_catch (fun () ->
+          Lwt.catch (fun () ->
               get_vol_nodelist url >>= fun _ -> return (Some vol))
-            (fun _ -> return None) ()) l >>= fun lst ->
+            (fun _ -> return None)) l >>= fun lst ->
       return (filter_opt lst)
 
     let volumelist url =
@@ -1301,9 +1307,9 @@ end
     get url >|= fun (reader, entry) ->
     {
       XIO.name = Neturl.join_path (Neturl.url_path ~encoded:false url);
-      size = entry.Sigs.size;
-      mtime = entry.Sigs.mtime;
-      etag = entry.Sigs.etag
+      size = entry.size;
+      mtime = entry.mtime;
+      etag = entry.etag
     },
     reader
 
@@ -1336,7 +1342,7 @@ end
     | _ -> false
 
   let upload_hashes ?metafn hashes dst_nodes dst size =
-    try_catch (fun () ->
+    Lwt.catch (fun () ->
         get_vol_nodelist dst >>= fun (dst_nodes, _) ->
         let obj =
           ("fileSize", `Float (Int64.to_float size)) ::
@@ -1359,7 +1365,7 @@ end
       ) (function
         | SXIO.Detail(Unix.Unix_error(Unix.ENOENT,_,_) as e ,_) ->
           fail e
-        | e -> fail e) ()
+        | e -> fail e)
 
   let copy_same ?metafn ?filesize urls dst =
     if not (is_file_url dst) then return false
@@ -1374,7 +1380,7 @@ end
         if first_blocksize <> bsize64 then
           return false
         else
-          IO.rev_map_p get_hashlist rest >>= fun lst ->
+          Lwt_list.rev_map_p get_hashlist rest >>= fun lst ->
           match List.fold_left (fun (ok, sum_size, rev_hashes) (src_blocksize, src_size, src_hashes) ->
               if src_blocksize <> bsize64 || Int64.rem sum_size bsize64 <> 0L then
                 false, 0L, []
@@ -1408,7 +1414,7 @@ end
           >>= fun reply ->
           return (reply.status = `Ok)
       | "" :: _volume :: _path ->
-        try_catch (fun () ->
+        Lwt.catch (fun () ->
           get_vol_nodelist url >>= fun (nodes, _) ->
           make_request `HEAD nodes url >>= fun reply ->
           expect_content_type reply "application/json" >>= fun () ->
@@ -1416,7 +1422,7 @@ end
         ) (function
         | SXIO.Detail(Unix.Unix_error(Unix.ENOENT, _,_), _) ->
           return false
-        | e -> fail e) ()
+        | e -> fail e)
       | _ ->
           (* can I fetch the nodeslist? *)
           make_http_request p (request_of_url ~token `HEAD (fetch_nodes url))
@@ -1425,7 +1431,7 @@ end
       end
 
   let check url =
-    try_catch (fun () ->
+    Lwt.catch (fun () ->
       get_cluster_nodelist url >>= fun (_, uuid) ->
       return (Some uuid)
     ) (function
@@ -1434,7 +1440,7 @@ end
         fail (Failure (Printf.sprintf
           "Remote SX server reports: %s (%s)" msg (Printexc.to_string e))
         )
-      | e -> fail e) ()
+      | e -> fail e)
 
   let map_perm = function
     | `String "read" -> `Read
@@ -1498,7 +1504,7 @@ end
     get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
     let url = Neturl.modify_url ~encoded:true ~path:[""; ".users"] ~scheme:"http"
         ~syntax:http_syntax ~user:!Config.key_id url in
-    try_catch (fun () ->
+    Lwt.catch (fun () ->
         make_request `GET cluster_nodes
           (Neturl.modify_url ~path:["";".users";name] url) >>= fun _ ->
         return ""
@@ -1515,7 +1521,7 @@ end
           job_get url >>= fun () ->
           return key
         | e -> fail e
-    ) ()
+    )
 
   let create ?metafn ?(replica=(!Config.replica_count)) url =
     match url_path url ~encoded:true with
@@ -1528,7 +1534,7 @@ end
           ~path:["";volume] ~user:!Config.key_id url
         else url in
       get_cluster_nodelist url >>= fun (nodes, _) ->
-      try_catch
+      Lwt.catch
         (fun () ->
           send_json nodes url (`Object [
             (* max size allowed in json is 2^53, in SX it is 2^50*)
@@ -1542,7 +1548,7 @@ end
           | SXIO.Detail (Unix.Unix_error(Unix.EEXIST,_,_) as e, _) ->
               fail e
           | e -> fail e
-        ) ()
+        )
     | path ->
         let rec last l = match l with
         | [] -> invalid_arg "Cannot create the root"
@@ -1579,7 +1585,7 @@ end
       fail (Failure "bad acl list format2")
 
   let delete ?async url =
-    try_catch (fun () ->
+    Lwt.catch (fun () ->
     get_vol_nodelist url >>= fun (nodes, _) ->
     begin match url_path url ~encoded:true with
     | "" :: volume :: ([""] | []) ->
@@ -1602,4 +1608,3 @@ end
         | SXIO.Detail (Unix.Unix_error((Unix.ENOENT|Unix.ENOTEMPTY),_,_) as e, _) ->
           fail e
         | e -> fail e)
-      ();;

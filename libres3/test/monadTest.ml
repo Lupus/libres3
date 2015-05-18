@@ -28,7 +28,7 @@
 (**************************************************************************)
 
 open OUnit
-    module M = EventIO.Monad
+module M = Lwt
     (* f and g can have side-effects, so
      * we need a function that constructs the same value,
      * instead of just a value (which would be modified by multiple calls to f).
@@ -49,6 +49,7 @@ open OUnit
   let compare_equal printer expected actual =
     assert_equal ?printer expected actual
 
+  let run = Lwt_unix.run
   let expect_equal printer actual_monad expected_monad =
     let actual = run actual_monad
     and expected = run expected_monad in
@@ -62,14 +63,13 @@ open OUnit
     let ex = TestException "test" in
     let catch_executed = ref false in
     ignore (run (
-      try_catch
+      Lwt.catch
       (fun () -> fail ex)
       (fun e ->
         assert_same_exception ex e;
         catch_executed := true;
         return ()
       )
-      ()
     ));
     assert_bool "catch must be executed" !catch_executed;;
 
@@ -77,8 +77,9 @@ open OUnit
     let ex = TestException "test" in
     let catch_executed = ref false in
     ignore (run (
-      try_catch
-      (fun v ->
+      Lwt.catch
+      (fun () ->
+        let v = spec.value () in
         spec.f v >>= fun _ ->
         fail ex >>= fun _ ->
         assert_failure "code must not be executed after fail!";
@@ -88,7 +89,6 @@ open OUnit
         catch_executed := true;
         return ()
       )
-      (spec.value())
     ));
     assert_bool "catch must be executed" !catch_executed;;
 
@@ -96,8 +96,9 @@ open OUnit
     let ex = TestException "test" in
     let ex2 = TestException "test2" in
     assert_raises ~msg:"must raise exception" ex2 (fun () ->
-      run (try_catch
-        (fun v ->
+      run (Lwt.catch
+        (fun () ->
+          let v = spec.value () in
           spec.f v >>= fun _ ->
           fail ex >>= fun _ ->
           assert_failure "code must not be executed after fail!";
@@ -106,7 +107,6 @@ open OUnit
           assert_same_exception ex e;
           fail ex2
         )
-        (spec.value())
       )
     );;
 
@@ -114,9 +114,10 @@ open OUnit
     let ex = TestException "test" in
     let ex2 = TestException "test2" in
     let catch_called = ref false in
-    run (try_catch
-      (try_catch
-        (fun v ->
+    run (Lwt.catch
+      (fun () -> Lwt.catch
+        (fun () ->
+          let v = spec.value () in
           spec.f v >>= fun _ ->
           fail ex >>= fun _ ->
           assert_failure "code must not be executed after fail!";
@@ -131,7 +132,6 @@ open OUnit
         catch_called := true;
         return ()
       )
-      (spec.value ())
     );
     assert_bool "catch must be called" !catch_called;;
 
@@ -139,14 +139,13 @@ open OUnit
     let ex = TestException "test" in
     let catch_executed = ref false in
     ignore (run (
-      try_catch
+      Lwt.catch
       (fun () -> raise ex)
       (fun e ->
         assert_same_exception ex e;
         catch_executed := true;
         return ()
       )
-      ()
     ));
     assert_bool "catch must be executed" !catch_executed;;
 
@@ -154,8 +153,9 @@ open OUnit
     let ex = TestException "test" in
     let catch_executed = ref false in
     ignore (run (
-      try_catch
-      (fun v ->
+      Lwt.catch
+      (fun () ->
+        let v = spec.value () in
         spec.f v >>= fun _ ->
         raise ex
       )
@@ -164,7 +164,6 @@ open OUnit
         catch_executed := true;
         return ()
       )
-      (spec.value ())
     ));
     assert_bool "catch must be executed" !catch_executed;;
 
@@ -172,8 +171,9 @@ open OUnit
     let ex = TestException "test" in
     let ex2 = TestException "test2" in
     assert_raises ~msg:"must raise exception" ex2 (fun () ->
-      run (try_catch
-        (fun v ->
+      run (Lwt.catch
+        (fun () ->
+          let v = spec.value () in
           spec.f v >>= fun _ ->
           fail ex >>= fun _ ->
           assert_failure "code must not be executed after fail!";
@@ -182,7 +182,6 @@ open OUnit
           assert_same_exception ex e;
           raise ex2
         )
-        (spec.value())
       )
     );;
 

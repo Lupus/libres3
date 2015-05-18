@@ -32,10 +32,9 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
+open Lwt
 exception Detail of exn * (string * string) list
 type metafn = unit -> (string * string) list
-module M = EventIO.Monad
-  include M
   type output_data = string * int * int
   type input_stream = unit -> output_data t
   type output_stream = output_data -> unit t
@@ -56,13 +55,13 @@ module M = EventIO.Monad
 
   let read_string str pos =
     let eof = ref false in
-    M.return (fun () ->
-      if !eof then M.return ("",0,0)
+    return (fun () ->
+      if !eof then return ("",0,0)
       else begin
         eof := true;
         let len = Int64.sub (Int64.of_int (String.length str)) pos in
-        if len < 0L then M.return ("",0,0)
-        else M.return (str, Int64.to_int pos, Int64.to_int len)
+        if len < 0L then return ("",0,0)
+        else return (str, Int64.to_int pos, Int64.to_int len)
       end
     );;
 
@@ -295,28 +294,28 @@ module M = EventIO.Monad
     val syntax: Neturl.url_syntax
 
     val init: unit -> unit
-    val token_of_user: Neturl.url -> string option M.t
-    val check: Neturl.url -> string option M.t
-    val open_source: Neturl.url -> (entry * state) M.t
-    val seek: state -> int64 -> (state * read_state) M.t
-    val read: (state * read_state) -> output_data M.t
-    val close_source : state -> unit M.t
+    val token_of_user: Neturl.url -> string option Lwt.t
+    val check: Neturl.url -> string option Lwt.t
+    val open_source: Neturl.url -> (entry * state) Lwt.t
+    val seek: state -> int64 -> (state * read_state) Lwt.t
+    val read: (state * read_state) -> output_data Lwt.t
+    val close_source : state -> unit Lwt.t
 
     (* true: optimized copy if scheme and authority matches
      * false: fallback to generic copy *)
-    val copy_same: ?metafn:metafn -> ?filesize:int64 -> Neturl.url list -> Neturl.url -> bool M.t
+    val copy_same: ?metafn:metafn -> ?filesize:int64 -> Neturl.url list -> Neturl.url -> bool Lwt.t
 
-    val get_meta: Neturl.url -> (string*string) list M.t
-    val put: ?metafn:metafn -> source -> int64 -> Neturl.url -> unit M.t
-    val delete: ?async:bool -> Neturl.url -> unit M.t
-    val create: ?metafn:metafn -> ?replica:int -> Neturl.url -> unit M.t
-    val exists: Neturl.url -> bool M.t
-    val set_acl : Neturl.url -> acl list -> unit M.t
-    val get_acl : Neturl.url -> acl list M.t
-    val create_user: Neturl.url -> string -> string M.t
+    val get_meta: Neturl.url -> (string*string) list Lwt.t
+    val put: ?metafn:metafn -> source -> int64 -> Neturl.url -> unit Lwt.t
+    val delete: ?async:bool -> Neturl.url -> unit Lwt.t
+    val create: ?metafn:metafn -> ?replica:int -> Neturl.url -> unit Lwt.t
+    val exists: Neturl.url -> bool Lwt.t
+    val set_acl : Neturl.url -> acl list -> unit Lwt.t
+    val get_acl : Neturl.url -> acl list Lwt.t
+    val create_user: Neturl.url -> string -> string Lwt.t
 
     val fold_list: Neturl.url ->
-        ('a -> entry -> 'a t) -> (string -> bool) -> 'a -> 'a M.t
+        ('a -> entry -> 'a t) -> (string -> bool) -> 'a -> 'a Lwt.t
   end
 
   module RegisterURLScheme(O: SchemeOps) = struct

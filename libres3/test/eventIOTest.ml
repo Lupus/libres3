@@ -28,18 +28,13 @@
 (**************************************************************************)
 
 open OUnit
-module M = EventIO.Monad
+module M = Lwt
 module IO = EventIO
-  open IO.Op
-
-  let test_monad () =
-    assert_bool "return" (IO.Op.return == M.return);
-    assert_bool ">>=" (IO.Op.(>>=) == M.(>>=));
-    assert_bool "try_catch" (IO.try_catch == M.try_catch);
-    assert_bool "fail" (IO.fail == M.fail);;
+open Lwt
+let run = Lwt_unix.run
 
   let test_seq_map () =
-    M.run (
+    run (
       (return 4 >|= fun v ->
       v + 5) >|= fun result ->
       assert_equal ~printer:string_of_int 9 result
@@ -63,20 +58,20 @@ module IO = EventIO
       else if finally_exn then Some ex2
       else None in
     let finally_executed = ref false in
-    let caught_exn = M.run (
-      IO.try_catch (fun () ->
+    let caught_exn = run (
+      Lwt.catch (fun () ->
         IO.try_finally
         (fun v ->
           f_no_err v >>= fun res ->
           if try_exn then
-            IO.fail ex
+            fail ex
           else
             return res)
         (fun v ->
           assert_equal ~printer:string_of_int v0 v;
           finally_executed := true;
           if finally_exn then
-            IO.fail ex2
+            fail ex2
           else
             return ()
         )
@@ -84,7 +79,7 @@ module IO = EventIO
         f_no_err v0 >>= fun expected ->
         assert_equal ~printer:string_of_int expected res;
         return None;
-      ) (fun exn -> return (Some exn)) ()
+      ) (fun exn -> return (Some exn))
     ) in
     assert_equal
       ~msg:"expect/caught exn don't match" ~printer:print_exn_opt
@@ -99,7 +94,7 @@ module IO = EventIO
       incr counter;
       r := !counter;
       return () in
-    M.run (IO.iter_s f [r1; r2; r3]);
+    run (Lwt_list.iter_s f [r1; r2; r3]);
     assert_equal ~printer:string_of_int 1 (!r1);
     assert_equal ~printer:string_of_int 2 (!r2);
     assert_equal ~printer:string_of_int 3 (!r3);;
@@ -108,15 +103,14 @@ module IO = EventIO
   let test_rev_map_p () =
     (* TODO: test that it really is parallel,
      * by introducing some sleeping functions *)
-    M.run (
+    run (
       let f v = return (v + 4) in
-      IO.rev_map_p f [5;6;7;8] >|= fun l ->
+      Lwt_list.rev_map_p f [5;6;7;8] >|= fun l ->
       TestUtil.assert_eq_intlist [12;11;10;9] l
     );;
 
   let tests =
     "EventIO">:::[
-      "basic monad">::test_monad;
       ">|=">::test_seq_map;
       "try_finally">:::[
         "noexn/noexn">::(test_try_finally false false);

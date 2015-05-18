@@ -27,6 +27,7 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
+open Lwt
 open OUnit
 module IO = EventIO
   module Server = struct
@@ -36,14 +37,12 @@ module IO = EventIO
       buf: Buffer.t
     }
     type u = t
-    type 'a monad = 'a IO.t
-    module M = SXIO.M
 
     let log _ _ = ()
     open Dispatch
     let send_data s (str, pos, len) =
       Buffer.add_substring s.buf str pos len;
-      M.return ()
+      return ()
     let send_headers s ?body_header h =
       s.hstatus <- h.status;
       begin match h.content_length with
@@ -71,18 +70,18 @@ module IO = EventIO
       end;
       match body_header with
       | Some b ->
-        M.(>>=) (send_data s (b, 0, String.length b))
-          (fun () -> M.return s)
-      | None -> M.return s
+        (>>=) (send_data s (b, 0, String.length b))
+          (fun () -> return s)
+      | None -> return s
   end
 
 
   module D = Dispatch.Make(Server)
   let test_init () =
-    SXIO.M.run (D.init ());;
+    Lwt_main.run (D.init ());;
 
   open HttpTest
-  open SXIO.M
+  open Lwt
 
   let map_method meth source = match meth with
   | (`GET | `HEAD | `DELETE | `TRACE | `OPTIONS) as m -> m
@@ -93,9 +92,9 @@ module IO = EventIO
   ;;
 
   let perform_queries dispatcher lst =
-    run (
+    Lwt_main.run (
       let server = { Server.hstatus = `Service_unavailable; Server.headers = []; Server.buf = Buffer.create 4096 } in
-      IO.rev_map_p (fun req ->
+      Lwt_list.rev_map_p (fun req ->
         let `Source source = SXIO.of_string req.req_body in
           let host = if req.port = 80 then req.host else
             Printf.sprintf "%s:%d" req.host req.port in
@@ -109,7 +108,7 @@ module IO = EventIO
             };
           } >>= fun () ->
           return server
-      ) lst >>= IO.rev_map_p (fun server ->
+      ) lst >>= Lwt_list.rev_map_p (fun server ->
         let body = Buffer.contents server.Server.buf in
         return {
           headers = server.Server.headers;

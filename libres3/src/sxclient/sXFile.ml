@@ -32,7 +32,7 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
-module M = EventIO.Monad
+open Lwt
 module OS = EventIO.OS
   type state = string * int ref
   type read_state = unit
@@ -40,7 +40,6 @@ module OS = EventIO.OS
   let syntax = Hashtbl.find Neturl.common_url_syntax "file"
 
   let init () = ()
-  open M
   let file url =
     match Neturl.split_path (Neturl.local_path_of_file_url url) with
     | [""] -> "", ""
@@ -161,7 +160,7 @@ module OS = EventIO.OS
       volumes := StringMap.add vol (StringMap.add path entry volume) !volumes;
       return ()
 
-  let get_meta url : (string*string) list M.t =
+  let get_meta url : (string*string) list Lwt.t =
     let vol, path = file url in
     find vol !volumes >>= fun volume ->
     find path volume >>= fun (_, meta, _) ->

@@ -28,17 +28,16 @@
 (**************************************************************************)
 
 open OUnit
-open TestUtil
-module M = EventIO.Monad
 module OS = EventIO.OS
-open M
+open Lwt
 
   let id x = x
+  let run = Lwt_unix.run
 
   let expect_unix_error code f =
     let has_run = ref false in
     let codestr = Unix.error_message code in
-    run (try_catch
+    run (Lwt.catch
       (fun () ->
         f () >>= fun _ ->
         assert_failure (Printf.sprintf "Expected exception '%s' not raised" codestr)
@@ -53,7 +52,6 @@ open M
            (Printf.sprintf
             "Bad exception: %s" (Printexc.to_string e))
       )
-      ()
     );
     assert_bool
       (Printf.sprintf "Expected '%s'" codestr)

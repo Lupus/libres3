@@ -27,6 +27,7 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
+open Lwt
 let anonymize = ref false
 
 let filter out str =
@@ -109,19 +110,18 @@ let dump_cfg_file out path =
     )
   with _ -> ()
 
-open EventIO
 
 let check_host host =
   let url = Neturl.make_url ~encoded:false
       ~scheme:"sx" ~user:!Config.key_id ~port:!Config.sx_port ~host ~path:[""] SXC.syntax in
   let urlstr = Neturl.string_of_url url in
-  try_catch (fun () ->
+  Lwt.catch (fun () ->
       SXIO.check (SXIO.of_neturl url) >>= function
       | Some _ ->
         return (Some (urlstr, None))
       | None ->
         return (Some (urlstr, Some "no uuid"))
-  ) (fun e -> return (Some (urlstr, Some (Printexc.to_string e)))) ()
+  ) (fun e -> return (Some (urlstr, Some (Printexc.to_string e))))
 
 let resolve_host out ~kind host =
   eprintf "Looking up %s host '%s' ... %!" kind host;

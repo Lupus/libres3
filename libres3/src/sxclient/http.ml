@@ -32,6 +32,7 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
+exception HttpCode of Nethttp.http_status
 type methods = [ `GET | `POST | `HEAD | `PUT | `DELETE | `TRACE | `OPTIONS ]
 type request = {
   meth: methods;
@@ -51,7 +52,7 @@ type reply = {
 }
 
 let () = Ssl.init ~thread_safe:true ();;
-  module M = EventIO.Monad
+  module M = Lwt
   module W = EventIO.Thread
   open Http_client
   exception HTTP_Job_Callback of http_call * (http_call -> unit)
@@ -126,7 +127,7 @@ let () = Ssl.init ~thread_safe:true ();;
     Printf.printf "Starting http pipeline ... %!";
     let wait_handler_added, handler_added = W.wait () in
     let thread = Thread.create http_thread (esys, keep_alive_group, handler_added) in
-    M.run wait_handler_added;
+    Lwt_unix.run wait_handler_added;
     Printf.printf " http pipeline up!\n%!";
     esys, keep_alive_group, thread
   ;;
@@ -181,7 +182,7 @@ let () = Ssl.init ~thread_safe:true ();;
   ;;
 
   let return_http_error status =
-    raise (Sigs.HttpCode status)
+    raise (HttpCode status)
 
   module MCache = LRUCacheMonad.Make(M)
   let cache = MCache.create 1000

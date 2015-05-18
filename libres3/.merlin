@@ -9,7 +9,6 @@ S test/
 B _build/src/anycache/
 B _build/src/server
 B _build/src/sxclient
-B _build/src/sxclient/lwt
 B _build/src/ocsigen
 B _build/test/
 B _build/

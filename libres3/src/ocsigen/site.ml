@@ -29,9 +29,9 @@
 
 open Ocsigen_extensions
 open Ocsigen_http_frame
+open Lwt
 
 module Server = struct
-  type 'a monad = 'a Lwt.t
   type t = {
     mutable headers: Dispatch.headers option;
     mutable woken: bool;
@@ -304,7 +304,7 @@ let dns_check_wildcard resolver =
                   (Random.bits ()) !Configfile.base_hostname))
 
 let rec dns_check_loop resolver url =
-  try_catch (check_url resolver) noop url >>= fun () ->
+  Lwt.catch (fun () -> check_url resolver url) noop >>= fun () ->
   dns_check_wildcard resolver;
   OS.sleep !Configfile.check_interval >>= fun () ->
   dns_check_loop resolver url

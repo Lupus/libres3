@@ -35,16 +35,8 @@
 let buffer_size = 128*1024
 let small_buffer_size = 4096
 type output_data = string * int * int
-module Monad = struct
-  include Lwt
-  let try_catch f g v = Lwt.catch (fun () -> f v) g;;
-  let run = Lwt_main.run
-end
-include Monad
-
 module Thread = struct
-  include Lwt
-  type 'a wakener = 'a result -> unit
+  type 'a wakener = 'a Lwt.result -> unit
   let bad_result = Lwt.make_error (Failure "http dispatch")
 
   let result f =
@@ -67,14 +59,7 @@ module Thread = struct
 end
 
 module OS = Lwt_unix
-
-module Op = struct
-  include Monad
-  let (>|=) a map =
-    a >>= fun v ->
-    return (map v)
-end
-
+open Lwt
 type output_stream = string -> int -> int -> unit Lwt.t
 
 let try_finally fn_try fn_finally value =
@@ -82,178 +67,9 @@ let try_finally fn_try fn_finally value =
     (fun e ->
        (* run finally, ignoring any exceptions, and reraise original *)
        Lwt.catch (fun () -> fn_finally value) (fun _ -> Lwt.return_unit) >>= fun () ->
-       fail e) >>= fun result ->
+       Lwt.fail e) >>= fun result ->
   fn_finally value >>= fun () ->
   return result
-
-open Lwt
-(* stream *)
-module type RawStream = sig
-  type t
-  type name
-  val read: t -> output_data Lwt.t
-  val open_readable: name -> t Lwt.t
-  val close_readable: t -> unit Lwt.t
-end
-
-module Stream = struct
-  type 'a t = {
-    state: 'a;
-    read: 'a -> output_data Lwt.t;
-  }
-
-  let read src = src.read src.state
-  let rec iter src f =
-    read src >>= fun (str,pos,len) ->
-    if len = 0 then return ()
-    else
-      f str pos len >>= fun () ->
-      iter src f
-  ;;
-end
-
-module MakeStream(R: RawStream) = struct
-  type name = R.name
-  type state = R.t
-
-  let with_readable name f =
-    R.open_readable name >>=
-    try_finally
-      (fun state ->
-         f {
-           Stream.state = state;
-           read = R.read;
-         }
-      )
-      R.close_readable
-end
-
-(* seekable stream *)
-module type RawSource = sig
-  type t
-  type name
-  val read: t -> output_data Lwt.t
-  val seek: t -> int64 -> unit Lwt.t
-  val open_source: name -> (t * int64 * float) Lwt.t
-  val close_source: t -> unit Lwt.t
-end
-
-module Source = struct
-  type 'a t = {
-    state: 'a;
-    read: 'a -> output_data Lwt.t;
-    seek: 'a -> int64 -> unit Lwt.t;
-    size: int64;
-    mtime: float;
-  }
-
-  let size src = src.size
-  let last_modified src = src.mtime
-  let begin_read src pos =
-    src.seek src.state pos >>= fun () ->
-    return {
-      Stream.state = src.state;
-      read = src.read
-    }
-  ;;
-end
-module type SourceWrap = sig
-  type state
-  type name
-  val with_source: name -> (state Source.t -> 'a Op.t) -> 'a Op.t
-end
-
-module MakeSource(R: RawSource) = struct
-  type name = R.name
-  type state = R.t
-  let with_source name f =
-    R.open_source name >>= fun (state, size, mtime) ->
-    try_finally
-      (fun state ->
-         f {
-           Source.state = state;
-           read = R.read;
-           seek = R.seek;
-           size = size;
-           mtime = mtime
-         }
-      )
-      R.close_source
-      state
-end
-
-let rec iter_s fn lst =
-  match lst with
-  | [] ->
-    return ()
-  | hd :: tl ->
-    fn hd >>= (fun () -> iter_s fn tl)
-;;
-
-let rev_map_p fn lst =
-  List.fold_left (fun accum v ->
-      fn v >>= fun r ->
-      accum >>= fun a ->
-      return (r :: a)
-    ) (return []) lst
-
-module FileSource = MakeSource(struct
-    type t = OS.file_descr * string
-    type name = string
-
-    let read (fd, buf) =
-      OS.read fd buf 0 (String.length buf) >>= fun amount ->
-      return (buf, 0, amount)
-
-    let seek (fd,_) pos =
-      OS.LargeFile.lseek fd pos Unix.SEEK_SET >>= fun _ ->
-      return ()
-
-    let close_source (fd, _) =
-      OS.close fd
-
-    let open_source filename =
-      OS.openfile filename [Unix.O_RDONLY] 0 >>= fun fd ->
-      Lwt.catch
-        (fun () ->
-           OS.LargeFile.fstat fd >>= fun stat ->
-           if stat.Unix.LargeFile.st_kind <> Unix.S_REG then
-             fail (Unix.Unix_error(Unix.ENOENT,"openfile",filename))
-           else
-             let state = fd, String.create buffer_size in
-             return
-               (state,
-                stat.Unix.LargeFile.st_size,
-                stat.Unix.LargeFile.st_mtime)
-        )
-        (fun e ->
-           OS.close fd >>= fun () ->
-           fail e
-        )
-    ;;
-  end)
-type filestate = FileSource.state
-let with_file = FileSource.with_source
-
-let with_resource ~fn_open ~fn_close f value =
-  fn_open value >>= fun r ->
-  try_finally f fn_close r;;
-
-exception InputTooLarge of int
-
-let read_all ~input ~max =
-  let buf = Buffer.create small_buffer_size in
-  Stream.iter input (fun str pos len ->
-      let n = (Buffer.length buf) + len in
-      if n > max then
-        fail (InputTooLarge n)
-      else begin
-        Buffer.add_substring buf str pos len;
-        return ()
-      end
-    ) >>= fun () ->
-  return (Buffer.contents buf)
-;;
 
 let sleep = OS.sleep
 
@@ -292,13 +108,5 @@ let tmp_open name =
 
 let with_tempfile f =
   let tmpfile = tempfilename () in
-  with_resource
-    ~fn_open:tmp_open
-    ~fn_close:OS.close
-    f tmpfile;;
-
-let string_of_file filename =
-  FileSource.with_source filename (fun source ->
-      Source.begin_read source 0L >>= fun readable ->
-      read_all ~input:readable ~max:(Int64.to_int (Source.size source))
-    );;
+  tmp_open tmpfile >>=
+  try_finally f Lwt_unix.close
