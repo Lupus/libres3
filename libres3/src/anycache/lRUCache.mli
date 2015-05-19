@@ -34,7 +34,7 @@
 
 type ('ok, 'err) t
 type ('ok, 'err) result = OK of 'ok | Error of 'err
-val create : int -> ('ok, 'err) t
+val create : ?validator:('ok -> (bool,'err) result) -> int -> ('ok, 'err) t
 val get : ('ok, 'err) t -> notfound:'err -> string -> ('ok, 'err) result
 val set : ('ok, 'err) t -> string -> ('ok, 'err) result -> unit
 val lookup :

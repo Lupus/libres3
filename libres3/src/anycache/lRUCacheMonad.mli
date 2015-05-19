@@ -71,7 +71,7 @@ module Make :
         ('b -> ('a, 'c) result M.t) -> ('a, 'c) result M.t
     end
     type ('a, 'b) t
-    val create : int -> ('a, 'b) t
+    val create : ?validator:('a -> (bool, 'b) Result.t) -> int -> ('a, 'b) t
     val get : ('a, 'b) t -> notfound:'b -> string -> ('a, 'b) Result.t
     val set : ('a, 'b) t -> string -> ('a, 'b) Result.t -> unit
     val lookup :

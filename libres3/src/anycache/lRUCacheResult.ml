@@ -35,37 +35,56 @@
 module type Result = sig include LRUCacheTypes.Result end
 module Make(R : Result) = struct
   module LRUMap = LRU.Make(String)
-  type ('ok, 'err) t = ('ok, 'err) R.t LRUMap.cache
+  type ('ok, 'err) t = {
+    map: ('ok, 'err) R.t LRUMap.cache;
+    return_true: (bool, 'err) R.t;
+    return_none: ('ok option, 'err) R.t;
+    validate: 'ok -> (bool, 'err) R.t
+  }
 
-  let create = LRUMap.create
-
-  let get cache ~notfound key =
-    try LRUMap.find cache key
-    with _ -> R.fail notfound
+  let create ?validator n=
+    let return_true = R.return true
+    and return_none = R.return None in
+    { map = LRUMap.create n;
+      return_true; return_none;
+      validate = match validator with
+        | None -> fun _ -> return_true
+        | Some f -> f
+    }
 
   open R
   let return_some v = return (Some v)
-  let return_none _ = return None
-  let get_opt cache key : ('a option, 'b) R.t =
-    try LRUMap.find cache key >>= return_some
-    with _ -> return None
+  let get cache ~notfound key =
+    try LRUMap.find cache.map key
+    with _ -> R.fail notfound
 
-  let set = LRUMap.replace
+  let get_opt cache key : ('a option, 'b) R.t =
+    try LRUMap.find cache.map key >>= return_some
+    with _ -> cache.return_none
+
+  let set cache = LRUMap.replace cache.map
+
+  let compute_value cache key f =
+    (*  start computing of the value:
+        key was not found in cache, the previous computation failed or validation failed *)
+    let pending = f key in
+    (* store pending value in cache *)
+    set cache key pending;
+    (* return pending value *)
+    pending >>= fun final ->
+    (* put final value into cache *)
+    let result = return final in
+    set cache key result;
+    result
 
   let lookup cache key f =
+    let return_none _ = cache.return_none in
     (* return value from cache if it exists *)
     R.catch (get_opt cache key) return_none >>= (function
-        | Some data -> return data
+        | Some data ->
+          cache.validate data >>= (function
+              | true -> return data
+              | false -> compute_value cache key f)
         | None ->
-          (*  start computing of the value:
-              key was not found in cache, or previous computation failed *)
-          let pending = f key in
-          (* store pending value in cache *)
-          set cache key pending;
-          (* return pending value *)
-          pending >>= fun final ->
-          (* put final value into cache *)
-          let result = return final in
-          set cache key result;
-          result)
+          compute_value cache key f)
 end

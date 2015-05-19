@@ -35,7 +35,7 @@
 open LRUCacheTypes
 module Make(R:Result) : sig
   type ('ok, 'err) t
-  val create : int -> ('ok, 'err) t
+  val create : ?validator:('ok -> (bool, 'err) R.t) -> int -> ('ok, 'err) t
   val get : ('ok, 'err) t -> notfound:'err -> string -> ('ok, 'err) R.t
   val set : ('ok, 'err) t -> string -> ('ok, 'err) R.t -> unit
   val lookup : ('ok, 'err) t -> string ->
