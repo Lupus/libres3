@@ -516,38 +516,39 @@ let filter_field_string field lst =
     failwith "string field expected";;
 
 module AJson = AsyncJson
-module UserCache = LRUCacheMonad.Make(Lwt)
-let usercache = UserCache.create 10
+let usercache = Caching.cache 128
 
 let token_of_user url =
   let user = Neturl.url_user url in
-  let url = Neturl.remove_from_url ~query:true (Neturl.modify_url
-                                                  ~path:["";".users";user] url ~scheme:"http") in
-  Lwt.catch (fun () ->
-      UserCache.lookup_exn usercache user (fun _ ->
-          if user = !Config.key_id then
-            Lwt.return (Some !Config.secret_access_key)
-          else
-            make_request_token ~token:!Config.secret_access_key `GET url >>= fun reply ->
-            json_parse_tree (P.input_of_async_channel reply.body) >>= function
-            | [`O obj] ->
-              let key = filter_field_string "userKey" obj in
-              let b64 = Base64.encode_compact () in
-              let auth_uid = hash_string (Hash.sha1 ()) user in
-              b64#put_string auth_uid;
-              b64#put_string (transform_string (Hexa.decode ()) key);
-              b64#put_string "\x00\x00";
-              b64#finish;
-              Lwt.return (Some b64#get_string)
-            | lst ->
-              List.iter AJson.pp_json lst;
-              failwith "bad user info json"
-        )
-    ) (function
-      | Detail(Unix.Unix_error(Unix.ENOENT, _,_), _) ->
-        Lwt.return None
-      | e -> Lwt.fail e
-    )
+  if user = !Config.key_id then
+    return (Some !Config.secret_access_key)
+  else
+    let fetch ?etag user =
+      let url = Neturl.remove_from_url ~query:true
+          (Neturl.modify_url ~path:["";".users";user] url ~scheme:"http") in
+      make_request_token ~token:!Config.secret_access_key `GET url in
+    let parse reply =
+      json_parse_tree (P.input_of_async_channel reply.body) >>= function
+      | [`O obj] ->
+        let key = filter_field_string "userKey" obj in
+        let b64 = Base64.encode_compact () in
+        let auth_uid = hash_string (Hash.sha1 ()) user in
+        b64#put_string auth_uid;
+        b64#put_string (transform_string (Hexa.decode ()) key);
+        b64#put_string "\x00\x00";
+        b64#finish;
+        return (Some b64#get_string)
+      | lst ->
+        List.iter AJson.pp_json lst;
+        fail (Failure "bad user info json")
+    in
+    Lwt.catch (fun () ->
+        Caching.make_cached_request usercache ~fetch ~parse user)
+      (function
+        | Detail(Unix.Unix_error(Unix.ENOENT, _,_), _) ->
+          Lwt.return None
+        | e -> Lwt.fail e
+      )
 
 let choose_error = function
   | e :: _ ->
