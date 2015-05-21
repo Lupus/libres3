@@ -43,7 +43,6 @@ type cluster_nodelist = {
 }
 
 let nodelist_cache = Caching.cache 128
-let max_nodelist_freshness = 3600.
 
 type entry = {
   name: string;
@@ -543,7 +542,7 @@ let token_of_user url =
         fail (Failure "bad user info json")
     in
     Lwt.catch (fun () ->
-        Caching.make_cached_request usercache ~fetch ~parse user)
+        Caching.make_global_cached_request usercache ~fetch ~parse user)
       (function
         | Detail(Unix.Unix_error(Unix.ENOENT, _,_), _) ->
           Lwt.return None
@@ -624,8 +623,7 @@ let parse_nodelist_reply reply =
 
 let fetch_cluster_nodelist url =
   let fetch ?etag _ = make_request_token ~token:!Config.secret_access_key `GET (fetch_nodes url) in
-  Caching.make_cached_request nodelist_cache ""
-    ~heuristic_freshness:max_nodelist_freshness ~fetch ~parse:parse_nodelist_reply
+  Caching.make_global_cached_request nodelist_cache "" ~fetch ~parse:parse_nodelist_reply
 
 let get_cluster_nodelist url =
   fetch_cluster_nodelist url >>= fun l ->
@@ -655,8 +653,7 @@ let get_vol_nodelist url =
         List.iter pp_json lst;
         failwith "bad locate nodes json"
     in
-    Caching.make_cached_request nodelist_cache volume
-      ~heuristic_freshness:max_nodelist_freshness ~fetch ~parse:parse >>= fun l ->
+    Caching.make_global_cached_request nodelist_cache volume ~fetch ~parse >>= fun l ->
     let nodes = l.nodes in
     l.nodes <- rot nodes;
     return (nodes, l.uuid)
@@ -785,7 +782,7 @@ let get_meta url =
         ) metalist)
     | _ -> failwith "bad meta reply format"
   in
-  Caching.make_cached_request meta_cache ~fetch ~parse (Neturl.string_of_url url)
+  Caching.make_private_cached_request meta_cache ~fetch ~parse url
 
 let etag_of_revision = function
   | `String rev ->

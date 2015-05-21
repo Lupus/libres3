@@ -82,3 +82,14 @@ let make_cached_request cache ?heuristic_freshness ~fetch ~parse key =
             Lwt.fail (UnCachable reply)
         ) >|= fun reply -> reply.result
     ) (function UnCachable reply -> parse reply | e -> Lwt.fail e)
+
+
+(* TODO: config *)
+let max_global_freshness = 3600.
+let make_global_cached_request cache ~fetch ~parse key =
+  make_cached_request cache ~heuristic_freshness:max_global_freshness ~fetch ~parse key
+
+let make_private_cached_request cache ~fetch ~parse url =
+  (* user is part of URL, so one user can't access the other ones cache *)
+  make_cached_request cache ~fetch ~parse (Neturl.string_of_url url)
+
