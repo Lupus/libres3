@@ -41,6 +41,7 @@ type request = {
   relative_url: string;
   req_headers: (string *string) list;
   req_body: string;
+  etag: Nethttp.etag option;
 }
 
 type reply = {
@@ -188,6 +189,11 @@ let call_of_request req =
       string_of_int (String.length req.req_body)
     );
   call#set_request_header headers;
+  begin match req.etag with
+    | Some etag ->
+      Nethttp.Header.set_if_none_match (call#request_header `Base) (Some [etag])
+    | None -> ()
+  end;
   call#set_request_body (new Netmime.memory_mime_body req.req_body);
   call, req.host;;
 
@@ -197,68 +203,6 @@ let make_http_request state req =
 
 let return_http_error status =
   raise (HttpCode status)
-
-module MCache = LRUCacheMonad.Make(Lwt)
-
-type cachable_reply = {
-  response_time: float;
-  etag: Nethttp.etag option;
-  cached_body: string
-}
-
-let cache = MCache.create 1000
-
-let cached_reply_of_call ~request_time call =
-  (* rfc7234#section-4.2.3 *)
-  let h = call#response_header in
-  let response_time = Unix.gettimeofday () in
-  let etag = try Some (Nethttp.Header.get_etag h) with Not_found -> None in
-  {
-    response_time; etag; cached_body = call#response_body#value
-  }
-
-let is_fresh reply =
-  if reply.etag = None then
-    let now = Unix.gettimeofday () in
-    let delta = now -. reply.response_time in
-    delta < 3600. (* heuristic for nodelists *)
-  else
-    false (* always revalidate replies with ETag *)
-
-let perform_cached_request esys old call =
-  if not call#is_idempotent then
-    Lwt.fail (Invalid_argument "cached request only valid on GET and HEAD")
-  else begin
-    let request_time = Unix.gettimeofday () in
-    let waiter, wakener = wait () in
-    let cb = (fun call ->
-        wakener (result (fun () ->
-            match call#response_status, old with
-            | `Ok, _ ->
-              cached_reply_of_call ~request_time call
-            | `Not_modified, Some old ->
-              { (cached_reply_of_call ~request_time call) with cached_body = old.cached_body }
-            | status, _ ->
-              return_http_error status
-          ))) in
-    Unixqueue.add_event esys (Unixqueue.Extra (HTTP_Job_Callback (call, cb)));
-    waiter
-  end
-;;
-
-open Lwt
-
-let make_cached_request (esys,_,_) ~key request =
-  MCache.lookup_exn ~is_fresh cache key ~revalidate:(fun (_, old) ->
-      let call, _ = call_of_request request in
-      begin match old with
-        | Some { etag = Some etag } ->
-          Nethttp.Header.set_if_none_match (call#request_header `Base) (Some [etag])
-        | _ -> ()
-      end;
-      perform_cached_request esys old call
-    ) >|= fun reply -> reply.cached_body
-;;
 
 open Lwt
 let input_of_async_channel str =

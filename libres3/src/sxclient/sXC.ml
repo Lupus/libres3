@@ -37,6 +37,14 @@ open Neturl
 open Lwt
 open SXDefaultIO
 
+type cluster_nodelist = {
+  mutable nodes: string list;
+  uuid: string
+}
+
+let nodelist_cache = Caching.cache 128
+let max_nodelist_freshness = 3600.
+
 type entry = {
   name: string;
   size: int64;
@@ -340,6 +348,7 @@ let expect_content_type reply ct =
         else
           return ()
       with Not_found ->
+        (* FIXME: don't be so strict if the reply is 304 *)
         fail (SXProto (Printf.sprintf "No Content-Type: header in reply!"))
   with Not_found ->
     fail (SXProto (Printf.sprintf "No Server: header in reply!"))
@@ -369,7 +378,7 @@ let url_port_opt url =
 let delay ms =
   Lwt_unix.sleep (ms /. 1000.)
 
-let request_of_url ~token meth ?(req_body="") url =
+let request_of_url ~token meth ?(req_body="") ?etag url =
   let syntax = url_syntax_of_url url in
   let relative_url =
     Neturl.remove_from_url
@@ -383,6 +392,7 @@ let request_of_url ~token meth ?(req_body="") url =
     relative_url = string_of_url relative_url;
     req_headers = [];
     req_body = req_body;
+    etag = etag;
   }
 
 let filter_field field =
@@ -442,16 +452,16 @@ let make_http_request p url =
     let msg = "Invalid SX API version: " ^ apiverstr in
     fail (Http_client.Http_protocol(Failure msg))
 
-let rec make_request_token ~token meth ?(req_body="") url =
+let rec make_request_token ~token meth ?(req_body="") ?etag url =
   (* TODO: check that scheme is sx! *)
   let p = pipeline () in
-  make_http_request p (request_of_url ~token meth ~req_body url) >>= fun reply ->
-  if reply.status = `Ok || reply.status = `Partial_content then
+  make_http_request p (request_of_url ~token meth ~req_body ?etag url) >>= fun reply ->
+  if reply.status = `Ok || reply.status = `Partial_content || reply.status = `Not_modified then
     return reply
   else if reply.code = 429 then
     (* TODO: next in list, better interval formula *)
     delay 20. >>= fun () ->
-    make_request_token ~token meth ~req_body url
+    make_request_token ~token meth ~req_body ?etag url
   else
     let url = Neturl.modify_url ~scheme:"http" url in
     detail_of_reply reply >>= fun detail ->
@@ -545,13 +555,13 @@ let choose_error = function
   | [] ->
     failwith "empty error list"
 
-let rec make_request_loop meth ?req_body nodes url errors = match nodes with
+let rec make_request_loop meth ?req_body ?etag nodes url errors = match nodes with
   | node :: rest ->
     Lwt.catch (fun () ->
         let url = Neturl.modify_url ~host:node url in
         token_of_user url >>= function
         | Some token ->
-          make_request_token ~token meth ?req_body url
+          make_request_token ~token meth ?req_body ?etag url
         | None ->
           (* no such user *)
           let user = Neturl.url_user url in
@@ -560,24 +570,19 @@ let rec make_request_loop meth ?req_body nodes url errors = match nodes with
                 user
             ]))
       ) (fun e ->
-        make_request_loop meth ?req_body rest url (e :: errors)
+        make_request_loop meth ?req_body ?etag rest url (e :: errors)
       )
   | [] ->
     choose_error errors
 
-let make_request meth ?req_body nodes url =
+let make_request meth ?req_body ?etag nodes url =
   Lwt.catch (fun () ->
-      make_request_loop meth ?req_body nodes url []
+      make_request_loop meth ?req_body ?etag nodes url []
     ) (fun _ ->
-      make_request_loop meth ?req_body nodes url []
+      make_request_loop meth ?req_body ?etag nodes url []
     )
 
 module StringSet = Set.Make(String)
-let last_nodelist = ref ([], "")
-
-let rot l =
-  if l = [] then []
-  else List.rev_append (List.rev (List.tl l)) [List.hd l]
 
 let parse_server server =
   try
@@ -593,56 +598,67 @@ let parse_sx_cluster server =
     failwith ("Bad servername " ^ server ^ ":" ^ (Printexc.to_string e))
 ;;
 
+
+let rot l =
+  if l = [] then []
+  else List.rev_append (List.rev (List.tl l)) [List.hd l]
+
+let parse_nodelist headers nodes =
+  let nodes = List.rev_map (function
+      | `String h -> h
+      | _ -> failwith "bad locate nodes format"
+    ) nodes in
+  let uuid =
+    try parse_sx_cluster (headers#field "SX-Cluster")
+    with Not_found -> parse_server (headers#field "Server") in
+  return { nodes; uuid }
+
+let parse_nodelist_reply reply =
+  json_parse_tree (P.input_of_async_channel reply.body) >>= (function
+      | [`O [`F ("nodeList", [`A nodes])]] ->
+        parse_nodelist reply.headers nodes
+      | lst ->
+        List.iter pp_json lst;
+        failwith "bad locate nodes json");;
+
+let fetch_cluster_nodelist url =
+  let fetch ?etag _ = make_request_token ~token:!Config.secret_access_key `GET (fetch_nodes url) in
+  Caching.make_cached_request nodelist_cache ""
+    ~heuristic_freshness:max_nodelist_freshness ~fetch ~parse:parse_nodelist_reply
+
 let get_cluster_nodelist url =
-  match !last_nodelist with
-  | [], _ ->
-    (* retrieve nodelist as admin *)
-    make_request_token ~token:!Config.secret_access_key `GET (fetch_nodes url) >>= fun reply ->
-    json_parse_tree (P.input_of_async_channel reply.body) >>= (function
-        | [`O [`F ("nodeList", [`A nodes])]] ->
-          let nodes = List.rev_map (function
-              | `String h -> h
-              | _ -> failwith "bad locate nodes format"
-            ) nodes in
-          let uuid =
-            try parse_sx_cluster (reply.headers#field "SX-Cluster")
-            with Not_found -> parse_server (reply.headers#field "Server") in
-          last_nodelist := rot nodes, uuid;
-          return (nodes, uuid)
-        | lst ->
-          List.iter pp_json lst;
-          failwith "bad locate nodes json"
-      )
-  | nodes, uuid ->
-    (* round-robin *)
-    last_nodelist := rot nodes, uuid;
-    return (rot (url_host url :: nodes), uuid)
-;;
+  fetch_cluster_nodelist url >>= fun l ->
+  let nodes = l.nodes in
+  l.nodes <- rot nodes;
+  return (nodes, l.uuid)
 
 let get_vol_nodelist url =
-  match url_path ~encoded:true url with
-  | "" :: volume :: _ ->
+  let fetch ?etag volume =
     let url = Neturl.modify_url url ~path:["";volume] in
     get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
-    make_request `GET cluster_nodes (locate url) >>= (fun reply ->
-        json_parse_tree (P.input_of_async_channel reply.body) >>= function
-        | [`O [`F ("nodeList", [`A nodes]); `F ("volumeMeta", [`O metalist])]] ->
-          if has_field "filterActive" metalist then
-            fail (Detail(
-                Unix.Unix_error(Unix.EACCES, volume, "Volume uses filters"),
-                ["LibreS3ErrorMessage","Cannot access a volume that uses filters"]
-              ))
-          else
-            let nodes = List.rev_map
-                (function
-                  | `String h -> h
-                  | _ -> failwith "bad locate nodes format"
-                ) nodes in
-            return (nodes, reply)
-        | lst ->
-          List.iter pp_json lst;
-          failwith "bad locate nodes json"
-      )
+    make_request `GET cluster_nodes (locate url)
+  in
+  match url_path ~encoded:true url with
+  | "" :: volume :: _ ->
+    let parse reply =
+      json_parse_tree (P.input_of_async_channel reply.body) >>= function
+      | [`O [`F ("nodeList", [`A nodes]); `F ("volumeMeta", [`O metalist])]] ->
+        if has_field "filterActive" metalist then
+          fail (Detail(
+              Unix.Unix_error(Unix.EACCES, volume, "Volume uses filters"),
+              ["LibreS3ErrorMessage","Cannot access a volume that uses filters"]
+            ))
+        else
+          parse_nodelist reply.headers nodes
+      | lst ->
+        List.iter pp_json lst;
+        failwith "bad locate nodes json"
+    in
+    Caching.make_cached_request nodelist_cache volume
+      ~heuristic_freshness:max_nodelist_freshness ~fetch ~parse:parse >>= fun l ->
+    let nodes = l.nodes in
+    l.nodes <- rot nodes;
+    return (nodes, l.uuid)
   | _ ->
     (* cannot download the volume or the root *)
     fail (Unix.Unix_error(Unix.EISDIR,"get",(string_of_url url)));;

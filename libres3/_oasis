@@ -58,7 +58,7 @@ Library sxclient
   Path: src/sxclient
   Install: false
   Modules: EventIO, SXIO, SXFile, SXC, SXDefaultIO, Config
-  InternalModules: Http
+  InternalModules: Http, Caching
   BuildDepends: netclient (>= 3.7.4), netstring, threads, jsonm, cryptokit (>= 1.3), ssl (>= 0.4.4), equeue-ssl, anycache, lwt.unix
   CompiledObject: Best
 
