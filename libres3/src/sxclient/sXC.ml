@@ -765,19 +765,26 @@ let download_full_mem url blocksize hashes =
   return batch
 ;;
 
+let meta_cache = Caching.cache 1024
+
 let get_meta url =
-  get_vol_nodelist url >>= fun (nodes, _) ->
-  let url = Neturl.modify_url ~syntax:http_syntax url ~query:"fileMeta" in
-  make_request `GET nodes url >>= fun reply ->
-  expect_content_type reply "application/json" >>= fun () ->
-  let input = P.input_of_async_channel reply.body in
-  AJson.json_parse_tree input >>= function
-  | [`O [`F ("fileMeta", [`O metalist])]] ->
-    return (List.rev_map (function
-        | `F (k, [`String v]) -> k, transform_string (Hexa.decode()) v
-        | _ -> failwith "bad meta reply format"
-      ) metalist)
-  | _ -> failwith "bad meta reply format"
+  let fetch ?etag _ =
+    get_vol_nodelist url >>= fun (nodes, _) ->
+    let url = Neturl.modify_url ~syntax:http_syntax url ~query:"fileMeta" in
+    make_request `GET nodes ?etag url
+  in
+  let parse reply =
+    expect_content_type reply "application/json" >>= fun () ->
+    let input = P.input_of_async_channel reply.body in
+    AJson.json_parse_tree input >>= function
+    | [`O [`F ("fileMeta", [`O metalist])]] ->
+      return (List.rev_map (function
+          | `F (k, [`String v]) -> k, transform_string (Hexa.decode()) v
+          | _ -> failwith "bad meta reply format"
+        ) metalist)
+    | _ -> failwith "bad meta reply format"
+  in
+  Caching.make_cached_request meta_cache ~fetch ~parse (Neturl.string_of_url url)
 
 let etag_of_revision = function
   | `String rev ->
