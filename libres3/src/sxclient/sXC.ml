@@ -36,6 +36,7 @@ open Http
 open Neturl
 open Lwt
 open SXDefaultIO
+open EventLog
 
 type cluster_nodelist = {
   mutable nodes: string list;
@@ -98,7 +99,7 @@ module AsyncJson = struct
   let json_fail s msg =
     let r = Jsonm.decoded_range s.d in
     let (l1, c1), (l2, c2) = r in
-    Printf.eprintf "Json parse error: %d:%d-%d:%d:%s\n%!" l1 c1 l2 c2 msg;
+    warning "Json parse error: %d:%d-%d:%d:%s" l1 c1 l2 c2 msg;
     fail (ParseError (r, msg))
   ;;
   (* run one fold step *)
@@ -196,28 +197,32 @@ module AsyncJson = struct
                json_element]
 
   open Printf
-  let rec pp_json = function
-    | `A l ->
-      printf "array (\n";
-      List.iter pp_json l;
-      printf ")\n";
-    | `O l ->
-      printf "object (\n";
-      List.iter pp_json l;
-      printf ")\n";
-    | `F (n, l) ->
-      printf "field %s:(\n" n;
-      List.iter pp_json l;
-      printf ")";
-    | `Bool b ->
-      printf "bool: %b\n" b
-    | `String s ->
-      printf "string: %s\n" s
-    | `Float f ->
-      printf "number: %g\n" f
-    | `Null ->
-      printf "null\n"
-  ;;
+  let pp_json_lst () lst =
+    let buf = Buffer.create 128 in
+    let rec pp_json = function
+      | `A l ->
+        bprintf buf "array (\n";
+        List.iter pp_json l;
+        bprintf buf ")\n";
+      | `O l ->
+        bprintf buf "object (\n";
+        List.iter pp_json l;
+        bprintf buf ")\n";
+      | `F (n, l) ->
+        bprintf buf "field %s:(\n" n;
+        List.iter pp_json l;
+        bprintf buf ")";
+      | `Bool b ->
+        bprintf buf "bool: %b\n" b
+      | `String s ->
+        bprintf buf "string: %s\n" s
+      | `Float f ->
+        bprintf buf "number: %g\n" f
+      | `Null ->
+        bprintf buf "null\n"
+    in
+    List.iter pp_json lst;
+    Buffer.contents buf
 
   let rec json_parser = {
     start = (fun _ _ -> [], json_parser);
@@ -411,11 +416,11 @@ let filter_field_one field lst =
   | `F (_,[value]) :: [] ->
     value
   | [] ->
-    List.iter pp_json lst;
-    failwith ("bad volume list format, no filelist: " ^ field)
+    warning "missing field %s in json: %a" field pp_json_lst lst;
+    failwith ("missing field in json: " ^ field)
   | _ ->
-    List.iter pp_json lst;
-    failwith "bad volume list format, multiple filelists"
+    warning "duplicate field in json: %a" pp_json_lst lst;
+    failwith "duplicate field in json"
 ;;
 
 let detail_of_reply reply =
@@ -538,7 +543,7 @@ let token_of_user url =
         b64#finish;
         return (Some b64#get_string)
       | lst ->
-        List.iter AJson.pp_json lst;
+        warning "bad user info json: %a" pp_json_lst lst;
         fail (Failure "bad user info json")
     in
     Lwt.catch (fun () ->
@@ -618,7 +623,7 @@ let parse_nodelist_reply reply =
       | [`O [`F ("nodeList", [`A nodes])]] ->
         parse_nodelist reply.headers nodes
       | lst ->
-        List.iter pp_json lst;
+        warning "bad locate nodes json: %a" pp_json_lst lst;
         failwith "bad locate nodes json");;
 
 let fetch_cluster_nodelist url =
@@ -650,7 +655,7 @@ let get_vol_nodelist url =
         else
           parse_nodelist reply.headers nodes
       | lst ->
-        List.iter pp_json lst;
+        warning "bad locate nodes json: %a" pp_json_lst lst;
         failwith "bad locate nodes json"
     in
     Caching.make_global_cached_request nodelist_cache volume ~fetch ~parse >>= fun l ->
@@ -664,7 +669,7 @@ let get_vol_nodelist url =
 let remove_obj = function
   | `O [one] -> one
   | p ->
-    AJson.pp_json p;
+    warning "obj expected: %a" pp_json_lst [p];
     failwith "Bad json reply format: obj with one field (hash) expected"
 ;;
 
@@ -821,7 +826,7 @@ let get url =
                     mtime = mtime; etag = etag;
                   })
         | p ->
-          List.iter AJson.pp_json p;
+          warning "bad json reply format: object expected at %a" pp_json_lst p;
           fail (Failure "Bad json reply format: object expected")
       with Not_found ->
         fail (Failure ("Last-Modified missing in SX reply: "
@@ -884,7 +889,7 @@ let parse_file = function
       etag = etag_of_revision (filter_field_one "fileRevision" meta)
     }
   | p ->
-    pp_json p;
+    warning "bad filelist format: %a" pp_json_lst [p];
     failwith "bad filelist format"
 ;;
 
@@ -913,11 +918,11 @@ let listit url =
             | `O files ->
               return (List.rev_map parse_file files)
             | p ->
-              pp_json p;
+              warning "bad volume list format: %a" pp_json_lst [p];
               fail (Failure "bad volume list format")
           end
         | p ->
-          List.iter pp_json p;
+          warning "bad volume list format: %a" pp_json_lst p;
           fail (Failure "bad volume list format2")
       end
     )
@@ -925,7 +930,7 @@ let listit url =
 let parse_volume = function
   | `F (name,[`O _meta]) -> name
   | p ->
-    pp_json p;
+    warning "bad volumes list format: %a" pp_json_lst [p];
     failwith "bad volumeslist format"
 ;;
 
@@ -953,11 +958,11 @@ let volumelist url =
         | `O files ->
           remove_volumes_filters url (List.rev_map parse_volume files)
         | p ->
-          pp_json p;
+          warning "bad volumes list format: %a" pp_json_lst [p];
           fail (Failure "bad volumes list format")
       end
     | p ->
-      List.iter pp_json p;
+      warning "bad volumes list format: %a" pp_json_lst p;
       fail (Failure "bad volumes list format2")
   end
 
@@ -1067,7 +1072,10 @@ let fold_upload user port (offset, tmpfd) map token blocksize nodes hashes previ
         | _ ->
           return (pos + blocksize)
       with Not_found ->
-        StringMap.iter (fun k v -> Printf.printf "%s -> %Ld\n%!" k v) map;
+        debug (fun () ->
+            let buf = Buffer.create 128 in
+            Buffer.contents (StringMap.fold (fun k v buf -> Printf.bprintf buf "%s -> %Ld\n" k v; buf) map buf)
+        );
         fail (Failure ("hash not found:" ^ hash))
     ) (return 0) hashes >>= fun _ ->
   (* TODO: retry on failure *)
@@ -1123,7 +1131,7 @@ let rec job_poll origurl url expected_id interval max_interval =
             ["SXErrorMessage", msg;"SXHttpCode","200"]))
     end
   | p ->
-    List.iter AJson.pp_json p;
+    warning "bad json reply (object expected): %a" pp_json_lst p;
     fail (Failure "Bad json reply format: object expected")
 ;;
 
@@ -1140,7 +1148,7 @@ let job_get ?(async=false) url reply =
           (Neturl.modify_url ~host:reply.req_host url) in
       job_poll url pollurl requestid minPoll maxPoll
     | p ->
-      List.iter AJson.pp_json p;
+      warning "bad json reply (object expected): %a" pp_json_lst p;
       fail (Failure "Bad json reply format: object expected")
 ;;
 
@@ -1184,7 +1192,7 @@ let locate_upload url size =
           in
           return (uuid, nodes, int_of_float blocksize)
       | p ->
-        List.iter AJson.pp_json p;
+        warning "bad json locate format: %a" pp_json_lst p;
         fail (Failure "bad json locate format")
     end
   | _ -> fail (Invalid_argument "Can upload only to a file (not a volume or the root)")
@@ -1221,8 +1229,8 @@ let upload_part ?metafn nodelist url source blocksize hashes map size extendSeq 
       `F ("uploadToken",[`String token]);
       `F ("uploadData",[`O upload_map])
     ]] ->
-    Printf.printf "offering %d hashes, requested %d hashes\n%!"
-      (List.length hashes) (List.length upload_map);
+    debug (fun () -> Printf.sprintf "offering %d hashes, requested %d hashes\n%!"
+      (List.length hashes) (List.length upload_map));
     let split_map = split_at_threshold blocksize chunk_size upload_map [] [] 0 in
     List.fold_left
       (fun accum umap ->
@@ -1231,7 +1239,7 @@ let upload_part ?metafn nodelist url source blocksize hashes map size extendSeq 
       (return ()) split_map >>= fun () ->
     return (reply.req_host, token)
   | p ->
-    List.iter AJson.pp_json p;
+    warning "bad json reply format: %a" pp_json_lst p;
     fail (Failure "Bad json reply format")
 ;;
 
@@ -1341,7 +1349,7 @@ let close_source _ =
 let extract_hash = function
   | `O [ `F (hash, _) ] -> `String hash
   | p ->
-    AJson.pp_json p;
+    warning "bad json hashlist: %a" pp_json_lst [p];
     failwith "bad json hashlist format"
 
 let extract_hashes lst = List.rev (List.rev_map extract_hash lst)
@@ -1411,7 +1419,7 @@ let copy_same ?metafn ?filesize urls dst =
           | false, _, _ -> return false
           | true, sum_size, rev_hashes ->
             if sum_size <> size then begin
-              Printf.printf "copy_same size mismatch: %Ld <> %Ld\n%!" sum_size size;
+              debug (fun () -> Printf.sprintf "copy_same size mismatch: %Ld <> %Ld\n%!" sum_size size);
               return false
             end else
               upload_hashes ?metafn (List.rev rev_hashes) dst_nodes dst size
@@ -1468,14 +1476,14 @@ let map_perm = function
   | `String "write" -> `Write
   | `String "owner" -> `Owner
   | p ->
-    pp_json p;
+    warning "bad ACL json: %a" pp_json_lst [p];
     failwith "bad ACL json"
 
 let map_acl = function
   | `F (name, [`A perms]) ->
     `Grant, `UserName name, List.rev_map map_perm perms
   | (p:json) ->
-    pp_json p;
+    warning "bad ACL json: %a" pp_json_lst [p];
     failwith "bad ACL json"
 
 let acl_url =
@@ -1494,7 +1502,7 @@ let get_acl url =
   | [`O obj] ->
     return (List.rev_map map_acl obj)
   | p ->
-    List.iter pp_json p;
+    warning "bad ACL format: %a" pp_json_lst p;
     fail (Failure "bad ACL format")
 
 let find_acl_op dir op l =
@@ -1598,11 +1606,11 @@ let is_owner_of_vol nodes volume_url =
       | [] ->
         return false
       | p ->
-        List.iter pp_json p;
+        warning "bad acl list format: %a" pp_json_lst p;
         fail (Failure "bad acl list format")
     end
   | p ->
-    List.iter pp_json p;
+    warning "bad acl list format: %a" pp_json_lst p;
     fail (Failure "bad acl list format2")
 
 let delete ?async url =

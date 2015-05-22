@@ -1787,6 +1787,7 @@ module Make
       fail (Failure "SX secret access key must be set!")
     else begin
       Gc.compact ();
+      EventLog.open_files () >>= fun () ->
       return ()
     end
   ;;

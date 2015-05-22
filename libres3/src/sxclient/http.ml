@@ -89,11 +89,9 @@ let https_setup pipeline =
 let rec run esys =
   try
     Unixqueue.run esys
-  with e ->
+  with exn ->
     (* catch exceptions escaping Uq, and restart the event loop *)
-    (* debugging *)
-    Printexc.print_backtrace stderr;
-    Printf.eprintf "Uq error: %s\n" (Printexc.to_string e);
+    EventLog.warning ~exn "Uq error";
     run esys
 ;;
 
@@ -139,11 +137,11 @@ let start_pipeline () =
   let keep_alive_group = Unixqueue.new_group esys in
   let w = Unixqueue.new_wait_id esys in
   Unixqueue.add_resource esys keep_alive_group (Unixqueue.Wait w,(-1.0));
-  Printf.printf "Starting http pipeline ... %!";
+  EventLog.info (fun () -> "Starting http pipeline ...");
   let handler_added = Event.new_channel () in
   let thread = Thread.create http_thread (esys, keep_alive_group, handler_added) in
   Event.sync (Event.receive handler_added);
-  Printf.printf " http pipeline up!\n%!";
+  EventLog.info (fun () -> " http pipeline up!");
   esys, keep_alive_group, thread
 ;;
 
@@ -164,11 +162,19 @@ let http_call (esys,_,_) (call, host) =
       } in
       wakener (result (fun () -> reply ))
   in
-
-  (* the callback is needed when it fails to connect *)
-  Unixqueue.add_event esys
-    (Unixqueue.Extra (HTTP_Job_Callback (call, handle_reply)));
-  waiter;;
+  EventLog.with_label (Printf.sprintf
+                         "%s %s -> %s"
+                         (call#get_req_method ())
+                         call#effective_request_uri
+                         (call#get_host ()))
+    (fun () ->
+       EventLog.debug (fun () ->
+           String.concat "\n> " (List.rev_map (fun (k,v) -> k ^ ": " ^ v)
+                                   (call#request_header `Effective)#fields));
+       (* the callback is needed when it fails to connect *)
+      Unixqueue.add_event esys
+        (Unixqueue.Extra (HTTP_Job_Callback (call, handle_reply)));
+      waiter);;
 
 let call_of_request req =
   let call = match req.meth with
