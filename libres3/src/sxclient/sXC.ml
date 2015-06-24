@@ -250,13 +250,14 @@ let multipart_threshold = 132 * 1024 * 1024 (* 132 MB, should be multiple of
 let last_threshold = Int64.of_int chunk_size
 
 let pipe = ref None
-let init () =
-  Printf.printf "sx:// protocol registered\n";
-  pipe := Some (P.start_pipeline ());;
+let init () = ()
 
 let pipeline () =
   match !pipe with
-  | None -> failwith "Pipeline not initialized"
+  | None ->
+    let p = P.start_pipeline () in
+    pipe := Some p;
+    p
   | Some p -> p;;
 
 let scheme = "sx"
