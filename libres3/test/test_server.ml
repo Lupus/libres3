@@ -50,68 +50,68 @@ let assert_str_equal ?msg expected actual =
 let map_method = function
   | `DELETE | `GET | `HEAD | `UNSUPPORTED as m -> m
   | `POST ->
-     `POST ()
+    `POST ()
   | `PUT ->
-      `PUT ()
+    `PUT ()
 
 let validate canon tosign =
   let expected_signature = Cryptoutil.sign_str !Config.secret_access_key tosign in
   match CanonRequest.parse_authorization canon with
   | Authorization (_, signature,_) ->
-      signature = expected_signature
+    signature = expected_signature
   | _ -> false
 
 let test_request_parse_sign data =
   data.name>::(fun () ->
-    let meth = map_method data.req_method in
-    let canon_req =
-      canonicalize_request ~id:(RequestId.generate ()) meth {
-        req_headers = data.headers;
-        undecoded_url = data.orig_url
-      } in
-    assert_str_equal ~msg:"bucket" data.expected_bucket (Bucket.to_string canon_req.bucket);
-    let tosign = string_to_sign canon_req in
-    assert_str_equal ~msg:"string-to-sign" data.expected_tosign tosign;
-    let valid = validate canon_req tosign in
-    assert_equal ~msg:"signature" data.expected_valid valid;
-    assert_str_equal ~msg:"path" data.expected_path canon_req.path;
+      let meth = map_method data.req_method in
+      let canon_req =
+        canonicalize_request ~id:(RequestId.generate ()) meth {
+          req_headers = data.headers;
+          undecoded_url = data.orig_url
+        } in
+      assert_str_equal ~msg:"bucket" data.expected_bucket (Bucket.to_string canon_req.bucket);
+      let tosign = string_to_sign canon_req in
+      assert_str_equal ~msg:"string-to-sign" data.expected_tosign tosign;
+      let valid = validate canon_req tosign in
+      assert_equal ~msg:"signature" data.expected_valid valid;
+      assert_str_equal ~msg:"path" data.expected_path canon_req.path;
     );;
 
 let secret_key_v4 = "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY"
 let secret_key_v2 = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
 let test_request_parse_sign_v4 (key, data,expected_canonical,body) =
   data.name>::(fun () ->
-    let meth = map_method data.req_method in
-    let canon_req =
-      canonicalize_request ~id:(RequestId.generate ()) meth {
-        req_headers = data.headers;
-        undecoded_url = data.orig_url
-      } in
-    assert_str_equal ~msg:"bucket" data.expected_bucket (Bucket.to_string canon_req.bucket);
-    match CanonRequest.parse_authorization canon_req with
-    | AuthorizationV4 (authv4, expected_signature,_) ->
-      let sha256 = match body with
-        | Some s -> Some (Cryptokit.hash_string (Cryptokit.Hash.sha256 ()) s)
-        | None -> None in
-      let canonical, tosign = string_to_sign_v4 authv4 ?sha256 ~canon_req in
-      assert_str_equal ~msg:"canonical request" expected_canonical canonical;
-      assert_str_equal ~msg:"string-to-sign-v4" data.expected_tosign tosign;
-      let signature =
-        sign_string_v4 ~key authv4.credential tosign
-      in
-      let valid = signature = expected_signature in
-      if data.expected_valid then
-        assert_str_equal ~msg:"signature" expected_signature signature
-      else
-        assert_equal ~msg:"sig should be invalid" data.expected_valid valid;
-      assert_str_equal ~msg:"path" data.expected_path canon_req.path;
-    | AuthMalformed s ->
-      assert_failure ("cannot parse auth header: " ^ s)
-    | AuthNone -> assert_failure ("auth = none")
-    | AuthEmpty ->  assert_failure "auth empty"
-    | AuthDuplicate -> assert_failure "auth duplicate"
-    | Authorization (a,_,_) -> assert_failure ("bad auth version: " ^ a)
-  );;
+      let meth = map_method data.req_method in
+      let canon_req =
+        canonicalize_request ~id:(RequestId.generate ()) meth {
+          req_headers = data.headers;
+          undecoded_url = data.orig_url
+        } in
+      assert_str_equal ~msg:"bucket" data.expected_bucket (Bucket.to_string canon_req.bucket);
+      match CanonRequest.parse_authorization canon_req with
+      | AuthorizationV4 (authv4, expected_signature,_) ->
+        let sha256 = match body with
+          | Some s -> Some (Cryptokit.hash_string (Cryptokit.Hash.sha256 ()) s)
+          | None -> None in
+        let canonical, tosign = string_to_sign_v4 authv4 ?sha256 ~canon_req in
+        assert_str_equal ~msg:"canonical request" expected_canonical canonical;
+        assert_str_equal ~msg:"string-to-sign-v4" data.expected_tosign tosign;
+        let signature =
+          sign_string_v4 ~key authv4.credential tosign
+        in
+        let valid = signature = expected_signature in
+        if data.expected_valid then
+          assert_str_equal ~msg:"signature" expected_signature signature
+        else
+          assert_equal ~msg:"sig should be invalid" data.expected_valid valid;
+        assert_str_equal ~msg:"path" data.expected_path canon_req.path;
+      | AuthMalformed s ->
+        assert_failure ("cannot parse auth header: " ^ s)
+      | AuthNone -> assert_failure ("auth = none")
+      | AuthEmpty ->  assert_failure "auth empty"
+      | AuthDuplicate -> assert_failure "auth duplicate"
+      | Authorization (a,_,_) -> assert_failure ("bad auth version: " ^ a)
+    );;
 
 let request_data_v4 = [
   secret_key_v4, {
@@ -323,11 +323,11 @@ let test_deriv_sign_v4 d =
 let suite =
   "Request">::: [
     "signing">:::
-      List.map test_request_parse_sign request_data;
+    List.map test_request_parse_sign request_data;
     "deriv-sign-v4">:::
-      List.map test_deriv_sign_v4 sig_v4_data;
+    List.map test_deriv_sign_v4 sig_v4_data;
     "canon-signing-v4">:::
-      List.map test_request_parse_sign_v4 request_data_v4;
+    List.map test_request_parse_sign_v4 request_data_v4;
   ]
 ;;
 

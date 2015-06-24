@@ -29,20 +29,20 @@
 
 open OUnit
 (*module EInt = struct
-type t = int
+  type t = int
   let compare = ( - )
   let pp_printer = Format.pp_print_int
   let pp_print_sep fmt () = Format.fprintf fmt ",@ "
-end
-module ListInt = OUnitDiff.ListSimpleMake(EInt);;
+  end
+  module ListInt = OUnitDiff.ListSimpleMake(EInt);;
 
-module EString = struct
+  module EString = struct
   type t = string
   let compare = String.compare
   let pp_printer = Format.pp_print_string
   let pp_print_sep = OUnitDiff.pp_comma_separator
-end
-module ListString = OUnitDiff.ListSimpleMake(EString);;*)
+  end
+  module ListString = OUnitDiff.ListSimpleMake(EString);;*)
 
 let assert_eq_function ~msg a b =
   assert_bool msg (a == b);;
@@ -96,13 +96,13 @@ module Pipeline = struct
   let split lst =
     let a, b =
       List.fold_left (fun (a1,a2) (e1,e2) ->
-        e1 :: a1, e2 :: a2) ([], []) lst in
+          e1 :: a1, e2 :: a2) ([], []) lst in
     List.rev a, List.rev b;;
 
   (* pipeline combiner *)
   let lift lst = {
-      input = List.rev_map (fun d -> d.input) lst;
-      after = List.rev_map2 (fun d o -> d.after o) lst;
+    input = List.rev_map (fun d -> d.input) lst;
+    after = List.rev_map2 (fun d o -> d.after o) lst;
   };;
 
   let run f f2 deplist =
@@ -110,8 +110,8 @@ module Pipeline = struct
     f2 (deps.after (f deps.input));;
 end
 (*open Pipeline
-let compute = List.map int_of_string;;
-let foo =
+  let compute = List.map int_of_string;;
+  let foo =
   "pipeline">:::
     run compute id [
       after "16" (fun n ->
@@ -133,4 +133,4 @@ let foo =
             "testn">::(fun () -> assert_eq_intlist [17;18] results)
         ] tests
       ))
-];;*)
+  ];;*)

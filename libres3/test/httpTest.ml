@@ -86,32 +86,32 @@ let check_reply expected reply =
         assert_eq_int expected.expected_code reply.code);
     "body" >:: (fun () ->
         assert_bool (body_errmsg reply.body) (expected.check_body reply.body)
-    );
+      );
     "content-length" >:: (fun () ->
-      if not expected.is_head then
-      try
-        let n = int_of_string (List.assoc "Content-Length" reply.headers) in
-        assert_eq_int ~msg:"content-length" (String.length reply.body) n
-      with Not_found -> ()
-    );
+        if not expected.is_head then
+          try
+            let n = int_of_string (List.assoc "Content-Length" reply.headers) in
+            assert_eq_int ~msg:"content-length" (String.length reply.body) n
+          with Not_found -> ()
+      );
     "headers present" >:::
-      (List.rev_map (fun name ->
-        name>:: (fun () ->
-          assert_bool ("Header missing:" ^ name) (List.mem name names)
-        )
-      ) expected.headers_present);
+    (List.rev_map (fun name ->
+         name>:: (fun () ->
+             assert_bool ("Header missing:" ^ name) (List.mem name names)
+           )
+       ) expected.headers_present);
     "headers present optional" >:::
-      (List.rev_map (fun name ->
-        name>:: (fun () ->
-          skip_if (not (List.mem name names)) "Header missing"
-        )
-      ) expected.headers_present_opt);
+    (List.rev_map (fun name ->
+         name>:: (fun () ->
+             skip_if (not (List.mem name names)) "Header missing"
+           )
+       ) expected.headers_present_opt);
     "headers" >:::
-      List.rev_map (fun (n,expected) ->
+    List.rev_map (fun (n,expected) ->
         n>:: (fun () ->
-          let actual = List.assoc n reply.headers in
-          assert_eq_string expected actual
-        )
+            let actual = List.assoc n reply.headers in
+            assert_eq_string expected actual
+          )
       ) expected.headers_exact;
   ];;
 
@@ -119,28 +119,28 @@ open TestUtil.Pipeline
 
 let generate_testcase d =
   after d.req (fun reply ->
-    reply,
-    d.name>::: check_reply d.expected reply
-  );;
+      reply,
+      d.name>::: check_reply d.expected reply
+    );;
 
 let rec generate_chain_testcase f c =
   after c.first (fun reply ->
-    try
-      let results, tests = run f split (
-        List.rev_map (generate_one_testcase f) (c.generate reply)
-        ) in
-      let final_tests = run f split2 [generate_testcase (c.finish reply results)] in
-      reply,
-      c.chain_name>:::
-      [
-        "pipeline">:::tests;
-      "finish">:::final_tests
-      ]
-    with e ->
-      raise e;
-(*      reply,
-      c.chain_name>::(fun () -> raise e)*)
-  )
+      try
+        let results, tests = run f split (
+            List.rev_map (generate_one_testcase f) (c.generate reply)
+          ) in
+        let final_tests = run f split2 [generate_testcase (c.finish reply results)] in
+        reply,
+        c.chain_name>:::
+        [
+          "pipeline">:::tests;
+          "finish">:::final_tests
+        ]
+      with e ->
+        raise e;
+        (*      reply,
+                c.chain_name>::(fun () -> raise e)*)
+    )
 
 and generate_one_testcase f = function
   | Direct d -> generate_testcase d
@@ -157,22 +157,22 @@ let failing e = {
 
 let generate_direct_testcases f testcases =
   generate_pipeline_testcases (List.rev_map (fun e ->
-    try
-      match f [e] with
-      | one :: [] -> one
-      | _ -> failwith "Bad reply count"
-    with e -> failing e
-  )) testcases;;
+      try
+        match f [e] with
+        | one :: [] -> one
+        | _ -> failwith "Bad reply count"
+      with e -> failing e
+    )) testcases;;
 
 let generate_tests name f testcases =
   try
     name>:::[
       "direct">::: generate_direct_testcases f testcases;
-(*      "pipeline">::: generate_pipeline_testcases f testcases*)
+      (*      "pipeline">::: generate_pipeline_testcases f testcases*)
     ]
   with e ->
     let bt = Printexc.get_backtrace () in
     name>::(fun () ->
-      assert_failure (
-        Printf.sprintf "Exception %s\n%s\n" (Printexc.to_string e)  bt)
-    );;
+        assert_failure (
+          Printf.sprintf "Exception %s\n%s\n" (Printexc.to_string e)  bt)
+      );;

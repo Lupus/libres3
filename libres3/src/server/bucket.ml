@@ -42,7 +42,7 @@ let from_url url orig_full_path =
   if url_host = !Configfile.base_hostname then
     (* "legacy" style URL: /bucket/path, extract bucket from the URL: *)
     let bucket, path = Util.url_split_first_component
-      (Neturl.split_path opath) in
+        (Neturl.split_path opath) in
     false, Bucket bucket, path
   else
     (* virtual hosting style URL: Host: bucket.<base_hostname>; URL: /path *)

@@ -85,8 +85,8 @@ open OcsigenServer
 
 let convert_headers h =
   List.fold_left (fun a (name, value) ->
-    Http_headers.add (Http_headers.name name) value a
-  ) Http_headers.empty h;;
+      Http_headers.add (Http_headers.name name) value a
+    ) Http_headers.empty h;;
 
 let empty_read () =
   Ocsigen_stream.empty None
@@ -110,7 +110,7 @@ let stream_of_reply wait_eof server =
     else begin
       let substr =
         if pos = 0 && len = String.length str then str
-      else String.sub str pos len in
+        else String.sub str pos len in
       Ocsigen_stream.cont substr read
     end
   in
@@ -128,12 +128,12 @@ let stream_of arg pos =
   else
     let s = ref (Ocsigen_stream.get arg) in
     return (fun () ->
-    Ocsigen_stream.next !s >>= function
-    | Ocsigen_stream.Finished _ -> return ("",0,0)
-    | Ocsigen_stream.Cont (buf, next_stream) ->
-        s := next_stream;
-        return (buf, 0, String.length buf)
-    );;
+        Ocsigen_stream.next !s >>= function
+        | Ocsigen_stream.Finished _ -> return ("",0,0)
+        | Ocsigen_stream.Cont (buf, next_stream) ->
+          s := next_stream;
+          return (buf, 0, String.length buf)
+      );;
 
 let source_of arg size =
   return (`Source {
@@ -146,17 +146,17 @@ let empty_stream () = Ocsigen_stream.of_string ""
 let stream_of_request ri =
   match Ocsigen_request_info.meth ri with
   | Http_header.POST | Http_header.PUT ->
-      begin match (Ocsigen_request_info.http_frame ri).frame_content with
+    begin match (Ocsigen_request_info.http_frame ri).frame_content with
       | None -> empty_stream ()
       | Some input -> input
-      end
+    end
   | _ -> empty_stream ();;
 
 let process_request dispatcher ri () =
   let headers = Http_headers.fold (fun name values accum ->
-    let namestr = Http_headers.name_to_string name in
-    List.rev_append (List.map (fun v -> namestr, v) values) accum
-  ) (Ocsigen_request_info.http_frame ri).frame_header.headers [] in
+      let namestr = Http_headers.name_to_string name in
+      List.rev_append (List.map (fun v -> namestr, v) values) accum
+    ) (Ocsigen_request_info.http_frame ri).frame_header.headers [] in
   let stream = stream_of_request ri in
   let w, u = Lwt.wait () in
   let bw, bu = Lwt.task () in
@@ -166,13 +166,13 @@ let process_request dispatcher ri () =
     body_wait = bw; body_wake = bu;woken_body=false;
     mvar = Lwt_mvar.create_empty () } in
   let cl = match Ocsigen_request_info.content_length ri with
-  | Some l -> l
-  | None -> 0L in
+    | Some l -> l
+    | None -> 0L in
   source_of stream cl >>= fun (`Source source) ->
   let req_method = conv_method (Ocsigen_request_info.meth ri) source in
   let undecoded_url = match (Ocsigen_request_info.http_frame ri).frame_header.mode with
-  | Query (_, url) -> url
-  | _ -> "/" ^ (Ocsigen_request_info.url_string ri) in
+    | Query (_, url) -> url
+    | _ -> "/" ^ (Ocsigen_request_info.url_string ri) in
   let wait_eof =
     handle_request dispatcher {
       server = server;
@@ -185,18 +185,18 @@ let process_request dispatcher ri () =
     } in
   Ocsigen_senders.Stream_content.result_of_content
     (stream_of_reply wait_eof server) >>= fun res ->
-      server.Server.headers_wait >|= fun () ->
-      match server.Server.headers with
-      | None -> res
-      | Some h ->
-        Ocsigen_http_frame.Result.update res
-          ~code:(Nethttp.int_of_http_status h.D.status)
-          ~content_length:(h.D.content_length)
-          ~content_type:h.D.content_type
-          ~headers:(convert_headers h.D.reply_headers)
-          ~lastmodified:h.D.last_modified
-          ~etag:h.D.etag ()
-      ;;
+  server.Server.headers_wait >|= fun () ->
+  match server.Server.headers with
+  | None -> res
+  | Some h ->
+    Ocsigen_http_frame.Result.update res
+      ~code:(Nethttp.int_of_http_status h.D.status)
+      ~content_length:(h.D.content_length)
+      ~content_type:h.D.content_type
+      ~headers:(convert_headers h.D.reply_headers)
+      ~lastmodified:h.D.last_modified
+      ~etag:h.D.etag ()
+;;
 
 open Dns.Packet
 
@@ -239,41 +239,41 @@ let upgrade_msg security (maj,min) (srcmaj,srcmin) =
 let dns_check resolver dns =
   query_txt resolver dns >>= function
   | [] ->
-      Ocsigen_messages.console (fun () ->  (Printf.sprintf "Cannot check version: no TXT record for '%s'" dns));
-      return ()
+    Ocsigen_messages.console (fun () ->  (Printf.sprintf "Cannot check version: no TXT record for '%s'" dns));
+    return ()
   | ver :: [] ->
-      begin try
+    begin try
         Scanf.sscanf ver "%d.%d.%d" (fun maj min sec ->
-          Scanf.sscanf Version.version "%d.%d" (fun srcmaj srcmin ->
-            match check_version (maj,min,sec > 0) (srcmaj, srcmin) with
-            | SecurityUpdate -> upgrade_msg true (maj,min) (srcmaj,srcmin)
-            | Update -> upgrade_msg false (maj,min) (srcmaj,srcmin)
-            | Noop -> ()
-          )
-        );
+            Scanf.sscanf Version.version "%d.%d" (fun srcmaj srcmin ->
+                match check_version (maj,min,sec > 0) (srcmaj, srcmin) with
+                | SecurityUpdate -> upgrade_msg true (maj,min) (srcmaj,srcmin)
+                | Update -> upgrade_msg false (maj,min) (srcmaj,srcmin)
+                | Noop -> ()
+              )
+          );
         return ()
       with _ ->
         Ocsigen_messages.console (fun () ->  "Cannot check version: bad version received");
         return ()
-      end
+    end
   | _ ->
-      Ocsigen_messages.console (fun () ->
+    Ocsigen_messages.console (fun () ->
         Printf.sprintf "Cannot check version: too many TXT records for '%s'" dns);
-      return ()
+    return ()
 
 let hdist_seed = 0x1337l (* must match SX *)
 let self_id = Murmur.murmurhash64b
-  (Anonymize.anonymize_item "SELF" (Unix.gethostname ()))
-  hdist_seed
+    (Anonymize.anonymize_item "SELF" (Unix.gethostname ()))
+    hdist_seed
 
 let check_url resolver url =
   SXIO.check url >>= function
   | Some uuid ->
     let buf = Buffer.create 32 in
     String.iter (fun c ->
-      if c <> '-' then
-        Buffer.add_char buf c
-    ) uuid;
+        if c <> '-' then
+          Buffer.add_char buf c
+      ) uuid;
     let uuidhex = Buffer.contents buf in
     let uuidbin = Cryptokit.transform_string (Cryptokit.Hexa.decode ()) uuidhex
     in
@@ -301,7 +301,7 @@ let test_resolve resolver name =
 let dns_check_wildcard resolver =
   ignore (test_resolve resolver !Configfile.base_hostname);
   ignore (test_resolve resolver (Printf.sprintf "test%d.%s"
-                  (Random.bits ()) !Configfile.base_hostname))
+                                   (Random.bits ()) !Configfile.base_hostname))
 
 let rec dns_check_loop resolver url =
   Lwt.catch (fun () -> check_url resolver url) noop >>= fun () ->
@@ -314,8 +314,8 @@ let periodic_check () =
   | None -> return ()
   | Some host ->
     let url = SXIO.of_neturl (Neturl.make_url ~encoded:false
-      ~scheme:"sx" ~user:!Config.key_id ~port:!Config.sx_port
-      ~host ~path:[""] SXC.syntax) in
+                                ~scheme:"sx" ~user:!Config.key_id ~port:!Config.sx_port
+                                ~host ~path:[""] SXC.syntax) in
     Dns_resolver_unix.create () >>= fun resolver->
     dns_check_wildcard resolver;
     OS.sleep !Configfile.initial_interval >>= fun () ->
@@ -324,21 +324,21 @@ let periodic_check () =
 let fun_site _ config_info _ _ _ _ =
   Configfile.base_hostname := config_info.default_hostname;
   Ocsigen_messages.console (fun () ->
-    Printf.sprintf "LibreS3 default hostname: %s"  !Configfile.base_hostname
-  );
+      Printf.sprintf "LibreS3 default hostname: %s"  !Configfile.base_hostname
+    );
   begin try
-    Ssl.set_cipher_list !Ocsigen_http_client.sslcontext
-      "ECDHE-RSA-AES256-SHA384:AES256-SHA256:RC4:HIGH:!MD5:!aNULL:!EDH:!AESGCM";
-  with _ -> () end;
+      Ssl.set_cipher_list !Ocsigen_http_client.sslcontext
+        "ECDHE-RSA-AES256-SHA384:AES256-SHA256:RC4:HIGH:!MD5:!aNULL:!EDH:!AESGCM";
+    with _ -> () end;
   let dispatcher = Lwt_main.run (OcsigenServer.init ()) in
   Ocsigen_messages.console (fun () ->  "Startup complete");
   let _ = periodic_check () in
   function
-    | Req_not_found (_, request) ->
-      Lwt.return (Ext_found (process_request dispatcher request.request_info))
-    | Req_found _ ->
-      Lwt.return Ext_do_nothing
-  ;;
+  | Req_not_found (_, request) ->
+    Lwt.return (Ext_found (process_request dispatcher request.request_info))
+  | Req_found _ ->
+    Lwt.return Ext_do_nothing
+;;
 
 let ping pipe =
   let chan = Lwt_chan.out_channel_of_descr pipe in
@@ -351,4 +351,4 @@ let register_all pipe =
     (fun s c -> match c with
        | ["ping"] ->
          ping (Lwt_unix.of_unix_file_descr pipe)
-      | _ -> raise Ocsigen_extensions.Unknown_command)
+       | _ -> raise Ocsigen_extensions.Unknown_command)

@@ -41,11 +41,11 @@ let parse spec line =
   else if line.[0] = '#' then None
   else
     try Some (Scanf.sscanf line "%[^= ] = %s@\n" (fun k v ->
-      let k = String.lowercase k in
-      if not (StringSet.mem k spec) then
-        raise (Failure ("Unknown configuration key: " ^ k));
-      k, parse_value v
-    ))
+        let k = String.lowercase k in
+        if not (StringSet.mem k spec) then
+          raise (Failure ("Unknown configuration key: " ^ k));
+        k, parse_value v
+      ))
     with End_of_file -> None;;
 
 let parse_configuration_line spec ch accum =
@@ -55,18 +55,18 @@ let parse_configuration_line spec ch accum =
 
 let load_configuration spec =
   let keys = List.fold_left (fun accum (key, _, _) ->
-    StringSet.add (String.lowercase key) accum) StringSet.empty spec in
+      StringSet.add (String.lowercase key) accum) StringSet.empty spec in
   let config = Paths.process_configuration ~parse:(parse_configuration_line keys)
-    in
+  in
   List.iter (fun (key, fn, _) ->
-    try
-      fn (StringMap.find key config)
-    with
-    | Not_found -> ()
-    | Failure msg ->
+      try
+        fn (StringMap.find key config)
+      with
+      | Not_found -> ()
+      | Failure msg ->
         raise (Failure (Printf.sprintf "Failed to parse configuration key '%s': %s"
-          key msg))
-  ) spec;
+                          key msg))
+    ) spec;
   config;;
 
 let print_version () =
@@ -79,22 +79,22 @@ let noop () = ()
 let print_conf show () =
   if show then
     let confspec = List.append (List.map (fun (key, _, desc) ->
-      (key, Arg.Unit noop, desc)) Configfile.entries)
-    ["-help",Arg.Unit noop, "";
-     "--help",Arg.Unit noop, ""] in
+        (key, Arg.Unit noop, desc)) Configfile.entries)
+        ["-help",Arg.Unit noop, "";
+         "--help",Arg.Unit noop, ""] in
     Argcompat.usage_hide confspec "\nlibres3.conf entries:"
 
 let parse_cmdline ?(print_conf_help=true) additional_args =
   let usage = (Printf.sprintf "Usage: %s [options]\n" Sys.argv.(0)) in
   let spec = [
     "--config-file", Arg.Set_string Paths.config_file,
-      " Path to configuration file (default: " ^ !Paths.config_file ^ ")";
+    " Path to configuration file (default: " ^ !Paths.config_file ^ ")";
     "--version", Arg.Unit print_version, " Print version";
     "-V", Arg.Unit print_version, " Print version";
   ] @ additional_args in
   Argcompat.parse_align ~extra:(print_conf print_conf_help) spec (fun anon ->
-    raise (Arg.Bad ("invalid option " ^ anon))
-  ) usage
+      raise (Arg.Bad ("invalid option " ^ anon))
+    ) usage
 
 let validate_configuration config =
   if !Configfile.pidfile = "" then begin
@@ -115,10 +115,10 @@ let validate_configuration config =
     if !Configfile.ssl_privatekey_file = Some "" then
       Configfile.ssl_privatekey_file := None;
     begin match !Configfile.ssl_certificate_file, !Configfile.ssl_privatekey_file with
-    | Some _, Some _ -> ()
-    | None, None -> ()
-    | _ -> raise (Arg.Bad "You must specifiy both s3_ssl_certificate_file and \
-    s3_ssl_privatekey_file")
+      | Some _, Some _ -> ()
+      | None, None -> ()
+      | _ -> raise (Arg.Bad "You must specifiy both s3_ssl_certificate_file and \
+                             s3_ssl_privatekey_file")
     end;
     if Unix.geteuid () = 0 then begin
       if !Configfile.user = None then
@@ -129,14 +129,14 @@ let validate_configuration config =
       raise (Arg.Bad "Running as root group, but not as root user: cannot change groups")
     else begin
       begin match !Configfile.user with
-      | Some u ->
+        | Some u ->
           Printf.eprintf "Ignoring user %s directive: not running as root\n" u;
-      | None -> ()
+        | None -> ()
       end;
       begin match !Configfile.group with
-      | Some g ->
+        | Some g ->
           Printf.eprintf "Ignoring group %s directive: not running as root\n" g;
-      | None -> ();
+        | None -> ();
       end;
       Configfile.user := None;
       Configfile.group := None;

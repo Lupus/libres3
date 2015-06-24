@@ -62,7 +62,7 @@ let int_entry_opt ?ns name ?attrs value =
   | Some v ->
     Xml.tag ?ns name ?attrs [Xml.d (string_of_int v)]
   | None ->
-      Xml.d ""
+    Xml.d ""
 
 let set_default stref default =
   if !stref = "" then
@@ -70,11 +70,11 @@ let set_default stref default =
 
 let build_port port =
   ref (match !Configfile.base_listen_ip with
-  | None -> string_of_int !port
-  | Some (Ipaddr.V4 v4) ->
-      Printf.sprintf "%s:%d" (Ipaddr.V4.to_string v4) !port
-  | Some (Ipaddr.V6 v6) ->
-      Printf.sprintf "[%s]:%d" (Ipaddr.V6.to_string v6) !port)
+      | None -> string_of_int !port
+      | Some (Ipaddr.V4 v4) ->
+        Printf.sprintf "%s:%d" (Ipaddr.V4.to_string v4) !port
+      | Some (Ipaddr.V6 v6) ->
+        Printf.sprintf "[%s]:%d" (Ipaddr.V6.to_string v6) !port)
 
 let build_ssl_config () =
   match !Configfile.ssl_certificate_file, !Configfile.ssl_privatekey_file with
@@ -92,35 +92,35 @@ let build_ssl_config () =
 let build_config conf =
   Xml.tag "ocsigen" [
     Xml.tag "server" (List.rev_append (build_ssl_config ()) [
-      str_entry "port" (build_port Configfile.base_port);
-      str_entry_opt "syslog" Configfile.syslog_facility;
-      str_entry_opt "logdir" conf.logdir;
-      str_entry "datadir" conf.datadir;
-      str_entry "uploaddir" conf.uploaddir;
-      str_entry_opt "user" Configfile.user;
-      str_entry_opt "group" Configfile.group;
-      str_entry "commandpipe" conf.commandpipe;
-      str_entry "charset" (ref "utf-8");
-      Xml.tag "maxrequestbodysize" [
-        Xml.d (Printf.sprintf "%dMiB" !Configfile.maxrequestbodysize)
-      ];
-      str_entry "mimefile" Configfile.mimefile;
-      int_entry "maxconnected" Configfile.max_connected;
-      int_entry "servertimeout" Configfile.timeout;
-      int_entry "clienttimeout" Configfile.keepalivetimeout;
-      int_entry "shutdowntimeout" Configfile.shutdowntimeout;
-      int_entry "netbuffersize" Configfile.netbuffersize;
-      int_entry "filebuffersize" Configfile.filebuffersize;
-      int_entry_opt "minthreads" Configfile.min_threads;
-      int_entry_opt "maxthreads" Configfile.max_threads;
-      int_entry_opt "maxdetachedcomputationsqueued" Configfile.maxdetachedcomputationsqueued;
-      int_entry "maxretries" Configfile.maxretries;
-      Xml.tag "extension" ~attrs:[Xml.attr "name" "libres3"] [];
-      Xml.tag "usedefaulthostname" [];
-      Xml.tag "host" ~attrs:[Xml.attr "defaulthostname" !(Configfile.base_hostname)] [
-        Xml.tag "libres3" [];
-      ];
-    ])
+        str_entry "port" (build_port Configfile.base_port);
+        str_entry_opt "syslog" Configfile.syslog_facility;
+        str_entry_opt "logdir" conf.logdir;
+        str_entry "datadir" conf.datadir;
+        str_entry "uploaddir" conf.uploaddir;
+        str_entry_opt "user" Configfile.user;
+        str_entry_opt "group" Configfile.group;
+        str_entry "commandpipe" conf.commandpipe;
+        str_entry "charset" (ref "utf-8");
+        Xml.tag "maxrequestbodysize" [
+          Xml.d (Printf.sprintf "%dMiB" !Configfile.maxrequestbodysize)
+        ];
+        str_entry "mimefile" Configfile.mimefile;
+        int_entry "maxconnected" Configfile.max_connected;
+        int_entry "servertimeout" Configfile.timeout;
+        int_entry "clienttimeout" Configfile.keepalivetimeout;
+        int_entry "shutdowntimeout" Configfile.shutdowntimeout;
+        int_entry "netbuffersize" Configfile.netbuffersize;
+        int_entry "filebuffersize" Configfile.filebuffersize;
+        int_entry_opt "minthreads" Configfile.min_threads;
+        int_entry_opt "maxthreads" Configfile.max_threads;
+        int_entry_opt "maxdetachedcomputationsqueued" Configfile.maxdetachedcomputationsqueued;
+        int_entry "maxretries" Configfile.maxretries;
+        Xml.tag "extension" ~attrs:[Xml.attr "name" "libres3"] [];
+        Xml.tag "usedefaulthostname" [];
+        Xml.tag "host" ~attrs:[Xml.attr "defaulthostname" !(Configfile.base_hostname)] [
+          Xml.tag "libres3" [];
+        ];
+      ])
   ];;
 
 let write_config filech xml =
@@ -131,22 +131,22 @@ let try_chown dirname =
   match !Configfile.user with
   | Some u ->
     begin try
-      let pw = getpwnam u in
-      chown dirname ~uid:pw.pw_uid ~gid:pw.pw_gid
-    with
-    | Not_found | Unix_error(EPERM,_,_) -> ()
+        let pw = getpwnam u in
+        chown dirname ~uid:pw.pw_uid ~gid:pw.pw_gid
+      with
+      | Not_found | Unix_error(EPERM,_,_) -> ()
     end
   | None -> ()
 ;;
 
 let rec mkdir_p dir ~perm =
   begin try
-    mkdir dir ~perm;
-  with
-  | Unix_error(ENOENT,_,_) ->
-    mkdir_p (Filename.dirname dir) ~perm;
-    mkdir dir ~perm;
-  | Unix_error(EEXIST,_,_) -> ()
+      mkdir dir ~perm;
+    with
+    | Unix_error(ENOENT,_,_) ->
+      mkdir_p (Filename.dirname dir) ~perm;
+      mkdir dir ~perm;
+    | Unix_error(EEXIST,_,_) -> ()
   end;
   try_chown dir
 ;;
@@ -161,25 +161,25 @@ let handle_error f () =
     f ()
   with
   | Unix_error (err, fn, param) ->
-      Printf.eprintf "Error in %s(%s): %s\n%!" fn param (error_message err);
-      exit 2
+    Printf.eprintf "Error in %s(%s): %s\n%!" fn param (error_message err);
+    exit 2
   | Sys_error msg ->
-      Printf.eprintf "Error: %s\n%!" msg;
-      exit 3
+    Printf.eprintf "Error: %s\n%!" msg;
+    exit 3
   | Failure msg ->
-      Printf.eprintf "Error: %s\n%!" msg;
-      exit 4
+    Printf.eprintf "Error: %s\n%!" msg;
+    exit 4
   | e ->
-      Printf.eprintf "Unexpected error: %s\n%!" (Printexc.to_string e);
-      exit 5
+    Printf.eprintf "Unexpected error: %s\n%!" (Printexc.to_string e);
+    exit 5
 ;;
 
 let handle_signal s msg =
   ignore (
     Sys.signal s (Sys.Signal_handle (fun _ ->
-      ignore (write UnixLabels.stdout ~buf:msg ~pos:0 ~len:(String.length msg));
-      exit 3;
-    ))
+        ignore (write UnixLabels.stdout ~buf:msg ~pos:0 ~len:(String.length msg));
+        exit 3;
+      ))
   );;
 
 let pinged = ref false
@@ -187,19 +187,19 @@ let pinged = ref false
 let rec wait_pipe file delay pipe_read =
   if delay <= 0. then false
   else try
-    let fd = openfile file ~mode:[O_RDWR] ~perm:0 in
-    let buf = "libres3:ping\n" in
-    ignore (write fd ~buf ~pos:0 ~len:(String.length buf));
-    close fd;
-    match select ~read:[pipe_read] ~write:[] ~except:[] ~timeout:0.1 with
-    | [], _, _ -> wait_pipe file (delay -. 0.1) pipe_read
-    | _ ->
-      let buf = String.make 1 ' ' in
-      ignore (read pipe_read ~buf ~pos:0 ~len:1);
-      buf = "X"
-  with Unix_error(ENOENT,_,_) ->
-    Netsys.sleep 0.1;
-    wait_pipe file (delay -. 0.1) pipe_read;;
+      let fd = openfile file ~mode:[O_RDWR] ~perm:0 in
+      let buf = "libres3:ping\n" in
+      ignore (write fd ~buf ~pos:0 ~len:(String.length buf));
+      close fd;
+      match select ~read:[pipe_read] ~write:[] ~except:[] ~timeout:0.1 with
+      | [], _, _ -> wait_pipe file (delay -. 0.1) pipe_read
+      | _ ->
+        let buf = String.make 1 ' ' in
+        ignore (read pipe_read ~buf ~pos:0 ~len:1);
+        buf = "X"
+    with Unix_error(ENOENT,_,_) ->
+      Netsys.sleep 0.1;
+      wait_pipe file (delay -. 0.1) pipe_read;;
 
 let list_of_opt ptr = match !ptr with
   | Some v -> [ref v]
@@ -209,12 +209,12 @@ let initialize config pipe =
   let stop = ref false and status = ref false in
   let extra_spec = [
     "--foreground", Arg.Clear Configfile.daemonize, " Run in foreground mode (default: \
-      daemonize)";
+                                                     daemonize)";
     "--stop", Arg.Set stop, " Stop running process (based on PIDfile)";
     "--status", Arg.Set status, " Print running process status (based on PIDfile)";
     "--debug", Arg.Unit (fun () ->
-      set_veryverbose ();
-      set_debugmode true), " Turn on verbose/debug messages";
+        set_veryverbose ();
+        set_debugmode true), " Turn on verbose/debug messages";
   ] in
 
   Cmdline.parse_cmdline extra_spec;
@@ -228,24 +228,24 @@ let initialize config pipe =
     exit 0
   end;
   begin match !Configfile.ssl_certificate_file, !Configfile.ssl_privatekey_file with
-  | None, None ->
-    Config.sx_ssl := false;
-    let msg = "Running in INSECURE mode. It is recommended that you enable SSL instead!" in
-    Ocsigen_messages.console (fun () -> msg);
-    Ocsigen_messages.warning msg;
-  | _ -> ()
+    | None, None ->
+      Config.sx_ssl := false;
+      let msg = "Running in INSECURE mode. It is recommended that you enable SSL instead!" in
+      Ocsigen_messages.console (fun () -> msg);
+      Ocsigen_messages.warning msg;
+    | _ -> ()
   end;
   Cmdline.validate_configuration conf;
 
   config.logdir :=
     if !Configfile.syslog_facility = None then Some !Paths.log_dir else None;
   let dir = match !Configfile.tmpdir with
-  | Some tmpdir ->
-    let d = Filename.concat tmpdir "libres3" in
-    mkdir_p ~perm:0o750 d;
-    Netsys_tmp.set_tmp_directory d;
-    d
-  | None -> Paths.var_lib_dir in
+    | Some tmpdir ->
+      let d = Filename.concat tmpdir "libres3" in
+      mkdir_p ~perm:0o750 d;
+      Netsys_tmp.set_tmp_directory d;
+      d
+    | None -> Paths.var_lib_dir in
   set_default config.datadir (Filename.concat dir "datadir");
   set_default config.uploaddir (Filename.concat dir "uploaddir");
   set_default config.commandpipe (Filename.concat dir "command.pipe");
@@ -305,16 +305,16 @@ let run () =
     keepalivetimeout = ref 30;
   } in
 
-    let pipe_read, pipe_write = Unix.pipe () in
-    initialize config pipe_write;
-    flush_all ();
-    Sys.set_signal Sys.sigchld (Sys.Signal_handle (fun _ ->
-        Printf.eprintf "\nFailed to start server (check logfile: %s/errors.log)\n%!" (!Paths.log_dir);
-        exit 1
+  let pipe_read, pipe_write = Unix.pipe () in
+  initialize config pipe_write;
+  flush_all ();
+  Sys.set_signal Sys.sigchld (Sys.Signal_handle (fun _ ->
+      Printf.eprintf "\nFailed to start server (check logfile: %s/errors.log)\n%!" (!Paths.log_dir);
+      exit 1
     ));
-    ignore (Lwt_unix.on_signal Sys.sigusr1 reopen_logs);
-    let ok = ref false in
-    at_exit (fun () ->
+  ignore (Lwt_unix.on_signal Sys.sigusr1 reopen_logs);
+  let ok = ref false in
+  at_exit (fun () ->
       if not !ok then begin
         ok := true;
         let msg = "Killing all children\n" in
@@ -324,37 +324,37 @@ let run () =
         Unix.kill 0 15
       end
     );
-    Lwt_unix.set_pool_size !Configfile.max_pool_threads;
-    Gc.compact ();
-    if !Configfile.daemonize then begin
-      Unix.chdir "/";
+  Lwt_unix.set_pool_size !Configfile.max_pool_threads;
+  Gc.compact ();
+  if !Configfile.daemonize then begin
+    Unix.chdir "/";
+    ignore (Unix.setsid ());
+    if Lwt_unix.fork () > 0 then begin
+      (* Do not run exit hooks in the parent. *)
+      Lwt_sequence.iter_node_l Lwt_sequence.remove Lwt_main.exit_hooks;
+    end else begin
       ignore (Unix.setsid ());
-      if Lwt_unix.fork () > 0 then begin
-        (* Do not run exit hooks in the parent. *)
-        Lwt_sequence.iter_node_l Lwt_sequence.remove Lwt_main.exit_hooks;
-      end else begin
-        ignore (Unix.setsid ());
-        run_server !(config.commandpipe)
-      end
-    end else begin
       run_server !(config.commandpipe)
-    end;
-    Printf.printf "Waiting for server to start (5s) ... %!";
-    begin try Unix.close pipe_write with _ -> () end;
-    if wait_pipe !(config.commandpipe) 5. pipe_read then begin
-      Printf.printf "OK\n%!";
-      ok := true;
-    end else begin
-      Printf.printf "still didn't start!\n%!";
-      exit 1
     end
-  ;;
+  end else begin
+    run_server !(config.commandpipe)
+  end;
+  Printf.printf "Waiting for server to start (5s) ... %!";
+  begin try Unix.close pipe_write with _ -> () end;
+  if wait_pipe !(config.commandpipe) 5. pipe_read then begin
+    Printf.printf "OK\n%!";
+    ok := true;
+  end else begin
+    Printf.printf "still didn't start!\n%!";
+    exit 1
+  end
+;;
 
 let () =
   Printexc.record_backtrace true;
   Printexc.register_printer (function
-    | Ocsigen_stream.Interrupted e ->
+      | Ocsigen_stream.Interrupted e ->
         Some ("Ocsigen_stream.Interrupted: " ^ (Printexc.to_string e))
-    | _ -> None
-  );
+      | _ -> None
+    );
   handle_error run ();;

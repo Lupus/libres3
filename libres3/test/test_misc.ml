@@ -40,21 +40,21 @@ let test_roundtrip (input:Xml.t) () =
 let codedio_tests =
   "CodedIO">:::[
     "xml data">::(fun () ->
-      assert_equal ~printer:id
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\ntest"
-        (Xml.to_string (Xml.d "test"))
-    );
+        assert_equal ~printer:id
+          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\ntest"
+          (Xml.to_string (Xml.d "test"))
+      );
     "roundtrip">::(
       test_roundtrip (Xml.tag "ab" [
-        Xml.tag "a" ~attrs:[Xml.attr "bar" "4<>"] [];
-        Xml.tag "bar" [Xml.d "bar"];
-        Xml.tag "x" ~attrs:[
-          Xml.attr "x" "4\"";
-          Xml.attr ~ns:(Xmlm.ns_xml) "p" "p"
-        ] [
-          Xml.d "aöpőÁ"
-        ]
-      ])
+          Xml.tag "a" ~attrs:[Xml.attr "bar" "4<>"] [];
+          Xml.tag "bar" [Xml.d "bar"];
+          Xml.tag "x" ~attrs:[
+            Xml.attr "x" "4\"";
+            Xml.attr ~ns:(Xmlm.ns_xml) "p" "p"
+          ] [
+            Xml.d "aöpőÁ"
+          ]
+        ])
     )
   ];;
 
@@ -63,10 +63,10 @@ let cryptoutil_tests =
   "cryptoutil">::: [
     "base64">:::(
       List.map (fun (sin,sout) ->
-        sin>::(fun () ->
-          assert_equal ~msg:sin ~printer:id sout (base64_encode sin)
-        )
-      ) [
+          sin>::(fun () ->
+              assert_equal ~msg:sin ~printer:id sout (base64_encode sin)
+            )
+        ) [
         "","";
         "f","Zg==";
         "fo","Zm8=";
@@ -75,37 +75,37 @@ let cryptoutil_tests =
         "fooba","Zm9vYmE=";
         "foobar","Zm9vYmFy"
       ]);
-      "hmac-sha1">:::(
-        List.map (fun (key,buf,out) ->
-        buf>::(fun () ->
-          let b = Buffer.create 16 in
-          Buffer.add_string b buf;
-          assert_equal ~msg:buf ~printer:Digest.to_hex
-            out (hmac_sha1 key b)
-        )
-      ) [
+    "hmac-sha1">:::(
+      List.map (fun (key,buf,out) ->
+          buf>::(fun () ->
+              let b = Buffer.create 16 in
+              Buffer.add_string b buf;
+              assert_equal ~msg:buf ~printer:Digest.to_hex
+                out (hmac_sha1 key b)
+            )
+        ) [
         "\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b",
         "Hi There",
         "\xb6\x17\x31\x86\x55\x05\x72\x64\xe2\x8b\xc0\xb6\xfb\x37\x8c\x8e\xf1\x46\xbe\x00"
       ]
-      )
+    )
   ];;
 
 let murmur_test (input,seed,expected) =
   input>::(fun () ->
-    let result =
-      (Murmur.murmurhash64b input seed) in
-    assert_equal ~msg:"Murmur hash value mismatch" ~printer:Int64.to_string result expected
-  )
+      let result =
+        (Murmur.murmurhash64b input seed) in
+      assert_equal ~msg:"Murmur hash value mismatch" ~printer:Int64.to_string result expected
+    )
 
 let gen_murmur_tests m =
   Array.to_list (Array.mapi (fun n expected ->
-    let s = String.make n '\x00' in
-    for i = 0 to n-1 do
-      s.[i] <- Char.chr i
-    done;
-    s, 0x1337l, expected
-  ) m)
+      let s = String.make n '\x00' in
+      for i = 0 to n-1 do
+        s.[i] <- Char.chr i
+      done;
+      s, 0x1337l, expected
+    ) m)
 
 
 let murmur_tests =
@@ -178,39 +178,39 @@ let murmur_tests =
     |])
 
 let policy_anon = "{\
-  \"Version\":\"2012-10-17\",\
-  \"Statement\":[{\
-	\"Sid\":\"AddPerm\",\
-        \"Effect\":\"Allow\",\
-	  \"Principal\": \"*\",\
-      \"Action\":[\"s3:GetObject\"],\
-      \"Resource\":[\"arn:aws:s3:::examplebucket/*\"\
-      ]\
-    }\
-  ]\
-  }"
+                   \"Version\":\"2012-10-17\",\
+                   \"Statement\":[{\
+                   	\"Sid\":\"AddPerm\",\
+                   \"Effect\":\"Allow\",\
+                   	  \"Principal\": \"*\",\
+                   \"Action\":[\"s3:GetObject\"],\
+                   \"Resource\":[\"arn:aws:s3:::examplebucket/*\"\
+                   ]\
+                   }\
+                   ]\
+                   }"
 
 let examples= [|
   "{\
-  \"Version\":\"2012-10-17\",\
-  \"Statement\":[{\
-	\"Sid\":\"AddCannedAcl\",\
-        \"Effect\":\"Allow\",\
-	  \"Principal\": {\
-            \"AWS\": [\"arn:aws:iam::111122223333:root\",\"arn:aws:iam::444455556666:root\"]\
-         },\
-	  \"Action\":[\"s3:PutObject\",\"s3:PutObjectAcl\"\
-      ],\
-      \"Resource\":[\"arn:aws:s3:::examplebucket/*\"\
-      ],\
-      \"Condition\":{\
-        \"StringEquals\":{\
-          \"s3:x-amz-acl\":[\"public-read\"]\
-        }\
-      }\
-    }\
-  ]\
-}","examplebucket",false;
+   \"Version\":\"2012-10-17\",\
+   \"Statement\":[{\
+   	\"Sid\":\"AddCannedAcl\",\
+   \"Effect\":\"Allow\",\
+   	  \"Principal\": {\
+   \"AWS\": [\"arn:aws:iam::111122223333:root\",\"arn:aws:iam::444455556666:root\"]\
+   },\
+   	  \"Action\":[\"s3:PutObject\",\"s3:PutObjectAcl\"\
+   ],\
+   \"Resource\":[\"arn:aws:s3:::examplebucket/*\"\
+   ],\
+   \"Condition\":{\
+   \"StringEquals\":{\
+   \"s3:x-amz-acl\":[\"public-read\"]\
+   }\
+   }\
+   }\
+   ]\
+   }","examplebucket",false;
   "\
   {\
     \"Version\": \"2012-10-17\",\
@@ -293,120 +293,120 @@ let examples= [|
    ]\
   }","examplebucket",false;
   "{\
-	\"Version\":\"2012-10-17\",\
-	\"Id\":\"PolicyForCloudFrontPrivateContent\",\
-	\"Statement\":[{\
-			\"Sid\":\" Grant a CloudFront Origin Identity access to support private content\",\
-			\"Effect\":\"Allow\",\
-			\"Principal\":{\
-			\"CanonicalUser\":\"79a59df900b949e55d96a1e698fbacedfd6e09d98eacf8f8d5218e7cd47ef2be\"\
-			},\
-			\"Action\":\"s3:GetObject\",\
-			\"Resource\":\"arn:aws:s3:::example-bucket/*\"\
-		}\
-	]\
-    }","example-bucket",false;
-    "{\
+   	\"Version\":\"2012-10-17\",\
+   	\"Id\":\"PolicyForCloudFrontPrivateContent\",\
+   	\"Statement\":[{\
+   			\"Sid\":\" Grant a CloudFront Origin Identity access to support private content\",\
+   			\"Effect\":\"Allow\",\
+   			\"Principal\":{\
+   			\"CanonicalUser\":\"79a59df900b949e55d96a1e698fbacedfd6e09d98eacf8f8d5218e7cd47ef2be\"\
+   			},\
+   			\"Action\":\"s3:GetObject\",\
+   			\"Resource\":\"arn:aws:s3:::example-bucket/*\"\
+   		}\
+   	]\
+   }","example-bucket",false;
+  "{\
    \"Version\": \"2012-10-17\",\
    \"Id\": \"123\",\
    \"Statement\": [\
-      {\
-         \"Sid\": \"\",\
-         \"Effect\": \"Deny\",\
-         \"Principal\": \"*\",\
-         \"Action\": \"s3:**\",\
-         \"Resource\": \"arn:aws:s3:::examplebucket/taxdocuments/*\",\
-         \"Condition\": { \"Null\": { \"aws:MultiFactorAuthAge\": true }}\
-      }\
-   ]\
-  }","examplebucket",false;
-    "{\
-   \"Version\": \"2012-10-17\",\
-   \"Id\": \"123\",\
-   \"Statement\": [\
-      {\
-         \"Sid\": \"\",\
-         \"Effect\": \"Deny\",\
-         \"Principal\": \"*\",\
-         \"Action\": \"s3:*\",\
-         \"Resource\": \"arn:aws:s3:::examplebucket/taxdocuments/*\",\
-         \"Condition\": { \"Null\": { \"aws:MultiFactorAuthAge\": true } }\
-      },\
-      {\
-         \"Sid\": \"\",\
-         \"Effect\": \"Allow\",\
-         \"Principal\": \"*\",\
-         \"Action\": [\"s3:GetObject\"],\
-         \"Resource\": \"arn:aws:s3:::examplebucket/*\"\
-      }\
+   {\
+   \"Sid\": \"\",\
+   \"Effect\": \"Deny\",\
+   \"Principal\": \"*\",\
+   \"Action\": \"s3:**\",\
+   \"Resource\": \"arn:aws:s3:::examplebucket/taxdocuments/*\",\
+   \"Condition\": { \"Null\": { \"aws:MultiFactorAuthAge\": true }}\
+   }\
    ]\
    }","examplebucket",false;
-    "{\
+  "{\
    \"Version\": \"2012-10-17\",\
    \"Id\": \"123\",\
    \"Statement\": [\
-      {\
-         \"Sid\": \"\",\
-         \"Effect\": \"Deny\",\
-         \"Principal\": \"*\",\
-         \"Action\": \"s3:*\",\
-         \"Resource\": \"arn:aws:s3:::examplebucket/taxdocuments/*\",\
-         \"Condition\": {\"Null\": {\"aws:MultiFactorAuthAge\": true }\
-         }\
-      },\
-      {\
-         \"Sid\": \"\",\
-         \"Effect\": \"Deny\",\
-         \"Principal\": \"*\",\
-         \"Action\": \"s3:*\",\
-         \"Resource\": \"arn:aws:s3:::examplebucket/taxdocuments/*\",\
-         \"Condition\": {\"NumericGreaterThan\": {\"aws:MultiFactorAuthAge\": 3600 } }\
-      },\
-      {\
-         \"Sid\": \"\",\
-         \"Effect\": \"Allow\",\
-         \"Principal\": \"*\",\
-         \"Action\": [\"s3:GetObject\"],\
-         \"Resource\": \"arn:aws:s3:::examplebucket/*\"\
-      }\
+   {\
+   \"Sid\": \"\",\
+   \"Effect\": \"Deny\",\
+   \"Principal\": \"*\",\
+   \"Action\": \"s3:*\",\
+   \"Resource\": \"arn:aws:s3:::examplebucket/taxdocuments/*\",\
+   \"Condition\": { \"Null\": { \"aws:MultiFactorAuthAge\": true } }\
+   },\
+   {\
+   \"Sid\": \"\",\
+   \"Effect\": \"Allow\",\
+   \"Principal\": \"*\",\
+   \"Action\": [\"s3:GetObject\"],\
+   \"Resource\": \"arn:aws:s3:::examplebucket/*\"\
+   }\
    ]\
-  }","examplebucket",false;
-    "{\
+   }","examplebucket",false;
+  "{\
+   \"Version\": \"2012-10-17\",\
+   \"Id\": \"123\",\
+   \"Statement\": [\
+   {\
+   \"Sid\": \"\",\
+   \"Effect\": \"Deny\",\
+   \"Principal\": \"*\",\
+   \"Action\": \"s3:*\",\
+   \"Resource\": \"arn:aws:s3:::examplebucket/taxdocuments/*\",\
+   \"Condition\": {\"Null\": {\"aws:MultiFactorAuthAge\": true }\
+   }\
+   },\
+   {\
+   \"Sid\": \"\",\
+   \"Effect\": \"Deny\",\
+   \"Principal\": \"*\",\
+   \"Action\": \"s3:*\",\
+   \"Resource\": \"arn:aws:s3:::examplebucket/taxdocuments/*\",\
+   \"Condition\": {\"NumericGreaterThan\": {\"aws:MultiFactorAuthAge\": 3600 } }\
+   },\
+   {\
+   \"Sid\": \"\",\
+   \"Effect\": \"Allow\",\
+   \"Principal\": \"*\",\
+   \"Action\": [\"s3:GetObject\"],\
+   \"Resource\": \"arn:aws:s3:::examplebucket/*\"\
+   }\
+   ]\
+   }","examplebucket",false;
+  "{\
    \"Version\":\"2012-10-17\",\
    \"Statement\":[\
-      {\
-         \"Sid\":\"111\",\
-         \"Effect\":\"Allow\",\
-         \"Principal\":{\
-            \"AWS\":\"1111111111\"\
-         },\
-         \"Action\":\"s3:PutObject\",\
-         \"Resource\":\"arn:aws:s3:::examplebucket/*\"\
-      },\
-      {\
-         \"Sid\":\"112\",\
-         \"Effect\":\"Deny\",\
-         \"Principal\":{\
-            \"AWS\":\"1111111111\"\
-         },\
-         \"Action\":\"s3:PutObject\",\
-         \"Resource\":\"arn:aws:s3:::examplebucket/*\",\
-         \"Condition\":{\
-            \"StringNotEquals\":{\
-               \"s3:x-amz-grant-full-control\":[\
-                  \"emailAddress=xyz@amazon.com\"\
-               ]\
-            }\
-         }\
-      }\
+   {\
+   \"Sid\":\"111\",\
+   \"Effect\":\"Allow\",\
+   \"Principal\":{\
+   \"AWS\":\"1111111111\"\
+   },\
+   \"Action\":\"s3:PutObject\",\
+   \"Resource\":\"arn:aws:s3:::examplebucket/*\"\
+   },\
+   {\
+   \"Sid\":\"112\",\
+   \"Effect\":\"Deny\",\
+   \"Principal\":{\
+   \"AWS\":\"1111111111\"\
+   },\
+   \"Action\":\"s3:PutObject\",\
+   \"Resource\":\"arn:aws:s3:::examplebucket/*\",\
+   \"Condition\":{\
+   \"StringNotEquals\":{\
+   \"s3:x-amz-grant-full-control\":[\
+   \"emailAddress=xyz@amazon.com\"\
    ]\
-}\
-    ","examplebucket",false|]
+   }\
+   }\
+   }\
+   ]\
+   }\
+  ","examplebucket",false|]
 let policy_tests =
   "Bucket policy" >::: ("anon" >:: (fun () ->
-        assert_bool "policy is anon" (
-          Policy.is_anon_bucket_policy (Policy.of_string policy_anon)
-            "examplebucket")
+      assert_bool "policy is anon" (
+        Policy.is_anon_bucket_policy (Policy.of_string policy_anon)
+          "examplebucket")
     )) :: (Array.to_list (Array.mapi (fun i (example, bucket, is_anon) ->
       Printf.sprintf "parse example %d" i >:: fun () ->
         let policy = Policy.of_string example in

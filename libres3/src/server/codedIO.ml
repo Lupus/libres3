@@ -36,8 +36,8 @@ module Xml = struct
    * with namespaces *)
 
   let name ?ns s = match ns with
-  | None -> "", s
-  | Some ns -> ns, s;;
+    | None -> "", s
+    | Some ns -> ns, s;;
 
   let attr ?ns attr_name attr_value =
     name ?ns attr_name, attr_value;;
@@ -56,8 +56,8 @@ module Xml = struct
   let parse_string str : t =
     let source = Xmlm.make_input ~strip:true (`String (0, str)) in
     snd (Xmlm.input_doc_tree
-      ~el:(fun tag lst -> `El (tag, lst)) ~data:(fun data -> `Data data) source
-    );;
+           ~el:(fun tag lst -> `El (tag, lst)) ~data:(fun data -> `Data data) source
+        );;
 
   let conv_id (x:t) = x
 
@@ -76,12 +76,12 @@ module Json = struct
   exception Error of string
 
   let err d e =
-      let b = Buffer.create small_buffer_size in
-      let fmt = Format.formatter_of_buffer b in
-      let (l1,c1),(l2,c2) = Jsonm.decoded_range d in
-      Format.fprintf fmt "Bad JSON at %d:%d-%d:%d: %a%!" l1 c1 l2 c2
-        Jsonm.pp_error e;
-      raise (Error (Buffer.contents b));;
+    let b = Buffer.create small_buffer_size in
+    let fmt = Format.formatter_of_buffer b in
+    let (l1,c1),(l2,c2) = Jsonm.decoded_range d in
+    Format.fprintf fmt "Bad JSON at %d:%d-%d:%d: %a%!" l1 c1 l2 c2
+      Jsonm.pp_error e;
+    raise (Error (Buffer.contents b));;
 
   let rec value d = function
     | `Lexeme `Os -> obj d []

@@ -67,3 +67,6 @@ cov:
 update:
 	oasis setup
 	sed -i -e 's/bindir)/sbindir)/' setup.ml
+reindent:
+	git ls-files '*.ml' '*.mli' | grep -Fv myocamlbuild.ml | grep -Fv setup.ml | xargs ocp-indent -i
+	$(MAKE) headache

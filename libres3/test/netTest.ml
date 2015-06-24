@@ -39,7 +39,7 @@ let map_reply call =
   Printf.fprintf out  "--- Headers\n";
   let headers = (call#request_header `Effective)#fields in
   List.iter (fun (name,value) ->
-    Printf.fprintf out  "\t%s: %s\n" name value) headers;
+      Printf.fprintf out  "\t%s: %s\n" name value) headers;
   let body = call#request_body#value in
   Printf.fprintf out  "---Body (%d bytes)\n" (String.length body);
   output_string out  body;
@@ -51,7 +51,7 @@ let map_reply call =
   output_string out "--- Headers\n";
   let headers = call#response_header#fields in
   List.iter (fun (name,value) ->
-    Printf.fprintf out  "\t%s: %s\n" name value) headers;
+      Printf.fprintf out  "\t%s: %s\n" name value) headers;
   let body = call#response_body#value in
   Printf.fprintf out  "--- Body (%d bytes)\n" (String.length body);
   output_string out  body;
@@ -65,37 +65,37 @@ let map_reply call =
 let () = Ssl.init ~thread_safe:true ();;
 let perform_http_queries lst =
   try
-  let pipeline = new pipeline in
-  (*  Http_client.Debug.enable := true;
-    Uq_ssl.Debug.enable := true;
-    Netlog.Debug.enable_all ();*)
-  let ctx = Ssl.create_context Ssl.TLSv1 Ssl.Client_context in
-  let tct = Https_client.https_transport_channel_type ctx in
-  pipeline # configure_transport Http_client.https_cb_id tct;
-  (* without this we get an 'EOF on message' error *)
-  pipeline#set_options { pipeline#get_options with
-      Http_client.connection_timeout = 10.; };
-  let calls = List.rev_map (fun req ->
-    let call = match req.meth with
-    | `GET -> new get_call
-    | `POST -> new post_call
-    | `HEAD -> new head_call
-    | `PUT -> new put_call
-    | `DELETE -> new delete_call
-    | `TRACE -> new trace_call
-    | `OPTIONS -> new options_call in
-    let url =
-      Printf.sprintf "http%s://%s:%d%s" (if !Config.sx_ssl then "s" else "") req.host req.port req.relative_url in
-    call#set_request_uri url;
-    call#set_request_header (new Netmime.basic_mime_header req.req_headers);
-    call#set_request_body (new Netmime.memory_mime_body req.req_body);
-    pipeline#add call;
-    call
-  ) lst in
-  (* TODO: set resolver to ensure that *.libres3.skylable.com is resolved to
-   * 127.0.0.1 even if network is down *)
-  pipeline#run ();
-  List.rev (List.rev_map map_reply calls)
+    let pipeline = new pipeline in
+    (*  Http_client.Debug.enable := true;
+        Uq_ssl.Debug.enable := true;
+        Netlog.Debug.enable_all ();*)
+    let ctx = Ssl.create_context Ssl.TLSv1 Ssl.Client_context in
+    let tct = Https_client.https_transport_channel_type ctx in
+    pipeline # configure_transport Http_client.https_cb_id tct;
+    (* without this we get an 'EOF on message' error *)
+    pipeline#set_options { pipeline#get_options with
+                           Http_client.connection_timeout = 10.; };
+    let calls = List.rev_map (fun req ->
+        let call = match req.meth with
+          | `GET -> new get_call
+          | `POST -> new post_call
+          | `HEAD -> new head_call
+          | `PUT -> new put_call
+          | `DELETE -> new delete_call
+          | `TRACE -> new trace_call
+          | `OPTIONS -> new options_call in
+        let url =
+          Printf.sprintf "http%s://%s:%d%s" (if !Config.sx_ssl then "s" else "") req.host req.port req.relative_url in
+        call#set_request_uri url;
+        call#set_request_header (new Netmime.basic_mime_header req.req_headers);
+        call#set_request_body (new Netmime.memory_mime_body req.req_body);
+        pipeline#add call;
+        call
+      ) lst in
+    (* TODO: set resolver to ensure that *.libres3.skylable.com is resolved to
+     * 127.0.0.1 even if network is down *)
+    pipeline#run ();
+    List.rev (List.rev_map map_reply calls)
   with e ->
     Printf.eprintf "Error: %s\n%!" (Printexc.to_string e);
     raise e
@@ -113,37 +113,37 @@ let parse_s3cfg s3cfg =
     let f = open_in s3cfg in
     Printf.printf "Using s3cfg from '%s'\n" s3cfg;
     begin try
-      while true; do
-        let line = input_line f in
-        try
-        Scanf.sscanf line "%s = %s" (fun key value ->
-          match key with
-          | "access_key" ->
-            S3Test.key_id := value;
-          | "host_base" ->
-              begin try
-                Scanf.sscanf value "%s@:%d" (fun host port ->
-                  Configfile.base_hostname := host;
-                  Configfile.base_port := port)
-              with Scanf.Scan_failure _ | End_of_file ->
-                Configfile.base_hostname := value;
-                Configfile.base_port := 80
-              end
-          | "secret_key" ->
-            S3Test.secret_access_key := value
-          | _ -> ()
-        );
-        with Scanf.Scan_failure _ | End_of_file -> ()
-      done
-    with End_of_file -> ();
+        while true; do
+          let line = input_line f in
+          try
+            Scanf.sscanf line "%s = %s" (fun key value ->
+                match key with
+                | "access_key" ->
+                  S3Test.key_id := value;
+                | "host_base" ->
+                  begin try
+                      Scanf.sscanf value "%s@:%d" (fun host port ->
+                          Configfile.base_hostname := host;
+                          Configfile.base_port := port)
+                    with Scanf.Scan_failure _ | End_of_file ->
+                      Configfile.base_hostname := value;
+                      Configfile.base_port := 80
+                  end
+                | "secret_key" ->
+                  S3Test.secret_access_key := value
+                | _ -> ()
+              );
+          with Scanf.Scan_failure _ | End_of_file -> ()
+        done
+      with End_of_file -> ();
     end;
     Printf.printf "Host: %s:%d\nAccess key id: %s\n"
       !Configfile.base_hostname !Configfile.base_port !S3Test.key_id;
     close_in f
   with
   | Sys_error e ->
-      Printf.eprintf "Error: %s\n" e;
-      exit 2;;
+    Printf.eprintf "Error: %s\n" e;
+    exit 2;;
 
 let set_backtrace () =
   Printexc.record_backtrace true;;
@@ -151,22 +151,22 @@ let set_backtrace () =
 let noop () = () (* oUnit handles it *)
 
 let arg_specs = Arg.align [
-  "-verbose", Arg.Unit noop, " Run the test in verbose mode.";
-  "-only-test", Arg.Unit noop, " path Run only the selected test";
-  "--s3cfg", Arg.String parse_s3cfg,
+    "-verbose", Arg.Unit noop, " Run the test in verbose mode.";
+    "-only-test", Arg.Unit noop, " path Run only the selected test";
+    "--s3cfg", Arg.String parse_s3cfg,
     " Use S3 server, key id and secret access key from specified .s3cfg";
-  "--backtrace", Arg.Unit set_backtrace,
+    "--backtrace", Arg.Unit set_backtrace,
     " Show backtrace on exceptions";
-  "--version", Arg.Unit print_version, " Print version";
-  "-V", Arg.Unit print_version, " Print version";
-  "--no-ssl", Arg.Clear Config.sx_ssl, ""
-]
+    "--version", Arg.Unit print_version, " Print version";
+    "-V", Arg.Unit print_version, " Print version";
+    "--no-ssl", Arg.Clear Config.sx_ssl, ""
+  ]
 
 let _ =
-    (* must parse before calling suite () to override the access key,
-     * because suite () already uses it and the parsing callback
-     * from oUnit would be too
-     * late to change it *)
+  (* must parse before calling suite () to override the access key,
+   * because suite () already uses it and the parsing callback
+   * from oUnit would be too
+   * late to change it *)
   Arg.parse arg_specs (fun _ -> ()) ("Usage: " ^ Sys.argv.(0) ^ " [options]");
-(*  Arg.current := 0;*)
+  (*  Arg.current := 0;*)
   OUnit.run_test_tt_main (build_tests "Http" (S3TestData.suite true));;

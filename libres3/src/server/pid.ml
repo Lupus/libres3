@@ -65,11 +65,11 @@ let with_pidfile_read name f =
         let pid = int_of_string (input_line ch) in
         f pid;
         close_in ch
-    ) ch;
+      ) ch;
     None
   with
   | Sys_error e | Failure e ->
-      Some (Printf.sprintf "PIDfile %s cannot be opened: %s\n%!" name e)
+    Some (Printf.sprintf "PIDfile %s cannot be opened: %s\n%!" name e)
   | End_of_file -> Some ""
 
 let kill_pid name =
@@ -84,7 +84,7 @@ let kill_pid name =
       Printf.printf "Waiting for PID %d ... %!" pid;
       wait_pid pid;
       Printf.printf "\n%!";
-  ) with
+    ) with
   | Some str -> print_endline str
   | None -> ()
   end;

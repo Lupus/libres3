@@ -235,288 +235,288 @@ module AsyncJson = struct
   ;;
 end
 
-  (* TODO: implement tmpfile buffer here *)
-  module IO = EventIO
-  module XIO = SXIO
+(* TODO: implement tmpfile buffer here *)
+module IO = EventIO
+module XIO = SXIO
 
-  module P = Http
+module P = Http
 
-  (* max upload chunk size, for now we use this as
-   * the multipart part-size too *)
-  let chunk_size = 4 * 1024 * 1024
-  let download_max_blocks = 30 (* TODO: keep in sync with include/default.h *)
-  let multipart_threshold = 132 * 1024 * 1024 (* 132 MB, should be multiple of
-  chunk_size *)
-  let last_threshold = Int64.of_int chunk_size
+(* max upload chunk size, for now we use this as
+ * the multipart part-size too *)
+let chunk_size = 4 * 1024 * 1024
+let download_max_blocks = 30 (* TODO: keep in sync with include/default.h *)
+let multipart_threshold = 132 * 1024 * 1024 (* 132 MB, should be multiple of
+                                               chunk_size *)
+let last_threshold = Int64.of_int chunk_size
 
-  let pipe = ref None
-  let init () =
-    Printf.printf "sx:// protocol registered\n";
-    pipe := Some (P.start_pipeline ());;
+let pipe = ref None
+let init () =
+  Printf.printf "sx:// protocol registered\n";
+  pipe := Some (P.start_pipeline ());;
 
-  let pipeline () =
-    match !pipe with
-    | None -> failwith "Pipeline not initialized"
-    | Some p -> p;;
+let pipeline () =
+  match !pipe with
+  | None -> failwith "Pipeline not initialized"
+  | Some p -> p;;
 
-  let scheme = "sx"
-  let syntax = syntax
+let scheme = "sx"
+let syntax = syntax
 
-  let rec foldl base volume f lst accum =
-    match lst with
-    | hd :: tl ->
-        f accum {
-          XIO.name =
-            "/" ^ (Netencoding.Url.encode volume) ^ "/" ^ hd.name;
-          XIO.size = hd.size;
-          XIO.mtime = hd.mtime;
-          XIO.etag = hd.etag;
-        } >>= foldl base volume f tl
-    | [] ->
-        return accum;;
+let rec foldl base volume f lst accum =
+  match lst with
+  | hd :: tl ->
+    f accum {
+      XIO.name =
+        "/" ^ (Netencoding.Url.encode volume) ^ "/" ^ hd.name;
+      XIO.size = hd.size;
+      XIO.mtime = hd.mtime;
+      XIO.etag = hd.etag;
+    } >>= foldl base volume f tl
+  | [] ->
+    return accum;;
 
 
-  let format_date_header t =
-    Netdate.format ~fmt:"%a, %d %b %Y %H:%M:%S GMT" (Netdate.create t)
-  ;;
+let format_date_header t =
+  Netdate.format ~fmt:"%a, %d %b %Y %H:%M:%S GMT" (Netdate.create t)
+;;
 
-  open Cryptokit
-  let string_of_method = function
-    | `DELETE -> "DELETE"
-    | `GET -> "GET"
-    | `HEAD -> "HEAD"
-    | `POST -> "POST"
-    | `PUT -> "PUT"
-    | _ -> "N/A";;
+open Cryptokit
+let string_of_method = function
+  | `DELETE -> "DELETE"
+  | `GET -> "GET"
+  | `HEAD -> "HEAD"
+  | `POST -> "POST"
+  | `PUT -> "PUT"
+  | _ -> "N/A";;
 
-  let sign_request token r =
-    if token = "" then
-      failwith "SX token is not set";
-    let date = format_date_header (Unix.gettimeofday ()) in
-    let headers = ("Date", date) :: r.req_headers in
-    let d = transform_string (Base64.decode ()) token in
-    let i = String.sub d 0 20
-    and k = String.sub d 20 20 in
-    let hmac = MAC.hmac_sha1 k in
-    let buf = Buffer.create 128 in
-    Buffer.add_string buf  (string_of_method r.meth);
-    Buffer.add_char buf  '\n';
-    let n = String.length r.relative_url in
-    let s = String.sub r.relative_url 1 (n-1) in
-    Buffer.add_string buf s;
-    Buffer.add_char buf  '\n';
-    Buffer.add_string buf  date;
-    Buffer.add_char buf  '\n';
-    let sha1 = hash_string (Hash.sha1 ()) r.req_body in
-    let sha1_hex = transform_string (Hexa.encode ()) sha1 in
-    Buffer.add_string buf sha1_hex;
-    Buffer.add_char buf  '\n';
-    let signed = (hash_string hmac (Buffer.contents buf)) in
-    let a = i ^ signed ^ (String.sub d 40 2) in
-    let auth = "SKY " ^ (transform_string (Base64.encode_compact ()) a) in
-    { r with
-      req_headers = ("Authorization", auth) :: headers
-    }
+let sign_request token r =
+  if token = "" then
+    failwith "SX token is not set";
+  let date = format_date_header (Unix.gettimeofday ()) in
+  let headers = ("Date", date) :: r.req_headers in
+  let d = transform_string (Base64.decode ()) token in
+  let i = String.sub d 0 20
+  and k = String.sub d 20 20 in
+  let hmac = MAC.hmac_sha1 k in
+  let buf = Buffer.create 128 in
+  Buffer.add_string buf  (string_of_method r.meth);
+  Buffer.add_char buf  '\n';
+  let n = String.length r.relative_url in
+  let s = String.sub r.relative_url 1 (n-1) in
+  Buffer.add_string buf s;
+  Buffer.add_char buf  '\n';
+  Buffer.add_string buf  date;
+  Buffer.add_char buf  '\n';
+  let sha1 = hash_string (Hash.sha1 ()) r.req_body in
+  let sha1_hex = transform_string (Hexa.encode ()) sha1 in
+  Buffer.add_string buf sha1_hex;
+  Buffer.add_char buf  '\n';
+  let signed = (hash_string hmac (Buffer.contents buf)) in
+  let a = i ^ signed ^ (String.sub d 40 2) in
+  let auth = "SKY " ^ (transform_string (Base64.encode_compact ()) a) in
+  { r with
+    req_headers = ("Authorization", auth) :: headers
+  }
 
-    module Json = AsyncJson
-    open Json
+module Json = AsyncJson
+open Json
 
-    exception SXProto of string
-    let expect_content_type reply ct =
+exception SXProto of string
+let expect_content_type reply ct =
+  try
+    let server = Nethttp.Header.get_server reply.headers in
+    let expected = "Skylable" in
+    if (String.length server < String.length expected ||
+        String.sub server 0 (String.length expected) <> expected) then
+      fail (Http_client.Http_protocol
+              (SXProto (Printf.sprintf "Not an SX server: %s" server)))
+    else
       try
-        let server = Nethttp.Header.get_server reply.headers in
-        let expected = "Skylable" in
-        if (String.length server < String.length expected ||
-            String.sub server 0 (String.length expected) <> expected) then
-              fail (Http_client.Http_protocol
-                (SXProto (Printf.sprintf "Not an SX server: %s" server)))
+        let actual, _ = reply.headers#content_type () in
+        if actual <> ct then
+          fail (SXProto (Printf.sprintf
+                           "Bad content-type: %s, expected: %s" actual ct))
         else
-          try
-            let actual, _ = reply.headers#content_type () in
-            if actual <> ct then
-              fail (SXProto (Printf.sprintf
-                "Bad content-type: %s, expected: %s" actual ct))
-            else
-              return ()
-          with Not_found ->
-          fail (SXProto (Printf.sprintf "No Content-Type: header in reply!"))
+          return ()
       with Not_found ->
-        fail (SXProto (Printf.sprintf "No Server: header in reply!"))
-    ;;
+        fail (SXProto (Printf.sprintf "No Content-Type: header in reply!"))
+  with Not_found ->
+    fail (SXProto (Printf.sprintf "No Server: header in reply!"))
+;;
 
-    let http_syntax = Hashtbl.find Neturl.common_url_syntax "http"
-    let locate url =
-      Neturl.modify_url url
-        ~encoded:true
-        ~query:"o=locate&volumeMeta"
-        ~scheme:"http"
-        ~syntax:http_syntax;;
+let http_syntax = Hashtbl.find Neturl.common_url_syntax "http"
+let locate url =
+  Neturl.modify_url url
+    ~encoded:true
+    ~query:"o=locate&volumeMeta"
+    ~scheme:"http"
+    ~syntax:http_syntax;;
 
-    let fetch_nodes url =
-      Neturl.modify_url url
-        ~encoded:true
-        ~path:[""]
-        ~query:"nodeList&clusterLimits"
-        ~scheme:"http"
-        ~syntax:http_syntax;;
+let fetch_nodes url =
+  Neturl.modify_url url
+    ~encoded:true
+    ~path:[""]
+    ~query:"nodeList&clusterLimits"
+    ~scheme:"http"
+    ~syntax:http_syntax;;
 
-    let url_port_opt url =
-      try url_port url
-      with Not_found ->
-        !Config.sx_port
+let url_port_opt url =
+  try url_port url
+  with Not_found ->
+    !Config.sx_port
 
-    let delay ms =
-      Lwt_unix.sleep (ms /. 1000.)
+let delay ms =
+  Lwt_unix.sleep (ms /. 1000.)
 
-    let request_of_url ~token meth ?(req_body="") url =
-      let syntax = url_syntax_of_url url in
-      let relative_url =
-        Neturl.remove_from_url
-          ~scheme:true ~user:true ~user_param:true ~password:true
-          ~host:true ~port:true
-          (Neturl.modify_url ~syntax:(Neturl.partial_url_syntax syntax) url) in
-      sign_request token {
-      meth = meth;
-      host = url_host url;
-      port = url_port_opt url;
-      relative_url = string_of_url relative_url;
-      req_headers = [];
-      req_body = req_body;
-    }
+let request_of_url ~token meth ?(req_body="") url =
+  let syntax = url_syntax_of_url url in
+  let relative_url =
+    Neturl.remove_from_url
+      ~scheme:true ~user:true ~user_param:true ~password:true
+      ~host:true ~port:true
+      (Neturl.modify_url ~syntax:(Neturl.partial_url_syntax syntax) url) in
+  sign_request token {
+    meth = meth;
+    host = url_host url;
+    port = url_port_opt url;
+    relative_url = string_of_url relative_url;
+    req_headers = [];
+    req_body = req_body;
+  }
 
-    let filter_field field =
-      List.filter (function
-        | `F (name,_) when name = field -> true
-        | _ -> false
-        );;
+let filter_field field =
+  List.filter (function
+      | `F (name,_) when name = field -> true
+      | _ -> false
+    );;
 
-    let has_field field =
-      List.exists (function
-        | `F (name, _) when name = field -> true
-        | _ -> false)
-    ;;
+let has_field field =
+  List.exists (function
+      | `F (name, _) when name = field -> true
+      | _ -> false)
+;;
 
-    let filter_field_one field lst =
-      match filter_field field lst with
-      | `F (_,[value]) :: [] ->
-         value
-      | [] ->
-         List.iter pp_json lst;
-         failwith ("bad volume list format, no filelist: " ^ field)
-      | _ ->
-         List.iter pp_json lst;
-         failwith "bad volume list format, multiple filelists"
-    ;;
+let filter_field_one field lst =
+  match filter_field field lst with
+  | `F (_,[value]) :: [] ->
+    value
+  | [] ->
+    List.iter pp_json lst;
+    failwith ("bad volume list format, no filelist: " ^ field)
+  | _ ->
+    List.iter pp_json lst;
+    failwith "bad volume list format, multiple filelists"
+;;
 
-    let detail_of_reply reply =
-      Lwt.catch (fun () ->
-        expect_content_type reply "application/json" >>= fun () ->
-        json_parse_tree (P.input_of_async_channel reply.body) >>= function
-          | [`O obj] ->
-              begin match filter_field "ErrorMessage" obj with
-              | `F (_,[`String value]) :: [] ->
-                  return value
-              | _ ->
-                  return ""
-              end
-          | _ -> return ""
-        )
-        (fun e ->
-          return ("Unparsable reply" ^ (Printexc.to_string e)));;
+let detail_of_reply reply =
+  Lwt.catch (fun () ->
+      expect_content_type reply "application/json" >>= fun () ->
+      json_parse_tree (P.input_of_async_channel reply.body) >>= function
+      | [`O obj] ->
+        begin match filter_field "ErrorMessage" obj with
+          | `F (_,[`String value]) :: [] ->
+            return value
+          | _ ->
+            return ""
+        end
+      | _ -> return ""
+    )
+    (fun e ->
+       return ("Unparsable reply" ^ (Printexc.to_string e)));;
 
-    let make_http_request p url =
-      P.make_http_request p url >>= fun reply ->
-      let apiverstr =
-        try reply.headers#field "SX-API-Version"
-        with Not_found -> "0" in
-      try
-        let apiver = int_of_string apiverstr in
-        if apiver < Config.apiver_min || apiver > Config.apiver_max then
-          let msg = Printf.sprintf "Unsupported SX API version: %d, expected between %d and %d"
-              apiver Config.apiver_min Config.apiver_max in
-          fail (SXIO.Detail(Http_client.Http_protocol(Failure msg),
-                            ["LibreS3ErrorMessage", msg]))
-        else return reply
-      with Failure _ ->
-        let msg = "Invalid SX API version: " ^ apiverstr in
-        fail (Http_client.Http_protocol(Failure msg))
+let make_http_request p url =
+  P.make_http_request p url >>= fun reply ->
+  let apiverstr =
+    try reply.headers#field "SX-API-Version"
+    with Not_found -> "0" in
+  try
+    let apiver = int_of_string apiverstr in
+    if apiver < Config.apiver_min || apiver > Config.apiver_max then
+      let msg = Printf.sprintf "Unsupported SX API version: %d, expected between %d and %d"
+          apiver Config.apiver_min Config.apiver_max in
+      fail (SXIO.Detail(Http_client.Http_protocol(Failure msg),
+                        ["LibreS3ErrorMessage", msg]))
+    else return reply
+  with Failure _ ->
+    let msg = "Invalid SX API version: " ^ apiverstr in
+    fail (Http_client.Http_protocol(Failure msg))
 
-    let rec make_request_token ~token meth ?(req_body="") url =
-      (* TODO: check that scheme is sx! *)
-      let p = pipeline () in
-      make_http_request p (request_of_url ~token meth ~req_body url) >>= fun reply ->
-      if reply.status = `Ok || reply.status = `Partial_content then
-        return reply
-      else if reply.code = 429 then
-        (* TODO: next in list, better interval formula *)
-        delay 20. >>= fun () ->
-        make_request_token ~token meth ~req_body url
-      else
-        let url = Neturl.modify_url ~scheme:"http" url in
-        detail_of_reply reply >>= fun detail ->
-        let code = match reply.status with
-        | `Not_found | `Bad_request (* SX bug: returns 400 instead of 404 *) ->
-          Some Unix.ENOENT
-        | `Unauthorized | `Forbidden -> Some Unix.EACCES
-        | `Conflict ->
-              Some (if meth=`DELETE then Unix.ENOTEMPTY else Unix.EEXIST)
-        | `Request_uri_too_long -> Some Unix.ENAMETOOLONG
-        | `Requested_range_not_satisfiable -> Some Unix.EINVAL
-        | `Request_entity_too_large -> Some Unix.ENOSPC
-        | _ -> None in
-        let details = [
-          "SXErrorMessage",detail;
-          "SXHttpCode", string_of_int reply.code
-        ] in
-        match code with
-        | Some c ->
-            fail (SXIO.Detail(
-              Unix.Unix_error(c,string_of_method meth,string_of_url url),
-              details))
-        | None ->
-          fail (SXIO.Detail (
-            Failure ((string_of_method meth) ^ " " ^ (string_of_url url)),
-            details));;
+let rec make_request_token ~token meth ?(req_body="") url =
+  (* TODO: check that scheme is sx! *)
+  let p = pipeline () in
+  make_http_request p (request_of_url ~token meth ~req_body url) >>= fun reply ->
+  if reply.status = `Ok || reply.status = `Partial_content then
+    return reply
+  else if reply.code = 429 then
+    (* TODO: next in list, better interval formula *)
+    delay 20. >>= fun () ->
+    make_request_token ~token meth ~req_body url
+  else
+    let url = Neturl.modify_url ~scheme:"http" url in
+    detail_of_reply reply >>= fun detail ->
+    let code = match reply.status with
+      | `Not_found | `Bad_request (* SX bug: returns 400 instead of 404 *) ->
+        Some Unix.ENOENT
+      | `Unauthorized | `Forbidden -> Some Unix.EACCES
+      | `Conflict ->
+        Some (if meth=`DELETE then Unix.ENOTEMPTY else Unix.EEXIST)
+      | `Request_uri_too_long -> Some Unix.ENAMETOOLONG
+      | `Requested_range_not_satisfiable -> Some Unix.EINVAL
+      | `Request_entity_too_large -> Some Unix.ENOSPC
+      | _ -> None in
+    let details = [
+      "SXErrorMessage",detail;
+      "SXHttpCode", string_of_int reply.code
+    ] in
+    match code with
+    | Some c ->
+      fail (SXIO.Detail(
+          Unix.Unix_error(c,string_of_method meth,string_of_url url),
+          details))
+    | None ->
+      fail (SXIO.Detail (
+          Failure ((string_of_method meth) ^ " " ^ (string_of_url url)),
+          details));;
 
-    let filter_field_int field lst =
-      match filter_field_one field lst with
-      | `Float f ->
-          (* TODO: check that it doesn't have fractional part *)
-          Int64.of_float f
-      | _ ->
-        failwith "numeric field expected";;
+let filter_field_int field lst =
+  match filter_field_one field lst with
+  | `Float f ->
+    (* TODO: check that it doesn't have fractional part *)
+    Int64.of_float f
+  | _ ->
+    failwith "numeric field expected";;
 
-    let filter_field_array field lst =
-      match filter_field_one field lst with
-      | `A a -> a
-      | _ ->
-          failwith "array field expected";;
+let filter_field_array field lst =
+  match filter_field_one field lst with
+  | `A a -> a
+  | _ ->
+    failwith "array field expected";;
 
-    let filter_field_number field lst =
-      match filter_field_one field lst with
-      | `Float f -> f
-      | _ ->
-          failwith "numeric field expected";;
+let filter_field_number field lst =
+  match filter_field_one field lst with
+  | `Float f -> f
+  | _ ->
+    failwith "numeric field expected";;
 
-    let filter_field_string field lst =
-      match filter_field_one field lst with
-      | `String f -> f
-      | _ ->
-          failwith "string field expected";;
+let filter_field_string field lst =
+  match filter_field_one field lst with
+  | `String f -> f
+  | _ ->
+    failwith "string field expected";;
 
-  module AJson = AsyncJson
-  module UserCache = LRUCacheMonad.Make(Lwt)
-  let usercache = UserCache.create 10
+module AJson = AsyncJson
+module UserCache = LRUCacheMonad.Make(Lwt)
+let usercache = UserCache.create 10
 
-  let token_of_user url =
-    let user = Neturl.url_user url in
-    let url = Neturl.remove_from_url ~query:true (Neturl.modify_url
-      ~path:["";".users";user] url ~scheme:"http") in
-    Lwt.catch (fun () ->
-        UserCache.lookup_exn usercache user (fun _ ->
-            if user = !Config.key_id then
-              Lwt.return (Some !Config.secret_access_key)
-            else
+let token_of_user url =
+  let user = Neturl.url_user url in
+  let url = Neturl.remove_from_url ~query:true (Neturl.modify_url
+                                                  ~path:["";".users";user] url ~scheme:"http") in
+  Lwt.catch (fun () ->
+      UserCache.lookup_exn usercache user (fun _ ->
+          if user = !Config.key_id then
+            Lwt.return (Some !Config.secret_access_key)
+          else
             make_request_token ~token:!Config.secret_access_key `GET url >>= fun reply ->
             json_parse_tree (P.input_of_async_channel reply.body) >>= function
             | [`O obj] ->
@@ -531,630 +531,630 @@ end
             | lst ->
               List.iter AJson.pp_json lst;
               failwith "bad user info json"
-          )
-      ) (function
-        | SXIO.Detail(Unix.Unix_error(Unix.ENOENT, _,_), _) ->
-            Lwt.return None
-        | e -> Lwt.fail e
-      )
+        )
+    ) (function
+      | SXIO.Detail(Unix.Unix_error(Unix.ENOENT, _,_), _) ->
+        Lwt.return None
+      | e -> Lwt.fail e
+    )
 
-    let choose_error = function
-      | e :: _ ->
-          Lwt.fail e
-      | [] ->
-          failwith "empty error list"
+let choose_error = function
+  | e :: _ ->
+    Lwt.fail e
+  | [] ->
+    failwith "empty error list"
 
-    let rec make_request_loop meth ?req_body nodes url errors = match nodes with
-    | node :: rest ->
-      Lwt.catch (fun () ->
-          let url = Neturl.modify_url ~host:node url in
-          token_of_user url >>= function
-          | Some token ->
-            make_request_token ~token meth ?req_body url
-          | None ->
-            (* no such user *)
-            let user = Neturl.url_user url in
-            Lwt.fail (SXIO.Detail(Unix.Unix_error(Unix.EACCES,"", user),[
-                "SXErrorMessage",Printf.sprintf "Cannot retrieve token for user %S"
-                  user
-              ]))
+let rec make_request_loop meth ?req_body nodes url errors = match nodes with
+  | node :: rest ->
+    Lwt.catch (fun () ->
+        let url = Neturl.modify_url ~host:node url in
+        token_of_user url >>= function
+        | Some token ->
+          make_request_token ~token meth ?req_body url
+        | None ->
+          (* no such user *)
+          let user = Neturl.url_user url in
+          Lwt.fail (SXIO.Detail(Unix.Unix_error(Unix.EACCES,"", user),[
+              "SXErrorMessage",Printf.sprintf "Cannot retrieve token for user %S"
+                user
+            ]))
       ) (fun e ->
         make_request_loop meth ?req_body rest url (e :: errors)
       )
-    | [] ->
-        choose_error errors
+  | [] ->
+    choose_error errors
 
-    let make_request meth ?req_body nodes url =
-      Lwt.catch (fun () ->
-        make_request_loop meth ?req_body nodes url []
-      ) (fun _ ->
-        make_request_loop meth ?req_body nodes url []
+let make_request meth ?req_body nodes url =
+  Lwt.catch (fun () ->
+      make_request_loop meth ?req_body nodes url []
+    ) (fun _ ->
+      make_request_loop meth ?req_body nodes url []
+    )
+
+module StringSet = Set.Make(String)
+let last_nodelist = ref ([], "")
+
+let rot l =
+  if l = [] then []
+  else List.rev_append (List.rev (List.tl l)) [List.hd l]
+
+let parse_server server =
+  try
+    Scanf.sscanf server "Skylable/%_s (%s@)" (fun s -> s)
+  with e ->
+    failwith ("Bad servername " ^ server ^ ":" ^ (Printexc.to_string e))
+;;
+
+let parse_sx_cluster server =
+  try
+    Scanf.sscanf server "%_s (%s@)" (fun s -> s)
+  with e ->
+    failwith ("Bad servername " ^ server ^ ":" ^ (Printexc.to_string e))
+;;
+
+let get_cluster_nodelist url =
+  match !last_nodelist with
+  | [], _ ->
+    (* retrieve nodelist as admin *)
+    make_request_token ~token:!Config.secret_access_key `GET (fetch_nodes url) >>= fun reply ->
+    json_parse_tree (P.input_of_async_channel reply.body) >>= (function
+        | [`O [`F ("nodeList", [`A nodes])]] ->
+          let nodes = List.rev_map (function
+              | `String h -> h
+              | _ -> failwith "bad locate nodes format"
+            ) nodes in
+          let uuid =
+            try parse_sx_cluster (reply.headers#field "SX-Cluster")
+            with Not_found -> parse_server (reply.headers#field "Server") in
+          last_nodelist := rot nodes, uuid;
+          return (nodes, uuid)
+        | lst ->
+          List.iter pp_json lst;
+          failwith "bad locate nodes json"
       )
+  | nodes, uuid ->
+    (* round-robin *)
+    last_nodelist := rot nodes, uuid;
+    return (rot (url_host url :: nodes), uuid)
+;;
 
-    module StringSet = Set.Make(String)
-    let last_nodelist = ref ([], "")
-
-    let rot l =
-      if l = [] then []
-      else List.rev_append (List.rev (List.tl l)) [List.hd l]
-
-    let parse_server server =
-      try
-        Scanf.sscanf server "Skylable/%_s (%s@)" (fun s -> s)
-      with e ->
-        failwith ("Bad servername " ^ server ^ ":" ^ (Printexc.to_string e))
-    ;;
-
-    let parse_sx_cluster server =
-      try
-        Scanf.sscanf server "%_s (%s@)" (fun s -> s)
-      with e ->
-        failwith ("Bad servername " ^ server ^ ":" ^ (Printexc.to_string e))
-    ;;
-
-    let get_cluster_nodelist url =
-      match !last_nodelist with
-      | [], _ ->
-        (* retrieve nodelist as admin *)
-        make_request_token ~token:!Config.secret_access_key `GET (fetch_nodes url) >>= fun reply ->
-        json_parse_tree (P.input_of_async_channel reply.body) >>= (function
-            | [`O [`F ("nodeList", [`A nodes])]] ->
-              let nodes = List.rev_map (function
-                  | `String h -> h
-                  | _ -> failwith "bad locate nodes format"
-                ) nodes in
-              let uuid =
-                try parse_sx_cluster (reply.headers#field "SX-Cluster")
-                with Not_found -> parse_server (reply.headers#field "Server") in
-              last_nodelist := rot nodes, uuid;
-              return (nodes, uuid)
-            | lst ->
-              List.iter pp_json lst;
-              failwith "bad locate nodes json"
-          )
-      | nodes, uuid ->
-        (* round-robin *)
-        last_nodelist := rot nodes, uuid;
-        return (rot (url_host url :: nodes), uuid)
-    ;;
-
-    let get_vol_nodelist url =
-      match url_path ~encoded:true url with
-      | "" :: volume :: _ ->
-          let url = Neturl.modify_url url ~path:["";volume] in
-          get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
-          make_request `GET cluster_nodes (locate url) >>= (fun reply ->
-          json_parse_tree (P.input_of_async_channel reply.body) >>= function
-          | [`O [`F ("nodeList", [`A nodes]); `F ("volumeMeta", [`O metalist])]] ->
-            if has_field "filterActive" metalist then
-              fail (SXIO.Detail(
+let get_vol_nodelist url =
+  match url_path ~encoded:true url with
+  | "" :: volume :: _ ->
+    let url = Neturl.modify_url url ~path:["";volume] in
+    get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
+    make_request `GET cluster_nodes (locate url) >>= (fun reply ->
+        json_parse_tree (P.input_of_async_channel reply.body) >>= function
+        | [`O [`F ("nodeList", [`A nodes]); `F ("volumeMeta", [`O metalist])]] ->
+          if has_field "filterActive" metalist then
+            fail (SXIO.Detail(
                 Unix.Unix_error(Unix.EACCES, volume, "Volume uses filters"),
                 ["LibreS3ErrorMessage","Cannot access a volume that uses filters"]
               ))
-            else
-              let nodes = List.rev_map
+          else
+            let nodes = List.rev_map
                 (function
                   | `String h -> h
                   | _ -> failwith "bad locate nodes format"
                 ) nodes in
-              return (nodes, reply)
-          | lst ->
-              List.iter pp_json lst;
-              failwith "bad locate nodes json"
-          )
-      | _ ->
-          (* cannot download the volume or the root *)
-          fail (Unix.Unix_error(Unix.EISDIR,"get",(string_of_url url)));;
+            return (nodes, reply)
+        | lst ->
+          List.iter pp_json lst;
+          failwith "bad locate nodes json"
+      )
+  | _ ->
+    (* cannot download the volume or the root *)
+    fail (Unix.Unix_error(Unix.EISDIR,"get",(string_of_url url)));;
 
-    let remove_obj = function
-      | `O [one] -> one
-      | p ->
-          AJson.pp_json p;
-          failwith "Bad json reply format: obj with one field (hash) expected"
-    ;;
+let remove_obj = function
+  | `O [one] -> one
+  | p ->
+    AJson.pp_json p;
+    failwith "Bad json reply format: obj with one field (hash) expected"
+;;
 
-    module StringMap = Map.Make(String)
-    let process_batch_reply hashes replybody blocksize map =
-      snd (List.fold_left (fun (pos, accum) hash ->
-        (pos + blocksize, StringMap.add hash (replybody, pos) accum)
-      ) (0,map) hashes)
-    ;;
+module StringMap = Map.Make(String)
+let process_batch_reply hashes replybody blocksize map =
+  snd (List.fold_left (fun (pos, accum) hash ->
+      (pos + blocksize, StringMap.add hash (replybody, pos) accum)
+    ) (0,map) hashes)
+;;
 
-    module NodesMap = Map.Make(struct
-        type t = string * StringSet.t
-        let compare (ah,at) (bh,bt) =
-          match String.compare ah bh with
-          | 0 -> StringSet.compare at bt
-          | n -> n
-    end)
+module NodesMap = Map.Make(struct
+    type t = string * StringSet.t
+    let compare (ah,at) (bh,bt) =
+      match String.compare ah bh with
+      | 0 -> StringSet.compare at bt
+      | n -> n
+  end)
 
-    let nodelist (hd, tl) = hd :: (StringSet.elements tl)
+let nodelist (hd, tl) = hd :: (StringSet.elements tl)
 
-    let map_host = function
-      | `String host -> host
-      | _ -> failwith "Bad json node format"
+let map_host = function
+  | `String host -> host
+  | _ -> failwith "Bad json node format"
 
-    let map_unique_nodes = function
-      | [] -> failwith "Hash with no nodes"
-      | hd :: nodes ->
-        map_host hd, List.fold_left (fun accum j ->
-            StringSet.add (map_host j) accum) StringSet.empty nodes
-    ;;
+let map_unique_nodes = function
+  | [] -> failwith "Hash with no nodes"
+  | hd :: nodes ->
+    map_host hd, List.fold_left (fun accum j ->
+        StringSet.add (map_host j) accum) StringSet.empty nodes
+;;
 
-    let add_to_nodemap key value map =
-      try
-        NodesMap.add key (value :: (NodesMap.find key map)) map
-      with Not_found ->
-        NodesMap.add key [value] map
-    ;;
+let add_to_nodemap key value map =
+  try
+    NodesMap.add key (value :: (NodesMap.find key map)) map
+  with Not_found ->
+    NodesMap.add key [value] map
+;;
 
-    let group_by_node hashes =
-      List.fold_left
-      (fun accum -> function
-      | `F (hash, [`A nodes]) ->
-        add_to_nodemap (map_unique_nodes nodes) hash accum
-      | _ -> failwith "Bad json hash format"
-      ) NodesMap.empty hashes
-    ;;
+let group_by_node hashes =
+  List.fold_left
+    (fun accum -> function
+       | `F (hash, [`A nodes]) ->
+         add_to_nodemap (map_unique_nodes nodes) hash accum
+       | _ -> failwith "Bad json hash format"
+    ) NodesMap.empty hashes
+;;
 
-    let rec split_at_threshold bs limit listin listout current amount =
-      match listin with
-      | [] ->
-          (* the actual order of hashes inside each batch is reversed,
-           * but fold_upload reverses it again so upload
-           * will happen in ascending offset order to optimize FS reads *)
-          List.rev_append listout [current]
-      | hd :: tail ->
-        let next = amount + bs in
-        if (next <= limit) then
-          split_at_threshold bs limit tail listout (hd :: current) next
-        else
-          split_at_threshold bs limit tail (current :: listout) [hd] bs
-    ;;
+let rec split_at_threshold bs limit listin listout current amount =
+  match listin with
+  | [] ->
+    (* the actual order of hashes inside each batch is reversed,
+     * but fold_upload reverses it again so upload
+     * will happen in ascending offset order to optimize FS reads *)
+    List.rev_append listout [current]
+  | hd :: tail ->
+    let next = amount + bs in
+    if (next <= limit) then
+      split_at_threshold bs limit tail listout (hd :: current) next
+    else
+      split_at_threshold bs limit tail (current :: listout) [hd] bs
+;;
 
 
-    (* download a part of the file fully into memory.
-     * this is needed because we need to send data in stream order,
-     * but we have to download them in different order to use batching and
-     * multiple hosts *)
-    let download_full_mem url blocksize hashes =
-      let grouped = group_by_node hashes in
-      (* launch all requests *)
-      let batches = NodesMap.fold (fun nodes hashes accum ->
-        let split = split_at_threshold 1 download_max_blocks (List.rev hashes) [] [] 0 in
-        List.fold_left (fun accum hashesr ->
+(* download a part of the file fully into memory.
+ * this is needed because we need to send data in stream order,
+ * but we have to download them in different order to use batching and
+ * multiple hosts *)
+let download_full_mem url blocksize hashes =
+  let grouped = group_by_node hashes in
+  (* launch all requests *)
+  let batches = NodesMap.fold (fun nodes hashes accum ->
+      let split = split_at_threshold 1 download_max_blocks (List.rev hashes) [] [] 0 in
+      List.fold_left (fun accum hashesr ->
           let hashes = List.rev hashesr in
           let batch = (String.concat "" hashes) in
           let u = Neturl.modify_url url
-            ~path:["";".data";string_of_int blocksize;batch] in
+              ~path:["";".data";string_of_int blocksize;batch] in
           (hashes, make_request `GET (nodelist nodes) u) :: accum
         ) accum split
-      ) grouped [] in
-      (* build map of replys *)
-      List.fold_left (fun accum (hashes, request) ->
-        accum >>= fun map ->
-        (request >>= fun reply ->
-        return (process_batch_reply hashes reply.body blocksize map))
-      ) (return StringMap.empty) batches >>= fun hashmap ->
-      let batch = String.make (blocksize * (List.length hashes)) 'X' in
-      let _ = List.fold_left (fun pos hf ->
-        match hf with
-        | `F (hash, _ ) ->
-          let str, strpos = StringMap.find hash hashmap in
-          String.blit str strpos batch pos blocksize;
-          pos + blocksize
-        | _ -> failwith "bad json hash format"
-      ) 0 hashes in
-      return batch
-    ;;
+    ) grouped [] in
+  (* build map of replys *)
+  List.fold_left (fun accum (hashes, request) ->
+      accum >>= fun map ->
+      (request >>= fun reply ->
+       return (process_batch_reply hashes reply.body blocksize map))
+    ) (return StringMap.empty) batches >>= fun hashmap ->
+  let batch = String.make (blocksize * (List.length hashes)) 'X' in
+  let _ = List.fold_left (fun pos hf ->
+      match hf with
+      | `F (hash, _ ) ->
+        let str, strpos = StringMap.find hash hashmap in
+        String.blit str strpos batch pos blocksize;
+        pos + blocksize
+      | _ -> failwith "bad json hash format"
+    ) 0 hashes in
+  return batch
+;;
 
-    let get_meta url =
-     get_vol_nodelist url >>= fun (nodes, _) ->
-     let url = Neturl.modify_url ~syntax:http_syntax url ~query:"fileMeta" in
-     make_request `GET nodes url >>= fun reply ->
-     expect_content_type reply "application/json" >>= fun () ->
-     let input = P.input_of_async_channel reply.body in
-     AJson.json_parse_tree input >>= function
-     | [`O [`F ("fileMeta", [`O metalist])]] ->
-      return (List.rev_map (function
+let get_meta url =
+  get_vol_nodelist url >>= fun (nodes, _) ->
+  let url = Neturl.modify_url ~syntax:http_syntax url ~query:"fileMeta" in
+  make_request `GET nodes url >>= fun reply ->
+  expect_content_type reply "application/json" >>= fun () ->
+  let input = P.input_of_async_channel reply.body in
+  AJson.json_parse_tree input >>= function
+  | [`O [`F ("fileMeta", [`O metalist])]] ->
+    return (List.rev_map (function
         | `F (k, [`String v]) -> k, transform_string (Hexa.decode()) v
         | _ -> failwith "bad meta reply format"
       ) metalist)
-     | _ -> failwith "bad meta reply format"
+  | _ -> failwith "bad meta reply format"
 
-    let etag_of_revision = function
-      | `String rev ->
-        (* could use a hash and a suffix *)
-        rev
-      | _ ->
-        failwith "bad revision format"
+let etag_of_revision = function
+  | `String rev ->
+    (* could use a hash and a suffix *)
+    rev
+  | _ ->
+    failwith "bad revision format"
 
-    type state = {
-      hashes: AJson.json list;
-      blocksize: int;
-      filesize: int64;
-      url: Neturl.url;
-    }
-    type read_state = unit -> (string * int * int) Lwt.t
+type state = {
+  hashes: AJson.json list;
+  blocksize: int;
+  filesize: int64;
+  url: Neturl.url;
+}
+type read_state = unit -> (string * int * int) Lwt.t
 
-    let get url =
-     get_vol_nodelist url >>= fun (nodes, _) ->
-     Lwt.catch (fun () ->
-       make_request `GET nodes url >>= fun reply ->
-       try
-         let mtime = Nethttp.Header.get_last_modified reply.headers in
-         expect_content_type reply "application/json" >>= fun () ->
-         let input = P.input_of_async_channel reply.body in
-         AJson.json_parse_tree input >>= function
-         | [`O obj] ->
-            let filesize = filter_field_int "fileSize" obj
-            and etag = etag_of_revision (filter_field_one "fileRevision" obj)
-            and blocksize = Int64.to_int (filter_field_int "blockSize" obj) in
-            let a = filter_field_array "fileData" obj in
-            let hashes = List.rev (List.rev_map remove_obj a) in
-            (* split after DOWNLOAD_MAX_BLOCKS hashes *)
-            return ({ hashes = hashes; blocksize = blocksize;
-                      filesize = filesize; url = url;},
-                    { name = ""; size = filesize;
-                      mtime = mtime; etag = etag;
-                    })
-         | p ->
-             List.iter AJson.pp_json p;
-             fail (Failure "Bad json reply format: object expected")
-       with Not_found ->
-         fail (Failure ("Last-Modified missing in SX reply: "
-          ^ (string_of_url  url)))
-      )
-      (function
-        | SXIO.Detail(Unix.Unix_error(Unix.ENOENT,_,_) as e ,_) ->
-            fail e
-        | e -> fail e);;
+let get url =
+  get_vol_nodelist url >>= fun (nodes, _) ->
+  Lwt.catch (fun () ->
+      make_request `GET nodes url >>= fun reply ->
+      try
+        let mtime = Nethttp.Header.get_last_modified reply.headers in
+        expect_content_type reply "application/json" >>= fun () ->
+        let input = P.input_of_async_channel reply.body in
+        AJson.json_parse_tree input >>= function
+        | [`O obj] ->
+          let filesize = filter_field_int "fileSize" obj
+          and etag = etag_of_revision (filter_field_one "fileRevision" obj)
+          and blocksize = Int64.to_int (filter_field_int "blockSize" obj) in
+          let a = filter_field_array "fileData" obj in
+          let hashes = List.rev (List.rev_map remove_obj a) in
+          (* split after DOWNLOAD_MAX_BLOCKS hashes *)
+          return ({ hashes = hashes; blocksize = blocksize;
+                    filesize = filesize; url = url;},
+                  { name = ""; size = filesize;
+                    mtime = mtime; etag = etag;
+                  })
+        | p ->
+          List.iter AJson.pp_json p;
+          fail (Failure "Bad json reply format: object expected")
+      with Not_found ->
+        fail (Failure ("Last-Modified missing in SX reply: "
+                       ^ (string_of_url  url)))
+    )
+    (function
+      | SXIO.Detail(Unix.Unix_error(Unix.ENOENT,_,_) as e ,_) ->
+        fail e
+      | e -> fail e);;
 
 
-    let read (_, reader) = reader ()
+let read (_, reader) = reader ()
 
-    (* drop hashes from start of list until we reach desired position *)
-    let rec seek_hashes bs target_pos hashes pos = match hashes with
-      | _ :: tl as l ->
-        let next = Int64.add pos bs in
-        if next > target_pos then l, pos
-        else seek_hashes bs target_pos tl next
-      | [] -> [], pos
+(* drop hashes from start of list until we reach desired position *)
+let rec seek_hashes bs target_pos hashes pos = match hashes with
+  | _ :: tl as l ->
+    let next = Int64.add pos bs in
+    if next > target_pos then l, pos
+    else seek_hashes bs target_pos tl next
+  | [] -> [], pos
 
-    let seek s pos =
-        let hashes, start = seek_hashes (Int64.of_int s.blocksize) pos s.hashes 0L in
-        let split_map = ref (split_at_threshold s.blocksize
-                               (s.blocksize * download_max_blocks) hashes [] [] 0) in
-        let remaining = ref (Int64.sub s.filesize start) in
-        let skip = ref (Int64.to_int (Int64.sub pos start)) in
-        return (s, fun () ->
-            match !split_map with
-            | hd :: tl ->
-              split_map := tl;
-              download_full_mem s.url s.blocksize (List.rev hd) >>= fun reply ->
-              let n = String.length reply in
-              let len = min (Int64.of_int n) !remaining in
-              remaining := Int64.sub !remaining len;
-              let offset = !skip in
-              skip := 0;
-              return (reply, offset, (Int64.to_int len) - offset)
-            | [] ->
-              return ("",0,0);
-          )
+let seek s pos =
+  let hashes, start = seek_hashes (Int64.of_int s.blocksize) pos s.hashes 0L in
+  let split_map = ref (split_at_threshold s.blocksize
+                         (s.blocksize * download_max_blocks) hashes [] [] 0) in
+  let remaining = ref (Int64.sub s.filesize start) in
+  let skip = ref (Int64.to_int (Int64.sub pos start)) in
+  return (s, fun () ->
+      match !split_map with
+      | hd :: tl ->
+        split_map := tl;
+        download_full_mem s.url s.blocksize (List.rev hd) >>= fun reply ->
+        let n = String.length reply in
+        let len = min (Int64.of_int n) !remaining in
+        remaining := Int64.sub !remaining len;
+        let offset = !skip in
+        skip := 0;
+        return (reply, offset, (Int64.to_int len) - offset)
+      | [] ->
+        return ("",0,0);
+    )
 
-    let remove_leading_slash name =
-      let n = String.length name in
-      if n > 0 && name.[0] = '/' then
-        String.sub name 1 (n-1)
-      else
-        name
+let remove_leading_slash name =
+  let n = String.length name in
+  if n > 0 && name.[0] = '/' then
+    String.sub name 1 (n-1)
+  else
+    name
 
-    let parse_file = function
-    | `F (name,[`O meta]) ->
-        {
-          name = remove_leading_slash name;
-          size = (match filter_field_one "fileSize" meta with
-            | `Float f -> Int64.of_float f
-            | _ -> failwith "bad filesize format");
-          mtime = (match filter_field_one "createdAt" meta with
+let parse_file = function
+  | `F (name,[`O meta]) ->
+    {
+      name = remove_leading_slash name;
+      size = (match filter_field_one "fileSize" meta with
+          | `Float f -> Int64.of_float f
+          | _ -> failwith "bad filesize format");
+      mtime = (match filter_field_one "createdAt" meta with
           | `Float f -> f
           | _ -> failwith "bad mtime format");
-          etag = etag_of_revision (filter_field_one "fileRevision" meta)
-        }
-    | p ->
-        pp_json p;
-        failwith "bad filelist format"
-    ;;
-
-    (* SX is too slow when listing directories on large volumes,
-     * cache the data until bug #415 is fixed *)
-    (* TODO: pendinglist *)
-    module ListCache = Pendinglimit.Make(Lwt)(struct
-        type t = string * string
-        let compare = Pervasives.compare
-    end)
-    let listcache = ListCache.create ()
-
-    let listit url =
-      let user = Neturl.url_user url in
-      let req = user, string_of_url url in
-      ListCache.bind listcache req (fun _ ->
-          get_vol_nodelist url >>= fun (nodes, _) ->
-          make_request `GET nodes url >>=  fun reply ->
-          begin
-            expect_content_type reply "application/json" >>= fun () ->
-            let input = P.input_of_async_channel reply.body in
-            json_parse_tree input >>= function
-            | [`O obj] ->
-              (* TODO: stream parse instead *)
-              begin match filter_field_one "fileList" obj with
-                | `O files ->
-                  return (List.rev_map parse_file files)
-                | p ->
-                  pp_json p;
-                  fail (Failure "bad volume list format")
-              end
-            | p ->
-              List.iter pp_json p;
-              fail (Failure "bad volume list format2")
-          end
-        )
-
-    let parse_volume = function
-    | `F (name,[`O _meta]) -> name
-    | p ->
-        pp_json p;
-        failwith "bad volumeslist format"
-    ;;
-
-    let filter_opt l =
-      List.fold_left (fun accum -> function
-          | Some e -> e :: accum | None -> accum) [] l
-
-    let remove_volumes_filters url l =
-      Lwt_list.rev_map_p (fun vol ->
-          let url = Neturl.modify_url url ~path:[""; vol] in
-          Lwt.catch (fun () ->
-              get_vol_nodelist url >>= fun _ -> return (Some vol))
-            (fun _ -> return None)) l >>= fun lst ->
-      return (filter_opt lst)
-
-    let volumelist url =
-      get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
-      make_request `GET cluster_nodes url >>=  fun reply ->
-      begin
-       expect_content_type reply "application/json" >>= fun () ->
-       let input = P.input_of_async_channel reply.body in
-       json_parse_tree input >>= function
-       | [`O obj] ->
-          begin match filter_field_one "volumeList" obj with
-          | `O files ->
-            remove_volumes_filters url (List.rev_map parse_volume files)
-          | p ->
-            pp_json p;
-            fail (Failure "bad volumes list format")
-          end
-       | p ->
-           List.iter pp_json p;
-           fail (Failure "bad volumes list format2")
-     end
-
-
-    let rec print_json e = function
-    | `Array a ->
-        ignore (Jsonm.encode e (`Lexeme `As));
-        List.iter (print_json e) a;
-        ignore (Jsonm.encode e (`Lexeme `Ae));
-    | `Object o ->
-        ignore (Jsonm.encode e (`Lexeme `Os));
-        List.iter (print_json_mem e) o;
-        ignore (Jsonm.encode e (`Lexeme `Oe));
-    | `Null | `Bool  _ | `Float _ | `String _ as l ->
-        ignore (Jsonm.encode e (`Lexeme l))
-
-    and print_json_mem e (n, v) =
-      ignore (Jsonm.encode e (`Lexeme (`Name n)));
-      print_json e v;;
-
-    let send_json nodelist url json =
-      let b = Buffer.create 4096 in
-      let encoder = Jsonm.encoder (`Buffer b) in
-      print_json encoder json;
-      ignore (Jsonm.encode encoder `End);
-      make_request `PUT ~req_body:(Buffer.contents b) nodelist url;;
-
-    type estate = EOF | PartialBlock of int | FullBlock
-
-    type buf = {
-      buf: string;
-      mutable str: string;
-      mutable pos: int;
-      mutable n: int
+      etag = etag_of_revision (filter_field_one "fileRevision" meta)
     }
+  | p ->
+    pp_json p;
+    failwith "bad filelist format"
+;;
 
-    let rec read_block stream buf pos size =
-      if size > 0 then
-        let read = if buf.pos + buf.n <= String.length buf.str && buf.n > 0 then
-            return ()
-          else begin
-            stream () >>= fun (src, srcpos, n) ->
-            buf.str <- src;
-            buf.pos <- srcpos;
-            buf.n <- n;
-            return ()
-          end in
-        read >>= fun () ->
-        let n = min buf.n size in
-        String.blit buf.str buf.pos buf.buf pos n;
-        buf.pos <- buf.pos + n;
-        buf.n <- buf.n - n;
-        if n = 0 then
-          if pos = 0 then
-            return EOF
-          else
-            return (PartialBlock pos)
-        else
-          read_block stream buf (pos + n) (size - n)
-      else
-        return FullBlock
-      ;;
+(* SX is too slow when listing directories on large volumes,
+ * cache the data until bug #415 is fixed *)
+(* TODO: pendinglist *)
+module ListCache = Pendinglimit.Make(Lwt)(struct
+    type t = string * string
+    let compare = Pervasives.compare
+  end)
+let listcache = ListCache.create ()
 
-    (* TODO: these would belong in eventIO *)
-    let rec compute_hashes_loop uuid tmpfd stream buf blocksize lst map pos stop =
-      if pos >= stop then return (lst, map, stop)
-      else begin
-      String.fill buf.buf 0 (String.length buf.buf) '\x00';
-      read_block stream buf 0 blocksize >>= fun status ->
-      IO.really_write tmpfd buf.buf 0 (String.length buf.buf) >>= fun () ->
-      if status = EOF then return (lst, map, pos)
-      else
-        let h = Hash.sha1 () in
-        h#add_string uuid;
-        let sha1 = hash_string h buf.buf in
-        let sha1_hex = transform_string (Hexa.encode ()) sha1 in
-        let nextmap = StringMap.add sha1_hex pos map in
-        let nextlst = sha1_hex :: lst in
-        let nextpos = Int64.add pos (Int64.of_int blocksize) in
-        match status with
-        | FullBlock ->
-          compute_hashes_loop uuid tmpfd stream buf blocksize nextlst nextmap nextpos stop
-        | PartialBlock len ->
-          return (nextlst, nextmap, Int64.add pos (Int64.of_int len)) (* it was a partial block, we're done *)
-        | _ -> assert false
-        end
-    ;;
-
-    let fold_upload user port (offset, tmpfd) map token blocksize nodes hashes previous =
-      previous >>= fun () ->
-      let buf = {
-        buf = String.make (blocksize * (List.length hashes)) '\x00';
-        str = ""; pos = 0; n = 0
-      } in
-      (*  TODO: chop into 4MB chunks *)
-      List.fold_left (fun prev hash ->
-        prev >>= fun pos ->
-        try
-          buf.pos <- 0;
-          buf.n <- 0;
-          let seekpos = StringMap.find hash map in
-(*          Printf.printf "Uploading hash %s from offset %Ld\n" hash seekpos;*)
-          let offset = Int64.sub seekpos offset in
-          IO.lseek tmpfd offset >>= fun _ ->
-          IO.really_read tmpfd buf.buf pos blocksize >>= function
-          | 0 -> fail (Failure "eof when trying to read hash")
-          | _ ->
-              return (pos + blocksize)
-        with Not_found ->
-          StringMap.iter (fun k v -> Printf.printf "%s -> %Ld\n%!" k v) map;
-          fail (Failure ("hash not found:" ^ hash))
-      ) (return 0) hashes >>= fun _ ->
-      (* TODO: retry on failure *)
-      let url =
-        Neturl.make_url ~encoded:false
-          ~scheme:"sx"
-          ~port ~path:["";".data";string_of_int blocksize;token]
-          ~user ~host:(fst nodes)
-          http_syntax
-      in
-      make_request `PUT ~req_body:buf.buf (nodelist nodes) url >>= fun _ ->
-      return ()
-    ;;
-
-    let check_reply reply =
-      let c = reply.code in
-      if c >= 400 then
-        fail (Failure (Printf.sprintf "SX replied with code %d" c))
-      else
-        return ()
-    ;;
-
-    let rec job_poll origurl url expected_id interval max_interval =
-      delay interval >>= fun () ->
-      make_request `GET [Neturl.url_host url] url >>= fun reply ->
-      AJson.json_parse_tree (P.input_of_async_channel reply.body) >>= function
-        | [`O obj] ->
-            let requestid = filter_field_string "requestId" obj
-            and status = filter_field_string "requestStatus" obj
-            and msg = filter_field_string "requestMessage" obj in
-            if requestid <> expected_id then
-              fail (SXIO.Detail(
-                Failure "Job id mismatch",
-                ["SXErrorMessage",msg;"SXJobStatus",status;
-                "ExpectedId",expected_id;"ActualId",requestid]))
-            else begin match status with
-            | "PENDING" ->
-              (* TODO: investigate other formulas, for now we use libsx formula *)
-              let interval = min (interval *. 2.0) max_interval in
-              job_poll origurl url expected_id interval max_interval
-            | "OK" ->
-              return ()
-            | "ERROR" ->
-              let e = match msg with
-              | "Volume already exists" ->
-                  Unix.Unix_error(Unix.EEXIST,"PUT",string_of_url origurl)
-              | _ ->
-                Failure ("Operation failed: " ^ msg) in
-              fail (SXIO.Detail(e, ["SXErrorMessage", msg;"SXHttpCode","200"]))
-            | _ ->
-              fail (SXIO.Detail(
-                Failure (Printf.sprintf "Invalid request status %s: %s" status msg),
-                ["SXErrorMessage", msg;"SXHttpCode","200"]))
-            end
-        | p ->
-              List.iter AJson.pp_json p;
-              fail (Failure "Bad json reply format: object expected")
-    ;;
-
-    let job_get ?(async=false) url reply =
-      check_reply reply >>= fun () ->
-      if async then return ()
-      else AJson.json_parse_tree (P.input_of_async_channel reply.body) >>= function
-        | [`O obj] ->
-            let requestid = filter_field_string "requestId" obj
-            and minPoll = filter_field_number "minPollInterval" obj
-            and maxPoll = filter_field_number "maxPollInterval" obj in
-            let pollurl = Neturl.modify_url
-                ~path:["";".results";requestid]
-                (Neturl.modify_url ~host:reply.req_host url) in
-            job_poll url pollurl requestid minPoll maxPoll
-        | p ->
-              List.iter AJson.pp_json p;
-              fail (Failure "Bad json reply format: object expected")
-    ;;
-
-    let flush_token url token =
-      let url = Neturl.modify_url url
-        ~path:["";".upload";token] ~encoded:false in
-      make_request `PUT [Neturl.url_host url] url >>=
-      job_get url
-
-    let locate_upload url size =
-      match url_path ~encoded:true url with
-      | "" :: volume :: _ ->
+let listit url =
+  let user = Neturl.url_user url in
+  let req = user, string_of_url url in
+  ListCache.bind listcache req (fun _ ->
       get_vol_nodelist url >>= fun (nodes, _) ->
-      begin make_request `GET nodes (Neturl.modify_url
-            ~path:["";volume]
-            ~scheme:"http"
-            ~syntax:http_syntax
-            ~encoded:true
-            ~query:(Printf.sprintf "o=locate&volumeMeta&size=%Ld" size) url)
-        >>= fun reply ->
+      make_request `GET nodes url >>=  fun reply ->
+      begin
+        expect_content_type reply "application/json" >>= fun () ->
+        let input = P.input_of_async_channel reply.body in
+        json_parse_tree input >>= function
+        | [`O obj] ->
+          (* TODO: stream parse instead *)
+          begin match filter_field_one "fileList" obj with
+            | `O files ->
+              return (List.rev_map parse_file files)
+            | p ->
+              pp_json p;
+              fail (Failure "bad volume list format")
+          end
+        | p ->
+          List.iter pp_json p;
+          fail (Failure "bad volume list format2")
+      end
+    )
+
+let parse_volume = function
+  | `F (name,[`O _meta]) -> name
+  | p ->
+    pp_json p;
+    failwith "bad volumeslist format"
+;;
+
+let filter_opt l =
+  List.fold_left (fun accum -> function
+      | Some e -> e :: accum | None -> accum) [] l
+
+let remove_volumes_filters url l =
+  Lwt_list.rev_map_p (fun vol ->
+      let url = Neturl.modify_url url ~path:[""; vol] in
+      Lwt.catch (fun () ->
+          get_vol_nodelist url >>= fun _ -> return (Some vol))
+        (fun _ -> return None)) l >>= fun lst ->
+  return (filter_opt lst)
+
+let volumelist url =
+  get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
+  make_request `GET cluster_nodes url >>=  fun reply ->
+  begin
+    expect_content_type reply "application/json" >>= fun () ->
+    let input = P.input_of_async_channel reply.body in
+    json_parse_tree input >>= function
+    | [`O obj] ->
+      begin match filter_field_one "volumeList" obj with
+        | `O files ->
+          remove_volumes_filters url (List.rev_map parse_volume files)
+        | p ->
+          pp_json p;
+          fail (Failure "bad volumes list format")
+      end
+    | p ->
+      List.iter pp_json p;
+      fail (Failure "bad volumes list format2")
+  end
+
+
+let rec print_json e = function
+  | `Array a ->
+    ignore (Jsonm.encode e (`Lexeme `As));
+    List.iter (print_json e) a;
+    ignore (Jsonm.encode e (`Lexeme `Ae));
+  | `Object o ->
+    ignore (Jsonm.encode e (`Lexeme `Os));
+    List.iter (print_json_mem e) o;
+    ignore (Jsonm.encode e (`Lexeme `Oe));
+  | `Null | `Bool  _ | `Float _ | `String _ as l ->
+    ignore (Jsonm.encode e (`Lexeme l))
+
+and print_json_mem e (n, v) =
+  ignore (Jsonm.encode e (`Lexeme (`Name n)));
+  print_json e v;;
+
+let send_json nodelist url json =
+  let b = Buffer.create 4096 in
+  let encoder = Jsonm.encoder (`Buffer b) in
+  print_json encoder json;
+  ignore (Jsonm.encode encoder `End);
+  make_request `PUT ~req_body:(Buffer.contents b) nodelist url;;
+
+type estate = EOF | PartialBlock of int | FullBlock
+
+type buf = {
+  buf: string;
+  mutable str: string;
+  mutable pos: int;
+  mutable n: int
+}
+
+let rec read_block stream buf pos size =
+  if size > 0 then
+    let read = if buf.pos + buf.n <= String.length buf.str && buf.n > 0 then
+        return ()
+      else begin
+        stream () >>= fun (src, srcpos, n) ->
+        buf.str <- src;
+        buf.pos <- srcpos;
+        buf.n <- n;
+        return ()
+      end in
+    read >>= fun () ->
+    let n = min buf.n size in
+    String.blit buf.str buf.pos buf.buf pos n;
+    buf.pos <- buf.pos + n;
+    buf.n <- buf.n - n;
+    if n = 0 then
+      if pos = 0 then
+        return EOF
+      else
+        return (PartialBlock pos)
+    else
+      read_block stream buf (pos + n) (size - n)
+  else
+    return FullBlock
+;;
+
+(* TODO: these would belong in eventIO *)
+let rec compute_hashes_loop uuid tmpfd stream buf blocksize lst map pos stop =
+  if pos >= stop then return (lst, map, stop)
+  else begin
+    String.fill buf.buf 0 (String.length buf.buf) '\x00';
+    read_block stream buf 0 blocksize >>= fun status ->
+    IO.really_write tmpfd buf.buf 0 (String.length buf.buf) >>= fun () ->
+    if status = EOF then return (lst, map, pos)
+    else
+      let h = Hash.sha1 () in
+      h#add_string uuid;
+      let sha1 = hash_string h buf.buf in
+      let sha1_hex = transform_string (Hexa.encode ()) sha1 in
+      let nextmap = StringMap.add sha1_hex pos map in
+      let nextlst = sha1_hex :: lst in
+      let nextpos = Int64.add pos (Int64.of_int blocksize) in
+      match status with
+      | FullBlock ->
+        compute_hashes_loop uuid tmpfd stream buf blocksize nextlst nextmap nextpos stop
+      | PartialBlock len ->
+        return (nextlst, nextmap, Int64.add pos (Int64.of_int len)) (* it was a partial block, we're done *)
+      | _ -> assert false
+  end
+;;
+
+let fold_upload user port (offset, tmpfd) map token blocksize nodes hashes previous =
+  previous >>= fun () ->
+  let buf = {
+    buf = String.make (blocksize * (List.length hashes)) '\x00';
+    str = ""; pos = 0; n = 0
+  } in
+  (*  TODO: chop into 4MB chunks *)
+  List.fold_left (fun prev hash ->
+      prev >>= fun pos ->
+      try
+        buf.pos <- 0;
+        buf.n <- 0;
+        let seekpos = StringMap.find hash map in
+        (*          Printf.printf "Uploading hash %s from offset %Ld\n" hash seekpos;*)
+        let offset = Int64.sub seekpos offset in
+        IO.lseek tmpfd offset >>= fun _ ->
+        IO.really_read tmpfd buf.buf pos blocksize >>= function
+        | 0 -> fail (Failure "eof when trying to read hash")
+        | _ ->
+          return (pos + blocksize)
+      with Not_found ->
+        StringMap.iter (fun k v -> Printf.printf "%s -> %Ld\n%!" k v) map;
+        fail (Failure ("hash not found:" ^ hash))
+    ) (return 0) hashes >>= fun _ ->
+  (* TODO: retry on failure *)
+  let url =
+    Neturl.make_url ~encoded:false
+      ~scheme:"sx"
+      ~port ~path:["";".data";string_of_int blocksize;token]
+      ~user ~host:(fst nodes)
+      http_syntax
+  in
+  make_request `PUT ~req_body:buf.buf (nodelist nodes) url >>= fun _ ->
+  return ()
+;;
+
+let check_reply reply =
+  let c = reply.code in
+  if c >= 400 then
+    fail (Failure (Printf.sprintf "SX replied with code %d" c))
+  else
+    return ()
+;;
+
+let rec job_poll origurl url expected_id interval max_interval =
+  delay interval >>= fun () ->
+  make_request `GET [Neturl.url_host url] url >>= fun reply ->
+  AJson.json_parse_tree (P.input_of_async_channel reply.body) >>= function
+  | [`O obj] ->
+    let requestid = filter_field_string "requestId" obj
+    and status = filter_field_string "requestStatus" obj
+    and msg = filter_field_string "requestMessage" obj in
+    if requestid <> expected_id then
+      fail (SXIO.Detail(
+          Failure "Job id mismatch",
+          ["SXErrorMessage",msg;"SXJobStatus",status;
+           "ExpectedId",expected_id;"ActualId",requestid]))
+    else begin match status with
+      | "PENDING" ->
+        (* TODO: investigate other formulas, for now we use libsx formula *)
+        let interval = min (interval *. 2.0) max_interval in
+        job_poll origurl url expected_id interval max_interval
+      | "OK" ->
+        return ()
+      | "ERROR" ->
+        let e = match msg with
+          | "Volume already exists" ->
+            Unix.Unix_error(Unix.EEXIST,"PUT",string_of_url origurl)
+          | _ ->
+            Failure ("Operation failed: " ^ msg) in
+        fail (SXIO.Detail(e, ["SXErrorMessage", msg;"SXHttpCode","200"]))
+      | _ ->
+        fail (SXIO.Detail(
+            Failure (Printf.sprintf "Invalid request status %s: %s" status msg),
+            ["SXErrorMessage", msg;"SXHttpCode","200"]))
+    end
+  | p ->
+    List.iter AJson.pp_json p;
+    fail (Failure "Bad json reply format: object expected")
+;;
+
+let job_get ?(async=false) url reply =
+  check_reply reply >>= fun () ->
+  if async then return ()
+  else AJson.json_parse_tree (P.input_of_async_channel reply.body) >>= function
+    | [`O obj] ->
+      let requestid = filter_field_string "requestId" obj
+      and minPoll = filter_field_number "minPollInterval" obj
+      and maxPoll = filter_field_number "maxPollInterval" obj in
+      let pollurl = Neturl.modify_url
+          ~path:["";".results";requestid]
+          (Neturl.modify_url ~host:reply.req_host url) in
+      job_poll url pollurl requestid minPoll maxPoll
+    | p ->
+      List.iter AJson.pp_json p;
+      fail (Failure "Bad json reply format: object expected")
+;;
+
+let flush_token url token =
+  let url = Neturl.modify_url url
+      ~path:["";".upload";token] ~encoded:false in
+  make_request `PUT [Neturl.url_host url] url >>=
+  job_get url
+
+let locate_upload url size =
+  match url_path ~encoded:true url with
+  | "" :: volume :: _ ->
+    get_vol_nodelist url >>= fun (nodes, _) ->
+    begin make_request `GET nodes (Neturl.modify_url
+                                     ~path:["";volume]
+                                     ~scheme:"http"
+                                     ~syntax:http_syntax
+                                     ~encoded:true
+                                     ~query:(Printf.sprintf "o=locate&volumeMeta&size=%Ld" size) url)
+      >>= fun reply ->
       AJson.json_parse_tree (P.input_of_async_channel reply.body) >>= function
       | [`O [
           `F ("nodeList",[`A nodes]);
           `F ("blockSize",[`Float blocksize]);
           `F ("volumeMeta", [`O metalist])
         ]] ->
-          if has_field "filterActive" metalist then
-            fail (SXIO.Detail(
+        if has_field "filterActive" metalist then
+          fail (SXIO.Detail(
               Unix.Unix_error(Unix.EACCES, volume, "Volume uses filters"),
               ["LibreS3ErrorMessage","Cannot access a volume that uses filters"]
             ))
-          else let nodes =
-            List.rev_map (function
-              | `String h -> h
-              | _ -> failwith "bad locate  nodes format"
-              ) nodes
+        else let nodes =
+               List.rev_map (function
+                   | `String h -> h
+                   | _ -> failwith "bad locate  nodes format"
+                 ) nodes
           in
           let uuid =
             try parse_sx_cluster (reply.headers#field "SX-Cluster")
@@ -1162,213 +1162,213 @@ end
           in
           return (uuid, nodes, int_of_float blocksize)
       | p ->
-          List.iter AJson.pp_json p;
-          fail (Failure "bad json locate format")
-      end
-      | _ -> fail (Invalid_argument "Can upload only to a file (not a volume or the root)")
-    ;;
-
-    let upload_batch user port source map token blocksize upload_map () =
-      let grouped_hashes = group_by_node upload_map in
-      NodesMap.fold
-        (fold_upload user port source map token blocksize)
-        grouped_hashes (return ())
-    ;;
-
-    let build_meta = function
-      | None -> []
-      | Some f ->
-          ["fileMeta", `Object (
-            List.rev_map (fun (k,v) ->
-              k, `String (transform_string (Hexa.encode ()) v)
-            ) (f ())
-          )]
-
-    let upload_part ?metafn nodelist url source blocksize hashes map size extendSeq =
-      let obj = List.rev_append [
-        "fileData", `Array hashes;
-        if extendSeq > 0L then
-          "extendSeq", `Float (Int64.to_float extendSeq)
-        else
-          "fileSize", `Float (Int64.to_float size);
-      ] (build_meta metafn) in
-      send_json nodelist url (`Object obj) >>= fun reply ->
-      check_reply reply >>= fun () ->
-      AJson.json_parse_tree (P.input_of_async_channel reply.body) >>= function
-      | [`O [
-        `F ("uploadToken",[`String token]);
-        `F ("uploadData",[`O upload_map])
-        ]] ->
-        Printf.printf "offering %d hashes, requested %d hashes\n%!"
-          (List.length hashes) (List.length upload_map);
-        let split_map = split_at_threshold blocksize chunk_size upload_map [] [] 0 in
-        List.fold_left
-          (fun accum umap ->
-            let user = Neturl.url_user url in
-            accum >>= upload_batch user (url_port_opt url) source map token blocksize umap)
-          (return ()) split_map >>= fun () ->
-        return (reply.req_host, token)
-      | p ->
         List.iter AJson.pp_json p;
-        fail (Failure "Bad json reply format")
-    ;;
+        fail (Failure "bad json locate format")
+    end
+  | _ -> fail (Invalid_argument "Can upload only to a file (not a volume or the root)")
+;;
 
-    (* !! partial blocks can only be sent in the final upload request,
-     * because otherwise auto-bs would choose the wrong bs
-     * when uploading the partial blocks.
-     * partial blocks = stuff under auto-bs threshold
-     *)
-    let rec upload_chunks ?metafn buf tmpfd nodes url size uuid stream blocksize pos token =
-      let endpos = min (Int64.add pos (Int64.of_int multipart_threshold)) size in
-      let end_threshold = Int64.sub size last_threshold in
-      let endpos =
-        (* upload the very last chunk of the file separately:
-         * first time: pos < end_threshold -> end_threshold
-         * second time: pos = end_threshold -> endpos *)
-        if end_threshold > 0L && pos < end_threshold then end_threshold
-        else endpos in
-      let bs64 = Int64.of_int blocksize in
-      let extendseq = Int64.div (Int64.add pos (Int64.sub bs64 1L)) bs64 in
-      if pos = endpos && token <> "" then begin
-        (* all multiparts uploaded, flush token *)
-        flush_token url token
-      end else begin
-        (* still have parts to upload *)
-        compute_hashes_loop uuid tmpfd stream buf blocksize [] StringMap.empty pos endpos
-        >>= fun (hashes_rev, map, _) ->
-        let hashes = List.rev_map (fun h -> `String h) hashes_rev in
-        let n = List.length hashes_rev in
-        (* TODO: multiple hosts and retry *)
-        let expected_bytes = Int64.to_int (Int64.sub endpos pos) in
-        let expected = (expected_bytes + blocksize - 1) / blocksize in
-        if (n <> expected) then
-          fail (Failure (Printf.sprintf "Bad hash counts: %d != %d; pos: %Ld, bytes: %d"
-            n expected pos expected_bytes))
-        else
-          let url = if extendseq > 0L then
-            Neturl.modify_url url ~path:["";".upload";token] ~encoded:false
-          else url in
-          IO.lseek tmpfd 0L >>= fun _ ->
-          let metafn_final = if endpos = size then metafn else None in
-          upload_part ?metafn:metafn_final nodes url (pos, tmpfd) blocksize hashes map size extendseq >>= fun (host, token) ->
-          let url = Neturl.modify_url ~host url in
-          IO.lseek tmpfd 0L >>= fun _ ->
-          upload_chunks ?metafn buf tmpfd [host] url size uuid stream blocksize endpos token
-      end
-    ;;
+let upload_batch user port source map token blocksize upload_map () =
+  let grouped_hashes = group_by_node upload_map in
+  NodesMap.fold
+    (fold_upload user port source map token blocksize)
+    grouped_hashes (return ())
+;;
 
-    let put ?metafn src srcpos url =
-      let host = url_host url in
-      let size = Int64.sub (src.XIO.meta.XIO.size)  srcpos in
-      if size < 0L then
-        fail (Failure "Source position beyond EOF")
-      else match url_path ~encoded:true url with
-      | "" :: _volume :: _path ->
-        (* TODO: handle no such volume errors *)
-        locate_upload url size >>= fun (uuid, nodes, blocksize) ->
-        let url = Neturl.modify_url ~host url in
-        src.XIO.seek 0L >>= fun stream ->
-        IO.with_tempfile (fun tmpfd ->
-            let buf = {
-              buf = String.make blocksize '\x00';
-              str = ""; pos = 0; n = 0 } in
-            upload_chunks ?metafn buf tmpfd nodes url size uuid stream blocksize srcpos "")
+let build_meta = function
+  | None -> []
+  | Some f ->
+    ["fileMeta", `Object (
+        List.rev_map (fun (k,v) ->
+            k, `String (transform_string (Hexa.encode ()) v)
+          ) (f ())
+      )]
+
+let upload_part ?metafn nodelist url source blocksize hashes map size extendSeq =
+  let obj = List.rev_append [
+      "fileData", `Array hashes;
+      if extendSeq > 0L then
+        "extendSeq", `Float (Int64.to_float extendSeq)
+      else
+        "fileSize", `Float (Int64.to_float size);
+    ] (build_meta metafn) in
+  send_json nodelist url (`Object obj) >>= fun reply ->
+  check_reply reply >>= fun () ->
+  AJson.json_parse_tree (P.input_of_async_channel reply.body) >>= function
+  | [`O [
+      `F ("uploadToken",[`String token]);
+      `F ("uploadData",[`O upload_map])
+    ]] ->
+    Printf.printf "offering %d hashes, requested %d hashes\n%!"
+      (List.length hashes) (List.length upload_map);
+    let split_map = split_at_threshold blocksize chunk_size upload_map [] [] 0 in
+    List.fold_left
+      (fun accum umap ->
+         let user = Neturl.url_user url in
+         accum >>= upload_batch user (url_port_opt url) source map token blocksize umap)
+      (return ()) split_map >>= fun () ->
+    return (reply.req_host, token)
+  | p ->
+    List.iter AJson.pp_json p;
+    fail (Failure "Bad json reply format")
+;;
+
+(* !! partial blocks can only be sent in the final upload request,
+ * because otherwise auto-bs would choose the wrong bs
+ * when uploading the partial blocks.
+ * partial blocks = stuff under auto-bs threshold
+*)
+let rec upload_chunks ?metafn buf tmpfd nodes url size uuid stream blocksize pos token =
+  let endpos = min (Int64.add pos (Int64.of_int multipart_threshold)) size in
+  let end_threshold = Int64.sub size last_threshold in
+  let endpos =
+    (* upload the very last chunk of the file separately:
+     * first time: pos < end_threshold -> end_threshold
+     * second time: pos = end_threshold -> endpos *)
+    if end_threshold > 0L && pos < end_threshold then end_threshold
+    else endpos in
+  let bs64 = Int64.of_int blocksize in
+  let extendseq = Int64.div (Int64.add pos (Int64.sub bs64 1L)) bs64 in
+  if pos = endpos && token <> "" then begin
+    (* all multiparts uploaded, flush token *)
+    flush_token url token
+  end else begin
+    (* still have parts to upload *)
+    compute_hashes_loop uuid tmpfd stream buf blocksize [] StringMap.empty pos endpos
+    >>= fun (hashes_rev, map, _) ->
+    let hashes = List.rev_map (fun h -> `String h) hashes_rev in
+    let n = List.length hashes_rev in
+    (* TODO: multiple hosts and retry *)
+    let expected_bytes = Int64.to_int (Int64.sub endpos pos) in
+    let expected = (expected_bytes + blocksize - 1) / blocksize in
+    if (n <> expected) then
+      fail (Failure (Printf.sprintf "Bad hash counts: %d != %d; pos: %Ld, bytes: %d"
+                       n expected pos expected_bytes))
+    else
+      let url = if extendseq > 0L then
+          Neturl.modify_url url ~path:["";".upload";token] ~encoded:false
+        else url in
+      IO.lseek tmpfd 0L >>= fun _ ->
+      let metafn_final = if endpos = size then metafn else None in
+      upload_part ?metafn:metafn_final nodes url (pos, tmpfd) blocksize hashes map size extendseq >>= fun (host, token) ->
+      let url = Neturl.modify_url ~host url in
+      IO.lseek tmpfd 0L >>= fun _ ->
+      upload_chunks ?metafn buf tmpfd [host] url size uuid stream blocksize endpos token
+  end
+;;
+
+let put ?metafn src srcpos url =
+  let host = url_host url in
+  let size = Int64.sub (src.XIO.meta.XIO.size)  srcpos in
+  if size < 0L then
+    fail (Failure "Source position beyond EOF")
+  else match url_path ~encoded:true url with
+    | "" :: _volume :: _path ->
+      (* TODO: handle no such volume errors *)
+      locate_upload url size >>= fun (uuid, nodes, blocksize) ->
+      let url = Neturl.modify_url ~host url in
+      src.XIO.seek 0L >>= fun stream ->
+      IO.with_tempfile (fun tmpfd ->
+          let buf = {
+            buf = String.make blocksize '\x00';
+            str = ""; pos = 0; n = 0 } in
+          upload_chunks ?metafn buf tmpfd nodes url size uuid stream blocksize srcpos "")
     | _ ->
-        fail (Failure "can only put a file (not a volume or the root)")
+      fail (Failure "can only put a file (not a volume or the root)")
 
-  let fold_list url f recurse accum =
-    let fullpath = url_path ~encoded:true url in
-    match fullpath with
-    | "" :: volume :: path ->
-      let base = Neturl.modify_url url ~encoded:true ~path:["";volume] in
-      let query = match path with
+let fold_list url f recurse accum =
+  let fullpath = url_path ~encoded:true url in
+  match fullpath with
+  | "" :: volume :: path ->
+    let base = Neturl.modify_url url ~encoded:true ~path:["";volume] in
+    let query = match path with
       | [] | [""] -> "recursive"
       | _ ->
-          Printf.sprintf "recursive&filter=%s"
-            ((join_path path) ^ "*") in
-      let url = Neturl.modify_url url
+        Printf.sprintf "recursive&filter=%s"
+          ((join_path path) ^ "*") in
+    let url = Neturl.modify_url url
         ~encoded:true ~scheme:"http" ~syntax:http_syntax
         ~path:["";volume] ~query in
-          listit url >>= fun lst ->
-            foldl base volume f lst accum
-    | [""] | [] ->
-        let base = Neturl.modify_url url
-          ~encoded:true ~path:[""] ~scheme:"http" ~syntax:http_syntax
-          ~query:"volumeList" in
-        volumelist base >>= fun lst ->
-        List.iter (fun dir ->
-          ignore (recurse ("/" ^ dir))) lst;
-        return accum
-    | _ ->
-        failwith "invalid URL";;
+    listit url >>= fun lst ->
+    foldl base volume f lst accum
+  | [""] | [] ->
+    let base = Neturl.modify_url url
+        ~encoded:true ~path:[""] ~scheme:"http" ~syntax:http_syntax
+        ~query:"volumeList" in
+    volumelist base >>= fun lst ->
+    List.iter (fun dir ->
+        ignore (recurse ("/" ^ dir))) lst;
+    return accum
+  | _ ->
+    failwith "invalid URL";;
 
-  let open_source url =
-    get url >|= fun (reader, entry) ->
-    {
-      XIO.name = Neturl.join_path (Neturl.url_path ~encoded:false url);
-      size = entry.size;
-      mtime = entry.mtime;
-      etag = entry.etag
-    },
-    reader
+let open_source url =
+  get url >|= fun (reader, entry) ->
+  {
+    XIO.name = Neturl.join_path (Neturl.url_path ~encoded:false url);
+    size = entry.size;
+    mtime = entry.mtime;
+    etag = entry.etag
+  },
+  reader
 
-  let close_source _ =
-    (* TODO: abort download*)
-    return ()
+let close_source _ =
+  (* TODO: abort download*)
+  return ()
 
-  let extract_hash = function
-    | `O [ `F (hash, _) ] -> `String hash
-    | p ->
-      AJson.pp_json p;
-      failwith "bad json hashlist format"
+let extract_hash = function
+  | `O [ `F (hash, _) ] -> `String hash
+  | p ->
+    AJson.pp_json p;
+    failwith "bad json hashlist format"
 
-  let extract_hashes lst = List.rev (List.rev_map extract_hash lst)
+let extract_hashes lst = List.rev (List.rev_map extract_hash lst)
 
-  let get_hashlist src =
-    get_vol_nodelist src >>= fun (src_nodes, _) ->
-    make_request `GET src_nodes src >>= fun reply ->
-    expect_content_type reply "application/json" >>= fun () ->
-    json_parse_tree (P.input_of_async_channel reply.body) >>= function
-    | [`O obj] ->
-      return (filter_field_int "blockSize" obj,
-              filter_field_int "fileSize" obj,
-              extract_hashes (filter_field_array "fileData" obj))
-    | _ ->
-      failwith "bad json hash list"
+let get_hashlist src =
+  get_vol_nodelist src >>= fun (src_nodes, _) ->
+  make_request `GET src_nodes src >>= fun reply ->
+  expect_content_type reply "application/json" >>= fun () ->
+  json_parse_tree (P.input_of_async_channel reply.body) >>= function
+  | [`O obj] ->
+    return (filter_field_int "blockSize" obj,
+            filter_field_int "fileSize" obj,
+            extract_hashes (filter_field_array "fileData" obj))
+  | _ ->
+    failwith "bad json hash list"
 
-  let is_file_url url = match url_path ~encoded:true url with
-    | "" :: _dstvol :: _dstpath -> true
-    | _ -> false
+let is_file_url url = match url_path ~encoded:true url with
+  | "" :: _dstvol :: _dstpath -> true
+  | _ -> false
 
-  let upload_hashes ?metafn hashes dst_nodes dst size =
-    Lwt.catch (fun () ->
-        get_vol_nodelist dst >>= fun (dst_nodes, _) ->
-        let obj =
-          ("fileSize", `Float (Int64.to_float size)) ::
-          ("fileData", `Array hashes) ::
-          (build_meta metafn) in
-        let obj = List.rev_append (build_meta metafn) obj in
-        send_json dst_nodes dst (`Object obj) >>= fun reply ->
-        check_reply reply >>= fun () ->
-        begin AJson.json_parse_tree (P.input_of_async_channel reply.body) >>= function
-          | [`O [
-              `F ("uploadToken",[`String token]);
-              `F ("uploadData",[`O []])
-            ]] ->
-            let dst = Neturl.modify_url ~host:reply.req_host dst in
-            flush_token dst token >>= fun () ->
-            return true
-          | _ ->
-            return false
-        end
-      ) (function
-        | SXIO.Detail(Unix.Unix_error(Unix.ENOENT,_,_) as e ,_) ->
-          fail e
-        | e -> fail e)
+let upload_hashes ?metafn hashes dst_nodes dst size =
+  Lwt.catch (fun () ->
+      get_vol_nodelist dst >>= fun (dst_nodes, _) ->
+      let obj =
+        ("fileSize", `Float (Int64.to_float size)) ::
+        ("fileData", `Array hashes) ::
+        (build_meta metafn) in
+      let obj = List.rev_append (build_meta metafn) obj in
+      send_json dst_nodes dst (`Object obj) >>= fun reply ->
+      check_reply reply >>= fun () ->
+      begin AJson.json_parse_tree (P.input_of_async_channel reply.body) >>= function
+        | [`O [
+            `F ("uploadToken",[`String token]);
+            `F ("uploadData",[`O []])
+          ]] ->
+          let dst = Neturl.modify_url ~host:reply.req_host dst in
+          flush_token dst token >>= fun () ->
+          return true
+        | _ ->
+          return false
+      end
+    ) (function
+      | SXIO.Detail(Unix.Unix_error(Unix.ENOENT,_,_) as e ,_) ->
+        fail e
+      | e -> fail e)
 
-  let copy_same ?metafn ?filesize urls dst =
-    if not (is_file_url dst) then return false
-    else match filesize, urls with
+let copy_same ?metafn ?filesize urls dst =
+  if not (is_file_url dst) then return false
+  else match filesize, urls with
     | Some size, (first :: rest) when List.for_all is_file_url urls ->
       locate_upload dst size >>= fun (_, dst_nodes, blocksize) ->
       let bsize64 = Int64.of_int blocksize in
@@ -1400,210 +1400,210 @@ end
       upload_hashes ?metafn hashes dst_nodes dst size
     | _ -> return false
 
-  let exists url =
-    let p = pipeline () in
-    token_of_user url >>= function
-    | None ->
-      return false
-    | Some token ->
-      begin match url_path ~encoded:true url with
+let exists url =
+  let p = pipeline () in
+  token_of_user url >>= function
+  | None ->
+    return false
+  | Some token ->
+    begin match url_path ~encoded:true url with
       | "" :: _volume :: ("" :: [] | []) ->
-          (* does volume exist? *)
-          make_http_request p (request_of_url ~token `HEAD (locate url))
-          >>= fun reply ->
-          return (reply.status = `Ok)
+        (* does volume exist? *)
+        make_http_request p (request_of_url ~token `HEAD (locate url))
+        >>= fun reply ->
+        return (reply.status = `Ok)
       | "" :: _volume :: _path ->
         Lwt.catch (fun () ->
-          get_vol_nodelist url >>= fun (nodes, _) ->
-          make_request `HEAD nodes url >>= fun reply ->
-          expect_content_type reply "application/json" >>= fun () ->
-          return true
-        ) (function
-        | SXIO.Detail(Unix.Unix_error(Unix.ENOENT, _,_), _) ->
-          return false
-        | e -> fail e)
+            get_vol_nodelist url >>= fun (nodes, _) ->
+            make_request `HEAD nodes url >>= fun reply ->
+            expect_content_type reply "application/json" >>= fun () ->
+            return true
+          ) (function
+            | SXIO.Detail(Unix.Unix_error(Unix.ENOENT, _,_), _) ->
+              return false
+            | e -> fail e)
       | _ ->
-          (* can I fetch the nodeslist? *)
-          make_http_request p (request_of_url ~token `HEAD (fetch_nodes url))
-          >>= fun reply ->
-          return (reply.status = `Ok)
-      end
+        (* can I fetch the nodeslist? *)
+        make_http_request p (request_of_url ~token `HEAD (fetch_nodes url))
+        >>= fun reply ->
+        return (reply.status = `Ok)
+    end
 
-  let check url =
-    Lwt.catch (fun () ->
+let check url =
+  Lwt.catch (fun () ->
       get_cluster_nodelist url >>= fun (_, uuid) ->
       return (Some uuid)
     ) (function
       | SXIO.Detail(e, details) ->
         let msg = try List.assoc "SXErrorMessage" details with Not_found -> "" in
         fail (Failure (Printf.sprintf
-          "Remote SX server reports: %s (%s)" msg (Printexc.to_string e))
-        )
+                         "Remote SX server reports: %s (%s)" msg (Printexc.to_string e))
+             )
       | e -> fail e)
 
-  let map_perm = function
-    | `String "read" -> `Read
-    | `String "write" -> `Write
-    | `String "owner" -> `Owner
-    | p ->
-      pp_json p;
-      failwith "bad ACL json"
+let map_perm = function
+  | `String "read" -> `Read
+  | `String "write" -> `Write
+  | `String "owner" -> `Owner
+  | p ->
+    pp_json p;
+    failwith "bad ACL json"
 
-  let map_acl = function
-    | `F (name, [`A perms]) ->
-      `Grant, `UserName name, List.rev_map map_perm perms
-    | (p:json) ->
-      pp_json p;
-      failwith "bad ACL json"
+let map_acl = function
+  | `F (name, [`A perms]) ->
+    `Grant, `UserName name, List.rev_map map_perm perms
+  | (p:json) ->
+    pp_json p;
+    failwith "bad ACL json"
 
-  let acl_url =
-    Neturl.modify_url ~encoded:true ~query:"o=acl" ~scheme:"http"
-        ~syntax:http_syntax
+let acl_url =
+  Neturl.modify_url ~encoded:true ~query:"o=acl" ~scheme:"http"
+    ~syntax:http_syntax
 
-  let get_acl url =
-    (* cluster_nodelist would suffice, but vol_nodelist gives better error msg
-      (404 instead of 500) *)
-    get_vol_nodelist url >>= fun (nodes, _) ->
-    let url = acl_url url in
-    make_request `GET nodes url >>= fun reply ->
-    expect_content_type reply "application/json" >>= fun () ->
-    let input = P.input_of_async_channel reply.body in
-    json_parse_tree input >>= function
-    | [`O obj] ->
-      return (List.rev_map map_acl obj)
-    | p ->
-      List.iter pp_json p;
-      fail (Failure "bad ACL format")
+let get_acl url =
+  (* cluster_nodelist would suffice, but vol_nodelist gives better error msg
+     (404 instead of 500) *)
+  get_vol_nodelist url >>= fun (nodes, _) ->
+  let url = acl_url url in
+  make_request `GET nodes url >>= fun reply ->
+  expect_content_type reply "application/json" >>= fun () ->
+  let input = P.input_of_async_channel reply.body in
+  json_parse_tree input >>= function
+  | [`O obj] ->
+    return (List.rev_map map_acl obj)
+  | p ->
+    List.iter pp_json p;
+    fail (Failure "bad ACL format")
 
-  let find_acl_op dir op l =
-    List.find_all (fun (gr, id, acl) ->
-        gr = dir && List.mem op acl
+let find_acl_op dir op l =
+  List.find_all (fun (gr, id, acl) ->
+      gr = dir && List.mem op acl
     ) l
 
-  let map_string (_, `UserName id,_)  = `String id
+let map_string (_, `UserName id,_)  = `String id
 
-  let acl_op key l other = match l with
-    | [] -> other
-    | l -> (key, `Array (List.rev_map map_string l)) :: other
+let acl_op key l other = match l with
+  | [] -> other
+  | l -> (key, `Array (List.rev_map map_string l)) :: other
 
-  let json_of_acl set =
-    acl_op "grant-read" (find_acl_op `Grant `Read set) (
-      acl_op "grant-write" (find_acl_op `Grant `Write set) (
-        acl_op "revoke-read" (find_acl_op `Revoke `Read set) (
-          acl_op "revoke-write" (find_acl_op `Revoke `Write set) [])))
+let json_of_acl set =
+  acl_op "grant-read" (find_acl_op `Grant `Read set) (
+    acl_op "grant-write" (find_acl_op `Grant `Write set) (
+      acl_op "revoke-read" (find_acl_op `Revoke `Read set) (
+        acl_op "revoke-write" (find_acl_op `Revoke `Write set) [])))
 
-  let set_acl url acls =
-    get_vol_nodelist url >>= fun (cluster_nodes, _) ->
-    let url = acl_url url in
-    let json = json_of_acl acls in
-    send_json cluster_nodes url (`Object json) >>=
-    job_get url
+let set_acl url acls =
+  get_vol_nodelist url >>= fun (cluster_nodes, _) ->
+  let url = acl_url url in
+  let json = json_of_acl acls in
+  send_json cluster_nodes url (`Object json) >>=
+  job_get url
 
-  let create_user url name =
-    get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
-    let url = Neturl.modify_url ~encoded:true ~path:[""; ".users"] ~scheme:"http"
-        ~syntax:http_syntax ~user:!Config.key_id url in
-    Lwt.catch (fun () ->
-        make_request `GET cluster_nodes
-          (Neturl.modify_url ~path:["";".users";name] url) >>= fun _ ->
-        return ""
+let create_user url name =
+  get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
+  let url = Neturl.modify_url ~encoded:true ~path:[""; ".users"] ~scheme:"http"
+      ~syntax:http_syntax ~user:!Config.key_id url in
+  Lwt.catch (fun () ->
+      make_request `GET cluster_nodes
+        (Neturl.modify_url ~path:["";".users";name] url) >>= fun _ ->
+      return ""
     ) (function
-        | SXIO.Detail (e, details) ->
-          let key = Cryptokit.transform_string (Cryptokit.Hexa.encode ())
-              (Random.string IO.rng 20) in
-          let json = [
-            "userName", `String name;
-            "userType", `String "normal";
-            "userKey", `String key
-          ] in
-          send_json cluster_nodes url (`Object json) >>=
-          job_get url >>= fun () ->
-          return key
-        | e -> fail e
+      | SXIO.Detail (e, details) ->
+        let key = Cryptokit.transform_string (Cryptokit.Hexa.encode ())
+            (Random.string IO.rng 20) in
+        let json = [
+          "userName", `String name;
+          "userType", `String "normal";
+          "userKey", `String key
+        ] in
+        send_json cluster_nodes url (`Object json) >>=
+        job_get url >>= fun () ->
+        return key
+      | e -> fail e
     )
 
-  let create ?metafn ?(replica=(!Config.replica_count)) url =
-    match url_path url ~encoded:true with
-    | "" :: volume :: ([""] | []) ->
-      (* elevate to admin privileges for volume creation *)
-      let owner = Neturl.url_user url in
-      let url =
-        if !Config.volume_create_elevate_to_admin then
-          Neturl.modify_url
-          ~path:["";volume] ~user:!Config.key_id url
-        else url in
-      get_cluster_nodelist url >>= fun (nodes, _) ->
-      Lwt.catch
-        (fun () ->
-          send_json nodes url (`Object [
-            (* max size allowed in json is 2^53, in SX it is 2^50*)
-            "volumeSize", `Float !Config.volume_size;
-            "owner", `String owner;
-            "replicaCount", `Float (float_of_int replica)
-          ]) >>=
-          job_get url
-        )
-        (function
-          | SXIO.Detail (Unix.Unix_error(Unix.EEXIST,_,_) as e, _) ->
-              fail e
-          | e -> fail e
-        )
-    | path ->
-        let rec last l = match l with
-        | [] -> invalid_arg "Cannot create the root"
-        | _ :: [tl] -> tl
-        | _ :: rest -> last rest in
-        let path =
-          if (last path) = "" then
-            path @ ["."] (* can't create files with a trailing slash *)
-          else path in
-        let url = Neturl.modify_url ~encoded:true ~path url in
-        let `Source src = XIO.of_string "" in
-        put ?metafn src 0L url;;
-
-  let is_owner_of_vol nodes volume_url =
-    let owner = Neturl.url_user volume_url in
-    let acl_url = Neturl.modify_url ~query:"o=acl" ~scheme:"http"
-        ~syntax:http_syntax volume_url in
-    make_request `GET nodes acl_url >>= fun reply ->
-    expect_content_type reply "application/json" >>= fun () ->
-    let input = P.input_of_async_channel reply.body in
-    json_parse_tree input >>= function
-    | [`O obj] ->
-      begin match filter_field owner obj with
-        | [`F (_, [ `A privileges ])] ->
-          return (List.exists (function | `String "owner" -> true | _ -> false) privileges)
-        | [] ->
-          return false
-        | p ->
-          List.iter pp_json p;
-          fail (Failure "bad acl list format")
-      end
-    | p ->
-      List.iter pp_json p;
-      fail (Failure "bad acl list format2")
-
-  let delete ?async url =
-    Lwt.catch (fun () ->
-    get_vol_nodelist url >>= fun (nodes, _) ->
-    begin match url_path url ~encoded:true with
-    | "" :: volume :: ([""] | []) ->
-      let volume_url = Neturl.modify_url ~path:["";volume] url in
+let create ?metafn ?(replica=(!Config.replica_count)) url =
+  match url_path url ~encoded:true with
+  | "" :: volume :: ([""] | []) ->
+    (* elevate to admin privileges for volume creation *)
+    let owner = Neturl.url_user url in
+    let url =
       if !Config.volume_create_elevate_to_admin then
-        is_owner_of_vol nodes volume_url >>= function
-        | true ->
-          (* elevate to admin privileges for volume delete *)
-          return (Neturl.modify_url volume_url ~user:!Config.key_id)
-        | false ->
-          return url
-      else
-        (* not owner or escalation not permitted: use current user *)
-        return url
-    | _ -> return url
-    end >>= fun url ->
-    make_request `DELETE nodes url >>=
-    job_get ?async url
-    ) (function
-        | SXIO.Detail (Unix.Unix_error((Unix.ENOENT|Unix.ENOTEMPTY),_,_) as e, _) ->
+        Neturl.modify_url
+          ~path:["";volume] ~user:!Config.key_id url
+      else url in
+    get_cluster_nodelist url >>= fun (nodes, _) ->
+    Lwt.catch
+      (fun () ->
+         send_json nodes url (`Object [
+             (* max size allowed in json is 2^53, in SX it is 2^50*)
+             "volumeSize", `Float !Config.volume_size;
+             "owner", `String owner;
+             "replicaCount", `Float (float_of_int replica)
+           ]) >>=
+         job_get url
+      )
+      (function
+        | SXIO.Detail (Unix.Unix_error(Unix.EEXIST,_,_) as e, _) ->
           fail e
-        | e -> fail e)
+        | e -> fail e
+      )
+  | path ->
+    let rec last l = match l with
+      | [] -> invalid_arg "Cannot create the root"
+      | _ :: [tl] -> tl
+      | _ :: rest -> last rest in
+    let path =
+      if (last path) = "" then
+        path @ ["."] (* can't create files with a trailing slash *)
+      else path in
+    let url = Neturl.modify_url ~encoded:true ~path url in
+    let `Source src = XIO.of_string "" in
+    put ?metafn src 0L url;;
+
+let is_owner_of_vol nodes volume_url =
+  let owner = Neturl.url_user volume_url in
+  let acl_url = Neturl.modify_url ~query:"o=acl" ~scheme:"http"
+      ~syntax:http_syntax volume_url in
+  make_request `GET nodes acl_url >>= fun reply ->
+  expect_content_type reply "application/json" >>= fun () ->
+  let input = P.input_of_async_channel reply.body in
+  json_parse_tree input >>= function
+  | [`O obj] ->
+    begin match filter_field owner obj with
+      | [`F (_, [ `A privileges ])] ->
+        return (List.exists (function | `String "owner" -> true | _ -> false) privileges)
+      | [] ->
+        return false
+      | p ->
+        List.iter pp_json p;
+        fail (Failure "bad acl list format")
+    end
+  | p ->
+    List.iter pp_json p;
+    fail (Failure "bad acl list format2")
+
+let delete ?async url =
+  Lwt.catch (fun () ->
+      get_vol_nodelist url >>= fun (nodes, _) ->
+      begin match url_path url ~encoded:true with
+        | "" :: volume :: ([""] | []) ->
+          let volume_url = Neturl.modify_url ~path:["";volume] url in
+          if !Config.volume_create_elevate_to_admin then
+            is_owner_of_vol nodes volume_url >>= function
+            | true ->
+              (* elevate to admin privileges for volume delete *)
+              return (Neturl.modify_url volume_url ~user:!Config.key_id)
+            | false ->
+              return url
+          else
+            (* not owner or escalation not permitted: use current user *)
+            return url
+        | _ -> return url
+      end >>= fun url ->
+      make_request `DELETE nodes url >>=
+      job_get ?async url
+    ) (function
+      | SXIO.Detail (Unix.Unix_error((Unix.ENOENT|Unix.ENOTEMPTY),_,_) as e, _) ->
+        fail e
+      | e -> fail e)

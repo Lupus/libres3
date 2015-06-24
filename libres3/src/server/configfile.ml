@@ -80,7 +80,7 @@ let validate_readable path =
     path
   with Unix.Unix_error(e,_,_) ->
     failwith (Printf.sprintf "Cannot read file '%s': %s"
-      path (Unix.error_message e))
+                path (Unix.error_message e))
 
 let validate_directory path =
   if not (Sys.is_directory path) then
@@ -141,7 +141,7 @@ let validate_host s =
       try ignore (validate_dns_name s)
       with _ ->
         failwith (Printf.sprintf
-          "Invalid hostname (expected DNS name or IP address): %s" s)
+                    "Invalid hostname (expected DNS name or IP address): %s" s)
   end;
   s
 
@@ -170,12 +170,12 @@ let validate_username u =
 let parse_user_group_opt ref_user ref_group s =
   match split user_sep s with
   | user :: [] ->
-      ref_user := Some (validate_username user)
+    ref_user := Some (validate_username user)
   | user :: group :: [] ->
-      ref_user := Some (validate_username user);
-      ref_group := Some (validate_username group)
+    ref_user := Some (validate_username user);
+    ref_group := Some (validate_username group)
   | _ ->
-      failwith ("Invalid user:group: " ^ s)
+    failwith ("Invalid user:group: " ^ s)
 
 let validate_syslog s =
   let l = String.lowercase s in
@@ -185,13 +185,13 @@ let validate_syslog s =
   | "local6" | "local7" | "mail" | "ntp" | "news" | "security" | "syslog"
   | "uucp" | "user" -> l
   | _ ->
-      failwith ("Unknown syslog facility: " ^ l)
+    failwith ("Unknown syslog facility: " ^ l)
 
 let deprecated ~old ~use f v field =
   old, (fun s ->
-    Printf.eprintf "\nWarning: The config key '%s' is deprecated, use '%s' instead\n" old use;
-    f v field s
-  ), ""
+      Printf.eprintf "\nWarning: The config key '%s' is deprecated, use '%s' instead\n" old use;
+      f v field s
+    ), ""
 
 (* server-specific configuration *)
 
@@ -239,64 +239,64 @@ let initial_interval = ref (float_of_int (Random.int 10800))
 
 (* libres3.conf entries *)
 let entries : (string * (string -> unit) * string) list = [
-    "secret_key", expect validate_secret_key Config.secret_access_key,
-      " SX secret access key";
-    "s3_host", expect validate_dns_name base_hostname,
-      " Base hostname to use (equivalent of s3.amazonaws.com, host_base in .s3cfg)";
-    "s3_listen_ip", expect_opt parse_ip base_listen_ip,
-      " Bind to specified IP (default: any IPv4/IPv6. To bind to IPv4 only use 0.0.0.0)";
-    "s3_http_port", expect parse_port base_port,
-      " Bind to specified HTTP port";
-    "s3_https_port", expect parse_port base_ssl_port,
-      " Bind to specified HTTPS port";
-    "s3_ssl_certificate_file", expect_opt validate_readable ssl_certificate_file,
-      " The path to the SSL certificate";
-    "s3_ssl_privatekey_file", expect_opt validate_readable ssl_privatekey_file,
-      " The path to the SSL certificate's private key";
-    "sx_host", expect_opt validate_host sx_host,
-      " Hostname of an SX cluster node";
-    "sx_port", expect parse_port Config.sx_port,
-      " Port of an SX cluster node";
-    "replica_count", expect parse_positive_int Config.replica_count,
-      " Default volume replica count";
-    "volume_size", expect parse_size Config.volume_size,
-      " Default volume size [K,M,G,T suffixes accepted]";
-    "tmpdir", expect_opt validate_directory tmpdir,
-      " Temporary directory";
-    "logdir", expect (fun s -> s) Paths.log_dir,
-      Printf.sprintf " Log directory (default: %s)" !Paths.log_dir;
-    "syslog_facility", expect_opt validate_syslog syslog_facility,
-      " Syslog facility to use (default: log to file only)";
-    "pidfile", expect (fun s -> s) pidfile,
-      " Specify the file where to write the pid of the server";
-    "run-as", parse_user_group_opt user group,
-      " user:group to use when dropping privileges";
-    "max_parallel", expect parse_positive_int max_connected,
-        " Maximum number of connections to handle in parallel";
-    "allow_volume_create_any_user", expect parse_bool Config.volume_create_elevate_to_admin,
-        " Allow creating volumes as any user (elevate to admin privileges)";
-    "mimefile", expect validate_readable mimefile,
-        (Printf.sprintf " Path to mime.types file (default: %s)" !mimefile);
-    (* advanced configuration *)
-    "min_threads", expect_opt parse_positive_int min_threads, "";
-    "max_detached_threads", expect_opt parse_positive_int max_threads, "";
-    "max_pool_threads", expect parse_positive_int max_pool_threads, "";
-    "maxrequestbodysize_MiB", expect parse_positive_int maxrequestbodysize, "";
-    "maxdetachedcomputationsqueued", expect_opt parse_positive_int maxdetachedcomputationsqueued, "";
-    "timeout", expect parse_positive_int timeout, "";
-    "keepalivetimeout", expect parse_positive_int keepalivetimeout, "";
-    "shutdowntimeout", expect parse_positive_int shutdowntimeout, "";
-    "netbuffersize", expect parse_positive_int netbuffersize, "";
-    "filebuffersize", expect parse_positive_int filebuffersize, "";
-    "maxretries", expect parse_positive_int maxretries, "";
-    "keyid", expect (fun s -> s) Config.key_id, "";
-    "list_cache_expires", expect parse_positive_float Config.list_cache_expires, "";
-    "ver_check_interval", expect parse_positive_float check_interval, "";
-    "ver_initial_interval", expect parse_positive_float initial_interval, "";
-    (* for backwards compatibility *)
-    deprecated ~old:"user" ~use:"run-as" expect_opt validate_username user;
-    deprecated ~old:"group" ~use:"run-as" expect_opt validate_username group;
-    deprecated ~old:"pid_file" ~use:"pidfile" expect (fun s -> s) pidfile;
-    deprecated ~old:"s3_ssl_port" ~use:"s3_https_port" expect parse_port base_ssl_port;
-    deprecated ~old:"s3_port" ~use:"s3_htts_port" expect parse_port base_port;
+  "secret_key", expect validate_secret_key Config.secret_access_key,
+  " SX secret access key";
+  "s3_host", expect validate_dns_name base_hostname,
+  " Base hostname to use (equivalent of s3.amazonaws.com, host_base in .s3cfg)";
+  "s3_listen_ip", expect_opt parse_ip base_listen_ip,
+  " Bind to specified IP (default: any IPv4/IPv6. To bind to IPv4 only use 0.0.0.0)";
+  "s3_http_port", expect parse_port base_port,
+  " Bind to specified HTTP port";
+  "s3_https_port", expect parse_port base_ssl_port,
+  " Bind to specified HTTPS port";
+  "s3_ssl_certificate_file", expect_opt validate_readable ssl_certificate_file,
+  " The path to the SSL certificate";
+  "s3_ssl_privatekey_file", expect_opt validate_readable ssl_privatekey_file,
+  " The path to the SSL certificate's private key";
+  "sx_host", expect_opt validate_host sx_host,
+  " Hostname of an SX cluster node";
+  "sx_port", expect parse_port Config.sx_port,
+  " Port of an SX cluster node";
+  "replica_count", expect parse_positive_int Config.replica_count,
+  " Default volume replica count";
+  "volume_size", expect parse_size Config.volume_size,
+  " Default volume size [K,M,G,T suffixes accepted]";
+  "tmpdir", expect_opt validate_directory tmpdir,
+  " Temporary directory";
+  "logdir", expect (fun s -> s) Paths.log_dir,
+  Printf.sprintf " Log directory (default: %s)" !Paths.log_dir;
+  "syslog_facility", expect_opt validate_syslog syslog_facility,
+  " Syslog facility to use (default: log to file only)";
+  "pidfile", expect (fun s -> s) pidfile,
+  " Specify the file where to write the pid of the server";
+  "run-as", parse_user_group_opt user group,
+  " user:group to use when dropping privileges";
+  "max_parallel", expect parse_positive_int max_connected,
+  " Maximum number of connections to handle in parallel";
+  "allow_volume_create_any_user", expect parse_bool Config.volume_create_elevate_to_admin,
+  " Allow creating volumes as any user (elevate to admin privileges)";
+  "mimefile", expect validate_readable mimefile,
+  (Printf.sprintf " Path to mime.types file (default: %s)" !mimefile);
+  (* advanced configuration *)
+  "min_threads", expect_opt parse_positive_int min_threads, "";
+  "max_detached_threads", expect_opt parse_positive_int max_threads, "";
+  "max_pool_threads", expect parse_positive_int max_pool_threads, "";
+  "maxrequestbodysize_MiB", expect parse_positive_int maxrequestbodysize, "";
+  "maxdetachedcomputationsqueued", expect_opt parse_positive_int maxdetachedcomputationsqueued, "";
+  "timeout", expect parse_positive_int timeout, "";
+  "keepalivetimeout", expect parse_positive_int keepalivetimeout, "";
+  "shutdowntimeout", expect parse_positive_int shutdowntimeout, "";
+  "netbuffersize", expect parse_positive_int netbuffersize, "";
+  "filebuffersize", expect parse_positive_int filebuffersize, "";
+  "maxretries", expect parse_positive_int maxretries, "";
+  "keyid", expect (fun s -> s) Config.key_id, "";
+  "list_cache_expires", expect parse_positive_float Config.list_cache_expires, "";
+  "ver_check_interval", expect parse_positive_float check_interval, "";
+  "ver_initial_interval", expect parse_positive_float initial_interval, "";
+  (* for backwards compatibility *)
+  deprecated ~old:"user" ~use:"run-as" expect_opt validate_username user;
+  deprecated ~old:"group" ~use:"run-as" expect_opt validate_username group;
+  deprecated ~old:"pid_file" ~use:"pidfile" expect (fun s -> s) pidfile;
+  deprecated ~old:"s3_ssl_port" ~use:"s3_https_port" expect parse_port base_ssl_port;
+  deprecated ~old:"s3_port" ~use:"s3_htts_port" expect parse_port base_port;
 ]

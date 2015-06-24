@@ -29,22 +29,22 @@
 
 open OUnit
 module OS = EventIO.OS
-  module OSTest = OSMonadTest
-  module IO = EventIO
-  module IOTest = EventIOTest
-  module Default = SXDefaultIO
-  module AnycacheTest = AnycacheTest.Make(struct
-      include Lwt
-      let delay = OS.sleep
-      let name = "cache"
-      let run = Lwt_unix.run
+module OSTest = OSMonadTest
+module IO = EventIO
+module IOTest = EventIOTest
+module Default = SXDefaultIO
+module AnycacheTest = AnycacheTest.Make(struct
+    include Lwt
+    let delay = OS.sleep
+    let name = "cache"
+    let run = Lwt_unix.run
   end)
 
-  let tests name =
-    name>:::[
-      AnycacheTest.tests;
-      MonadTest.tests;
-      OSTest.tests;
-      IOTest.tests;
-      ServerTest.tests
-    ]
+let tests name =
+  name>:::[
+    AnycacheTest.tests;
+    MonadTest.tests;
+    OSTest.tests;
+    IOTest.tests;
+    ServerTest.tests
+  ]

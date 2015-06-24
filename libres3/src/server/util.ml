@@ -38,11 +38,11 @@ let string_before_suffix str suffix =
 let url_split_first_component split_url =
   match split_url with
   | "" :: first :: [] ->
-      first, ""
+    first, ""
   | "" :: first :: rest ->
-      first, Neturl.join_path ("" :: rest)
+    first, Neturl.join_path ("" :: rest)
   | first :: rest ->
-      first, Neturl.join_path ("" :: rest)
+    first, Neturl.join_path ("" :: rest)
   | [] -> "","/";;
 
 let raw_url_after raw_url prefix =

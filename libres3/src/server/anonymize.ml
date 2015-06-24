@@ -63,11 +63,11 @@ let ip_classify = [
 
 let ip_cidr_match addr (_, cidrs) =
   List.exists (fun cidr ->
-    match addr, cidr with
-    | V4 _, V4 _ -> Prefix.mem addr cidr
-    | V6 _, V6 _ -> Prefix.mem addr cidr
-    | _ -> false
-  ) cidrs
+      match addr, cidr with
+      | V4 _, V4 _ -> Prefix.mem addr cidr
+      | V6 _, V6 _ -> Prefix.mem addr cidr
+      | _ -> false
+    ) cidrs
 
 let anon_ip str =
   match of_string str with
@@ -109,8 +109,8 @@ let regexes = [
 ]
 
 let filters = List.rev (List.rev_map (fun (regex, action) ->
-  compile_pat regex, fun str -> try action str with _ -> None
-) regexes)
+    compile_pat regex, fun str -> try action str with _ -> None
+  ) regexes)
 
 let hmac_key = ref ""
 
@@ -120,7 +120,7 @@ let truncate_half str =
 let anonymize_item act item =
   let hmac = MAC.hmac_sha1 !hmac_key in
   let b64 = transform_string (Base64.encode_compact ())
-    (truncate_half (hash_string hmac (act ^ "\x00" ^ item))) in
+      (truncate_half (hash_string hmac (act ^ "\x00" ^ item))) in
   for i = 0 to String.length b64-1 do
     if b64.[i] = '/' then
       b64.[i] <- '_'
@@ -145,17 +145,17 @@ let filter_regex str (regex, action) =
       match matchresult with
       | Some ((matchpos, matchend), pat) ->
         begin match action pat with
-        | Some act ->
-          Buffer.add_substring buf str pos (matchpos - pos);
-          Buffer.add_string buf (anonymize_item act pat);
-          loop matchend
-        | None ->
-          Buffer.add_char buf str.[pos];
-          loop (pos+1)
+          | Some act ->
+            Buffer.add_substring buf str pos (matchpos - pos);
+            Buffer.add_string buf (anonymize_item act pat);
+            loop matchend
+          | None ->
+            Buffer.add_char buf str.[pos];
+            loop (pos+1)
         end
       | None ->
-          Buffer.add_substring buf str pos (String.length str - pos);
-          Buffer.contents buf
+        Buffer.add_substring buf str pos (String.length str - pos);
+        Buffer.contents buf
   in
   loop 0
 

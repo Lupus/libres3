@@ -34,170 +34,170 @@
 
 open Lwt
 module OS = EventIO.OS
-  type state = string * int ref
-  type read_state = unit
-  let scheme = "file"
-  let syntax = Hashtbl.find Neturl.common_url_syntax "file"
+type state = string * int ref
+type read_state = unit
+let scheme = "file"
+let syntax = Hashtbl.find Neturl.common_url_syntax "file"
 
-  let init () = ()
-  let file url =
-    match Neturl.split_path (Neturl.local_path_of_file_url url) with
-    | [""] -> "", ""
-    | "" :: volume :: path ->
-      let path = Neturl.join_path path in
-      volume, path
-    | path -> failwith ("Bad path: " ^ (Neturl.join_path path))
-  module IO = SXIO
+let init () = ()
+let file url =
+  match Neturl.split_path (Neturl.local_path_of_file_url url) with
+  | [""] -> "", ""
+  | "" :: volume :: path ->
+    let path = Neturl.join_path path in
+    volume, path
+  | path -> failwith ("Bad path: " ^ (Neturl.join_path path))
+module IO = SXIO
 
-  module StringMap = Map.Make(String)
-  let volumes = ref StringMap.empty
+module StringMap = Map.Make(String)
+let volumes = ref StringMap.empty
 
-  let token_of_user _ = return (Some !Config.secret_access_key)
-  let check _ = return None
+let token_of_user _ = return (Some !Config.secret_access_key)
+let check _ = return None
 
-  let find name m =
-    try return (StringMap.find name m)
-    with Not_found -> fail (Unix.Unix_error(Unix.ENOENT, "find", name))
+let find name m =
+  try return (StringMap.find name m)
+  with Not_found -> fail (Unix.Unix_error(Unix.ENOENT, "find", name))
 
-  let etag_cnt = ref 0
-  let open_source url =
-    let vol, name = file url in
+let etag_cnt = ref 0
+let open_source url =
+  let vol, name = file url in
+  find vol !volumes >>= fun volume ->
+  find name volume >>= fun (meta, _, contents) ->
+  return (meta, (contents, ref 0))
+
+let seek ((_, fpos) as s) pos =
+  fpos := Int64.to_int pos;
+  return (s, ())
+
+let read ((contents, fpos),_) =
+  (* TODO: check that there is only one read in-flight on this fd? *)
+  let pos = !fpos in
+  let last = min (pos + Config.buffer_size) (String.length contents) in
+  let amount = last - pos in
+  fpos := last;
+  return (contents, pos, amount)
+
+let close_source _ = return ()
+
+let copy_same ?metafn ?filesize _ _ =
+  return false (* no optimized copy, fallback to generic *)
+
+let delete ?async url =
+  match file url with
+  | vol, ("" | "/") ->
     find vol !volumes >>= fun volume ->
-    find name volume >>= fun (meta, _, contents) ->
-    return (meta, (contents, ref 0))
-
-  let seek ((_, fpos) as s) pos =
-    fpos := Int64.to_int pos;
-    return (s, ())
-
-  let read ((contents, fpos),_) =
-    (* TODO: check that there is only one read in-flight on this fd? *)
-    let pos = !fpos in
-    let last = min (pos + Config.buffer_size) (String.length contents) in
-    let amount = last - pos in
-    fpos := last;
-    return (contents, pos, amount)
-
-  let close_source _ = return ()
-
-  let copy_same ?metafn ?filesize _ _ =
-    return false (* no optimized copy, fallback to generic *)
-
-  let delete ?async url =
-    match file url with
-    | vol, ("" | "/") ->
-      find vol !volumes >>= fun volume ->
-      if StringMap.is_empty volume then begin
-        volumes := StringMap.remove vol !volumes;
-        return ()
-      end else
-        fail (Unix.Unix_error(Unix.ENOTEMPTY, "delete", vol))
-    | vol, path ->
-      find vol !volumes >>= fun volume ->
-      find path volume >>= fun _ ->
-      volumes := StringMap.add vol (StringMap.remove path volume) !volumes;
+    if StringMap.is_empty volume then begin
+      volumes := StringMap.remove vol !volumes;
       return ()
-
-  let exists url =
-    match file url with
-    | vol, (""|"/") ->
-      return (StringMap.mem vol !volumes)
-    | vol, path ->
-      find vol !volumes >>= fun volume ->
-      return (StringMap.mem path volume)
-
-  let is_prefix ~prefix str =
-    let plen = String.length prefix in
-    (String.length str) >= plen &&
-    (String.sub str 0 plen) = prefix;;
-
-  let filter_fold f prefix accum entry =
-    if is_prefix ~prefix entry.IO.name then begin
-      f accum entry
-        end
-    else return accum
-
-  let filter_recurse recurse prefix dir =
-    if is_prefix ~prefix dir then
-      recurse dir
-    else
-      false;;
-
-  let fold_list url f recurse accum =
-    let vol, path = file url in
-    if vol = "" then begin
-      StringMap.iter (fun vol _ ->
-          ignore (recurse ("/" ^ vol))) !volumes;
-      return accum
     end else
-      find vol !volumes >>= fun volume ->
-      StringMap.fold (fun _ (e,_,_) accum ->
-          accum >>= fun accum -> filter_fold f path accum e
-        ) volume (return accum)
-
-  let acl_table = Hashtbl.create 16
-
-  let create ?metafn ?replica url =
-    match file url with
-    | vol, ("" | "/") ->
-      if StringMap.mem vol !volumes then
-        fail (Unix.Unix_error(Unix.EEXIST, "create", vol))
-      else begin
-        volumes := StringMap.add vol StringMap.empty !volumes;
-        Hashtbl.replace acl_table url [`Grant, `UserName !Config.key_id,
-                                       [`Owner;`Read;`Write]];
-        return ();
-      end
-    | vol, path ->
-      find vol !volumes >>= fun volume ->
-      incr etag_cnt;
-      let entry = {
-        IO.name = "/" ^ Netencoding.Url.encode vol ^ path;
-        size = 0L;
-        mtime = Unix.gettimeofday ();
-        etag = string_of_int !etag_cnt;
-      }, [], "" in
-      volumes := StringMap.add vol (StringMap.add path entry volume) !volumes;
-      return ()
-
-  let get_meta url : (string*string) list Lwt.t =
-    let vol, path = file url in
+      fail (Unix.Unix_error(Unix.ENOTEMPTY, "delete", vol))
+  | vol, path ->
     find vol !volumes >>= fun volume ->
-    find path volume >>= fun (_, meta, _) ->
-    return meta
+    find path volume >>= fun _ ->
+    volumes := StringMap.add vol (StringMap.remove path volume) !volumes;
+    return ()
 
-  let etag_cnt = ref 0
+let exists url =
+  match file url with
+  | vol, (""|"/") ->
+    return (StringMap.mem vol !volumes)
+  | vol, path ->
+    find vol !volumes >>= fun volume ->
+    return (StringMap.mem path volume)
 
-  let put ?metafn src srcpos dsturl =
-    let vol, path = file dsturl in
+let is_prefix ~prefix str =
+  let plen = String.length prefix in
+  (String.length str) >= plen &&
+  (String.sub str 0 plen) = prefix;;
+
+let filter_fold f prefix accum entry =
+  if is_prefix ~prefix entry.IO.name then begin
+    f accum entry
+  end
+  else return accum
+
+let filter_recurse recurse prefix dir =
+  if is_prefix ~prefix dir then
+    recurse dir
+  else
+    false;;
+
+let fold_list url f recurse accum =
+  let vol, path = file url in
+  if vol = "" then begin
+    StringMap.iter (fun vol _ ->
+        ignore (recurse ("/" ^ vol))) !volumes;
+    return accum
+  end else
+    find vol !volumes >>= fun volume ->
+    StringMap.fold (fun _ (e,_,_) accum ->
+        accum >>= fun accum -> filter_fold f path accum e
+      ) volume (return accum)
+
+let acl_table = Hashtbl.create 16
+
+let create ?metafn ?replica url =
+  match file url with
+  | vol, ("" | "/") ->
+    if StringMap.mem vol !volumes then
+      fail (Unix.Unix_error(Unix.EEXIST, "create", vol))
+    else begin
+      volumes := StringMap.add vol StringMap.empty !volumes;
+      Hashtbl.replace acl_table url [`Grant, `UserName !Config.key_id,
+                                     [`Owner;`Read;`Write]];
+      return ();
+    end
+  | vol, path ->
     find vol !volumes >>= fun volume ->
     incr etag_cnt;
-    let meta = begin match metafn with
-    | None -> []
-    | Some f -> f ()
-    end in
-    src.IO.seek srcpos >>= fun stream ->
-    let buf = Buffer.create 128 in
-    IO.iter stream (fun (str,pos,len) ->
-        Buffer.add_substring buf str pos len;
-        return ()) >>= fun () ->
-    let contents = Buffer.contents buf in
     let entry = {
       IO.name = "/" ^ Netencoding.Url.encode vol ^ path;
-      size = Int64.of_int (String.length contents);
+      size = 0L;
       mtime = Unix.gettimeofday ();
-      etag = string_of_int !etag_cnt
-    }, meta, contents in
+      etag = string_of_int !etag_cnt;
+    }, [], "" in
     volumes := StringMap.add vol (StringMap.add path entry volume) !volumes;
     return ()
 
-  let users = ref []
-  let create_user (_:Neturl.url) (name:string) =
-    users := name :: !users;
-    return ""
+let get_meta url : (string*string) list Lwt.t =
+  let vol, path = file url in
+  find vol !volumes >>= fun volume ->
+  find path volume >>= fun (_, meta, _) ->
+  return meta
+
+let etag_cnt = ref 0
+
+let put ?metafn src srcpos dsturl =
+  let vol, path = file dsturl in
+  find vol !volumes >>= fun volume ->
+  incr etag_cnt;
+  let meta = begin match metafn with
+    | None -> []
+    | Some f -> f ()
+  end in
+  src.IO.seek srcpos >>= fun stream ->
+  let buf = Buffer.create 128 in
+  IO.iter stream (fun (str,pos,len) ->
+      Buffer.add_substring buf str pos len;
+      return ()) >>= fun () ->
+  let contents = Buffer.contents buf in
+  let entry = {
+    IO.name = "/" ^ Netencoding.Url.encode vol ^ path;
+    size = Int64.of_int (String.length contents);
+    mtime = Unix.gettimeofday ();
+    etag = string_of_int !etag_cnt
+  }, meta, contents in
+  volumes := StringMap.add vol (StringMap.add path entry volume) !volumes;
+  return ()
+
+let users = ref []
+let create_user (_:Neturl.url) (name:string) =
+  users := name :: !users;
+  return ""
 
 
-  let get_acl url = return (Hashtbl.find acl_table url)
-  let set_acl (url:Neturl.url) (acls : IO.acl list) =
-    Hashtbl.replace acl_table url acls;
-    return ()
+let get_acl url = return (Hashtbl.find acl_table url)
+let set_acl (url:Neturl.url) (acls : IO.acl list) =
+  Hashtbl.replace acl_table url acls;
+  return ()

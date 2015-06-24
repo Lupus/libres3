@@ -41,9 +41,9 @@ let usage_hide spec usage =
   (* hide flags with empty docs *)
   Printf.printf "%s\n" usage;
   List.iter (fun (spec, _, doc) ->
-    if not (is_whitespace doc 0) then
-      Printf.printf "  %s %s\n" spec doc
-  ) (Arg.align spec)
+      if not (is_whitespace doc 0) then
+        Printf.printf "  %s %s\n" spec doc
+    ) (Arg.align spec)
 
 let noop () = ()
 let print_help ~extra spec usage () =
@@ -54,8 +54,8 @@ let print_help ~extra spec usage () =
 let parse_align ~extra spec f usage =
   let spec = ref spec in
   spec := Arg.align (!spec @ [
-    "-help",Arg.Unit (fun () -> raise (Arg.Bad "use --help or -h")),"";
-    "-h",Arg.Unit (print_help ~extra spec usage), " Display this list of options";
-    "--help",Arg.Unit (print_help ~extra spec usage), " Display this list of options"
-  ]);
+      "-help",Arg.Unit (fun () -> raise (Arg.Bad "use --help or -h")),"";
+      "-h",Arg.Unit (print_help ~extra spec usage), " Display this list of options";
+      "--help",Arg.Unit (print_help ~extra spec usage), " Display this list of options"
+    ]);
   Arg.parse !spec f usage

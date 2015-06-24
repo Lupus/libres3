@@ -246,14 +246,14 @@ let valid_statement s =
   match s.Stmt.effect with
   | None -> failwith "Invalid statement: effect not specified"
   | Some e ->
-  {
-    sid = s.Stmt.stmt_sid;
-    effect = e;
-    principals = Principals.of_lists (s.Stmt.principal, s.Stmt.not_principal);
-    actions = Actions.of_lists (s.Stmt.action, s.Stmt.not_action);
-    resources = Resources.of_lists (s.Stmt.resource, s.Stmt.not_resource);
-    condition = s.Stmt.condition
-  }
+    {
+      sid = s.Stmt.stmt_sid;
+      effect = e;
+      principals = Principals.of_lists (s.Stmt.principal, s.Stmt.not_principal);
+      actions = Actions.of_lists (s.Stmt.action, s.Stmt.not_action);
+      resources = Resources.of_lists (s.Stmt.resource, s.Stmt.not_resource);
+      condition = s.Stmt.condition
+    }
 
 let map_statement json =
   valid_statement (List.fold_left Stmt.fold Stmt.empty (CodedIO.Json.expect_obj json))
@@ -282,12 +282,12 @@ let is_anon_bucket_policy p bucket =
 let build_anon_policy bucket = {
   version = "2012-10-17"; id = None;
   statements = [{
-    sid = None;
-    effect = Allow;
-    principals = Principals.of_lists ([Principal.Anon], []);
-    actions = Actions.of_lists (["s3:GetObject"], []);
-    resources = Resources.of_lists ([Printf.sprintf "arn:aws:s3:::%s/*" bucket], []);
-    condition = []
+      sid = None;
+      effect = Allow;
+      principals = Principals.of_lists ([Principal.Anon], []);
+      actions = Actions.of_lists (["s3:GetObject"], []);
+      resources = Resources.of_lists ([Printf.sprintf "arn:aws:s3:::%s/*" bucket], []);
+      condition = []
     }]
 }
 
@@ -300,7 +300,7 @@ let json_of_stmt s =
           ::
           if s.condition = [] then [] else ["Condition", `O s.condition]
         )
-    )
+     )
 
 let json_of_policy p : Json.t =
   `O [

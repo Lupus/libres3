@@ -61,18 +61,18 @@ module Make(Key:Map.OrderedType) = struct
 
   let create n =
     let kout = n / 2 in {
-    amain = DLinkedList.create ();
-    a1in = Queue.create ();
-    a1out = Queue.create ();
-    buf = WeakBuffer.create kout;
-    map = KMap.empty;
-    a1in_size = 0;
-    a1out_size = 0;
-    amain_size = 0;
-    kin = n / 4;
-    kout = kout;
-    total_size = n
-  }
+      amain = DLinkedList.create ();
+      a1in = Queue.create ();
+      a1out = Queue.create ();
+      buf = WeakBuffer.create kout;
+      map = KMap.empty;
+      a1in_size = 0;
+      a1out_size = 0;
+      amain_size = 0;
+      kin = n / 4;
+      kout = kout;
+      total_size = n
+    }
 
   open DLinkedList
 
@@ -119,22 +119,22 @@ module Make(Key:Map.OrderedType) = struct
   let find cache key =
     match KMap.find key cache.map with
     | Amain (data, node) ->
-        cache.map <- KMap.remove key cache.map;
-        ignore (remove node);
-        add_main cache key data;
-        data
+      cache.map <- KMap.remove key cache.map;
+      ignore (remove node);
+      add_main cache key data;
+      data
     | A1in (_, data) ->
-        data
+      data
     | A1out id ->
-        begin match WeakBuffer.get cache.buf id with
+      begin match WeakBuffer.get cache.buf id with
         | Some data ->
-            reclaim cache;
-            add_main cache key data;
-            data
+          reclaim cache;
+          add_main cache key data;
+          data
         | None ->
-            raise Not_found
-        end
-    ;;
+          raise Not_found
+      end
+  ;;
 
   let replace cache key data =
     try
@@ -144,8 +144,8 @@ module Make(Key:Map.OrderedType) = struct
       | A1in _ ->
         cache.map <- KMap.add key (A1in (key, data)) cache.map
       | A1out _ ->
-          reclaim cache;
-          add_main cache key data
+        reclaim cache;
+        add_main cache key data
     with Not_found ->
       reclaim cache;
       add_a1in cache key data;

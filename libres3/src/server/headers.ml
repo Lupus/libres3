@@ -41,13 +41,13 @@ let build overrides l =
   and header = new Netmime.basic_mime_header l in
   let names =
     List.fold_left (fun set (name, _) ->
-      StringSet.add (String.lowercase name) set) StringSet.empty l in
+        StringSet.add (String.lowercase name) set) StringSet.empty l in
   List.iter (fun (source,target) ->
-    try
-      header#update_field target (header#field source);
-      orig#update_field target "";
-    with Not_found -> ()
-  ) overrides;
+      try
+        header#update_field target (header#field source);
+        orig#update_field target "";
+      with Not_found -> ()
+    ) overrides;
   {
     ro = (header :> Nethttp.http_header_ro);
     orig = (orig :> Nethttp.http_header_ro);

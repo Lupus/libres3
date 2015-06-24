@@ -114,16 +114,16 @@ module Make(Monad: MonadTest) = struct
     )
 
   let tests = Monad.name >:::
-    [
-      "Cache.bind seq" >:: test_cache_bind_seq;
-      "Cache.bind parallel" >:: test_cache_bind_p;
-      "Cache size" >:::
-        Array.to_list (Array.init 8 (fun i ->
-          let i = i + 2 in
-          string_of_int i >:: test_cache_size i
-        ))
-      (* TODO: more tests *)
-    ]
+              [
+                "Cache.bind seq" >:: test_cache_bind_seq;
+                "Cache.bind parallel" >:: test_cache_bind_p;
+                "Cache size" >:::
+                Array.to_list (Array.init 8 (fun i ->
+                    let i = i + 2 in
+                    string_of_int i >:: test_cache_size i
+                  ))
+                (* TODO: more tests *)
+              ]
 
   let was_successful results =
     List.for_all (function

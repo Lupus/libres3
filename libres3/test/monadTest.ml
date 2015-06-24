@@ -29,246 +29,246 @@
 
 open OUnit
 module M = Lwt
-    (* f and g can have side-effects, so
-     * we need a function that constructs the same value,
-     * instead of just a value (which would be modified by multiple calls to f).
-     * Hence value: unit -> 'a
-     * *)
-  type ('a,'b,'c) t = {
-    name: string;
-    value: unit -> 'a;
-    f: 'a -> 'b M.t;
-    g: 'b -> 'c M.t;
-    print_a: ('a -> string) option;
-    print_b: ('b -> string) option;
-    print_c: ('c -> string) option;
-  }
+(* f and g can have side-effects, so
+ * we need a function that constructs the same value,
+ * instead of just a value (which would be modified by multiple calls to f).
+ * Hence value: unit -> 'a
+ * *)
+type ('a,'b,'c) t = {
+  name: string;
+  value: unit -> 'a;
+  f: 'a -> 'b M.t;
+  g: 'b -> 'c M.t;
+  print_a: ('a -> string) option;
+  print_b: ('b -> string) option;
+  print_c: ('c -> string) option;
+}
 
-  open M
+open M
 
-  let compare_equal printer expected actual =
-    assert_equal ?printer expected actual
+let compare_equal printer expected actual =
+  assert_equal ?printer expected actual
 
-  let run = Lwt_unix.run
-  let expect_equal printer actual_monad expected_monad =
-    let actual = run actual_monad
-    and expected = run expected_monad in
-    compare_equal printer expected actual;;
+let run = Lwt_unix.run
+let expect_equal printer actual_monad expected_monad =
+  let actual = run actual_monad
+  and expected = run expected_monad in
+  compare_equal printer expected actual;;
 
-  let assert_same_exception expected actual =
-    assert_equal ~msg:"exceptions must match" ~printer:Printexc.to_string expected actual;;
+let assert_same_exception expected actual =
+  assert_equal ~msg:"exceptions must match" ~printer:Printexc.to_string expected actual;;
 
-  exception TestException of string
-  let test_try_fail_catch1 () =
-    let ex = TestException "test" in
-    let catch_executed = ref false in
-    ignore (run (
+exception TestException of string
+let test_try_fail_catch1 () =
+  let ex = TestException "test" in
+  let catch_executed = ref false in
+  ignore (run (
       Lwt.catch
-      (fun () -> fail ex)
-      (fun e ->
-        assert_same_exception ex e;
-        catch_executed := true;
-        return ()
-      )
+        (fun () -> fail ex)
+        (fun e ->
+           assert_same_exception ex e;
+           catch_executed := true;
+           return ()
+        )
     ));
-    assert_bool "catch must be executed" !catch_executed;;
+  assert_bool "catch must be executed" !catch_executed;;
 
-  let test_try_fail_catch2 spec () =
-    let ex = TestException "test" in
-    let catch_executed = ref false in
-    ignore (run (
+let test_try_fail_catch2 spec () =
+  let ex = TestException "test" in
+  let catch_executed = ref false in
+  ignore (run (
       Lwt.catch
-      (fun () ->
-        let v = spec.value () in
-        spec.f v >>= fun _ ->
-        fail ex >>= fun _ ->
-        assert_failure "code must not be executed after fail!";
-      )
-      (fun e ->
-        assert_same_exception ex e;
-        catch_executed := true;
-        return ()
-      )
-    ));
-    assert_bool "catch must be executed" !catch_executed;;
-
-  let test_try_fail_catch_fail spec () =
-    let ex = TestException "test" in
-    let ex2 = TestException "test2" in
-    assert_raises ~msg:"must raise exception" ex2 (fun () ->
-      run (Lwt.catch
         (fun () ->
-          let v = spec.value () in
-          spec.f v >>= fun _ ->
-          fail ex >>= fun _ ->
-          assert_failure "code must not be executed after fail!";
+           let v = spec.value () in
+           spec.f v >>= fun _ ->
+           fail ex >>= fun _ ->
+           assert_failure "code must not be executed after fail!";
         )
         (fun e ->
-          assert_same_exception ex e;
-          fail ex2
+           assert_same_exception ex e;
+           catch_executed := true;
+           return ()
         )
-      )
+    ));
+  assert_bool "catch must be executed" !catch_executed;;
+
+let test_try_fail_catch_fail spec () =
+  let ex = TestException "test" in
+  let ex2 = TestException "test2" in
+  assert_raises ~msg:"must raise exception" ex2 (fun () ->
+      run (Lwt.catch
+             (fun () ->
+                let v = spec.value () in
+                spec.f v >>= fun _ ->
+                fail ex >>= fun _ ->
+                assert_failure "code must not be executed after fail!";
+             )
+             (fun e ->
+                assert_same_exception ex e;
+                fail ex2
+             )
+          )
     );;
 
-  let test_try_fail_catch_fail_catch spec () =
-    let ex = TestException "test" in
-    let ex2 = TestException "test2" in
-    let catch_called = ref false in
-    run (Lwt.catch
-      (fun () -> Lwt.catch
+let test_try_fail_catch_fail_catch spec () =
+  let ex = TestException "test" in
+  let ex2 = TestException "test2" in
+  let catch_called = ref false in
+  run (Lwt.catch
+         (fun () -> Lwt.catch
+             (fun () ->
+                let v = spec.value () in
+                spec.f v >>= fun _ ->
+                fail ex >>= fun _ ->
+                assert_failure "code must not be executed after fail!";
+             )
+             (fun e ->
+                assert_same_exception ex e;
+                fail ex2
+             )
+         )
+         (fun e ->
+            assert_same_exception ex2 e;
+            catch_called := true;
+            return ()
+         )
+      );
+  assert_bool "catch must be called" !catch_called;;
+
+let test_try_raise_catch () =
+  let ex = TestException "test" in
+  let catch_executed = ref false in
+  ignore (run (
+      Lwt.catch
+        (fun () -> raise ex)
+        (fun e ->
+           assert_same_exception ex e;
+           catch_executed := true;
+           return ()
+        )
+    ));
+  assert_bool "catch must be executed" !catch_executed;;
+
+let test_try_raise_catch_nested spec () =
+  let ex = TestException "test" in
+  let catch_executed = ref false in
+  ignore (run (
+      Lwt.catch
         (fun () ->
-          let v = spec.value () in
-          spec.f v >>= fun _ ->
-          fail ex >>= fun _ ->
-          assert_failure "code must not be executed after fail!";
+           let v = spec.value () in
+           spec.f v >>= fun _ ->
+           raise ex
         )
         (fun e ->
-          assert_same_exception ex e;
-          fail ex2
+           assert_same_exception ex e;
+           catch_executed := true;
+           return ()
         )
-      )
-      (fun e ->
-        assert_same_exception ex2 e;
-        catch_called := true;
-        return ()
-      )
-    );
-    assert_bool "catch must be called" !catch_called;;
-
-  let test_try_raise_catch () =
-    let ex = TestException "test" in
-    let catch_executed = ref false in
-    ignore (run (
-      Lwt.catch
-      (fun () -> raise ex)
-      (fun e ->
-        assert_same_exception ex e;
-        catch_executed := true;
-        return ()
-      )
     ));
-    assert_bool "catch must be executed" !catch_executed;;
+  assert_bool "catch must be executed" !catch_executed;;
 
-  let test_try_raise_catch_nested spec () =
-    let ex = TestException "test" in
-    let catch_executed = ref false in
-    ignore (run (
-      Lwt.catch
-      (fun () ->
-        let v = spec.value () in
-        spec.f v >>= fun _ ->
-        raise ex
-      )
-      (fun e ->
-        assert_same_exception ex e;
-        catch_executed := true;
-        return ()
-      )
-    ));
-    assert_bool "catch must be executed" !catch_executed;;
-
-  let test_try_fail_catch_raise spec () =
-    let ex = TestException "test" in
-    let ex2 = TestException "test2" in
-    assert_raises ~msg:"must raise exception" ex2 (fun () ->
+let test_try_fail_catch_raise spec () =
+  let ex = TestException "test" in
+  let ex2 = TestException "test2" in
+  assert_raises ~msg:"must raise exception" ex2 (fun () ->
       run (Lwt.catch
-        (fun () ->
-          let v = spec.value () in
-          spec.f v >>= fun _ ->
-          fail ex >>= fun _ ->
-          assert_failure "code must not be executed after fail!";
-        )
-        (fun e ->
-          assert_same_exception ex e;
-          raise ex2
-        )
-      )
+             (fun () ->
+                let v = spec.value () in
+                spec.f v >>= fun _ ->
+                fail ex >>= fun _ ->
+                assert_failure "code must not be executed after fail!";
+             )
+             (fun e ->
+                assert_same_exception ex e;
+                raise ex2
+             )
+          )
     );;
 
-  let tests spec =
-    spec.name>::: [
-      "basic">:::
-      [
-        "return/run">::(fun () ->
+let tests spec =
+  spec.name>::: [
+    "basic">:::
+    [
+      "return/run">::(fun () ->
           let a = spec.value () in
           expect_equal spec.print_a (return a) (return a);
         );
-        "return/bind/run">::(fun () ->
+      "return/bind/run">::(fun () ->
           run (
             return (spec.value ()) >>= fun a ->
             return (spec.value ()) >>= fun b ->
             return (compare_equal spec.print_a a b)
           )
         );
-      ];
-      "exceptions">:::[
-        "try_fail_catch1">::test_try_fail_catch1;
-        "try_fail_catch2">::(test_try_fail_catch2 spec);
-        "try_fail_catch_fail">::(test_try_fail_catch_fail spec);
-        "try_fail_catch_fail_catch">::(test_try_fail_catch_fail_catch spec);
-        "try_raise_catch">::test_try_raise_catch;
-        "try_raise_catch_nested">::(test_try_raise_catch_nested spec);
-        "try_raise_catch_raise">::(test_try_fail_catch_raise spec);
-      ];
-      "monad laws">:::[
-        "left identity">::(fun () ->
+    ];
+    "exceptions">:::[
+      "try_fail_catch1">::test_try_fail_catch1;
+      "try_fail_catch2">::(test_try_fail_catch2 spec);
+      "try_fail_catch_fail">::(test_try_fail_catch_fail spec);
+      "try_fail_catch_fail_catch">::(test_try_fail_catch_fail_catch spec);
+      "try_raise_catch">::test_try_raise_catch;
+      "try_raise_catch_nested">::(test_try_raise_catch_nested spec);
+      "try_raise_catch_raise">::(test_try_fail_catch_raise spec);
+    ];
+    "monad laws">:::[
+      "left identity">::(fun () ->
           let a = spec.value () in
           expect_equal spec.print_b (return a >>= spec.f) (spec.f a)
         );
-        "right identity">::(fun () ->
+      "right identity">::(fun () ->
           let m = return (spec.value ()) in
           expect_equal spec.print_a (m >>= return) m
         );
-        "associativity">::(fun () ->
+      "associativity">::(fun () ->
           let m1 = return (spec.value ())
           and m2 = return (spec.value ()) in
           expect_equal spec.print_c
             ((m1 >>= spec.f) >>= spec.g)
             (m2 >>= (fun x -> spec.f x >>= spec.g))
         )
-      ]
     ]
+  ]
 
-  open M
+open M
 
-  let id x = x
+let id x = x
 
-  let f_int x =
-    return (float_of_int (x + 4))
+let f_int x =
+  return (float_of_int (x + 4))
 
-  let g_float x =
-    return (string_of_float (x *. 6.))
+let g_float x =
+  return (string_of_float (x *. 6.))
 
-  let f_ref x =
-    x := !x + 16;
-    return x;;
+let f_ref x =
+  x := !x + 16;
+  return x;;
 
-  let g_ref x =
-    x := !x + 400;
-    return (!x);;
+let g_ref x =
+  x := !x + 400;
+  return (!x);;
 
-  let print_ref x =
-    string_of_int (!x);;
+let print_ref x =
+  string_of_int (!x);;
 
-  let tests =
-    "monad">:::
-    [
-      tests {
-        name = "basic";
-        value = (fun () -> 42);
-        f = f_int;
-        g = g_float;
-        print_a = Some string_of_int;
-        print_b = Some string_of_float;
-        print_c = Some id;
-      };
-      tests {
-        name = "side-effect";
-        value = (fun () -> ref 4);
-        f = f_ref;
-        g = g_ref;
-        print_a = Some print_ref;
-        print_b = Some print_ref;
-        print_c = Some string_of_int;
-      }
-    ]
+let tests =
+  "monad">:::
+  [
+    tests {
+      name = "basic";
+      value = (fun () -> 42);
+      f = f_int;
+      g = g_float;
+      print_a = Some string_of_int;
+      print_b = Some string_of_float;
+      print_c = Some id;
+    };
+    tests {
+      name = "side-effect";
+      value = (fun () -> ref 4);
+      f = f_ref;
+      g = g_ref;
+      print_a = Some print_ref;
+      print_b = Some print_ref;
+      print_c = Some string_of_int;
+    }
+  ]

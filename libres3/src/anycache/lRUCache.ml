@@ -34,11 +34,11 @@
 
 type ('ok, 'err) result = OK of 'ok | Error of 'err
 include (LRUCacheResult.Make(struct
-    type ('ok, 'err) t = ('ok, 'err) result
-    let return v = OK v
-    let fail v = Error v
-    let catch m g = match m with OK _ as r -> r | Error e -> g e
-    let (>>=) m f = match m with
-      | OK v -> f v
-      | Error _ as e -> e
-  end))
+           type ('ok, 'err) t = ('ok, 'err) result
+           let return v = OK v
+           let fail v = Error v
+           let catch m g = match m with OK _ as r -> r | Error e -> g e
+           let (>>=) m f = match m with
+             | OK v -> f v
+             | Error _ as e -> e
+         end))

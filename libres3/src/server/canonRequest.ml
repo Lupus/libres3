@@ -71,14 +71,14 @@ let string_of_method = function
 
 let canonicalized_amz_headers c =
   let sorted_lowercased_amz = Headers.filter_names (fun name ->
-    (* TODO: its already lowercase, use starts_with *)
-    (string_match x_amz_re name 0) <> None
-  ) c.headers in
+      (* TODO: its already lowercase, use starts_with *)
+      (string_match x_amz_re name 0) <> None
+    ) c.headers in
   (* TODO: replace folding white-space with single-space? *)
   let combined =
     List.map (fun name ->
-      name ^ ":" ^ (String.concat "," (Headers.field_values c.headers name)) ^ "\n"
-    ) sorted_lowercased_amz in
+        name ^ ":" ^ (String.concat "," (Headers.field_values c.headers name)) ^ "\n"
+      ) sorted_lowercased_amz in
   String.concat "" combined;;
 
 let prefix_bucket b =
@@ -89,8 +89,8 @@ let prefix_bucket b =
 let stringmap_all map =
   (* can't use Map.bindings, because OCaml 3.11 doesn't have it *)
   StringMap.fold (fun key data accum ->
-    (key, data) :: accum
-  ) map [];;
+      (key, data) :: accum
+    ) map [];;
 
 let compare_nameval (name1,_) (name2,_) = String.compare name1 name2
 let canonicalized_resource c =
@@ -98,22 +98,22 @@ let canonicalized_resource c =
    * un-decoded URI? *)
   (* TODO: strip bucket if it starts with it, and stop at '?'*)
   let filtered_subresources = List.filter (fun (n,_) ->
-    (* TODO: would it be more efficient to take the difference
-     * of two maps than this linear comparison?*)
-    n = "acl" || n = "lifecycle" || n = "location" || n = "logging" ||
-    n = "notification" || n = "partNumber" || n = "policy" ||
-    n = "requestPayment" || n = "torrent" || n = "uploadId" ||
-    n = "delete" || n = "uploads" || n = "versionId" || n = "versions" ||
-    n = "website") (stringmap_all c.query_params) in
+      (* TODO: would it be more efficient to take the difference
+       * of two maps than this linear comparison?*)
+      n = "acl" || n = "lifecycle" || n = "location" || n = "logging" ||
+      n = "notification" || n = "partNumber" || n = "policy" ||
+      n = "requestPayment" || n = "torrent" || n = "uploadId" ||
+      n = "delete" || n = "uploads" || n = "versionId" || n = "versions" ||
+      n = "website") (stringmap_all c.query_params) in
   let sorted_subresources = List.fast_sort compare_nameval filtered_subresources
   in
   let subresources =
     if sorted_subresources = [] then "" else
       "?" ^ (String.concat "&" (
-              List.map (fun (n,v) ->
-                if v = "" then n else n ^ "=" ^ v
-              ) sorted_subresources
-            )) in
+          List.map (fun (n,v) ->
+              if v = "" then n else n ^ "=" ^ v
+            ) sorted_subresources
+        )) in
   (prefix_bucket c.bucket) ^ c.undecoded_uri_path ^ subresources
 
 let split_query_re = regexp_string "&"
@@ -129,22 +129,22 @@ let hex2int = function
 let rec decode_loop b s pos =
   if pos = String.length s then Buffer.contents b
   else match s.[pos] with
-  | '+' ->
-    Buffer.add_char b ' ';
-    decode_loop b s (pos+1)
-  | '%' when pos+2 < String.length s ->
-    let next =
-    try
-      let c = Char.chr (((hex2int s.[pos+1]) lsl 4) lor (hex2int s.[pos+2])) in
+    | '+' ->
+      Buffer.add_char b ' ';
+      decode_loop b s (pos+1)
+    | '%' when pos+2 < String.length s ->
+      let next =
+        try
+          let c = Char.chr (((hex2int s.[pos+1]) lsl 4) lor (hex2int s.[pos+2])) in
+          Buffer.add_char b c;
+          pos+3
+        with Invalid_argument _ ->
+          Buffer.add_char b '%';
+          pos+1 in
+      decode_loop b s next
+    | c ->
       Buffer.add_char b c;
-      pos+3
-    with Invalid_argument _ ->
-      Buffer.add_char b '%';
-      pos+1 in
-    decode_loop b s next
-  | c ->
-    Buffer.add_char b c;
-    decode_loop b s (pos+1)
+      decode_loop b s (pos+1)
 
 let uri_decode s =
   let b = Buffer.create (String.length s) in
@@ -154,19 +154,19 @@ let parse_query encoded_query =
   try
     let params = Netstring_str.split split_query_re encoded_query in
     List.fold_left (fun accum nameval ->
-      let name, value =
-        match Netstring_str.bounded_split split_param_re nameval 2 with
-        | name :: value :: [] ->
+        let name, value =
+          match Netstring_str.bounded_split split_param_re nameval 2 with
+          | name :: value :: [] ->
             uri_decode name, uri_decode value
-        | name :: [] ->
+          | name :: [] ->
             uri_decode name, ""
-        | _ ->
+          | _ ->
             raise (Error.ErrorReply(Error.InvalidURI,["querypart",nameval],[]))
-      in
-      let old  =
-        try StringMap.find name accum
-        with Not_found ->  Headers.StringSet.empty in
-      StringMap.add name (Headers.StringSet.add value old) accum) StringMap.empty params
+        in
+        let old  =
+          try StringMap.find name accum
+          with Not_found ->  Headers.StringSet.empty in
+        StringMap.add name (Headers.StringSet.add value old) accum) StringMap.empty params
   with
   | Not_found -> StringMap.empty
 
@@ -196,11 +196,11 @@ let merge s =
   | multi -> String.concat "\x00" multi
 
 let canonicalize_request ~id req_method
-  {req_headers=req_headers; undecoded_url=undecoded_url} =
+    {req_headers=req_headers; undecoded_url=undecoded_url} =
   let headers = Headers.build header_overrides req_headers in
   let host = Headers.field_single_value headers "host" !Configfile.base_hostname in
   let hurl = Neturl.parse_url ~base_syntax (
-    "http://" ^ host) in
+      "http://" ^ host) in
   (* client may not encode some characters that OCamlnet would reject as unsafe,
    * for example [.
    * fixup_url_string doesn't help with [ either.
@@ -301,7 +301,7 @@ let canonical_headers canon_req signed_headers =
       let v = String.concat ","
           (List.sort String.compare (Headers.field_values headers header)) in
       header ^ ":" ^ (trim v)
-  ) signed_headers))
+    ) signed_headers))
 
 type credential_v4 = {
   keyid: string;
@@ -327,21 +327,21 @@ let string_to_sign_v4 auth ?sha256 ~canon_req =
   in
   let signed_headers =
     Headers.StringSet.elements (Headers.StringSet.union auth.signed_headers
-      (Headers.filter_names_set must_sign_header canon_req.headers)) in
+                                  (Headers.filter_names_set must_sign_header canon_req.headers)) in
   let payloadhash = match auth.payloadhash, sha256 with
-  | Some s, _ -> s
-  | None, None -> "STREAMING-AWS4-HMAC-SHA256-PAYLOAD"
-  | None, Some s -> Cryptokit.transform_string (Cryptokit.Hexa.encode ()) s in
+    | Some s, _ -> s
+    | None, None -> "STREAMING-AWS4-HMAC-SHA256-PAYLOAD"
+    | None, Some s -> Cryptokit.transform_string (Cryptokit.Hexa.encode ()) s in
   let params = StringMap.remove "X-Amz-Signature" canon_req.query_params_multi
   in
   let canonical_request = String.concat "\n" [
-    string_of_method canon_req.req_method;
-    uri_encode ~encode_slash:false absolute_uri;
-    uri_encode_params (StringMap.bindings params);
-    canonical_headers canon_req signed_headers;
-    "";
-    String.concat ";" signed_headers;
-    payloadhash
+      string_of_method canon_req.req_method;
+      uri_encode ~encode_slash:false absolute_uri;
+      uri_encode_params (StringMap.bindings params);
+      canonical_headers canon_req signed_headers;
+      "";
+      String.concat ";" signed_headers;
+      payloadhash
     ] in
   canonical_request,
   String.concat "\n" [
@@ -388,22 +388,22 @@ let parse_credential c =
 let parse_authorization req =
   match Headers.field_values req.headers "authorization" with
   | [] ->
-      let v4_algo = get_query_param_opt req.query_params "X-Amz-Algorithm" in
-      if v4_algo = "AWS4-HMAC-SHA256" then begin
-        let credential = get_query_param_opt req.query_params "X-Amz-Credential"
-        and date = Headers.parse_iso8601 (get_query_param_opt req.query_params "X-Amz-Date")
-        and expires = get_query_param_opt req.query_params "X-Amz-Expires"
-        and signed = get_query_param_opt req.query_params "X-Amz-SignedHeaders"
-        and signature = get_query_param_opt req.query_params "X-Amz-Signature"
-        in
-        let expiration = date +. float (int_of_string expires) in
-        AuthorizationV4 ({
-            signed_headers = set_of_header_list signed;
-            credential = parse_credential credential;
-            auth_date = date;
-            payloadhash = Some "UNSIGNED-PAYLOAD"
-          }, signature, Some expiration)
-      end else
+    let v4_algo = get_query_param_opt req.query_params "X-Amz-Algorithm" in
+    if v4_algo = "AWS4-HMAC-SHA256" then begin
+      let credential = get_query_param_opt req.query_params "X-Amz-Credential"
+      and date = Headers.parse_iso8601 (get_query_param_opt req.query_params "X-Amz-Date")
+      and expires = get_query_param_opt req.query_params "X-Amz-Expires"
+      and signed = get_query_param_opt req.query_params "X-Amz-SignedHeaders"
+      and signature = get_query_param_opt req.query_params "X-Amz-Signature"
+      in
+      let expiration = date +. float (int_of_string expires) in
+      AuthorizationV4 ({
+          signed_headers = set_of_header_list signed;
+          credential = parse_credential credential;
+          auth_date = date;
+          payloadhash = Some "UNSIGNED-PAYLOAD"
+        }, signature, Some expiration)
+    end else
       let keyid = get_query_param_opt req.query_params "AWSAccessKeyId"
       and signature = get_query_param_opt req.query_params "Signature"
       and expires = req.expires in
@@ -432,9 +432,9 @@ let parse_authorization req =
             AuthMalformed s
         end
       | End_of_file -> AuthMalformed "too short"
-      end
+    end
   | _ ->
-      AuthDuplicate
+    AuthDuplicate
 ;;
 
 let buf = Buffer.create 128
@@ -455,6 +455,6 @@ let gen_debug2 info =
 let actual_query_params r =
   List.fast_sort compare_nameval (
     List.filter (fun (name,_) ->
-      not (name = "AWSAccessKeyId" || name = "Signature" || name = "Expires")
-    ) (stringmap_all r.query_params)
+        not (name = "AWSAccessKeyId" || name = "Signature" || name = "Expires")
+      ) (stringmap_all r.query_params)
   );;

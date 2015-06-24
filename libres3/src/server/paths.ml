@@ -57,17 +57,17 @@ let parse_configuration path parse default =
   match open_file path with
   | None -> default
   | Some ch ->
-      Printf.printf "\nLoading configuration from %s\n" path;
-      try
-        with_file ch (readlocked (parse_full parse default)) ~close:close_in
-      with
-      | Scanf.Scan_failure msg | Failure msg ->
-          Printf.eprintf "Failed to parse configuration: %s\n" msg;
-          raise Exit;
-      | e ->
-        Printf.eprintf "Failed to parse configuration: %s\n"
-          (Printexc.to_string e);
-        raise Exit;;
+    Printf.printf "\nLoading configuration from %s\n" path;
+    try
+      with_file ch (readlocked (parse_full parse default)) ~close:close_in
+    with
+    | Scanf.Scan_failure msg | Failure msg ->
+      Printf.eprintf "Failed to parse configuration: %s\n" msg;
+      raise Exit;
+    | e ->
+      Printf.eprintf "Failed to parse configuration: %s\n"
+        (Printexc.to_string e);
+      raise Exit;;
 
 let config_file = ref (Filename.concat Configure.sysconfdir "libres3/libres3.conf")
 let process_configuration ~parse =

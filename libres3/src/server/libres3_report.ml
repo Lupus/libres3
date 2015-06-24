@@ -58,7 +58,7 @@ let dump_file out name =
         close_in f;
       with Sys_error e ->
         fprintf out "\t%s\n" e
-  )
+    )
 
 let print_section out name =
   fprintf out "\n%s" name;
@@ -66,18 +66,18 @@ let print_section out name =
 
 let dump_command out cmd =
   print_wrap out cmd (fun () ->
-    try
-      let f = Unix.open_process_in cmd in
-      dump_channel out f;
-      match Unix.close_process_in f with
-      | Unix.WEXITED 0 -> ();
-      | Unix.WEXITED n ->
-        fprintf out "Error executing '%s': exited with code %d\n" cmd n
-      | Unix.WSIGNALED n | Unix.WSTOPPED n ->
-        fprintf out "Error executing '%s': exited due to signal %d\n" cmd n
-    with Unix.Unix_error (err,fn,_) ->
-      fprintf out "Error executing '%s' in %s: %s\n" cmd fn (Unix.error_message err)
-  )
+      try
+        let f = Unix.open_process_in cmd in
+        dump_channel out f;
+        match Unix.close_process_in f with
+        | Unix.WEXITED 0 -> ();
+        | Unix.WEXITED n ->
+          fprintf out "Error executing '%s': exited with code %d\n" cmd n
+        | Unix.WSIGNALED n | Unix.WSTOPPED n ->
+          fprintf out "Error executing '%s': exited due to signal %d\n" cmd n
+      with Unix.Unix_error (err,fn,_) ->
+        fprintf out "Error executing '%s' in %s: %s\n" cmd fn (Unix.error_message err)
+    )
 
 type 'a result = OK of 'a | Error of exn
 
@@ -92,10 +92,10 @@ let secret_re = Netstring_str.regexp ".*secret_key.*"
 let rec dump_cfg out ch =
   let line = input_line ch in
   begin match Netstring_str.string_match secret_re line 0 with
-  | None ->
-    fprintf out "%s\n" line
-  | Some _ ->
-    fprintf out "<secret_key not printed>\n"
+    | None ->
+      fprintf out "%s\n" line
+    | Some _ ->
+      fprintf out "<secret_key not printed>\n"
   end;
   dump_cfg out ch
 
@@ -103,11 +103,11 @@ let dump_cfg_file out path =
   try
     let ch = open_in path in
     print_wrap out path (fun () ->
-      try
-        dump_cfg out ch;
-      with End_of_file ->
-        close_in ch
-    )
+        try
+          dump_cfg out ch;
+        with End_of_file ->
+          close_in ch
+      )
   with _ -> ()
 
 
@@ -121,25 +121,25 @@ let check_host host =
         return (Some (urlstr, None))
       | None ->
         return (Some (urlstr, Some "no uuid"))
-  ) (fun e -> return (Some (urlstr, Some (Printexc.to_string e))))
+    ) (fun e -> return (Some (urlstr, Some (Printexc.to_string e))))
 
 let resolve_host out ~kind host =
   eprintf "Looking up %s host '%s' ... %!" kind host;
   fprintf out "%s host '%s' " kind host;
   let results = try
-    match Unix.getaddrinfo host "" [Unix.AI_SOCKTYPE Unix.SOCK_STREAM; Unix.AI_CANONNAME] with
-    | [] ->
+      match Unix.getaddrinfo host "" [Unix.AI_SOCKTYPE Unix.SOCK_STREAM; Unix.AI_CANONNAME] with
+      | [] ->
         fprintf out "cannot be resolved\n"; []
-    | result ->
-      fprintf out "resolves to:\n";
-      List.rev_map (fun ai ->
-          match ai.Unix.ai_addr with
-          | Unix.ADDR_INET (inet, _) ->
-            let addr = Unix.string_of_inet_addr inet in
-            fprintf out "\t%s (%s)\n" addr ai.Unix.ai_canonname;
-            Some addr
-          | _ -> None
-        ) result
+      | result ->
+        fprintf out "resolves to:\n";
+        List.rev_map (fun ai ->
+            match ai.Unix.ai_addr with
+            | Unix.ADDR_INET (inet, _) ->
+              let addr = Unix.string_of_inet_addr inet in
+              fprintf out "\t%s (%s)\n" addr ai.Unix.ai_canonname;
+              Some addr
+            | _ -> None
+          ) result
     with e ->
       fprintf out "failed to resolve: %s\n" (Printexc.to_string e); []
   in
@@ -156,13 +156,13 @@ let check_sx_hosts out sxhost =
   (* wait for all results *)
   let results = Lwt_main.run (List.fold_left (fun accum res ->
       accum >>= fun a -> res >>= function
-    | Some r -> return (r :: a)
-    | None -> return a) (return []) check_results) in
+      | Some r -> return (r :: a)
+      | None -> return a) (return []) check_results) in
   List.iter (fun (host, result) ->
       fprintf out "\t %s: %s\n" host (match result with
           | None -> "OK"
           | Some err -> err)
-  ) results;
+    ) results;
   eprintf "done\n%!"
 
 let check_s3_hosts out s3host =
@@ -176,11 +176,11 @@ let run out result =
   fprintf out "sbindir: %s\n" Configure.sbindir;
   print_wrap out "Package versions" (fun () ->
       output_string out Version.package_info
-  );
+    );
   print_wrap out "Build environment" (fun () ->
-    output_string out Version.env_info
-  );
-    fprintf out "OCaml compiler version: %s\n" Sys.ocaml_version;
+      output_string out Version.env_info
+    );
+  fprintf out "OCaml compiler version: %s\n" Sys.ocaml_version;
 
   (* TODO: bindir, sysconfdir, localstatedir *)
   print_section out "System information";
@@ -212,8 +212,8 @@ let run out result =
   fprintf out "Verbose: %b\n" !Configfile.verbose;
   fprintf out "Initialization: ";
   begin match result with
-  | OK _ -> fprintf out "OK\n";
-  | Error e -> fprintf out "Error: %s\n" (Printexc.to_string e)
+    | OK _ -> fprintf out "OK\n";
+    | Error e -> fprintf out "Error: %s\n" (Printexc.to_string e)
   end;
   dump_cfg_file out (!Paths.config_file);
   dump_file out (Paths.generated_config_file);
@@ -225,7 +225,7 @@ let run out result =
   check_s3_hosts out ("test." ^ !Configfile.base_hostname);
   match !Configfile.sx_host with
   | Some host ->
-      check_sx_hosts out host
+    check_sx_hosts out host
   | None -> ()
 ;;
 
@@ -234,7 +234,7 @@ let () =
   let output_file = ref (Printf.sprintf "libres3-report-%d.log" now) in
   Cmdline.parse_cmdline ~print_conf_help:false [
     "--output", Arg.Set_string output_file,
-      Printf.sprintf " Save output to given file (default: %s)" !output_file;
+    Printf.sprintf " Save output to given file (default: %s)" !output_file;
     "--anonymize", Arg.Set anonymize, " Anonymize IP addresses, URLs, and hostnames";
     "--no-ssl", Arg.Clear Config.sx_ssl, "";
   ];

@@ -67,23 +67,23 @@ let nl = Netstring_str.regexp " *\n"
 let sep = Netstring_str.regexp ": *"
 let parse_headers h =
   let headers, _, body =
-  List.fold_left (fun (accum, is_body, body) line ->
-      if is_body then accum, true, line :: body
-      else match Netstring_str.bounded_split sep line 2 with
-      | [ k; v ] -> (k, v) :: accum, false, body
-      | [ k ] -> (k, "") :: accum, false, body
-      | [] -> accum, true, body
-      | _ -> assert false
+    List.fold_left (fun (accum, is_body, body) line ->
+        if is_body then accum, true, line :: body
+        else match Netstring_str.bounded_split sep line 2 with
+          | [ k; v ] -> (k, v) :: accum, false, body
+          | [ k ] -> (k, "") :: accum, false, body
+          | [] -> accum, true, body
+          | _ -> assert false
       ) ([], false, []) h in
   headers, String.concat "\n" body
 
 let meth_of_string ~body = function
- | "DELETE" -> `DELETE
- | "GET" -> `GET
- | "HEAD" -> `HEAD
- | "POST" -> `POST body
- | "PUT" -> `PUT body
- | _ -> `UNSUPPORTED
+  | "DELETE" -> `DELETE
+  | "GET" -> `GET
+  | "HEAD" -> `HEAD
+  | "POST" -> `POST body
+  | "PUT" -> `PUT body
+  | _ -> `UNSUPPORTED
 
 let parse_req s =
   match Netstring_str.split nl s with
@@ -94,36 +94,36 @@ let parse_req s =
           (meth_of_string ~body meth) {
           req_headers = headers;
           undecoded_url = path
-      }), body
+        }), body
   | _ ->
     failwith "malformed request"
 
 let sigv4_test name =
   name>::(fun ctx ->
-    try
-      let signed_req = load name "sreq"
-      and expected_canonical = load name "creq"
-      and expected_string_to_sign = load name "sts" in
-      let canon_req, body = parse_req signed_req in
-      match CanonRequest.parse_authorization canon_req with
-      | AuthorizationV4 (authv4, expected_signature,_) ->
-        let sha256 = Cryptokit.hash_string (Cryptokit.Hash.sha256 ()) body in
-        let canonical, tosign = string_to_sign_v4 authv4 ~sha256 ~canon_req in
-        assert_str_equal ~msg:"canonical request" expected_canonical canonical;
-        assert_str_equal ~msg:"string-to-sign-v4" expected_string_to_sign tosign;
-        let signature =
-          sign_string_v4 ~key:secret_key_v4 authv4.credential tosign
-        in
-        assert_str_equal ~msg:"signature" expected_signature signature
-      | AuthMalformed s ->
-        assert_failure ("cannot parse auth header: " ^ s)
-      | AuthNone -> assert_failure ("auth = none")
-      | AuthEmpty ->  assert_failure "auth empty"
-      | AuthDuplicate -> assert_failure "auth duplicate"
-      | Authorization (a,_,_) -> assert_failure ("bad auth version: " ^ a)
-    with Sys_error msg ->
-      skip_if true msg
-  )
+      try
+        let signed_req = load name "sreq"
+        and expected_canonical = load name "creq"
+        and expected_string_to_sign = load name "sts" in
+        let canon_req, body = parse_req signed_req in
+        match CanonRequest.parse_authorization canon_req with
+        | AuthorizationV4 (authv4, expected_signature,_) ->
+          let sha256 = Cryptokit.hash_string (Cryptokit.Hash.sha256 ()) body in
+          let canonical, tosign = string_to_sign_v4 authv4 ~sha256 ~canon_req in
+          assert_str_equal ~msg:"canonical request" expected_canonical canonical;
+          assert_str_equal ~msg:"string-to-sign-v4" expected_string_to_sign tosign;
+          let signature =
+            sign_string_v4 ~key:secret_key_v4 authv4.credential tosign
+          in
+          assert_str_equal ~msg:"signature" expected_signature signature
+        | AuthMalformed s ->
+          assert_failure ("cannot parse auth header: " ^ s)
+        | AuthNone -> assert_failure ("auth = none")
+        | AuthEmpty ->  assert_failure "auth empty"
+        | AuthDuplicate -> assert_failure "auth duplicate"
+        | Authorization (a,_,_) -> assert_failure ("bad auth version: " ^ a)
+      with Sys_error msg ->
+        skip_if true msg
+    )
 
 let () =
   run_test_tt_main (

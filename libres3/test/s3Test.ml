@@ -42,71 +42,71 @@ let std_headers_opt = ["x-amz-request-id";"x-amz-id-2"]
 
 let string_of_attrs lst =
   String.concat " " (List.rev_map (fun ((ns,name),value) ->
-    (if ns <> "" then ns ^ ":" ^ name
-    else name)^"="^value)
-  lst);;
+      (if ns <> "" then ns ^ ":" ^ name
+       else name)^"="^value)
+      lst);;
 
 let string_of_xmllist lst =
   String.concat "\n" (List.rev (List.rev_map (CodedIO.Xml.to_string ?decl:None) lst));;
 
 let rec get_xml_field exp_tag = function
   | `El (((_,tag),[]),[`Data d]) when tag = exp_tag ->
-      Some d
+    Some d
   | `El (_,c) ->
-      List.fold_left (fun accum e ->
+    List.fold_left (fun accum e ->
         match get_xml_field exp_tag e with
         | None -> accum
         | Some d -> Some d) None c
   | `Data _ ->
-      None;;
+    None;;
 
 let match_field exp_ns exp_tag exp_data lst =
   let matched = ref false in
   List.iter (function
-    | `El (((ns, tag),attrs),children) when tag = exp_tag ->
+      | `El (((ns, tag),attrs),children) when tag = exp_tag ->
         assert_eq_string ~msg:"tag namespace" ns exp_ns;
         assert_eq_string ~msg:"tag attributes" "" (string_of_attrs attrs);
         begin match children with
-        | [] -> assert_failure ("empty tag contents, expected "^exp_data)
-        | `Data d :: [] ->
+          | [] -> assert_failure ("empty tag contents, expected "^exp_data)
+          | `Data d :: [] ->
             assert_eq_string ~msg:"data" exp_data d
-        | xml_list ->
+          | xml_list ->
             assert_failure ("bad tag contents: " ^ (string_of_xmllist xml_list))
         end;
         matched := true
-    | _ ->
+      | _ ->
         ()
-  ) lst;
+    ) lst;
   assert_bool ("expected tag " ^ exp_tag ^ " in: " ^ (string_of_xmllist lst)) (!matched);;
 
 let expect_xml_error ?(resource=true) desc _ body =
- try begin match CodedIO.Xml.parse_string body with
-  | `El (((_,"Error"),[]), children) ->
+  try begin match CodedIO.Xml.parse_string body with
+    | `El (((_,"Error"),[]), children) ->
       match_field "" "Code" desc children;
       if not resource then
         assert_bool "no resource" (List.for_all (fun c ->
-          (get_xml_field "Resource" c) = None) children);
+            (get_xml_field "Resource" c) = None) children);
       true
-  | `El _ | `Data _ ->
+    | `El _ | `Data _ ->
       false
   end
- with Xmlm.Error ((line,col), err) ->
-   assert_failure (Printf.sprintf "Xml error %s at %d:%d"
-    (Xmlm.error_message err) line col)
+  with Xmlm.Error ((line,col), err) ->
+    assert_failure (Printf.sprintf "Xml error %s at %d:%d"
+                      (Xmlm.error_message err) line col)
 
 let expect_error ?(head=false) errcode path =
   let desc, _, status = Error.info errcode in
   let code = Nethttp.int_of_http_status status in
   {
-  headers_exact = [];
-  headers_present = std_headers;
-  headers_present_opt = std_headers_opt;
-  check_body =
-    if head then (function "" -> true | _ -> false)
-    else expect_xml_error ~resource:(errcode <> Error.AccessDenied) desc path;
-  expected_code = code;
-  is_head = head
-}
+    headers_exact = [];
+    headers_present = std_headers;
+    headers_present_opt = std_headers_opt;
+    check_body =
+      if head then (function "" -> true | _ -> false)
+      else expect_xml_error ~resource:(errcode <> Error.AccessDenied) desc path;
+    expected_code = code;
+    is_head = head
+  }
 
 let key_id = Config.key_id
 let secret_access_key = Config.secret_access_key
@@ -114,9 +114,9 @@ let secret_access_key = Config.secret_access_key
 let map_method = function
   | (`GET | `HEAD | `DELETE) as a -> a
   | `POST ->
-      `POST ()
+    `POST ()
   | `PUT ->
-      `PUT ()
+    `PUT ()
   | _ -> `UNSUPPORTED
 
 let format_date_header t =
@@ -129,7 +129,7 @@ let sign_request req =
   let meth = map_method req.meth in
   let h = ("Date", date) :: req.req_headers in
   let canon = CanonRequest.canonicalize_request ~id:(RequestId.generate()) meth
-    {CanonRequest.req_headers = ("Authorization","") :: h; CanonRequest.undecoded_url = req.relative_url} in
+      {CanonRequest.req_headers = ("Authorization","") :: h; CanonRequest.undecoded_url = req.relative_url} in
   let tosign = CanonRequest.string_to_sign canon in
   let signature = Cryptoutil.sign_str (!secret_access_key) tosign in
   Printf.fprintf siglog "URL:%s\nStringToSignBytes:%s\nSignature:%s\n\n"
@@ -144,11 +144,11 @@ let sign_request req =
 
 let check_xml_root ~ns_root ~tag_root = function
   | `El (((ns,tag),_),_) ->
-      assert_eq_string ~msg:"root tag" tag_root tag;
-      assert_eq_string ~msg:"root tag namespace" ns_root ns;
-      true
+    assert_eq_string ~msg:"root tag" tag_root tag;
+    assert_eq_string ~msg:"root tag namespace" ns_root ns;
+    true
   | _ ->
-      false;;
+    false;;
 
 let expect_xml_root ns_root tag_root body =
   check_xml_root ~ns_root ~tag_root (CodedIO.Xml.parse_string body);;
@@ -165,51 +165,51 @@ let expect_xml_status_root status ns tag = {
 let rec check_xml_children child_tag child_contents xml =
   match xml with
   | `El (((_,tag),_),c) when tag = child_tag ->
-      begin match c with
+    begin match c with
       | (`Data d) :: _ when child_contents = d ->
-          true
+        true
       | [] when child_contents = "" ->
-          true
+        true
       | _ ->
-          false
-      end
+        false
+    end
   | `El (_,c) ->
-      List.exists (check_xml_children child_tag child_contents) c
+    List.exists (check_xml_children child_tag child_contents) c
   | `Data _ ->
-      false;;
+    false;;
 
 let rec check_no_tag child_tag xml =
   match xml with
   | `El (((_,tag),_),c) ->
-      if tag = child_tag then false
-      else List.for_all (check_no_tag child_tag) c
+    if tag = child_tag then false
+    else List.for_all (check_no_tag child_tag) c
   | `Data _ ->
-      true;;
+    true;;
 
 let expect_xml_status_root_child status
-  ~ns_root ~tag_root ~child_tag ~child_contents = {
-    headers_exact = ["Content-Type","application/xml"];
-    headers_present = std_headers;
-    headers_present_opt = std_headers_opt;
-    check_body = (fun body ->
+    ~ns_root ~tag_root ~child_tag ~child_contents = {
+  headers_exact = ["Content-Type","application/xml"];
+  headers_present = std_headers;
+  headers_present_opt = std_headers_opt;
+  check_body = (fun body ->
       let xml = CodedIO.Xml.parse_string body in
       (check_xml_root ~ns_root ~tag_root xml) &&
       (check_xml_children child_tag child_contents xml));
-    expected_code = Nethttp.int_of_http_status status;
-    is_head = false
+  expected_code = Nethttp.int_of_http_status status;
+  is_head = false
 }
 
 let expect_xml_status_root_nochild status
-  ~ns_root ~tag_root ~child_tag = {
-    headers_exact = ["Content-Type","application/xml"];
-    headers_present = std_headers;
-    headers_present_opt = std_headers_opt;
-    check_body = (fun body ->
+    ~ns_root ~tag_root ~child_tag = {
+  headers_exact = ["Content-Type","application/xml"];
+  headers_present = std_headers;
+  headers_present_opt = std_headers_opt;
+  check_body = (fun body ->
       let xml = CodedIO.Xml.parse_string body in
       (check_xml_root ~ns_root ~tag_root xml) &&
       (check_no_tag child_tag xml));
-    expected_code = Nethttp.int_of_http_status status;
-    is_head = false
+  expected_code = Nethttp.int_of_http_status status;
+  is_head = false
 }
 
 let generate_block size =

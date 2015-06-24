@@ -33,9 +33,9 @@ let base64_encode s =
   (* Base64.encode_compact_pad is not available in older cryptokit releases *)
   let e = transform_string (Base64.encode_compact ()) s in
   let padding = match (String.length e) mod 4 with
-  | 3 -> 1
-  | 2 -> 2
-  | _ -> 0 in
+    | 3 -> 1
+    | 2 -> 2
+    | _ -> 0 in
   e ^ (String.make padding '=');;
 
 let base64url_encode s =

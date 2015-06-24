@@ -71,9 +71,9 @@ module U = SXIO
 module IO = EventIO
 module Make
     (S: Server)
-: (Sig with type source = U.source
-       and type server = S.t
-  ) = struct
+  : (Sig with type source = U.source
+          and type server = S.t
+    ) = struct
   type source = U.source
   type server = S.t
   type ('a) request = {
@@ -98,15 +98,15 @@ module Make
         "x-amz-request-id", RequestId.to_string id
       ] headers in
     begin match debug_output with
-    | None -> ()
-    | Some ch ->
+      | None -> ()
+      | Some ch ->
         output_string ch "<<<<Reply headers\n";
         List.iter (fun (n,v) -> Printf.fprintf ch "\t%s:%s\n" n v) headers;
         begin match dbg_body with
-        | None -> ()
-        | Some str ->
-          Printf.fprintf ch "<<<<Reply body (%d) bytes\n%s\n------\n\n"
-            (String.length str) str;
+          | None -> ()
+          | Some str ->
+            Printf.fprintf ch "<<<<Reply body (%d) bytes\n%s\n------\n\n"
+              (String.length str) str;
         end;
         flush ch
     end;
@@ -128,7 +128,7 @@ module Make
       etag = None;
     } >>= fun sender ->
     if req.meth = `HEAD then return () (* ensure HEAD has empty body, but all
-    headers preserved, including Content-Length *)
+                                          headers preserved, including Content-Length *)
     else S.send_data sender (str, 0, String.length str)
   ;;
 
@@ -159,34 +159,34 @@ module Make
     match Headers.get_range headers with
     | Some (`Bytes [range]) ->
       begin match range with
-      | None, Some suffix_length ->
-        let first = Int64.sub content_length suffix_length in
-        if first < 0L then
-          Some (0L, default_last)
-        else
-          Some (first, default_last)
-      | Some prefix, None ->
-        Some (prefix, default_last)
-      | Some first, Some last ->
-        if first > last then
-          None (* syntactically invalid *)
-        else if last > default_last then
-          Some (first, default_last)
-        else
-          Some (first, last)
-      | None, None ->
-        None (* syntatictically invalid *)
+        | None, Some suffix_length ->
+          let first = Int64.sub content_length suffix_length in
+          if first < 0L then
+            Some (0L, default_last)
+          else
+            Some (first, default_last)
+        | Some prefix, None ->
+          Some (prefix, default_last)
+        | Some first, Some last ->
+          if first > last then
+            None (* syntactically invalid *)
+          else if last > default_last then
+            Some (first, default_last)
+          else
+            Some (first, last)
+        | None, None ->
+          None (* syntatictically invalid *)
       end
     | None | Some (`Bytes _) ->
-        (* we only support one range *)
-       None
+      (* we only support one range *)
+      None
   ;;
 
   let send_source url ~canon ~first sender =
     if canon.CanonRequest.req_method = `HEAD then return () (* ensure HEAD's body is empty *)
     else
       U.copy url ~srcpos:first (U.of_sink (fun _ ->
-        return (S.send_data sender)))
+          return (S.send_data sender)))
   ;;
 
   let is_prefix ~prefix str =
@@ -198,7 +198,7 @@ module Make
     List.fold_left (fun accum (key,value) ->
         if is_prefix ~prefix:"x-amz-meta-" key then (key, value) :: accum
         else accum
-    ) other_headers xamz_headers
+      ) other_headers xamz_headers
 
   let quote s = "\"" ^ s ^ "\""
   let return_source ~req ~canon ~content_type url ~metalst =
@@ -209,29 +209,29 @@ module Make
     let headers = add_meta_headers headers metalst in
     match (parse_ranges canon.CanonRequest.headers size) with
     | None ->
+      S.send_headers req.server {
+        status = `Ok;
+        reply_headers = ("Accept-Ranges","bytes") :: headers;
+        last_modified = Some mtime;
+        content_type = Some content_type;
+        content_length = Some size;
+        etag = Some (etag);
+      } >>= send_source url ~canon ~first:0L
+    | Some (first, last) as range ->
+      if first > last then
+        invalid_range ~req ~canon size (* not satisfiable *)
+      else
+        let h = Headers.make_content_range
+            (`Bytes (range, Some size)) in
+        let length = Int64.add 1L (Int64.sub last first) in
         S.send_headers req.server {
-          status = `Ok;
-          reply_headers = ("Accept-Ranges","bytes") :: headers;
+          status = `Partial_content;
+          reply_headers = List.rev_append h headers;
           last_modified = Some mtime;
           content_type = Some content_type;
-          content_length = Some size;
-          etag = Some (etag);
-        } >>= send_source url ~canon ~first:0L
-    | Some (first, last) as range ->
-        if first > last then
-          invalid_range ~req ~canon size (* not satisfiable *)
-        else
-          let h = Headers.make_content_range
-            (`Bytes (range, Some size)) in
-          let length = Int64.add 1L (Int64.sub last first) in
-          S.send_headers req.server {
-            status = `Partial_content;
-            reply_headers = List.rev_append h headers;
-            last_modified = Some mtime;
-            content_type = Some content_type;
-            content_length = Some length;
-            etag = None;
-          } >>= send_source url ~canon ~first
+          content_length = Some length;
+          etag = None;
+        } >>= send_source url ~canon ~first
   ;;
 
   let xml_decl = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
@@ -239,12 +239,12 @@ module Make
   let return_xml ?log ~id ~id2 ~req ~status ~reply_headers xml =
     let str = CodedIO.Xml.to_string ~decl:false xml in
     begin match log with
-    | None -> ()
-    | Some l ->
+      | None -> ()
+      | Some l ->
         l (
           Printf.sprintf "Replying with code %d: %s"
             (Nethttp.int_of_http_status status) str
-          )
+        )
     end;
     return_string ~id ~id2 ~req ~status ~reply_headers
       ~content_type:"application/xml" ~body_header:xml_decl str;;
@@ -282,14 +282,14 @@ module Make
         let error_tags = [
           Xml.tag "Message" [Xml.d code_msg];
           Xml.tag "Resource" [Xml.d path];(* TODO: should this just be
-          the path without query args? *)
+                                             the path without query args? *)
           Xml.tag "RequestId" [Xml.d rid];
           Xml.tag "Code" [Xml.d code_str];
           Xml.tag "Method" [Xml.d (str_of_method req.meth)]
         ]
         and detail_tags = List.map (fun (tag,contents) ->
-          Xml.tag tag [Xml.d contents]
-        ) detail in
+            Xml.tag tag [Xml.d contents]
+          ) detail in
         Xml.tag "Error" (List.rev_append error_tags detail_tags)
     in
     let log = if code = Error.NoSuchKey then None
@@ -309,15 +309,15 @@ module Make
   let read_all ~input ~max =
     let buf = Buffer.create Configfile.small_buffer_size in
     U.copy (`Source input) ~srcpos:0L (U.of_sink (fun _ ->
-      return (fun (str,pos,len) ->
-        if (Buffer.length buf) + len > max then
-          fail (Failure ("input too large"))
-        else begin
-          Buffer.add_substring buf str pos len;
-          return ()
-        end
-      ))
-    ) >>= fun () ->
+        return (fun (str,pos,len) ->
+            if (Buffer.length buf) + len > max then
+              fail (Failure ("input too large"))
+            else begin
+              Buffer.add_substring buf str pos len;
+              return ()
+            end
+          ))
+      ) >>= fun () ->
     return (Buffer.contents buf);;
 
   let parse_input_xml_opt body root_tag validate f =
@@ -325,14 +325,14 @@ module Make
     | "" -> f (validate [])
     | str ->
       try match Xml.parse_string str with
-      | `El (((_, tag),_), children) when tag = root_tag ->
-        f (validate children)
-      | `El (((_, tag),_), _) ->
-        return_error Error.MalformedXML [
-          "BadRootTag", tag;
-          "ExpectedRootTag", root_tag
-        ]
-      | `Data _ ->
+        | `El (((_, tag),_), children) when tag = root_tag ->
+          f (validate children)
+        | `El (((_, tag),_), _) ->
+          return_error Error.MalformedXML [
+            "BadRootTag", tag;
+            "ExpectedRootTag", root_tag
+          ]
+        | `Data _ ->
           assert false
       with Xmlm.Error ((line,col), err) ->
         return_error Error.MalformedXML [
@@ -346,7 +346,7 @@ module Make
     Netstring_str.regexp "^[A-Za-z0-9._-]+$"
 
   let dns_bucketname_re = Netstring_str.regexp
-    "^[a-z0-9][a-z0-9-]*[a-z0-9]\\([.][a-z0-9][a-z0-9-]*[a-z0-9]\\)*$"
+      "^[a-z0-9][a-z0-9-]*[a-z0-9]\\([.][a-z0-9][a-z0-9-]*[a-z0-9]\\)*$"
 
   let regex_matches re str =
     match Netstring_str.string_match re str 0 with
@@ -361,11 +361,11 @@ module Make
     if hide && is_mpart_bucket bucket then
       Error.BucketAlreadyExists, ["BucketNameReserved", bucket]
     else
-    let n = String.length bucket in
-    match region with
-    | None ->
-      Error.MalformedXML, ["BadCreateBucketConfiguration",""]
-    | Some "us-standard" ->
+      let n = String.length bucket in
+      match region with
+      | None ->
+        Error.MalformedXML, ["BadCreateBucketConfiguration",""]
+      | Some "us-standard" ->
         (* TODO: UTF-8 characters or bytes? *)
         let n = String.length bucket in
         if n > 255 then
@@ -374,7 +374,7 @@ module Make
           Error.InvalidBucketName, ["DoesNotMatchRegexp", bucket]
         else
           Error.NoError, []
-    | Some _ ->
+      | Some _ ->
         if n < 3 then
           Error.InvalidBucketName, ["BucketNameTooShort", string_of_int n]
         else if not (regex_matches dns_bucketname_re bucket) then
@@ -398,29 +398,29 @@ module Make
     let to_url bucket path =
       match !Configfile.sx_host with
       | Some host ->
-          if bucket <> "" then begin
-            let err, details = validate_bucketname bucket (Some "us-standard") in
-            if err <> Error.NoError then
-              raise (Error.ErrorReply(err, details, []));
-          end;
-          let path =
-            if bucket = "" then [""]
-            else match Neturl.split_path path with
+        if bucket <> "" then begin
+          let err, details = validate_bucketname bucket (Some "us-standard") in
+          if err <> Error.NoError then
+            raise (Error.ErrorReply(err, details, []));
+        end;
+        let path =
+          if bucket = "" then [""]
+          else match Neturl.split_path path with
             | [] | [""] -> ["";bucket;""]
             | "" :: rest -> "" :: bucket :: rest
             | rest -> "" :: bucket :: rest in
-          let url =
+        let url =
           Neturl.make_url ~encoded:false
             ~scheme:"sx"
             ~host ~path
             ~user
             SXC.syntax in
-          url
+        url
       | None ->
-          let p =
-            if bucket = "" then Filename.concat !Configfile.buckets_dir ""
-            else get_path bucket path in
-          Neturl.file_url_of_local_path p in
+        let p =
+          if bucket = "" then Filename.concat !Configfile.buckets_dir ""
+          else get_path bucket path in
+        Neturl.file_url_of_local_path p in
     U.of_neturl (to_url bucket ""),
     U.of_neturl (to_url bucket path);;
 
@@ -429,44 +429,44 @@ module Make
 
   let make_bucket ~req ~canon bucket =
     Lwt.catch (fun () ->
-      let base, _ = url_of_volpath ~canon bucket "" in
-      U.create base >>= fun () ->
-      return_empty ~req ~canon ~status:`Ok ~reply_headers:["Location","/"^bucket]
-    ) (function
-      | Unix_error(EEXIST,_,_) ->
+        let base, _ = url_of_volpath ~canon bucket "" in
+        U.create base >>= fun () ->
+        return_empty ~req ~canon ~status:`Ok ~reply_headers:["Location","/"^bucket]
+      ) (function
+        | Unix_error(EEXIST,_,_) ->
           return_empty ~req ~canon ~status:`Ok ~reply_headers:["Location","/"^bucket]
-      | err ->
+        | err ->
           fail err
-    );;
+      );;
 
   let create_bucket ~request ~canon body bucket =
     (* TODO: x-amz-grant-* for permissions *)
     parse_input_xml_opt body "CreateBucketConfiguration" (function
-      | [] -> Some "us-standard"
-      | [`El (((_,"LocationConstraint"),_), children)] ->
+        | [] -> Some "us-standard"
+        | [`El (((_,"LocationConstraint"),_), children)] ->
           begin match children with
-          | [] | [`Data ""] -> Some "us-classic"
-          | [`Data s] -> Some s
-          | _ -> None
+            | [] | [`Data ""] -> Some "us-classic"
+            | [`Data s] -> Some s
+            | _ -> None
           end
-      | _ ->
+        | _ ->
           None
       ) (fun region ->
         match validate_bucketname ~hide:true bucket region with
         | Error.NoError, [] ->
-            make_bucket ~req:request ~canon bucket
+          make_bucket ~req:request ~canon bucket
         | error, detail ->
-            return_error error detail
+          return_error error detail
       );;
 
   let head_bucket ~req ~canon bucket =
     let _, url = url_of_volpath ~canon bucket "" in
     U.exists url >>= function
-      | true ->
-        return_empty ~req ~canon ~status:`Ok ~reply_headers:[]
-      | false ->
-         return_error Error.NoSuchBucket ["Bucket", bucket]
-    ;;
+    | true ->
+      return_empty ~req ~canon ~status:`Ok ~reply_headers:[]
+    | false ->
+      return_error Error.NoSuchBucket ["Bucket", bucket]
+  ;;
 
   let canon_id_of_name name =
     let full = String.make 64 '\x00' in
@@ -474,43 +474,43 @@ module Make
     Cryptokit.transform_string (Cryptokit.Hexa.encode ()) full
 
   let owner name =
-      [
-          (* TODO: use real uid once SX supports it *)
-          Xml.tag "ID" [Xml.d (canon_id_of_name name)];
-          Xml.tag "DisplayName" [ Xml.d name]
-      ]
+    [
+      (* TODO: use real uid once SX supports it *)
+      Xml.tag "ID" [Xml.d (canon_id_of_name name)];
+      Xml.tag "DisplayName" [ Xml.d name]
+    ]
 
   module StringSet = Set.Make(String)
   let list_bucket_files2 owner_name l common =
     let contents = StringMap.fold (fun name (size, mtime, etag) accum ->
-      (Xml.tag "Contents" [
-        Xml.tag "Key" [Xml.d name];
-        Xml.tag "LastModified" [Xml.d (
-          Util.format_date mtime)
-        ];
-        Xml.tag "ETag" [Xml.d (quote etag)];
-        Xml.tag "Size" [Xml.d (Int64.to_string size)];
-        Xml.tag "StorageClass" [Xml.d "STANDARD"];
-        Xml.tag "Owner" (owner owner_name)
-      ]) :: accum
-    ) l [] in
+        (Xml.tag "Contents" [
+            Xml.tag "Key" [Xml.d name];
+            Xml.tag "LastModified" [Xml.d (
+                Util.format_date mtime)
+              ];
+            Xml.tag "ETag" [Xml.d (quote etag)];
+            Xml.tag "Size" [Xml.d (Int64.to_string size)];
+            Xml.tag "StorageClass" [Xml.d "STANDARD"];
+            Xml.tag "Owner" (owner owner_name)
+          ]) :: accum
+      ) l [] in
     StringSet.fold (fun name accum ->
-      (Xml.tag "CommonPrefixes" [
-        Xml.tag "Prefix" [Xml.d (name ^ "/")]
-      ]) :: accum
-    ) common contents;;
+        (Xml.tag "CommonPrefixes" [
+            Xml.tag "Prefix" [Xml.d (name ^ "/")]
+          ]) :: accum
+      ) common contents;;
 
   (* returns tmpfile, digest *)
   let source_of_request ~canon body =
-      let source = (
-        Headers.field_single_value canon.CanonRequest.headers
+    let source = (
+      Headers.field_single_value canon.CanonRequest.headers
         "x-amz-copy-source" "") in
-      let source_bucket, source_path =
-        Util.url_split_first_component (Neturl.split_path source) in
-      let decoded_path = CanonRequest.uri_decode source_path in
-      let _, url = url_of_volpath ~canon source_bucket decoded_path in
-      U.with_url_source url (fun source -> return source.U.meta) >>= fun meta ->
-      return (url, meta.U.mtime, meta.U.etag)
+    let source_bucket, source_path =
+      Util.url_split_first_component (Neturl.split_path source) in
+    let decoded_path = CanonRequest.uri_decode source_path in
+    let _, url = url_of_volpath ~canon source_bucket decoded_path in
+    U.with_url_source url (fun source -> return source.U.meta) >>= fun meta ->
+    return (url, meta.U.mtime, meta.U.etag)
 
   let hash_stream2 hash stream () =
     stream () >>= fun (str,pos,len) ->
@@ -534,7 +534,7 @@ module Make
         let buf = String.make Config.buffer_size '\x00' in
         IO.really_read fd buf 0 (String.length buf) >>= fun amount ->
         return (buf, 0, amount)
-    )
+      )
 
   let filter_sha256 input f =
     if input.U.meta.U.size <= max_input_mem then
@@ -575,17 +575,17 @@ module Make
       Lwt.catch (fun () ->
           U.get_meta url >>= fun metalst ->
           return [meta_key, List.assoc meta_key metalst]
-      ) (fun _ -> return []) >>= fun etag_meta ->
+        ) (fun _ -> return []) >>= fun etag_meta ->
       (* keep libres3-specific metadata *)
       return (List.rev_append (List.rev_append etag_meta (content_type canon))
-        (canon.CanonRequest.headers.Headers.ro#fields))
+                (canon.CanonRequest.headers.Headers.ro#fields))
     | d ->
       return_error Error.InvalidRequest ["Invalid-x-amz-metadata-directive", d]
 
   let copy_tourl ~canon body url =
     source_of_request ~canon body >>= fun (source, mtime, etag) ->
     (* TODO: check for copying onto self and allow only if meta is set to
-      REPLACE *)
+       REPLACE *)
     compute_meta ~canon source >>= fun metalst ->
     U.copy source ~srcpos:0L ~metafn:(fun () -> metalst) url >>= fun () ->
     (* TODO: check for .., check Content-MD5, store it,
@@ -599,15 +599,15 @@ module Make
     (* TODO: handle the other x-amz-copy* and x-amz-meta* directives too *)
     Lwt.catch
       (fun () ->
-        copy_tourl ~canon body url
+         copy_tourl ~canon body url
       )
       (function
-      | Unix.Unix_error(Unix.EISDIR,_,_) ->
+        | Unix.Unix_error(Unix.EISDIR,_,_) ->
           (* COPY of directory is not supported by S3 *)
           return_error Error.NoSuchKey []
-      | Unix.Unix_error(Unix.ENOENT,_,_) ->
+        | Unix.Unix_error(Unix.ENOENT,_,_) ->
           return_error Error.NoSuchKey ["Key",path]
-      | e -> fail e
+        | e -> fail e
       ) >>= fun (etag, lastmodified) ->
     return_xml_canon ~req:request ~canon ~status:`Ok ~reply_headers:[] (
       Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "CopyObjectResult" [
@@ -618,7 +618,7 @@ module Make
 
   let put_metafn ~canon md5 digestref size () =
     digestref := Cryptokit.transform_string (Cryptokit.Hexa.encode ())
-      md5#result;
+        md5#result;
     let xamz_headers = canon.CanonRequest.headers.Headers.ro#fields in
     let libres3_keys = (meta_key, !digestref) ::
                        (meta_key_size, Int64.to_string size) ::
@@ -630,19 +630,19 @@ module Make
     let source = hash_source2 md5 src in
     Lwt.catch
       (fun () ->
-        let _, url = url_of_volpath ~canon bucket path in
-        let digestref = ref "" in
-        U.copy ~metafn:(put_metafn ~canon md5 digestref src.U.meta.U.size) source ~srcpos:0L url >>= fun () ->
-        return_empty ~canon ~req:request ~status:`Ok
-          ~reply_headers:["ETag",quote !digestref]
+         let _, url = url_of_volpath ~canon bucket path in
+         let digestref = ref "" in
+         U.copy ~metafn:(put_metafn ~canon md5 digestref src.U.meta.U.size) source ~srcpos:0L url >>= fun () ->
+         return_empty ~canon ~req:request ~status:`Ok
+           ~reply_headers:["ETag",quote !digestref]
       )
       (function
-      | Unix.Unix_error(Unix.ENOENT,_,bucket) ->
+        | Unix.Unix_error(Unix.ENOENT,_,bucket) ->
           return_error Error.NoSuchBucket ["Bucket",bucket]
-      | e ->
+        | e ->
           fail e
       )
-    ;;
+  ;;
 
   let find_owner acl =
     let _, id, _ = (List.find (fun (_, _, perm) -> List.mem `Owner perm) acl) in
@@ -686,17 +686,17 @@ module Make
   let grantee_of_id = function
     | `UserName name as id ->
       begin try
-        Xml.tag ~attrs:[
-          Xml.attr "xmlns:xsi" "http://www.w3.org/2001/XMLSchema-instance";
-          Xml.attr "xsi:type" "Group"
-        ] "Grantee" [
-          Xml.tag "URI" [ Xml.d (List.assoc name user2uri) ]
-        ]
-      with Not_found ->
-        Xml.tag ~attrs:[
-          Xml.attr "xmlns:xsi" "http://www.w3.org/2001/XMLSchema-instance";
-          Xml.attr "xsi:type" "CanonicalUser"
-        ] "Grantee" (canonical_id id)
+          Xml.tag ~attrs:[
+            Xml.attr "xmlns:xsi" "http://www.w3.org/2001/XMLSchema-instance";
+            Xml.attr "xsi:type" "Group"
+          ] "Grantee" [
+            Xml.tag "URI" [ Xml.d (List.assoc name user2uri) ]
+          ]
+        with Not_found ->
+          Xml.tag ~attrs:[
+            Xml.attr "xmlns:xsi" "http://www.w3.org/2001/XMLSchema-instance";
+            Xml.attr "xsi:type" "CanonicalUser"
+          ] "Grantee" (canonical_id id)
       end
 
   let map_grant (_, id, perm) : CodedIO.Xml.t list =
@@ -785,8 +785,8 @@ module Make
           U.get_acl url >>= fun current_acl ->
           let new_acl = List.rev_map map_acl l in
           (* We cannot set ACL because in SX we only have a single ACL for entire
-            bucket and all objects inside it, whereas S3 has ACL for bucket operations and object
-            operations *)
+             bucket and all objects inside it, whereas S3 has ACL for bucket operations and object
+             operations *)
           if is_acl_equivalent current_acl new_acl then
             return_empty ~req:request ~canon ~status:`Ok ~reply_headers:[]
           else
@@ -834,23 +834,23 @@ module Make
           with Not_found ->
             Ocsigen_charset_mime.find_mime path mime_assoc in
         return_source url ~req ~canon ~content_type ~metalst
-    ) (function
+      ) (function
         | Unix_error((ENOENT|EISDIR),_,_)
         | SXIO.Detail (Unix_error((ENOENT|EISDIR),_,_), _) ->
           (* TODO: is this the correct error message? *)
           return_error Error.NoSuchKey []
-      | e -> fail e
-    );;
+        | e -> fail e
+      );;
 
   let fold_entry ~canon bucket prefix delim (fileset, dirset) entry =
     let common_prefix = match delim with
-    | Some d ->
+      | Some d ->
         begin try
-          let pos = String.index_from entry.U.name (String.length prefix) d in
-          Some (String.sub entry.U.name 0 pos)
-        with Not_found | Invalid_argument _ -> None
+            let pos = String.index_from entry.U.name (String.length prefix) d in
+            Some (String.sub entry.U.name 0 pos)
+          with Not_found | Invalid_argument _ -> None
         end
-    | None -> None in
+      | None -> None in
     match common_prefix with
     | Some prefix ->
       return (fileset, StringSet.add prefix dirset)
@@ -865,11 +865,11 @@ module Make
     match delim with
     | Some c ->
       begin try
-        let pos = String.index_from dir (String.length prefix) c in
-        ignore (String.index_from dir (pos+1) c); (* 2nd occurance of delimiter *)
-        false (* don't, we've put a prefix into common-prefixes already *)
-      with Not_found | Invalid_argument _ ->
-        true
+          let pos = String.index_from dir (String.length prefix) c in
+          ignore (String.index_from dir (pos+1) c); (* 2nd occurance of delimiter *)
+          false (* don't, we've put a prefix into common-prefixes already *)
+        with Not_found | Invalid_argument _ ->
+          true
       end
     | None -> true;;
 
@@ -879,7 +879,7 @@ module Make
     | 0 -> return None
     | 1 -> return (Some delimstr.[0])
     | _ ->
-        return_error Error.NotImplemented ["ListWithLongDelimiter",delimstr];;
+      return_error Error.NotImplemented ["ListWithLongDelimiter",delimstr];;
 
   let delim_opt = function
     | None -> []
@@ -892,36 +892,36 @@ module Make
     let pathprefix = prefix in
     Lwt.catch
       (fun () ->
-      U.fold_list ~base url
-        ~entry:(fold_entry ~canon bucket pathprefix delim)
-        ~recurse:(recurse pathprefix delim)
-        (StringMap.empty, StringSet.empty)
+         U.fold_list ~base url
+           ~entry:(fold_entry ~canon bucket pathprefix delim)
+           ~recurse:(recurse pathprefix delim)
+           (StringMap.empty, StringSet.empty)
       )
       (fun e ->
-        U.exists url >>= function
-        | true -> fail e
-        | false ->
-          return_error Error.NoSuchBucket ["Bucket",bucket]
+         U.exists url >>= function
+         | true -> fail e
+         | false ->
+           return_error Error.NoSuchBucket ["Bucket",bucket]
       ) >>= fun (files, common_prefixes) ->
     begin if files = StringMap.empty then begin
-      U.exists base >>= function
+        U.exists base >>= function
         | true -> return ()
         | false ->
           return_error Error.NoSuchBucket ["Bucket",bucket]
-    end else return ()
+      end else return ()
     end >>= fun () ->
     get_owner ~canon bucket >>= fun owner ->
     let xml = list_bucket_files2 owner files common_prefixes in
     return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
-        Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "ListBucketResult" (
-          List.rev_append [
-            Xml.tag "Name" [Xml.d bucket];
-            Xml.tag "Prefix" [Xml.d prefix];(* TODO: impl these *)
-            Xml.tag "Marker" [];
-            Xml.tag "Delimiter" (delim_opt delim);
-            Xml.tag "MaxKeys" [Xml.d (string_of_int Configfile.max_keys)];
-            Xml.tag "IsTruncated" [Xml.d "false"];
-          ] xml)
+      Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "ListBucketResult" (
+        List.rev_append [
+          Xml.tag "Name" [Xml.d bucket];
+          Xml.tag "Prefix" [Xml.d prefix];(* TODO: impl these *)
+          Xml.tag "Marker" [];
+          Xml.tag "Delimiter" (delim_opt delim);
+          Xml.tag "MaxKeys" [Xml.d (string_of_int Configfile.max_keys)];
+          Xml.tag "IsTruncated" [Xml.d "false"];
+        ] xml)
     );;
 
   open Bucket
@@ -929,31 +929,31 @@ module Make
   let delete_bucket ~req ~canon bucket =
     Lwt.catch
       (fun () ->
-        let base, _ = url_of_volpath ~canon bucket "" in
-        U.delete base >>= fun () ->
-        return_empty ~req ~canon ~status:`No_content ~reply_headers:[]
+         let base, _ = url_of_volpath ~canon bucket "" in
+         U.delete base >>= fun () ->
+         return_empty ~req ~canon ~status:`No_content ~reply_headers:[]
       )
       (function
-      | Unix.Unix_error(Unix.ENOTEMPTY,_,_) ->
-        return_error Error.BucketNotEmpty ["Bucket", bucket]
-      | Unix.Unix_error(Unix.ENOENT,_,_) ->
-        return_error Error.NoSuchBucket ["Bucket", bucket]
-      | e ->
+        | Unix.Unix_error(Unix.ENOTEMPTY,_,_) ->
+          return_error Error.BucketNotEmpty ["Bucket", bucket]
+        | Unix.Unix_error(Unix.ENOENT,_,_) ->
+          return_error Error.NoSuchBucket ["Bucket", bucket]
+        | e ->
           fail e
       );;
 
   let delete_object ~req ~canon bucket path =
     Lwt.catch
       (fun () ->
-        let _, url = url_of_volpath ~canon bucket path in
-        U.delete url >>= fun () ->
-        return_empty ~req ~canon ~status:`No_content ~reply_headers:[]
+         let _, url = url_of_volpath ~canon bucket path in
+         U.delete url >>= fun () ->
+         return_empty ~req ~canon ~status:`No_content ~reply_headers:[]
       )
       (function
-      | Unix.Unix_error(Unix.ENOENT,_,_) ->
-        (* its not an error if its already deleted or it never existed *)
-        return_empty ~req ~canon ~status:`No_content ~reply_headers:[]
-      | e ->
+        | Unix.Unix_error(Unix.ENOENT,_,_) ->
+          (* its not an error if its already deleted or it never existed *)
+          return_empty ~req ~canon ~status:`No_content ~reply_headers:[]
+        | e ->
           fail e
       );;
 
@@ -973,11 +973,11 @@ module Make
       let hex = Cryptokit.transform_string (Cryptokit.Hexa.encode ()) sha1#result in
       let bucket = "libres3-" ^ hex in
       Lwt.catch (fun () ->
-        U.create ~replica:1 (fst (url_of_volpath ~canon bucket ""))
-      ) (function
-        | Unix_error(EEXIST,_,_) -> return ()
-        | err -> fail err
-      ) >>= fun () ->
+          U.create ~replica:1 (fst (url_of_volpath ~canon bucket ""))
+        ) (function
+          | Unix_error(EEXIST,_,_) -> return ()
+          | err -> fail err
+        ) >>= fun () ->
       Hashtbl.add mpart_buckets user bucket;
       return bucket
 
@@ -1000,11 +1000,11 @@ module Make
     U.copy (U.of_string "") ~metafn:(fun () -> meta) ~srcpos:0L url >>= fun () ->
     return_xml_canon ~req:request ~canon ~status:`Ok ~reply_headers:[] (
       Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "InitiateMultipartUploadResult"
-      [
-        Xml.tag "Bucket" [Xml.d bucket];
-        Xml.tag "Key" [Xml.d path];
-        Xml.tag "UploadId" [Xml.d uploadId]
-      ]
+        [
+          Xml.tag "Bucket" [Xml.d bucket];
+          Xml.tag "Key" [Xml.d path];
+          Xml.tag "UploadId" [Xml.d uploadId]
+        ]
     );;
 
   let validate_partNumber partNumber =
@@ -1031,53 +1031,53 @@ module Make
     (* TODO: use same scheme as the requests, i.e https on https *)
     Neturl.string_of_url (
       Neturl.make_url ~scheme:"http"
-      ~host:(!Configfile.base_hostname)
-      ~port:(!Configfile.base_port)
-      ~path:("" :: bucket :: (List.tl (Neturl.split_path path)))
-      CanonRequest.base_syntax
+        ~host:(!Configfile.base_hostname)
+        ~port:(!Configfile.base_port)
+        ~path:("" :: bucket :: (List.tl (Neturl.split_path path)))
+        CanonRequest.base_syntax
     );;
 
   let parse_parts lst =
     List.rev (List.rev_map (function
-      | `El (((_,"Part"),_),[
-        `El (((_,"PartNumber"),_),[`Data part_number]);
-        `El (((_,"ETag"),_),[`Data etag]);
-        ])
-      | `El (((_,"Part"),_),[
-        `El (((_,"ETag"),_),[`Data etag]);
-        `El (((_,"PartNumber"),_),[`Data part_number]);
-        ]) ->
+        | `El (((_,"Part"),_),[
+            `El (((_,"PartNumber"),_),[`Data part_number]);
+            `El (((_,"ETag"),_),[`Data etag]);
+          ])
+        | `El (((_,"Part"),_),[
+              `El (((_,"ETag"),_),[`Data etag]);
+              `El (((_,"PartNumber"),_),[`Data part_number]);
+            ]) ->
           int_of_string part_number, etag
-      | t ->
+        | t ->
           failwith ("bad XML:" ^ (CodedIO.Xml.to_string t))
-    ) lst)
+      ) lst)
 
   let get_part_sizes ~canon bucket path ~uploadId lst =
     Lwt_list.rev_map_p (fun (part_number, etag) ->
-      let part = Printf.sprintf "%05d" part_number in
-      mpart_get_path ~canon bucket path ~uploadId ~part
-      >>= fun (mpart_bucket, mpart_path) ->
-      let _, url = url_of_volpath ~canon mpart_bucket mpart_path in
-      Lwt.catch (fun () -> md5_of_url url) (function _ ->
-        return_error Error.InvalidPart [
-          "UploadID", uploadId;
-          "part",string_of_int part_number;
-          "ExpectedETag",etag;
-        ]
-      ) >>= fun (size, digest) ->
-      let actual_etag = quote digest in
-      if actual_etag <> etag then
-        return_error Error.InvalidPart [
-          "UploadID", uploadId;
-          "part",string_of_int part_number;
-          "ExpectedETag",etag;
-          "ActualETag",actual_etag
-        ]
-      else
-        let `Url u = url in return (size, u)
-    ) lst >|= List.fold_left (fun (min_partsize, filesize, names) (size, url) ->
-      min min_partsize size, Int64.add filesize size, url :: names
-    ) (Int64.max_int, 0L, [])
+        let part = Printf.sprintf "%05d" part_number in
+        mpart_get_path ~canon bucket path ~uploadId ~part
+        >>= fun (mpart_bucket, mpart_path) ->
+        let _, url = url_of_volpath ~canon mpart_bucket mpart_path in
+        Lwt.catch (fun () -> md5_of_url url) (function _ ->
+            return_error Error.InvalidPart [
+              "UploadID", uploadId;
+              "part",string_of_int part_number;
+              "ExpectedETag",etag;
+            ]
+          ) >>= fun (size, digest) ->
+        let actual_etag = quote digest in
+        if actual_etag <> etag then
+          return_error Error.InvalidPart [
+            "UploadID", uploadId;
+            "part",string_of_int part_number;
+            "ExpectedETag",etag;
+            "ActualETag",actual_etag
+          ]
+        else
+          let `Url u = url in return (size, u)
+      ) lst >|= List.fold_left (fun (min_partsize, filesize, names) (size, url) ->
+        min min_partsize size, Int64.add filesize size, url :: names
+      ) (Int64.max_int, 0L, [])
 
   let check_parts ~canon bucket path ~uploadId body =
     parse_input_xml_opt body "CompleteMultipartUpload"
@@ -1085,28 +1085,28 @@ module Make
 
   let list_bucket_uploads owner_name l common =
     let _, contents = StringMap.fold (fun name (size, mtime, md5) (lastkey, accum) ->
-      let name = Filename.dirname name in
-      let key = Filename.dirname name in
-      let _, key = Util.url_split_first_component (Neturl.split_path key)
-      and uploadId = Filename.basename name in
-      let key = String.sub key 1 (String.length key-1) in
-      if key = lastkey then lastkey, accum
-      else key, (Xml.tag "Upload" [
-        Xml.tag "Key" [Xml.d key];
-        Xml.tag "UploadId" [Xml.d uploadId];
-        Xml.tag "Initiator" (owner owner_name);
-        Xml.tag "Owner" (owner owner_name);
-        Xml.tag "StorageClass" [Xml.d "STANDARD"];
-        Xml.tag "Initiated" [Xml.d (
-          Util.format_date mtime)
-        ]
-      ]) :: accum
-    ) l ("",[]) in
+        let name = Filename.dirname name in
+        let key = Filename.dirname name in
+        let _, key = Util.url_split_first_component (Neturl.split_path key)
+        and uploadId = Filename.basename name in
+        let key = String.sub key 1 (String.length key-1) in
+        if key = lastkey then lastkey, accum
+        else key, (Xml.tag "Upload" [
+            Xml.tag "Key" [Xml.d key];
+            Xml.tag "UploadId" [Xml.d uploadId];
+            Xml.tag "Initiator" (owner owner_name);
+            Xml.tag "Owner" (owner owner_name);
+            Xml.tag "StorageClass" [Xml.d "STANDARD"];
+            Xml.tag "Initiated" [Xml.d (
+                Util.format_date mtime)
+              ]
+          ]) :: accum
+      ) l ("",[]) in
     StringSet.fold (fun name accum ->
-      (Xml.tag "CommonPrefixes" [
-        Xml.tag "Prefix" [Xml.d (name ^ "/")]
-      ]) :: accum
-    ) common contents;;
+        (Xml.tag "CommonPrefixes" [
+            Xml.tag "Prefix" [Xml.d (name ^ "/")]
+          ]) :: accum
+      ) common contents;;
 
   let mpart_list ~canon ~req bucket params =
     mpart_get_bucket ~canon >>= fun mpart_bucket ->
@@ -1116,39 +1116,39 @@ module Make
     let base, url = url_of_volpath ~canon mpart_bucket pathprefix in
     Lwt.catch
       (fun () ->
-      U.fold_list ~base url
-        ~entry:(fold_entry ~canon bucket pathprefix delim)
-        ~recurse:(recurse pathprefix delim)
-        (StringMap.empty, StringSet.empty)
+         U.fold_list ~base url
+           ~entry:(fold_entry ~canon bucket pathprefix delim)
+           ~recurse:(recurse pathprefix delim)
+           (StringMap.empty, StringSet.empty)
       )
       (fun e ->
-        U.exists url >>= function
-        | true -> fail e
-        | false ->
-          return_error Error.NoSuchBucket ["Bucket",bucket]
+         U.exists url >>= function
+         | true -> fail e
+         | false ->
+           return_error Error.NoSuchBucket ["Bucket",bucket]
       ) >>= fun (files, common_prefixes) ->
     begin if files = StringMap.empty then begin
-      U.exists base >>= function
+        U.exists base >>= function
         | true -> return ()
         | false ->
           return_error Error.NoSuchBucket ["Bucket",bucket]
-    end else return ()
+      end else return ()
     end >>= fun () ->
     U.get_acl (fst (url_of_volpath ~canon mpart_bucket "")) >>= fun acl ->
     let `UserName owner = find_owner acl in
     let xml = list_bucket_uploads owner files common_prefixes in
     return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
-        Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "ListMultipartUploadsResult" (
-          List.rev_append [
-            Xml.tag "Bucket" [Xml.d bucket];
-            Xml.tag "Prefix" [Xml.d prefix];(* TODO: impl these *)
-            Xml.tag "KeyMarker" [];
-            Xml.tag "NextKeyMarker" [];
-            Xml.tag "NextUploadIdMarker" [];
-            Xml.tag "Delimiter" (delim_opt delim);
-            Xml.tag "IsTruncated" [Xml.d "false"];
-            Xml.tag "MaxUploads" [Xml.d (string_of_int Configfile.max_keys)];
-          ] xml)
+      Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "ListMultipartUploadsResult" (
+        List.rev_append [
+          Xml.tag "Bucket" [Xml.d bucket];
+          Xml.tag "Prefix" [Xml.d prefix];(* TODO: impl these *)
+          Xml.tag "KeyMarker" [];
+          Xml.tag "NextKeyMarker" [];
+          Xml.tag "NextUploadIdMarker" [];
+          Xml.tag "Delimiter" (delim_opt delim);
+          Xml.tag "IsTruncated" [Xml.d "false"];
+          Xml.tag "MaxUploads" [Xml.d (string_of_int Configfile.max_keys)];
+        ] xml)
     );;
 
   let list_parts ~canon ~uploadId bucket path =
@@ -1156,8 +1156,8 @@ module Make
     >>= fun (mpart_bucket, mpart_path) ->
     let base, url = url_of_volpath ~canon mpart_bucket mpart_path in
     U.fold_list ~base url ~entry:(fun names entry ->
-      return (entry.U.name :: names)
-    ) ~recurse:(fun _ -> true) [] >|= fun names ->
+        return (entry.U.name :: names)
+      ) ~recurse:(fun _ -> true) [] >|= fun names ->
     mpart_bucket, List.fast_sort String.compare names
 
   let mput_list_parts ~canon ~req bucket path ~uploadId =
@@ -1199,8 +1199,8 @@ module Make
     list_parts ~canon ~uploadId bucket path
     >>= fun (mpart_bucket, names) ->
     Lwt_list.rev_map_p (fun name ->
-      U.delete ~async:true (snd (url_of_volpath ~canon mpart_bucket name))
-    ) names
+        U.delete ~async:true (snd (url_of_volpath ~canon mpart_bucket name))
+      ) names
 
   let mput_delete ~canon ~request ~uploadId bucket path =
     mput_delete_common ~canon ~request ~uploadId bucket path >>= fun _ ->
@@ -1226,27 +1226,27 @@ module Make
     Result.unwrap result
 
   module MpartPending = Pendinglimit.Make(Lwt)(struct
-        type t = string * string
-        let compare = Pervasives.compare
-  end)
+      type t = string * string
+      let compare = Pervasives.compare
+    end)
   let mpart_pending = MpartPending.create ()
 
   let send_long_running_uncached ~canon ~req f _ =
-        let result_wait = Result.lift f () in
-        let id = canon.CanonRequest.id
-        and id2 = CanonRequest.gen_debug ~canon in
-        let headers = add_std_headers ~id ~id2 [] in
-        S.send_headers req.server ~body_header:xml_decl {
-          status = `Ok; (* we send 200 with an <Error> in the body if needed *)
-          reply_headers = headers;
-          last_modified = None;
-          content_type = Some "application/xml";
-          content_length = None;
-          etag = None;
-        } >>= fun sender ->
-        periodic_send_until sender " " result_wait >>= fun result ->
-        let str = CodedIO.Xml.to_string ~decl:false result in
-        S.send_data sender (str, 0, String.length str)
+    let result_wait = Result.lift f () in
+    let id = canon.CanonRequest.id
+    and id2 = CanonRequest.gen_debug ~canon in
+    let headers = add_std_headers ~id ~id2 [] in
+    S.send_headers req.server ~body_header:xml_decl {
+      status = `Ok; (* we send 200 with an <Error> in the body if needed *)
+      reply_headers = headers;
+      last_modified = None;
+      content_type = Some "application/xml";
+      content_length = None;
+      etag = None;
+    } >>= fun sender ->
+    periodic_send_until sender " " result_wait >>= fun result ->
+    let str = CodedIO.Xml.to_string ~decl:false result in
+    S.send_data sender (str, 0, String.length str)
 
   let send_long_running ~canon ~req key f =
     MpartPending.bind mpart_pending key
@@ -1257,7 +1257,7 @@ module Make
     let result = List.rev_map (function
         | `El (((_,"Object"),_),
                (`El (((_,"Key"),_), [`Data key]) :: _ )) ->
-               Some key
+          Some key
         | `El (((_, "Quiet"), _), [`Data quietstr]) ->
           if quietstr <> "true" then
             failwith ("bad value for quiet: " ^ quietstr);
@@ -1301,7 +1301,7 @@ module Make
             | Some (e:Xml.t) -> e :: accum
             | None -> accum) [] result in
         return (Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "DeleteResult" result)
-    ) ()
+      ) ()
 
   let multi_delete_objects ~canon ~request bucket ~body =
     let base, _ = url_of_volpath ~canon bucket "/" in
@@ -1315,18 +1315,18 @@ module Make
   let mput_complete ~canon ~request ~uploadId ~body bucket path =
     mpart_get_path ~canon bucket path ~uploadId ~part:"0" >>= fun (mpart_bucket, mpart_path) ->
     Lwt.catch (fun () ->
-    U.get_meta (snd (url_of_volpath ~canon mpart_bucket mpart_path))
-    >>= fun metalst ->
-    check_parts ~canon bucket path ~uploadId body >>= fun (min_partsize, filesize, urls) ->
-    let key = canon.CanonRequest.user, uploadId in
-    send_long_running ~canon ~req:request key (fun url ->
-        let _, url = url_of_volpath ~canon bucket path in
-        let etag = uploadId ^ "-1" in
-        let content_type = List.assoc meta_key_content_type metalst in
-        let meta = add_meta_headers [meta_key, etag;
-                                     meta_key_content_type, content_type] metalst in
-        U.copy ~metafn:(fun () -> meta) (`Urls (urls, filesize)) ~srcpos:0L url
-        >>= fun () ->
+        U.get_meta (snd (url_of_volpath ~canon mpart_bucket mpart_path))
+        >>= fun metalst ->
+        check_parts ~canon bucket path ~uploadId body >>= fun (min_partsize, filesize, urls) ->
+        let key = canon.CanonRequest.user, uploadId in
+        send_long_running ~canon ~req:request key (fun url ->
+            let _, url = url_of_volpath ~canon bucket path in
+            let etag = uploadId ^ "-1" in
+            let content_type = List.assoc meta_key_content_type metalst in
+            let meta = add_meta_headers [meta_key, etag;
+                                         meta_key_content_type, content_type] metalst in
+            U.copy ~metafn:(fun () -> meta) (`Urls (urls, filesize)) ~srcpos:0L url
+            >>= fun () ->
             mput_delete_common ~canon ~request ~uploadId bucket path >>= fun _ ->
             return (
               Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "CompleteMultipartUploadResult"
@@ -1337,8 +1337,8 @@ module Make
                   Xml.tag "ETag" [Xml.d (quote etag)];
                 ]
             )
-      )
-    ) (function
+          )
+      ) (function
         | Unix.Unix_error(Unix.ENOENT,_,_) ->
           return_error Error.NoSuchUpload [
             "UploadId",uploadId;
@@ -1346,7 +1346,7 @@ module Make
             "file",path
           ]
         | e -> fail e
-    )
+      )
 
   let list_all_buckets all owner_name =
     Xml.tag ~attrs:[Xml.attr "xmlns" Configfile.reply_ns] "ListAllMyBucketsResult" [
@@ -1370,17 +1370,17 @@ module Make
     (* TODO: use fold for dirs too *)
     U.fold_list ~base url ~entry:(fun _ _ -> return ())
       ~recurse:(fun dir ->
-        begin match validate_bucketname ~hide:true dir (Some "us-standard") with
-        | Error.NoError, _ ->
-          buckets := dir :: !buckets;
-        | _ -> () (* hide volumes with non-S3 compliant names *)
-        end;
-        false
-    ) () >>= fun () ->
+          begin match validate_bucketname ~hide:true dir (Some "us-standard") with
+            | Error.NoError, _ ->
+              buckets := dir :: !buckets;
+            | _ -> () (* hide volumes with non-S3 compliant names *)
+          end;
+          false
+        ) () >>= fun () ->
     let self = canon.CanonRequest.user in
     Lwt_list.rev_map_p (fun bucket ->
-    get_owner ~canon bucket >>= fun owner_name ->
-    return (if owner_name = self then bucket else "")) !buckets >>= fun buckets ->
+        get_owner ~canon bucket >>= fun owner_name ->
+        return (if owner_name = self then bucket else "")) !buckets >>= fun buckets ->
     let buckets = List.filter (fun s -> s <> "") buckets in
     return_xml_canon ~req:request ~canon ~status:`Ok ~reply_headers:[]
       (list_all_buckets buckets self);;
@@ -1411,7 +1411,7 @@ module Make
             ["LibreS3ErrorMessage",
              "Only supported policy is \"Read-Only Permission to an Anonymous User\""]
       else
-      return_error Error.InvalidPolicyDocument [ "Policy is not valid", "" ]
+        return_error Error.InvalidPolicyDocument [ "Policy is not valid", "" ]
     with
     | CodedIO.Json.Error s ->
       return_error Error.InvalidPolicyDocument [ "JSON format error", s ]
@@ -1429,83 +1429,83 @@ module Make
   let dispatch_request ~request ~canon expires =
     match expires with
     | Some e when e < Unix.gettimeofday () ->
-        return_error Error.ExpiredToken []
+      return_error Error.ExpiredToken []
     | _ ->
-    match
-      canon.CanonRequest.req_method, canon.CanonRequest.bucket,
-      canon.CanonRequest.path, CanonRequest.actual_query_params canon
-    with
-    | _, Bucket bucket, _, _ when is_mpart_bucket bucket ->
-      return_error Error.AccessDenied
+      match
+        canon.CanonRequest.req_method, canon.CanonRequest.bucket,
+        canon.CanonRequest.path, CanonRequest.actual_query_params canon
+      with
+      | _, Bucket bucket, _, _ when is_mpart_bucket bucket ->
+        return_error Error.AccessDenied
           ["Bucket", bucket; "LibreS3ErrorMessage","This bucketname is reserved for internal use"]
-    | `GET, Bucket "", "/",[] ->
+      | `GET, Bucket "", "/",[] ->
         list_buckets request canon
-    | `GET, Bucket bucket, "/", params
-      when List.mem_assoc "uploads" params && List.assoc "uploads" params = "" ->
+      | `GET, Bucket bucket, "/", params
+        when List.mem_assoc "uploads" params && List.assoc "uploads" params = "" ->
         mpart_list ~canon ~req:request bucket params
-    | `GET, Bucket bucket, _, ["acl",""] ->
+      | `GET, Bucket bucket, _, ["acl",""] ->
         send_default_acl ~req:request ~canon bucket
-    | `GET, Bucket bucket, "/", ["policy",""] ->
+      | `GET, Bucket bucket, "/", ["policy",""] ->
         get_bucket_policy ~req:request ~canon bucket
-    | `GET, Bucket bucket, "/",params ->
+      | `GET, Bucket bucket, "/",params ->
         list_bucket ~req:request ~canon bucket params
-    | `HEAD, Bucket bucket, "/",_ ->
+      | `HEAD, Bucket bucket, "/",_ ->
         head_bucket ~req:request ~canon bucket
-    | `GET, Bucket bucket, path, params when not (List.exists known_api params) ->
+      | `GET, Bucket bucket, path, params when not (List.exists known_api params) ->
         (* TODO: use params! *)
         get_object ~req:request ~canon bucket path
-    | `GET, Bucket bucket, path, ["uploadId", uploadId] ->
+      | `GET, Bucket bucket, path, ["uploadId", uploadId] ->
         mput_list_parts ~canon ~req:request bucket path ~uploadId
-    | `GET, Bucket _, _, params ->
+      | `GET, Bucket _, _, params ->
         return_error Error.NotImplemented params
-    | `HEAD, Bucket bucket, path, _ ->
+      | `HEAD, Bucket bucket, path, _ ->
         get_object ~req:request ~canon bucket path
-    | `PUT body, Bucket bucket, "/",[] ->
+      | `PUT body, Bucket bucket, "/",[] ->
         create_bucket ~canon ~request body bucket
-    | `PUT body, Bucket bucket, "/", ["policy",""] ->
+      | `PUT body, Bucket bucket, "/", ["policy",""] ->
         set_bucket_policy ~canon ~request body bucket
-    | `PUT body, Bucket bucket, path,[] ->
+      | `PUT body, Bucket bucket, path,[] ->
         if Headers.has_header canon.CanonRequest.headers "x-amz-copy-source"
         then
           copy_object ~canon ~request body bucket path
         else
           put_object ~canon ~request body bucket path
-    | `PUT body, Bucket bucket, _, ["acl",""] ->
+      | `PUT body, Bucket bucket, _, ["acl",""] ->
         set_noop_acl ~request ~canon body bucket
-    | `POST body, Bucket bucket, "/", ["delete", ""] ->
+      | `POST body, Bucket bucket, "/", ["delete", ""] ->
         multi_delete_objects ~canon ~request bucket ~body
-    | `POST _, Bucket bucket, path,["uploads",""] ->
+      | `POST _, Bucket bucket, path,["uploads",""] ->
         if Headers.has_header canon.CanonRequest.headers "x-amz-copy-source"
         then
           return_error Error.InvalidArgument
-          ["InvalidHeader","x-amz-copy-source \
-          cannot be used be used when initiating a multipart upload"]
+            ["InvalidHeader","x-amz-copy-source \
+                              cannot be used be used when initiating a multipart upload"]
         else
           mput_initiate ~canon ~request bucket path
-    | `PUT body, Bucket bucket, path, [
-        "partNumber",partNumber;
-        "uploadId",uploadId;
+      | `PUT body, Bucket bucket, path, [
+          "partNumber",partNumber;
+          "uploadId",uploadId;
         ] ->
-          (* TODO: path should be part of uploadId, check that they match! *)
-          mput_part ~canon ~request ~partNumber ~uploadId body bucket path
-    | `POST body, Bucket bucket, path, ["uploadId",uploadId] ->
+        (* TODO: path should be part of uploadId, check that they match! *)
+        mput_part ~canon ~request ~partNumber ~uploadId body bucket path
+      | `POST body, Bucket bucket, path, ["uploadId",uploadId] ->
         (* TODO: path should be part of uploadId, check that they match! *)
         mput_complete ~canon ~request ~uploadId ~body bucket path
-    | `DELETE, Bucket bucket, "/",[] ->
+      | `DELETE, Bucket bucket, "/",[] ->
         delete_bucket ~req:request ~canon bucket
-    | `DELETE, Bucket bucket, path,[] ->
+      | `DELETE, Bucket bucket, path,[] ->
         delete_object ~req:request ~canon bucket path
-    | `DELETE, Bucket bucket, path, ["uploadId", uploadId] ->
+      | `DELETE, Bucket bucket, path, ["uploadId", uploadId] ->
         mput_delete ~canon ~request ~uploadId bucket path
-    | `DELETE, Bucket bucket, "/", ["policy",""] ->
+      | `DELETE, Bucket bucket, "/", ["policy",""] ->
         delete_bucket_policy ~canon ~request bucket
-    | meth, Bucket bucket, path,params ->
+      | meth, Bucket bucket, path,params ->
         return_error Error.MethodNotAllowed [
           ("NotImplemented", CanonRequest.string_of_method meth);
           ("Bucket", bucket);
           ("Path", path);
           ("Params", String.concat "||" (List.map (fun (n,v) -> n^"="^v) params))
-    ];;
+        ];;
 
   let is_root_get canon =
     match
@@ -1545,7 +1545,7 @@ module Make
       else
         return_error Error.AccessDenied ["MissingHeader", "Authorization"]
     | CanonRequest.AuthEmpty ->
-        return_error Error.AccessDenied ["MissingHeader", "Authorization"]
+      return_error Error.AccessDenied ["MissingHeader", "Authorization"]
     | CanonRequest.AuthMalformed s ->
       return_error Error.InvalidSecurity ["BadAuthorization", s]
     | CanonRequest.AuthDuplicate ->
@@ -1554,21 +1554,61 @@ module Make
       let credential = auth.CanonRequest.credential in
       let user = credential.CanonRequest.keyid in
       begin match !Configfile.sx_host with
+        | Some host ->
+          let url = Neturl.make_url ~encoded:false ~scheme:"sx" ~host ~path:[""]
+              ~user SXC.syntax in
+          U.token_of_user (U.of_neturl url) >>= begin function
+            | Some hmac_key ->
+              (* TODO: body *)
+              let f ~sha256 ~canon =
+                let canonical_request, string_to_sign =
+                  CanonRequest.string_to_sign_v4 auth ~sha256 ~canon_req:canon in
+                let expected_signature =
+                  CanonRequest.sign_string_v4 ~key:hmac_key credential string_to_sign in
+                if expected_signature <> signature then
+                  return_error Error.SignatureDoesNotMatch [
+                    ("StringToSign", string_to_sign);
+                    ("CanonicalRequest", canonical_request);
+                    ("Host", canon.CanonRequest.host);
+                    ("UndecodedPath", canon.CanonRequest.undecoded_uri_path);
+                    ("Bucket", Bucket.to_string canon.CanonRequest.bucket);
+                    ("Hint", "Your S3 secret key should be set to your SX key and your S3 access key should be set to your SX username")
+                  ]
+                else
+                  dispatch_request ~request
+                    ~canon:{ canon with CanonRequest.user = user } expires
+              in
+              begin match canon.CanonRequest.req_method with
+                | `PUT body ->
+                  filter_sha256 body (fun (`Source input) ~sha256 ->
+                      f ~sha256 ~canon:{ canon with CanonRequest.req_method = `PUT input })
+                | `POST body ->
+                  filter_sha256 body (fun (`Source input) ~sha256 ->
+                      f ~sha256 ~canon:{ canon with CanonRequest.req_method = `POST input })
+                | _ -> f ~sha256:empty_sha256 ~canon
+              end
+            | None ->
+              return_error Error.InvalidAccessKeyId [
+                "Hint","Your S3 access key must be set to your SX user name";
+                "AccessKeyID", user
+              ]
+          end
+        | None ->
+          dispatch_request ~request
+            ~canon:{ canon with CanonRequest.user = "" } expires
+      end
+    | CanonRequest.Authorization (user, signature, expires) ->
+      match !Configfile.sx_host with
       | Some host ->
         let url = Neturl.make_url ~encoded:false ~scheme:"sx" ~host ~path:[""]
-          ~user SXC.syntax in
+            ~user SXC.syntax in
         U.token_of_user (U.of_neturl url) >>= begin function
-        | Some hmac_key ->
-          (* TODO: body *)
-          let f ~sha256 ~canon =
-            let canonical_request, string_to_sign =
-              CanonRequest.string_to_sign_v4 auth ~sha256 ~canon_req:canon in
-            let expected_signature =
-              CanonRequest.sign_string_v4 ~key:hmac_key credential string_to_sign in
+          | Some hmac_key ->
+            let string_to_sign = CanonRequest.string_to_sign canon in
+            let expected_signature = Cryptoutil.sign_str hmac_key string_to_sign in
             if expected_signature <> signature then
               return_error Error.SignatureDoesNotMatch [
                 ("StringToSign", string_to_sign);
-                ("CanonicalRequest", canonical_request);
                 ("Host", canon.CanonRequest.host);
                 ("UndecodedPath", canon.CanonRequest.undecoded_uri_path);
                 ("Bucket", Bucket.to_string canon.CanonRequest.bucket);
@@ -1577,47 +1617,7 @@ module Make
             else
               dispatch_request ~request
                 ~canon:{ canon with CanonRequest.user = user } expires
-          in
-          begin match canon.CanonRequest.req_method with
-            | `PUT body ->
-              filter_sha256 body (fun (`Source input) ~sha256 ->
-                  f ~sha256 ~canon:{ canon with CanonRequest.req_method = `PUT input })
-            | `POST body ->
-              filter_sha256 body (fun (`Source input) ~sha256 ->
-                  f ~sha256 ~canon:{ canon with CanonRequest.req_method = `POST input })
-            | _ -> f ~sha256:empty_sha256 ~canon
-          end
-        | None ->
-            return_error Error.InvalidAccessKeyId [
-              "Hint","Your S3 access key must be set to your SX user name";
-              "AccessKeyID", user
-            ]
-        end
-      | None ->
-        dispatch_request ~request
-          ~canon:{ canon with CanonRequest.user = "" } expires
-      end
-    | CanonRequest.Authorization (user, signature, expires) ->
-      match !Configfile.sx_host with
-      | Some host ->
-        let url = Neturl.make_url ~encoded:false ~scheme:"sx" ~host ~path:[""]
-          ~user SXC.syntax in
-        U.token_of_user (U.of_neturl url) >>= begin function
-        | Some hmac_key ->
-          let string_to_sign = CanonRequest.string_to_sign canon in
-          let expected_signature = Cryptoutil.sign_str hmac_key string_to_sign in
-          if expected_signature <> signature then
-            return_error Error.SignatureDoesNotMatch [
-              ("StringToSign", string_to_sign);
-              ("Host", canon.CanonRequest.host);
-              ("UndecodedPath", canon.CanonRequest.undecoded_uri_path);
-              ("Bucket", Bucket.to_string canon.CanonRequest.bucket);
-              ("Hint", "Your S3 secret key should be set to your SX key and your S3 access key should be set to your SX username")
-            ]
-          else
-            dispatch_request ~request
-              ~canon:{ canon with CanonRequest.user = user } expires
-        | None ->
+          | None ->
             return_error Error.InvalidAccessKeyId [
               "Hint","Your S3 access key must be set to your SX user name"
             ]
@@ -1629,111 +1629,111 @@ module Make
   let handle_request_real request =
     let id = RequestId.generate () in
     Lwt.catch (fun () ->
-      let meth = map_method request.meth in
-      let canon = CanonRequest.canonicalize_request ~id meth request.info in
-      let path =
-        if canon.CanonRequest.path = "/" then
-          "/" ^ (Bucket.to_string  canon.CanonRequest.bucket)
-        else
-          "/" ^ (Bucket.to_string  canon.CanonRequest.bucket) ^
-          canon.CanonRequest.path in
-      Lwt.catch (fun () ->
-        validate_authorization ~request ~canon
-      )
-      (function
-      | Error.ErrorReply (code, details, headers) ->
-          return_error_xml
-            ~req:request
-            ~id2:(CanonRequest.gen_debug ~canon)
-            ~id:canon.CanonRequest.id ~path ~headers
-            code details
-      | Http_client.Http_protocol (Http_client.Timeout e) ->
-          return_error_xml
-            ~req:request
-            ~id2:(CanonRequest.gen_debug ~canon)
-            ~id:canon.CanonRequest.id ~path ~headers:[]
-            Error.RemoteServiceUnavailable [
-              "SXTimeout",e]
-      | Http_client.Http_protocol e ->
-          return_error_xml
-            ~req:request
-            ~id2:(CanonRequest.gen_debug ~canon)
-            ~id:canon.CanonRequest.id ~path ~headers:[]
-            Error.RemoteServiceUnavailable [
-              "SXUnavailable",(Printexc.to_string e)]
-      | SXIO.Detail (Http_client.Http_protocol e, detail) ->
-          return_error_xml
-            ~req:request
-            ~id2:(CanonRequest.gen_debug ~canon)
-            ~id:canon.CanonRequest.id ~path ~headers:[]
-            Error.RemoteServiceUnavailable (
-              ("SXUnavailable",(Printexc.to_string e)) :: detail)
-      | SXIO.Detail (Unix.Unix_error(Unix.EACCES, _, _) as ex, detail) ->
-          return_error_xml
-            ~req:request
-            ~id2:(CanonRequest.gen_debug ~canon)
-            ~id:canon.CanonRequest.id ~path ~headers:[]
-            Error.AccessDenied (("SXException", (Printexc.to_string ex)) :: detail)
-      | SXIO.Detail (Unix.Unix_error(Unix.ENOSPC, _, _), detail) ->
-          return_error_xml
-            ~req:request
-            ~id2:(CanonRequest.gen_debug ~canon)
-            ~id:canon.CanonRequest.id ~path ~headers:[]
-            Error.EntityTooLarge detail
-      | SXIO.Detail (Unix.Unix_error _ as ex, detail)->
-          return_error_xml
-            ~req:request
-            ~id2:(CanonRequest.gen_debug ~canon)
-            ~id:canon.CanonRequest.id ~path ~headers:[]
-            Error.InvalidArgument (("SXException", (Printexc.to_string ex)) :: detail)
-      | SXIO.Detail (ex, detail) ->
-          return_error_xml
-            ~req:request
-            ~id2:(CanonRequest.gen_debug ~canon)
-            ~id:canon.CanonRequest.id ~path ~headers:[]
-            Error.InternalError (("SXException", (Printexc.to_string ex)) :: detail)
-      | Unix.Unix_error(Unix.ENOSPC,fn,_)->
-          return_error_xml
-            ~req:request
-            ~id2:(CanonRequest.gen_debug ~canon)
-            ~id:canon.CanonRequest.id ~path ~headers:[]
-            Error.ServiceUnavailable [
-              "OutOfSpace",fn
-            ]
-      | Ocsigen_stream.Interrupted (Ocsigen_http_com.Lost_connection _)
-      | Lwt.Canceled ->
-          (* do not send anything back to client, it has already disconnected *)
+        let meth = map_method request.meth in
+        let canon = CanonRequest.canonicalize_request ~id meth request.info in
+        let path =
+          if canon.CanonRequest.path = "/" then
+            "/" ^ (Bucket.to_string  canon.CanonRequest.bucket)
+          else
+            "/" ^ (Bucket.to_string  canon.CanonRequest.bucket) ^
+            canon.CanonRequest.path in
+        Lwt.catch (fun () ->
+            validate_authorization ~request ~canon
+          )
+          (function
+            | Error.ErrorReply (code, details, headers) ->
+              return_error_xml
+                ~req:request
+                ~id2:(CanonRequest.gen_debug ~canon)
+                ~id:canon.CanonRequest.id ~path ~headers
+                code details
+            | Http_client.Http_protocol (Http_client.Timeout e) ->
+              return_error_xml
+                ~req:request
+                ~id2:(CanonRequest.gen_debug ~canon)
+                ~id:canon.CanonRequest.id ~path ~headers:[]
+                Error.RemoteServiceUnavailable [
+                "SXTimeout",e]
+            | Http_client.Http_protocol e ->
+              return_error_xml
+                ~req:request
+                ~id2:(CanonRequest.gen_debug ~canon)
+                ~id:canon.CanonRequest.id ~path ~headers:[]
+                Error.RemoteServiceUnavailable [
+                "SXUnavailable",(Printexc.to_string e)]
+            | SXIO.Detail (Http_client.Http_protocol e, detail) ->
+              return_error_xml
+                ~req:request
+                ~id2:(CanonRequest.gen_debug ~canon)
+                ~id:canon.CanonRequest.id ~path ~headers:[]
+                Error.RemoteServiceUnavailable (
+                ("SXUnavailable",(Printexc.to_string e)) :: detail)
+            | SXIO.Detail (Unix.Unix_error(Unix.EACCES, _, _) as ex, detail) ->
+              return_error_xml
+                ~req:request
+                ~id2:(CanonRequest.gen_debug ~canon)
+                ~id:canon.CanonRequest.id ~path ~headers:[]
+                Error.AccessDenied (("SXException", (Printexc.to_string ex)) :: detail)
+            | SXIO.Detail (Unix.Unix_error(Unix.ENOSPC, _, _), detail) ->
+              return_error_xml
+                ~req:request
+                ~id2:(CanonRequest.gen_debug ~canon)
+                ~id:canon.CanonRequest.id ~path ~headers:[]
+                Error.EntityTooLarge detail
+            | SXIO.Detail (Unix.Unix_error _ as ex, detail)->
+              return_error_xml
+                ~req:request
+                ~id2:(CanonRequest.gen_debug ~canon)
+                ~id:canon.CanonRequest.id ~path ~headers:[]
+                Error.InvalidArgument (("SXException", (Printexc.to_string ex)) :: detail)
+            | SXIO.Detail (ex, detail) ->
+              return_error_xml
+                ~req:request
+                ~id2:(CanonRequest.gen_debug ~canon)
+                ~id:canon.CanonRequest.id ~path ~headers:[]
+                Error.InternalError (("SXException", (Printexc.to_string ex)) :: detail)
+            | Unix.Unix_error(Unix.ENOSPC,fn,_)->
+              return_error_xml
+                ~req:request
+                ~id2:(CanonRequest.gen_debug ~canon)
+                ~id:canon.CanonRequest.id ~path ~headers:[]
+                Error.ServiceUnavailable [
+                "OutOfSpace",fn
+              ]
+            | Ocsigen_stream.Interrupted (Ocsigen_http_com.Lost_connection _)
+            | Lwt.Canceled ->
+              (* do not send anything back to client, it has already disconnected *)
+              fail Ocsigen_http_com.Aborted
+            | e ->
+              let bt = if Printexc.backtrace_status () then
+                  ["Backtrace", Printexc.get_backtrace ()]
+                else
+                  [] in
+              let str = Printexc.to_string e in
+              return_error_xml
+                ~req:request
+                ~id2:(CanonRequest.gen_debug ~canon)
+                ~id:canon.CanonRequest.id ~path ~headers:[]
+                Error.InternalError (("Exception", str) :: bt)
+          )
+      ) (function
+        | Ocsigen_http_com.Aborted ->
           fail Ocsigen_http_com.Aborted
-      | e ->
-        let bt = if Printexc.backtrace_status () then
-          ["Backtrace", Printexc.get_backtrace ()]
-        else
-          [] in
-        let str = Printexc.to_string e in
-        return_error_xml
-            ~req:request
-            ~id2:(CanonRequest.gen_debug ~canon)
-            ~id:canon.CanonRequest.id ~path ~headers:[]
-            Error.InternalError (("Exception", str) :: bt)
+        | e ->
+          let bt = if Printexc.backtrace_status () then
+              ["Backtrace", Printexc.get_backtrace ()]
+            else [] in
+          return_error_xml ~id2:(CanonRequest.gen_debug2 request.info)
+            ~req:request ~id ~path:request.info.CanonRequest.undecoded_url
+            ~headers:[]
+            Error.InvalidURI (("Exception", Printexc.to_string e) :: bt)
       )
-    ) (function
-    | Ocsigen_http_com.Aborted ->
-        fail Ocsigen_http_com.Aborted
-    | e ->
-      let bt = if Printexc.backtrace_status () then
-        ["Backtrace", Printexc.get_backtrace ()]
-      else [] in
-      return_error_xml ~id2:(CanonRequest.gen_debug2 request.info)
-        ~req:request ~id ~path:request.info.CanonRequest.undecoded_url
-        ~headers:[]
-        Error.InvalidURI (("Exception", Printexc.to_string e) :: bt)
-    )
   ;;
 
   let handle_request _ request =
     begin match debug_output with
-    | None -> ()
-    | Some ch ->
+      | None -> ()
+      | Some ch ->
         (* TODO: lock file? *)
         output_string ch ">>>>Request\n";
         Printf.fprintf ch "\tURL: %s\n" request.info.CanonRequest.undecoded_url;
@@ -1761,13 +1761,13 @@ module Make
     let pid = Unix.getpid () in
     Printf.fprintf f
       "\nGC stats for %d\n\
-      Major heap: %.2f KB used, %.2f KB free, %.2f KB wasted\n\
-      Other GC stats:\n\
-      minor_words: %f, promoted_words: %f, major_words: %f,\
-      minor_collections: %d, major_collections: %d,\
-      heap_words: %d, heap_chunks: %d,\
-      live_words: %d, live_blocks: %d, free_words: %d, free_blocks: %d,\
-      largest_free: %d, fragments: %d, compactions: %d, top_heap_words: %d\n"
+       Major heap: %.2f KB used, %.2f KB free, %.2f KB wasted\n\
+       Other GC stats:\n\
+       minor_words: %f, promoted_words: %f, major_words: %f,\
+       minor_collections: %d, major_collections: %d,\
+       heap_words: %d, heap_chunks: %d,\
+       live_words: %d, live_blocks: %d, free_words: %d, free_blocks: %d,\
+       largest_free: %d, fragments: %d, compactions: %d, top_heap_words: %d\n"
       pid
       (words_to_kb s.live_words)
       (words_to_kb s.free_words)
