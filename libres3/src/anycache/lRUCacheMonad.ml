@@ -54,11 +54,12 @@ module Make(Monad : TryMonad) = struct
   module Result = ResultT(Monad)
   module M = LRUCacheResult.Make(Result)
   type ('ok, 'err) t = ('ok, 'err) M.t
+  type 'a validator = (string * 'a option) -> 'a Monad.t
   let create = M.create
   let get = M.get
   let set = M.set
-  let lookup cache key f =
-    M.lookup cache key (Result.lift f)
-  let lookup_exn (cache:('a,exn) t) key f =
-    Monad.(>>=) (lookup cache key f) Result.unwrap
+  let lookup cache key ?is_fresh ~revalidate =
+    M.lookup cache key ?is_fresh ~revalidate:(Result.lift revalidate)
+  let lookup_exn (cache:('a,exn) t) key ?is_fresh ~revalidate =
+    Monad.(>>=) (lookup cache key ?is_fresh ~revalidate) Result.unwrap
 end

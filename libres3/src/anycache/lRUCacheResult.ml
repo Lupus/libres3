@@ -38,22 +38,18 @@ module Make(R : Result) = struct
   type ('ok, 'err) t = {
     map: ('ok, 'err) R.t LRUMap.cache;
     return_true: (bool, 'err) R.t;
-    return_none: ('ok option, 'err) R.t;
-    validate: 'ok -> (bool, 'err) R.t
+    return_none: ('ok option, 'err) R.t
   }
+  type ('ok, 'err) validator = ((string * 'ok option) -> ('ok, 'err) R.t)
 
-  let create ?validator n=
+  let create n =
     let return_true = R.return true
     and return_none = R.return None in
-    { map = LRUMap.create n;
-      return_true; return_none;
-      validate = match validator with
-        | None -> fun _ -> return_true
-        | Some f -> f
-    }
+    { map = LRUMap.create n; return_true; return_none }
 
   open R
   let return_some v = return (Some v)
+
   let get cache ~notfound key =
     try LRUMap.find cache.map key
     with _ -> R.fail notfound
@@ -64,10 +60,10 @@ module Make(R : Result) = struct
 
   let set cache = LRUMap.replace cache.map
 
-  let compute_value cache key f =
+  let compute_value cache (key, old) f =
     (*  start computing of the value:
         key was not found in cache, the previous computation failed or validation failed *)
-    let pending = f key in
+    let pending = f (key, old) in
     (* store pending value in cache *)
     set cache key pending;
     (* return pending value *)
@@ -77,14 +73,15 @@ module Make(R : Result) = struct
     set cache key result;
     result
 
-  let lookup cache key f =
+  let always _ = true
+  let lookup cache key ?(is_fresh=always) ~revalidate =
     let return_none _ = cache.return_none in
     (* return value from cache if it exists *)
     R.catch (get_opt cache key) return_none >>= (function
         | Some data ->
-          cache.validate data >>= (function
-              | true -> return data
-              | false -> compute_value cache key f)
+          if is_fresh data then return data
+          else compute_value cache (key, Some data) revalidate
         | None ->
-          compute_value cache key f)
+          compute_value cache (key, None) revalidate
+      )
 end

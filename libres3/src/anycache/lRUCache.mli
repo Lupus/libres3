@@ -34,9 +34,10 @@
 
 type ('ok, 'err) t
 type ('ok, 'err) result = OK of 'ok | Error of 'err
-val create : ?validator:('ok -> (bool,'err) result) -> int -> ('ok, 'err) t
+type ('ok, 'err) validator = (string * 'ok option) -> ('ok, 'err) result
+val create : int -> ('ok, 'err) t
 val get : ('ok, 'err) t -> notfound:'err -> string -> ('ok, 'err) result
 val set : ('ok, 'err) t -> string -> ('ok, 'err) result -> unit
 val lookup :
-  ('ok, 'err) t ->
-  string -> (string -> ('ok, 'err) result) -> ('ok, 'err) result
+  ('ok, 'err) t -> string ->
+  ?is_fresh:('ok -> bool) -> revalidate:('ok, 'err) validator -> ('ok, 'err) result

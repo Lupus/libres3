@@ -71,12 +71,12 @@ module Make :
         ('b -> ('a, 'c) result M.t) -> ('a, 'c) result M.t
     end
     type ('a, 'b) t
-    val create : ?validator:('a -> (bool, 'b) Result.t) -> int -> ('a, 'b) t
+    type 'a validator = (string * 'a option) -> 'a M.t
+    val create : int -> ('a, 'b) t
     val get : ('a, 'b) t -> notfound:'b -> string -> ('a, 'b) Result.t
     val set : ('a, 'b) t -> string -> ('a, 'b) Result.t -> unit
     val lookup :
-      ('a, exn) t ->
-      string -> (string -> 'a M.t) -> ('a, exn) Result.t
+      ('a, exn) t -> string -> ?is_fresh:('a -> bool) -> revalidate:'a validator -> ('a, exn) Result.t
     val lookup_exn :
-      ('a, exn) t -> string -> (string -> 'a M.t) -> 'a M.t
+      ('a, exn) t -> string -> ?is_fresh:('a -> bool) -> revalidate:'a validator -> 'a M.t
   end

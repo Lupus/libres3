@@ -51,7 +51,7 @@ module Make(Monad: MonadTest) = struct
 
   open Monad
 
-  let compute_data_direct cnt key =
+  let compute_data_direct cnt (key,_) =
     incr cnt;
     assert_equal ~msg:"cache key" key1 key;
     return val_d
@@ -60,7 +60,7 @@ module Make(Monad: MonadTest) = struct
     incr cnt;
     return val_p
 
-  let compute_data_p cnt key =
+  let compute_data_p cnt (key,_) =
     incr cnt;
     assert_equal ~msg:"cache key" key2 key;
     return val_p
