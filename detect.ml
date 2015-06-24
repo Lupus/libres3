@@ -101,7 +101,6 @@ let ocamlpath = destdir;;
 let ld_library_path = Filename.concat destdir "stublibs";;
 (* libres3 features *)
 let want_nethttpd = false;;
-let want_ocsigen = (parse_ver Sys.ocaml_version) >=? "3.12.1";;
 
 printf "Cleaning build directory\n";;
 Sys.command "ocamlbuild -clean -quiet";;
@@ -573,9 +572,8 @@ end = struct
     let args = List.filter (not_starts_with ~start:"--includedir=") args in
     print_cmd f "configure"
       (append
-        ["./configure";"--override";"ocamlbuildflags";"-j 0";
+        ["./configure";"--override";"ocamlbuildflags";"-j\\\\ 0";
           "--override";"native_dynlink";"false";
-          if want_ocsigen then "--enable-ocsigen" else "--disable-ocsigen";
           "--disable-docs";
           "--enable-tests"
         ]
@@ -956,15 +954,10 @@ let pkg_dns = ocaml_dependency "dns" (Build (fun _ ->
 
 (* Main dependencies of libres3 *)
 let deps_default = [ pkg_ocamlnet; pkg_jsonm; pkg_xmlm; pkg_cryptokit; pkg_ounit; pkg_ssl ];;
-let deps = if want_ocsigen then
-  pkg_dns :: pkg_re :: pkg_ocsigenserver :: deps_default
-else
-  deps_default;;
+let deps = pkg_dns :: pkg_re :: pkg_ocsigenserver :: deps_default
 
 let builds, installs = rules deps;;
 print_summary builds installs;;
-if not want_ocsigen then
-  eprintf "WARNING: disabling Ocsigen build due to old OCaml version\n%!";
 generate "libres3" builds;;
 
 List.iter (fun dir ->

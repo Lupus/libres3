@@ -1,4 +1,4 @@
-OASISFormat: 0.3
+OASISFormat: 0.4
 OCamlVersion: >= 3.12.1
 FindlibVersion: >= 1.2.8
 Name:        libres3
@@ -35,6 +35,7 @@ PostBuildCommand:
     chmod +x src/files/sbin/libres3 src/files/sbin/libres3_certgen src/files/s3genlink.py
 
 BuildTools: ocamlbuild
+AlphaFeatures: compiled_setup_ml
 
 Flag internaldocs
   Description: build internal docs
