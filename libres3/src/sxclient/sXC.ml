@@ -45,12 +45,6 @@ type cluster_nodelist = {
 
 let nodelist_cache = Caching.cache 128
 
-type entry = {
-  name: string;
-  size: int64;
-  mtime: float;
-  etag: string;
-}
 (* TODO: use token_of_user in make_request and write wrapper without *)
 let syntax = {
   Neturl.null_url_syntax with
@@ -396,7 +390,7 @@ let request_of_url ~token meth ?(req_body="") ?etag url =
     relative_url = string_of_url relative_url;
     req_headers = [];
     req_body = req_body;
-    etag = etag;
+    req_etag = etag;
   }
 
 let filter_field field =

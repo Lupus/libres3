@@ -196,7 +196,7 @@ let process_request dispatcher ri () =
       ~content_type:h.D.content_type
       ~headers:(convert_headers h.D.reply_headers)
       ~lastmodified:h.D.last_modified
-      ~etag:h.D.etag ()
+      ~etag:h.D.etag_header ()
 ;;
 
 open Dns.Packet

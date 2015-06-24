@@ -43,7 +43,7 @@ type headers = {
   content_type: string option;
   content_length: int64 option;
   last_modified: float option;
-  etag: string option;
+  etag_header: string option;
 }
 
 module type Server = sig
@@ -125,7 +125,7 @@ module Make
       last_modified = last_modified;
       content_type = Some content_type;
       content_length = Some (Int64.of_int (String.length str + body_header_len));
-      etag = None;
+      etag_header = None;
     } >>= fun sender ->
     if req.meth = `HEAD then return () (* ensure HEAD has empty body, but all
                                           headers preserved, including Content-Length *)
@@ -144,7 +144,7 @@ module Make
       last_modified = None;
       content_type = None;
       content_length = Some 0L;
-      etag = None
+      etag_header = None
     } >>= fun _ -> return ()
   ;;
 
@@ -215,7 +215,7 @@ module Make
         last_modified = Some mtime;
         content_type = Some content_type;
         content_length = Some size;
-        etag = Some (etag);
+        etag_header = Some (etag);
       } >>= send_source url ~canon ~first:0L
     | Some (first, last) as range ->
       if first > last then
@@ -230,7 +230,7 @@ module Make
           last_modified = Some mtime;
           content_type = Some content_type;
           content_length = Some length;
-          etag = None;
+          etag_header = None;
         } >>= send_source url ~canon ~first
   ;;
 
@@ -1242,7 +1242,7 @@ module Make
       last_modified = None;
       content_type = Some "application/xml";
       content_length = None;
-      etag = None;
+      etag_header = None;
     } >>= fun sender ->
     periodic_send_until sender " " result_wait >>= fun result ->
     let str = CodedIO.Xml.to_string ~decl:false result in

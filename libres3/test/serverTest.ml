@@ -63,7 +63,7 @@ module Server = struct
       | Some c ->
         s.headers <- ("Last-Modified", Util.format_date c) :: s.headers
     end;
-    begin match h.etag with
+    begin match h.etag_header with
       | None -> ()
       | Some c ->
         s.headers <- ("ETag", c) :: s.headers

@@ -41,7 +41,7 @@ type request = {
   relative_url: string;
   req_headers: (string *string) list;
   req_body: string;
-  etag: Nethttp.etag option;
+  req_etag: Nethttp.etag option;
 }
 
 type reply = {
@@ -195,7 +195,7 @@ let call_of_request req =
       string_of_int (String.length req.req_body)
     );
   call#set_request_header headers;
-  begin match req.etag with
+  begin match req.req_etag with
     | Some etag ->
       Nethttp.Header.set_if_none_match (call#request_header `Base) (Some [etag])
     | None -> ()
