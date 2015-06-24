@@ -33,24 +33,12 @@
 (**************************************************************************)
 
 open Lwt
-exception Detail of exn * (string * string) list
+open SXDefaultIO
 type metafn = unit -> (string * string) list
 type output_data = string * int * int
 type input_stream = unit -> output_data t
 type output_stream = output_data -> unit t
 
-
-type entry = {
-  name: string; (* absolute path *)
-  size: int64;
-  mtime: float;
-  etag: string
-}
-
-type source = {
-  meta: entry;
-  seek: int64 -> input_stream t
-}
 type sink = int64 -> output_stream t
 
 let read_string str pos =
@@ -64,13 +52,6 @@ let read_string str pos =
         else return (str, Int64.to_int pos, Int64.to_int len)
       end
     );;
-
-let rec iter stream f =
-  stream () >>= fun (str,pos,len) ->
-  f (str,pos,len) >>= fun () ->
-  if len = 0 then return ()
-  else iter stream f
-;;
 
 (* sources *)
 let of_string str = `Source {
@@ -293,7 +274,6 @@ module type SchemeOps = sig
   val scheme : string
   val syntax: Neturl.url_syntax
 
-  val init: unit -> unit
   val token_of_user: Neturl.url -> string option Lwt.t
   val check: Neturl.url -> string option Lwt.t
   val open_source: Neturl.url -> (entry * state) Lwt.t
@@ -385,7 +365,6 @@ module RegisterURLScheme(O: SchemeOps) = struct
   }
 
   let register () =
-    O.init ();
     Hashtbl.add scheme_ops O.scheme ops;
     Hashtbl.add schemes O.scheme O.syntax;;
 end
@@ -410,3 +389,9 @@ let sxio_printer = function
 
 let () =
   Printexc.register_printer sxio_printer
+
+module RegisterFile = RegisterURLScheme(SXFile)
+module RegisterSX = RegisterURLScheme(SXC)
+let () =
+  RegisterFile.register ();
+  RegisterSX.register ()

@@ -32,7 +32,6 @@ module OS = EventIO.OS
 module OSTest = OSMonadTest
 module IO = EventIO
 module IOTest = EventIOTest
-module Default = SXDefaultIO
 module AnycacheTest = AnycacheTest.Make(struct
     include Lwt
     let delay = OS.sleep

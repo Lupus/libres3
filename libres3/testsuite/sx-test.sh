@@ -29,9 +29,9 @@ echo "Installing ocsigen"
 make reinstall
 $sbindir/libres3_ocsigen --version
 echo "Configuring ocsigen"
-$sbindir/libres3_setup --no-ssl --s3-host libres3.skylable.com --s3-port 8008 --default-volume-size 100G --default-replica 1 --sxsetup-conf $SXDIR/server/test-sx/1/etc/sxserver/sxsetup.conf --batch
+$sbindir/libres3_setup --no-ssl --s3-host libres3.skylable.com --s3-http-port 8008 --default-volume-size 100G --default-replica 1 --sxsetup-conf $SXDIR/server/test-sx/1/etc/sxserver/sxsetup.conf --batch
 echo "list_cache_expires=0." >>$sysconfdir/libres3/libres3.conf
-$sbindir/libres3_ocsigen --no-ssl
+$sbindir/libres3_ocsigen
 echo "Running tests"
 cd testsuite
 ./run-test.sh $sysconfdir/libres3/libres3-insecure.sample.s3cfg 2>&1 | tee sx.log

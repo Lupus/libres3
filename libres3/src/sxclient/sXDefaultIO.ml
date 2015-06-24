@@ -32,8 +32,49 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
-module RegisterFile = SXIO.RegisterURLScheme(SXFile)
-module RegisterSX = SXIO.RegisterURLScheme(SXC)
-let () =
-  RegisterFile.register ();
-  RegisterSX.register ()
+open Lwt
+exception Detail of exn * (string * string) list
+type output_data = string * int * int
+type input_stream = unit -> output_data Lwt.t
+type output_stream = output_data -> unit Lwt.t
+
+type entry = {
+  name: string;
+  size: int64;
+  mtime: float;
+  etag: string;
+}
+
+type source = {
+  meta: entry;
+  seek: int64 -> input_stream Lwt.t
+}
+
+type acl = [`Grant | `Revoke] * [`UserName of string] * [`Owner | `Read | `Write] list
+let read_string str pos =
+  let eof = ref false in
+  return (fun () ->
+      if !eof then return ("",0,0)
+      else begin
+        eof := true;
+        let len = Int64.sub (Int64.of_int (String.length str)) pos in
+        if len < 0L then return ("",0,0)
+        else return (str, Int64.to_int pos, Int64.to_int len)
+      end
+    );;
+let of_string str = `Source {
+    meta = {
+      name = "";
+      size = Int64.of_int (String.length str);
+      mtime = Unix.gettimeofday ();
+      etag = Digest.to_hex (Digest.string str)
+    };
+    seek = read_string str;
+  }
+
+let rec iter stream f =
+  stream () >>= fun (str,pos,len) ->
+  f (str,pos,len) >>= fun () ->
+  if len = 0 then return ()
+  else iter stream f
+;;

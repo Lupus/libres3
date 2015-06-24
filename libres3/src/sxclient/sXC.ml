@@ -35,6 +35,7 @@
 open Http
 open Neturl
 open Lwt
+open SXDefaultIO
 
 type entry = {
   name: string;
@@ -237,7 +238,7 @@ end
 
 (* TODO: implement tmpfile buffer here *)
 module IO = EventIO
-module XIO = SXIO
+module XIO = SXDefaultIO
 
 module P = Http
 
@@ -250,7 +251,6 @@ let multipart_threshold = 132 * 1024 * 1024 (* 132 MB, should be multiple of
 let last_threshold = Int64.of_int chunk_size
 
 let pipe = ref None
-let init () = ()
 
 let pipeline () =
   match !pipe with
@@ -435,7 +435,7 @@ let make_http_request p url =
     if apiver < Config.apiver_min || apiver > Config.apiver_max then
       let msg = Printf.sprintf "Unsupported SX API version: %d, expected between %d and %d"
           apiver Config.apiver_min Config.apiver_max in
-      fail (SXIO.Detail(Http_client.Http_protocol(Failure msg),
+      fail (XIO.Detail(Http_client.Http_protocol(Failure msg),
                         ["LibreS3ErrorMessage", msg]))
     else return reply
   with Failure _ ->
@@ -471,11 +471,11 @@ let rec make_request_token ~token meth ?(req_body="") url =
     ] in
     match code with
     | Some c ->
-      fail (SXIO.Detail(
+      fail (XIO.Detail(
           Unix.Unix_error(c,string_of_method meth,string_of_url url),
           details))
     | None ->
-      fail (SXIO.Detail (
+      fail (XIO.Detail (
           Failure ((string_of_method meth) ^ " " ^ (string_of_url url)),
           details));;
 
@@ -534,7 +534,7 @@ let token_of_user url =
               failwith "bad user info json"
         )
     ) (function
-      | SXIO.Detail(Unix.Unix_error(Unix.ENOENT, _,_), _) ->
+      | Detail(Unix.Unix_error(Unix.ENOENT, _,_), _) ->
         Lwt.return None
       | e -> Lwt.fail e
     )
@@ -555,7 +555,7 @@ let rec make_request_loop meth ?req_body nodes url errors = match nodes with
         | None ->
           (* no such user *)
           let user = Neturl.url_user url in
-          Lwt.fail (SXIO.Detail(Unix.Unix_error(Unix.EACCES,"", user),[
+          Lwt.fail (XIO.Detail(Unix.Unix_error(Unix.EACCES,"", user),[
               "SXErrorMessage",Printf.sprintf "Cannot retrieve token for user %S"
                 user
             ]))
@@ -628,7 +628,7 @@ let get_vol_nodelist url =
         json_parse_tree (P.input_of_async_channel reply.body) >>= function
         | [`O [`F ("nodeList", [`A nodes]); `F ("volumeMeta", [`O metalist])]] ->
           if has_field "filterActive" metalist then
-            fail (SXIO.Detail(
+            fail (Detail(
                 Unix.Unix_error(Unix.EACCES, volume, "Volume uses filters"),
                 ["LibreS3ErrorMessage","Cannot access a volume that uses filters"]
               ))
@@ -807,7 +807,7 @@ let get url =
                        ^ (string_of_url  url)))
     )
     (function
-      | SXIO.Detail(Unix.Unix_error(Unix.ENOENT,_,_) as e ,_) ->
+      | Detail(Unix.Unix_error(Unix.ENOENT,_,_) as e ,_) ->
         fail e
       | e -> fail e);;
 
@@ -1078,7 +1078,7 @@ let rec job_poll origurl url expected_id interval max_interval =
     and status = filter_field_string "requestStatus" obj
     and msg = filter_field_string "requestMessage" obj in
     if requestid <> expected_id then
-      fail (SXIO.Detail(
+      fail (XIO.Detail(
           Failure "Job id mismatch",
           ["SXErrorMessage",msg;"SXJobStatus",status;
            "ExpectedId",expected_id;"ActualId",requestid]))
@@ -1095,9 +1095,9 @@ let rec job_poll origurl url expected_id interval max_interval =
             Unix.Unix_error(Unix.EEXIST,"PUT",string_of_url origurl)
           | _ ->
             Failure ("Operation failed: " ^ msg) in
-        fail (SXIO.Detail(e, ["SXErrorMessage", msg;"SXHttpCode","200"]))
+        fail (XIO.Detail(e, ["SXErrorMessage", msg;"SXHttpCode","200"]))
       | _ ->
-        fail (SXIO.Detail(
+        fail (XIO.Detail(
             Failure (Printf.sprintf "Invalid request status %s: %s" status msg),
             ["SXErrorMessage", msg;"SXHttpCode","200"]))
     end
@@ -1147,7 +1147,7 @@ let locate_upload url size =
           `F ("volumeMeta", [`O metalist])
         ]] ->
         if has_field "filterActive" metalist then
-          fail (SXIO.Detail(
+          fail (XIO.Detail(
               Unix.Unix_error(Unix.EACCES, volume, "Volume uses filters"),
               ["LibreS3ErrorMessage","Cannot access a volume that uses filters"]
             ))
@@ -1363,7 +1363,7 @@ let upload_hashes ?metafn hashes dst_nodes dst size =
           return false
       end
     ) (function
-      | SXIO.Detail(Unix.Unix_error(Unix.ENOENT,_,_) as e ,_) ->
+      | XIO.Detail(Unix.Unix_error(Unix.ENOENT,_,_) as e ,_) ->
         fail e
       | e -> fail e)
 
@@ -1420,7 +1420,7 @@ let exists url =
             expect_content_type reply "application/json" >>= fun () ->
             return true
           ) (function
-            | SXIO.Detail(Unix.Unix_error(Unix.ENOENT, _,_), _) ->
+            | XIO.Detail(Unix.Unix_error(Unix.ENOENT, _,_), _) ->
               return false
             | e -> fail e)
       | _ ->
@@ -1435,7 +1435,7 @@ let check url =
       get_cluster_nodelist url >>= fun (_, uuid) ->
       return (Some uuid)
     ) (function
-      | SXIO.Detail(e, details) ->
+      | XIO.Detail(e, details) ->
         let msg = try List.assoc "SXErrorMessage" details with Not_found -> "" in
         fail (Failure (Printf.sprintf
                          "Remote SX server reports: %s (%s)" msg (Printexc.to_string e))
@@ -1509,7 +1509,7 @@ let create_user url name =
         (Neturl.modify_url ~path:["";".users";name] url) >>= fun _ ->
       return ""
     ) (function
-      | SXIO.Detail (e, details) ->
+      | XIO.Detail (e, details) ->
         let key = Cryptokit.transform_string (Cryptokit.Hexa.encode ())
             (Random.string IO.rng 20) in
         let json = [
@@ -1545,7 +1545,7 @@ let create ?metafn ?(replica=(!Config.replica_count)) url =
          job_get url
       )
       (function
-        | SXIO.Detail (Unix.Unix_error(Unix.EEXIST,_,_) as e, _) ->
+        | XIO.Detail (Unix.Unix_error(Unix.EEXIST,_,_) as e, _) ->
           fail e
         | e -> fail e
       )
@@ -1605,6 +1605,6 @@ let delete ?async url =
       make_request `DELETE nodes url >>=
       job_get ?async url
     ) (function
-      | SXIO.Detail (Unix.Unix_error((Unix.ENOENT|Unix.ENOTEMPTY),_,_) as e, _) ->
+      | XIO.Detail (Unix.Unix_error((Unix.ENOENT|Unix.ENOTEMPTY),_,_) as e, _) ->
         fail e
       | e -> fail e)

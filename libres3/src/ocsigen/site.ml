@@ -30,6 +30,7 @@
 open Ocsigen_extensions
 open Ocsigen_http_frame
 open Lwt
+open SXDefaultIO
 
 module Server = struct
   type t = {
@@ -137,8 +138,8 @@ let stream_of arg pos =
 
 let source_of arg size =
   return (`Source {
-      SXIO.meta = { SXIO.name = ""; SXIO.size = size; SXIO.mtime = 0.; SXIO.etag = "" };
-      SXIO.seek = stream_of arg
+      meta = { name = ""; size = size; mtime = 0.; etag = "" };
+      seek = stream_of arg
     })
 
 let empty_stream () = Ocsigen_stream.of_string ""

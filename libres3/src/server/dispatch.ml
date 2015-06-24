@@ -31,6 +31,7 @@ open CodedIO
 open Unix
 open Configfile
 open Lwt
+open SXDefaultIO
 module StringMap = Map.Make(String)
 
 let server_name = ("libres3-" ^ Version.version)
@@ -54,7 +55,7 @@ module type Server = sig
 end
 
 module type Sig = sig
-  type source
+  type source = SXDefaultIO.source
   type server
   type 'a request = {
     server: server;
@@ -71,10 +72,9 @@ module U = SXIO
 module IO = EventIO
 module Make
     (S: Server)
-  : (Sig with type source = U.source
-          and type server = S.t
+  : (Sig with type server = S.t
     ) = struct
-  type source = U.source
+  type source = SXDefaultIO.source
   type server = S.t
   type ('a) request = {
     server: server;
@@ -202,8 +202,8 @@ module Make
 
   let quote s = "\"" ^ s ^ "\""
   let return_source ~req ~canon ~content_type url ~metalst =
-    U.with_url_source url (fun source -> return source.U.meta) >>= fun meta ->
-    let size = meta.U.size and mtime = meta.U.mtime and etag = meta.U.etag in
+    U.with_url_source url (fun source -> return source.meta) >>= fun meta ->
+    let size = meta.size and mtime = meta.mtime and etag = meta.etag in
     let headers = add_std_headers ~id:canon.CanonRequest.id
         ~id2:(CanonRequest.gen_debug ~canon) ["ETag", quote etag] in
     let headers = add_meta_headers headers metalst in
@@ -509,8 +509,8 @@ module Make
       Util.url_split_first_component (Neturl.split_path source) in
     let decoded_path = CanonRequest.uri_decode source_path in
     let _, url = url_of_volpath ~canon source_bucket decoded_path in
-    U.with_url_source url (fun source -> return source.U.meta) >>= fun meta ->
-    return (url, meta.U.mtime, meta.U.etag)
+    U.with_url_source url (fun source -> return source.meta) >>= fun meta ->
+    return (url, meta.mtime, meta.etag)
 
   let hash_stream2 hash stream () =
     stream () >>= fun (str,pos,len) ->
@@ -519,12 +519,12 @@ module Make
     return (str, pos, len);;
 
   let hash_seek_source2 hash source pos =
-    source.U.seek pos >>= fun stream ->
+    source.seek pos >>= fun stream ->
     return (hash_stream2 hash stream);;
 
   let hash_source2 hash source =
     `Source {
-      U.meta = source.U.meta;
+      meta = source.meta;
       seek = hash_seek_source2 hash source
     };;
 
@@ -537,8 +537,8 @@ module Make
       )
 
   let filter_sha256 input f =
-    if input.U.meta.U.size <= max_input_mem then
-      read_all ~max:(Int64.to_int input.U.meta.U.size) ~input >>= fun str ->
+    if input.meta.size <= max_input_mem then
+      read_all ~max:(Int64.to_int input.meta.size) ~input >>= fun str ->
       let sha256 = Cryptokit.hash_string (Cryptokit.Hash.sha256 ()) str in
       f (U.of_string str) ~sha256
     else
@@ -550,7 +550,7 @@ module Make
           >>= fun () ->
           IO.lseek tmpfd 0L >>= fun () ->
           let source = U.of_source {
-              U.meta = input.U.meta;
+              meta = input.meta;
               seek = fd_seek tmpfd
             } in
           f source ~sha256:sha256#result
@@ -632,7 +632,7 @@ module Make
       (fun () ->
          let _, url = url_of_volpath ~canon bucket path in
          let digestref = ref "" in
-         U.copy ~metafn:(put_metafn ~canon md5 digestref src.U.meta.U.size) source ~srcpos:0L url >>= fun () ->
+         U.copy ~metafn:(put_metafn ~canon md5 digestref src.meta.size) source ~srcpos:0L url >>= fun () ->
          return_empty ~canon ~req:request ~status:`Ok
            ~reply_headers:["ETag",quote !digestref]
       )
@@ -836,7 +836,7 @@ module Make
         return_source url ~req ~canon ~content_type ~metalst
       ) (function
         | Unix_error((ENOENT|EISDIR),_,_)
-        | SXIO.Detail (Unix_error((ENOENT|EISDIR),_,_), _) ->
+        | Detail (Unix_error((ENOENT|EISDIR),_,_), _) ->
           (* TODO: is this the correct error message? *)
           return_error Error.NoSuchKey []
         | e -> fail e
@@ -846,8 +846,8 @@ module Make
     let common_prefix = match delim with
       | Some d ->
         begin try
-            let pos = String.index_from entry.U.name (String.length prefix) d in
-            Some (String.sub entry.U.name 0 pos)
+            let pos = String.index_from entry.name (String.length prefix) d in
+            Some (String.sub entry.name 0 pos)
           with Not_found | Invalid_argument _ -> None
         end
       | None -> None in
@@ -855,10 +855,10 @@ module Make
     | Some prefix ->
       return (fileset, StringSet.add prefix dirset)
     | None ->
-      let etag = entry.U.etag in
+      let etag = entry.etag in
       let meta=
-        entry.U.size, entry.U.mtime, etag in
-      return (StringMap.add entry.U.name meta fileset, dirset)
+        entry.size, entry.mtime, etag in
+      return (StringMap.add entry.name meta fileset, dirset)
 
 
   let recurse prefix delim dir =
@@ -1156,7 +1156,7 @@ module Make
     >>= fun (mpart_bucket, mpart_path) ->
     let base, url = url_of_volpath ~canon mpart_bucket mpart_path in
     U.fold_list ~base url ~entry:(fun names entry ->
-        return (entry.U.name :: names)
+        return (entry.name :: names)
       ) ~recurse:(fun _ -> true) [] >|= fun names ->
     mpart_bucket, List.fast_sort String.compare names
 
@@ -1166,9 +1166,9 @@ module Make
     let base, url = url_of_volpath ~canon mpart_bucket mpart_path in
     U.fold_list ~base url ~entry:(fun parts entry ->
         (* TODO: ignore parts that raise errors *)
-        let partNumber = int_of_string (Filename.basename entry.U.name) in
+        let partNumber = int_of_string (Filename.basename entry.name) in
         if partNumber > 0 then
-          let _, url = url_of_volpath ~canon mpart_bucket entry.U.name in
+          let _, url = url_of_volpath ~canon mpart_bucket entry.name in
           Lwt.catch (fun () -> md5_of_url url) (function _ ->
               return_error Error.InvalidPart [
                 "UploadID", uploadId;
@@ -1176,9 +1176,9 @@ module Make
               ]) >>= fun (_, etag) ->
           return (Xml.tag "Part" [
               Xml.tag "PartNumber" [Xml.d (string_of_int partNumber)];
-              Xml.tag "LastModified" [Xml.d (Util.format_date entry.U.mtime)];
+              Xml.tag "LastModified" [Xml.d (Util.format_date entry.mtime)];
               Xml.tag "ETag" [Xml.d (quote etag)];
-              Xml.tag "Size" [Xml.d (Int64.to_string entry.U.size)]
+              Xml.tag "Size" [Xml.d (Int64.to_string entry.size)]
             ] :: parts)
         else return parts
       ) ~recurse:(fun _ -> true) [] >>= fun parts ->
@@ -1661,32 +1661,32 @@ module Make
                 ~id:canon.CanonRequest.id ~path ~headers:[]
                 Error.RemoteServiceUnavailable [
                 "SXUnavailable",(Printexc.to_string e)]
-            | SXIO.Detail (Http_client.Http_protocol e, detail) ->
+            | Detail (Http_client.Http_protocol e, detail) ->
               return_error_xml
                 ~req:request
                 ~id2:(CanonRequest.gen_debug ~canon)
                 ~id:canon.CanonRequest.id ~path ~headers:[]
                 Error.RemoteServiceUnavailable (
                 ("SXUnavailable",(Printexc.to_string e)) :: detail)
-            | SXIO.Detail (Unix.Unix_error(Unix.EACCES, _, _) as ex, detail) ->
+            | Detail (Unix.Unix_error(Unix.EACCES, _, _) as ex, detail) ->
               return_error_xml
                 ~req:request
                 ~id2:(CanonRequest.gen_debug ~canon)
                 ~id:canon.CanonRequest.id ~path ~headers:[]
                 Error.AccessDenied (("SXException", (Printexc.to_string ex)) :: detail)
-            | SXIO.Detail (Unix.Unix_error(Unix.ENOSPC, _, _), detail) ->
+            | Detail (Unix.Unix_error(Unix.ENOSPC, _, _), detail) ->
               return_error_xml
                 ~req:request
                 ~id2:(CanonRequest.gen_debug ~canon)
                 ~id:canon.CanonRequest.id ~path ~headers:[]
                 Error.EntityTooLarge detail
-            | SXIO.Detail (Unix.Unix_error _ as ex, detail)->
+            | Detail (Unix.Unix_error _ as ex, detail)->
               return_error_xml
                 ~req:request
                 ~id2:(CanonRequest.gen_debug ~canon)
                 ~id:canon.CanonRequest.id ~path ~headers:[]
                 Error.InvalidArgument (("SXException", (Printexc.to_string ex)) :: detail)
-            | SXIO.Detail (ex, detail) ->
+            | Detail (ex, detail) ->
               return_error_xml
                 ~req:request
                 ~id2:(CanonRequest.gen_debug ~canon)

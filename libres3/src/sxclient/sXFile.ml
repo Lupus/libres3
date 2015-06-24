@@ -39,7 +39,6 @@ type read_state = unit
 let scheme = "file"
 let syntax = Hashtbl.find Neturl.common_url_syntax "file"
 
-let init () = ()
 let file url =
   match Neturl.split_path (Neturl.local_path_of_file_url url) with
   | [""] -> "", ""
@@ -47,7 +46,7 @@ let file url =
     let path = Neturl.join_path path in
     volume, path
   | path -> failwith ("Bad path: " ^ (Neturl.join_path path))
-module IO = SXIO
+module IO = SXDefaultIO
 
 module StringMap = Map.Make(String)
 let volumes = ref StringMap.empty

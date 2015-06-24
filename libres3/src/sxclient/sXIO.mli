@@ -32,28 +32,15 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
-exception Detail of exn * (string * string) list
+open SXDefaultIO
 type url
 
 type output_data = string * int * int
 type input_stream = unit -> output_data Lwt.t
 type output_stream = output_data -> unit Lwt.t
 
-type entry = {
-  name: string;
-  size: int64;
-  mtime: float;
-  etag: string;
-}
-
-type source = {
-  meta: entry;
-  seek: int64 -> input_stream Lwt.t
-}
-
 type metafn = unit -> (string * string) list
 
-val iter: input_stream -> output_stream -> unit Lwt.t
 type sink = int64 -> output_stream Lwt.t
 
 (* auth (note: the urls below should all have a user part too) *)
@@ -74,7 +61,6 @@ val fold_list: base:[< `Url of url] -> [< `Url of url ] ->
 val exists: [< `Url of url ] -> bool Lwt.t
 val check : [< `Url of url ] -> string option Lwt.t
 
-type acl = [`Grant | `Revoke] * [`UserName of string] * [`Owner | `Read | `Write] list
 val set_acl: [< `Url of url] -> acl list -> unit Lwt.t
 val get_acl: [< `Url of url] -> acl list Lwt.t
 val create_user: [< `Url of url ] -> string -> string Lwt.t
@@ -98,7 +84,6 @@ module type SchemeOps = sig
   val scheme : string
   val syntax: Neturl.url_syntax
 
-  val init : unit -> unit
   val token_of_user : Neturl.url -> string option Lwt.t
   val check: Neturl.url -> string option Lwt.t
   val open_source: Neturl.url -> (entry * state) Lwt.t

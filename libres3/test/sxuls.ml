@@ -27,13 +27,14 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
+open SXDefaultIO
 let fmt_time t =
   Netdate.format ~fmt:"%Y-%m-%d %H:%M:%S UTC" (Netdate.create t);;
 let print_entry () entry =
   Printf.printf "%s %20Ld %s\n"
-    (fmt_time entry.SXIO.mtime)
-    entry.SXIO.size
-    entry.SXIO.name;
+    (fmt_time entry.mtime)
+    entry.size
+    entry.name;
   Lwt.return_unit
 
 let recurse dir =

@@ -28,6 +28,7 @@
 (**************************************************************************)
 
 open Lwt
+open SXDefaultIO
 
 let () =
   if (Array.length Sys.argv) <> 4 then begin
@@ -43,7 +44,7 @@ let () =
   try
     Lwt_main.run (
       SXIO.with_url_source (SXIO.of_url src) (fun source ->
-          return source.SXIO.meta.SXIO.size) >>= fun size ->
+          return source.meta.size) >>= fun size ->
       Printf.printf "Data size: %Ld\n" size;
       let t0 = Unix.gettimeofday () in
       SXIO.copy (SXIO.of_url src) ~srcpos:0L (SXIO.of_url dst) >>= fun () ->
