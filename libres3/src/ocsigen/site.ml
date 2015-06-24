@@ -328,7 +328,7 @@ let fun_site _ config_info _ _ _ _ =
     );
   begin try
       Ssl.set_cipher_list !Ocsigen_http_client.sslcontext
-        "ECDHE-RSA-AES256-SHA384:AES256-SHA256:RC4:HIGH:!MD5:!aNULL:!EDH:!AESGCM";
+        "HIGH+AES128:HIGH:!DH:!SSLv2:!aNULL:!eNULL:!MD5";
     with _ -> () end;
   let dispatcher = Lwt_main.run (OcsigenServer.init ()) in
   Ocsigen_messages.console (fun () ->  "Startup complete");
