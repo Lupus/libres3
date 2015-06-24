@@ -1,4 +1,4 @@
-(* setup.ml generated for the first time by OASIS v0.3.0 *)
+(* setup.ml generated for the first time by OASIS v0.4.5 *)
 
 (* OASIS_START *)
 (* DO NOT EDIT (digest: 04b2643b8527dfca75ea9935650345fa) *)

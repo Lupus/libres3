@@ -2,6 +2,7 @@
 # DO NOT EDIT (digest: 46f8bd9984975bd4727bed22d0876cd2)
 
 SETUP = ./setup.exe
+RM=rm -f
 
 build: setup.data $(SETUP)
 	$(SETUP) -build $(BUILDFLAGS)
@@ -37,8 +38,8 @@ setup.data: $(SETUP)
 configure: $(SETUP)
 	$(SETUP) -configure $(CONFIGUREFLAGS)
 
-setup.exe: setup.ml
-	ocamlfind ocamlopt -o $@ $< || ocamlfind ocamlc -o $@ $< || true
+$(SETUP): setup.ml
+	ocamlfind ocamlopt -o setup.exe setup.ml || ocamlfind ocamlc -o $@ $< || true
 	$(RM) setup.cmi setup.cmo setup.cmx setup.o
 
 .PHONY: build doc test all install uninstall reinstall clean distclean configure
@@ -72,6 +73,7 @@ cov:
 update:
 	oasis setup
 	sed -i -e 's/bindir)/sbindir)/' setup.ml
+	sed -i -e 's/$$[<] /setup.ml /' -e 's/$$[@] /setup.exe /' -e 's/^setup.exe:/$$(SETUP):/' -e '5 iRM=rm -f' Makefile
 reindent:
 	git ls-files '*.ml' '*.mli' | grep -Fv myocamlbuild.ml | grep -Fv setup.ml | xargs ocp-indent -i
 	$(MAKE) headache
