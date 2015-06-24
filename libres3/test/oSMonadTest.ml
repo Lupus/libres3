@@ -123,24 +123,8 @@ let teardown_tmpdir (name, _) =
 let bracket_tmpdir f =
   bracket setup_tmpdir f teardown_tmpdir;;
 
-let largefile_name = "test-largefile"
-
-let setup_largefile () =
-  OS.openfile largefile_name [Unix.O_CREAT;Unix.O_RDWR] 0o700;;
-
-let teardown_largefile file =
-  run (
-    file >>= fun fd ->
-    OS.close fd >>= fun () ->
-    OS.unlink largefile_name
-  );;
-
-let bracket_largefile f =
-  bracket setup_largefile f teardown_largefile;;
-
-let test_largefile file =
-  run (
-    file >>= fun fd ->
+let test_largefile () =
+  run (EventIO.with_tempfile (fun fd ->
     let large_pos = Int64.shift_left 1L 33 in
     OS.LargeFile.fstat fd >>= fun stat ->
     assert_equal ~printer:Int64.to_string stat.Unix.LargeFile.st_size 0L;
@@ -160,7 +144,7 @@ let test_largefile file =
     OS.read fd buf 0 1 >>= fun _ ->
     assert_equal ~printer:id "t" buf;
     return ();
-  );;
+  ));;
 
 let tests =
   "OS">:::
@@ -174,5 +158,5 @@ let tests =
      ]
   ) @
   [
-    "large file">:: bracket_largefile test_largefile
+    "large file">:: test_largefile
   ]
