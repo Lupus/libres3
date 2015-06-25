@@ -91,7 +91,6 @@ let rec run esys =
     Unixqueue.run esys
   with exn ->
     (* catch exceptions escaping Uq, and restart the event loop *)
-    EventLog.warning ~exn "Uq error";
     run esys
 ;;
 
@@ -166,16 +165,16 @@ let http_call (esys,_,_) (category, call, host) =
     (* this runs in http_thread *)
     match call#status with
     | `Http_protocol_error (Http_client.Bad_message _ | Http_client.No_reply as exn) when retries < 4 ->
-      EventLog.debug ~exn (fun () -> "retrying after lost connection");
+      (*      EventLog.debug ~exn (fun () -> "retrying after lost connection");*)
       (* each of the cached connections may return an error once *)
       Unixqueue.add_event esys
         (Unixqueue.Extra (HTTP_Job_Callback (category, retries+1, call, handle_reply)))
     | `Http_protocol_error e ->
-      EventLog.info ~exn:e (fun () -> "http protocol error");
+      (*      EventLog.info ~exn:e (fun () -> "http protocol error");*)
       wakener (result (fun () -> raise (Http_protocol e)))
     | _ ->
       let code = call#response_status_code in
-      EventLog.debug (fun () -> Printf.sprintf "%s: %d" call#effective_request_uri code);
+      (*      EventLog.debug (fun () -> Printf.sprintf "%s: %d" call#effective_request_uri code);*)
       let reply = {
         headers = (call#response_header :> Netmime.mime_header_ro);
         body = call#response_body#value;
