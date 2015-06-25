@@ -37,6 +37,7 @@ module Server = struct
     mutable headers: Dispatch.headers option;
     mutable woken: bool;
     mutable woken_body: bool;
+    mutable stream_error : bool;
     headers_wait: unit Lwt.t;
     headers_wake: unit Lwt.u;
     mvar: (string * int * int) Lwt_mvar.t;
@@ -45,7 +46,10 @@ module Server = struct
   }
   type u = t
   let send_data s data =
-    Lwt_mvar.put s.mvar data
+    if s.stream_error then
+      Lwt_mvar.put s.mvar ("ERROR", 0, 0)
+    else
+      Lwt_mvar.put s.mvar data
 
   let send_headers s ?body_header h =
     s.headers <- Some h;
@@ -58,8 +62,10 @@ module Server = struct
         Lwt.bind (send_data s (b, 0, String.length b))
           (fun () -> s.body_wait)
       | None -> s.body_wait
-    end else
+    end else begin
+      s.stream_error <- true;
       s.body_wait
+    end
   let log _ str = Ocsigen_messages.warning str
 end
 
@@ -106,8 +112,12 @@ let stream_of_reply wait_eof server =
     end;
     Lwt_mvar.take server.Server.mvar >>= fun (str, pos, len) ->
     if len = 0 then
-      eof >>= fun () ->
-      Ocsigen_stream.empty None
+      if server.Server.stream_error then begin
+        Server.log () "error encountered after headers already sent: truncating reply";
+        Lwt.fail Lwt.Canceled
+      end else
+        eof >>= fun () ->
+        Ocsigen_stream.empty None
     else begin
       let substr =
         if pos = 0 && len = String.length str then str
@@ -162,7 +172,7 @@ let process_request dispatcher ri () =
   let w, u = Lwt.wait () in
   let bw, bu = Lwt.task () in
   let server = {
-    Server.headers = None;
+    Server.headers = None; stream_error = false;
     headers_wait = w; headers_wake = u;woken=false;
     body_wait = bw; body_wake = bu;woken_body=false;
     mvar = Lwt_mvar.create_empty () } in
