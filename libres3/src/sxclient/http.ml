@@ -70,7 +70,7 @@ let wait () =
     )
 
 open Http_client
-exception HTTP_Job_Callback of bool * http_call * (http_call -> unit)
+exception HTTP_Job_Callback of bool * int * http_call * (int -> http_call -> unit)
 (* This is not an exception in the usual sense, but simply a tagged
  * pair (call, f_done). This pair is pushed onto the event queue to
  * send another HTTP request [call] to the HTTP thread. When the
@@ -119,11 +119,11 @@ let http_thread (esys, keep_alive_group, handler_added) =
                              };
   Unixqueue.add_handler esys keep_alive_group (fun _ _ event ->
       match event with
-      | Unixqueue.Extra (HTTP_Job_Callback (is_quick, call, cb)) ->
+      | Unixqueue.Extra (HTTP_Job_Callback (is_quick, retries, call, cb)) ->
         if is_quick && call#is_idempotent then
-          pipeline_quick#add_with_callback call cb
+          pipeline_quick#add_with_callback call (cb retries)
         else
-          pipeline_normal#add_with_callback call cb
+          pipeline_normal#add_with_callback call (cb retries)
       | _ ->
         raise Equeue.Reject  (* The event is not for us *)
     );
@@ -159,12 +159,17 @@ let start_pipeline () =
 
 let http_call (esys,_,_) (category, call, host) =
   let waiter, wakener = wait () in
-  let handle_reply = fun call ->
+  let rec handle_reply = fun retries call ->
 (*    EventLog.debug (fun () ->
         String.concat "\n> " (List.rev_map (fun (k,v) -> k ^ ": " ^ v)
                                 (call#request_header `Effective)#fields));*)
     (* this runs in http_thread *)
     match call#status with
+    | `Http_protocol_error (Http_client.Bad_message _ | Http_client.No_reply as exn) when retries < 4 ->
+      EventLog.debug ~exn (fun () -> "retrying after lost connection");
+      (* each of the cached connections may return an error once *)
+      Unixqueue.add_event esys
+        (Unixqueue.Extra (HTTP_Job_Callback (category, retries+1, call, handle_reply)))
     | `Http_protocol_error e ->
       EventLog.info ~exn:e (fun () -> "http protocol error");
       wakener (result (fun () -> raise (Http_protocol e)))
@@ -185,7 +190,7 @@ let http_call (esys,_,_) (category, call, host) =
     (fun () ->
        (* the callback is needed when it fails to connect *)
       Unixqueue.add_event esys
-        (Unixqueue.Extra (HTTP_Job_Callback (category, call, handle_reply)));
+        (Unixqueue.Extra (HTTP_Job_Callback (category, 0, call, handle_reply)));
       waiter);;
 
 let call_of_request ?(quick=false) req =
