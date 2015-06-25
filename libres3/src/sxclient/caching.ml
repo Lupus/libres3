@@ -34,7 +34,6 @@
 
 open EventLog
 module MCache = LRUCacheMonad.Make(Lwt)
-let cache = MCache.create
 
 type 'a cached = {
   response_time: float;
@@ -57,7 +56,7 @@ let is_fresh ?(heuristic_freshness=0.) reply =
   if reply.etag = None then
     let now = Unix.gettimeofday () in
     let delta = now -. reply.response_time in
-    debug (fun () -> Printf.sprintf "age: %f" delta);
+    debug (fun () -> Printf.sprintf "age: %f (max: %f)" delta heuristic_freshness);
     delta < heuristic_freshness
   else
     false (* always revalidate replies with ETag *)
@@ -105,7 +104,7 @@ let make_global_cached_request cache ~fetch ~parse key =
 
 let make_private_cached_request cache ~fetch ~parse url =
   (* user is part of URL, so one user can't access the other ones cache *)
-  make_cached_request cache ~fetch ~parse (Neturl.string_of_url url)
+  make_cached_request cache ~heuristic_freshness:max_global_freshness ~fetch ~parse (Neturl.string_of_url url)
 
 let invalid = MCache.Result.fail Not_found
 

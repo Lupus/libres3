@@ -70,7 +70,7 @@ let wait () =
     )
 
 open Http_client
-exception HTTP_Job_Callback of http_call * (http_call -> unit)
+exception HTTP_Job_Callback of bool * http_call * (http_call -> unit)
 (* This is not an exception in the usual sense, but simply a tagged
  * pair (call, f_done). This pair is pushed onto the event queue to
  * send another HTTP request [call] to the HTTP thread. When the
@@ -95,12 +95,8 @@ let rec run esys =
     run esys
 ;;
 
-let http_thread (esys, keep_alive_group, handler_added) =
+let new_pipeline esys cache =
   let pipeline = new pipeline in
-  let cache = create_aggressive_cache () in
-  (*    Http_client.Debug.enable := true;
-        Uq_ssl.Debug.enable := true;
-        Netlog.Debug.enable_all ();*)
   pipeline#set_event_system esys;
   pipeline#set_connection_cache cache;
   https_setup pipeline;
@@ -109,12 +105,25 @@ let http_thread (esys, keep_alive_group, handler_added) =
                          (* we retry at the SXC level *)
                          maximum_message_errors = 0;
                          maximum_connection_failures = 0;
-                         synchronization = Sync (* disable pipelining, but keep persistence *)
                        };
+  pipeline
+
+let http_thread (esys, keep_alive_group, handler_added) =
+  let cache = create_aggressive_cache () in
+  let pipeline_quick, pipeline_normal = new_pipeline esys cache, new_pipeline esys cache in
+  (*    Http_client.Debug.enable := true;
+        Uq_ssl.Debug.enable := true;
+        Netlog.Debug.enable_all ();*)
+  pipeline_normal#set_options { pipeline_normal#get_options with
+                               synchronization = Sync (* disable pipelining, but keep persistence *)
+                             };
   Unixqueue.add_handler esys keep_alive_group (fun _ _ event ->
       match event with
-      | Unixqueue.Extra (HTTP_Job_Callback (call, cb)) ->
-        pipeline # add_with_callback call cb
+      | Unixqueue.Extra (HTTP_Job_Callback (is_quick, call, cb)) ->
+        if is_quick && call#is_idempotent then
+          pipeline_quick#add_with_callback call cb
+        else
+          pipeline_normal#add_with_callback call cb
       | _ ->
         raise Equeue.Reject  (* The event is not for us *)
     );
@@ -148,38 +157,38 @@ let start_pipeline () =
   esys, keep_alive_group, thread
 ;;
 
-let http_call (esys,_,_) (call, host) =
+let http_call (esys,_,_) (category, call, host) =
   let waiter, wakener = wait () in
   let handle_reply = fun call ->
+(*    EventLog.debug (fun () ->
+        String.concat "\n> " (List.rev_map (fun (k,v) -> k ^ ": " ^ v)
+                                (call#request_header `Effective)#fields));*)
     (* this runs in http_thread *)
     match call#status with
     | `Http_protocol_error e ->
+      EventLog.info ~exn:e (fun () -> "http protocol error");
       wakener (result (fun () -> raise (Http_protocol e)))
     | _ ->
+      let code = call#response_status_code in
+      EventLog.debug (fun () -> Printf.sprintf "%s: %d" call#effective_request_uri code);
       let reply = {
         headers = (call#response_header :> Netmime.mime_header_ro);
         body = call#response_body#value;
-        code = call#response_status_code;
+        code = code;
         req_host = host;
         status = call#response_status
       } in
       wakener (result (fun () -> reply ))
   in
   EventLog.with_label (Printf.sprintf
-                         "%s %s -> %s"
-                         (call#get_req_method ())
-                         call#effective_request_uri
-                         (call#get_host ()))
+                         "%s %s" (call#get_req_method ()) call#request_uri)
     (fun () ->
-       EventLog.debug (fun () ->
-           String.concat "\n> " (List.rev_map (fun (k,v) -> k ^ ": " ^ v)
-                                   (call#request_header `Effective)#fields));
        (* the callback is needed when it fails to connect *)
       Unixqueue.add_event esys
-        (Unixqueue.Extra (HTTP_Job_Callback (call, handle_reply)));
+        (Unixqueue.Extra (HTTP_Job_Callback (category, call, handle_reply)));
       waiter);;
 
-let call_of_request req =
+let call_of_request ?(quick=false) req =
   let call = match req.meth with
     | `GET -> new get_call
     | `POST -> new post_call
@@ -204,10 +213,10 @@ let call_of_request req =
     | None -> ()
   end;
   call#set_request_body (new Netmime.memory_mime_body req.req_body);
-  call, req.host;;
+  quick, call, req.host;;
 
-let make_http_request state req =
-  http_call state (call_of_request req)
+let make_http_request state ?quick req =
+  http_call state (call_of_request ?quick req)
 ;;
 
 let return_http_error status =

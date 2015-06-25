@@ -433,8 +433,8 @@ let detail_of_reply reply =
     (fun e ->
        return ("Unparsable reply" ^ (Printexc.to_string e)));;
 
-let make_http_request p url =
-  P.make_http_request p url >>= fun reply ->
+let make_http_request ?quick p url =
+  P.make_http_request ?quick p url >>= fun reply ->
   let apiverstr =
     try reply.headers#field "SX-API-Version"
     with Not_found -> "0" in
@@ -451,10 +451,10 @@ let make_http_request p url =
     fail (Http_client.Http_protocol(Failure msg))
 
 let usercache = Caching.cache 128
-let rec make_request_token ~token meth ?(req_body="") ?etag url =
+let rec make_request_token ?quick ~token meth ?(req_body="") ?etag url =
   (* TODO: check that scheme is sx! *)
   let p = pipeline () in
-  make_http_request p (request_of_url ~token meth ~req_body ?etag url) >>= fun reply ->
+  make_http_request ?quick p (request_of_url ~token meth ~req_body ?etag url) >>= fun reply ->
   if reply.status = `Ok || reply.status = `Partial_content || reply.status = `Not_modified then
     return reply
   else if reply.code = 429 then
@@ -526,7 +526,7 @@ let token_of_user url =
     let fetch ?etag user =
       let url = Neturl.remove_from_url ~query:true
           (Neturl.modify_url ~path:["";".users";user] url ~scheme:"http") in
-      make_request_token ~token:!Config.secret_access_key `GET url in
+      make_request_token ~quick:true ~token:!Config.secret_access_key `GET url in
     let parse reply =
       json_parse_tree (P.input_of_async_channel reply.body) >>= function
       | [`O obj] ->
@@ -561,13 +561,13 @@ let choose_error = function
   | [] ->
     failwith "empty error list"
 
-let rec make_request_loop meth ?req_body ?etag nodes url errors = match nodes with
+let rec make_request_loop meth ?quick ?req_body ?etag nodes url errors = match nodes with
   | node :: rest ->
     Lwt.catch (fun () ->
         let url = Neturl.modify_url ~host:node url in
         token_of_user url >>= function
         | Some token ->
-          make_request_token ~token meth ?req_body ?etag url
+          make_request_token ?quick ~token meth ?req_body ?etag url
         | None ->
           (* no such user *)
           let user = Neturl.url_user url in
@@ -576,17 +576,17 @@ let rec make_request_loop meth ?req_body ?etag nodes url errors = match nodes wi
                 user
             ]))
       ) (fun e ->
-        make_request_loop meth ?req_body ?etag rest url (e :: errors)
+        make_request_loop meth ?quick ?req_body ?etag rest url (e :: errors)
       )
   | [] ->
     choose_error errors
 
-let make_request meth ?req_body ?etag nodes url =
+let make_request meth ?quick ?req_body ?etag nodes url =
   Lwt.catch (fun () ->
-      make_request_loop meth ?req_body ?etag nodes url []
+      make_request_loop meth ?quick ?req_body ?etag nodes url []
     ) (fun _ ->
       delay 20. >>= fun () ->
-      make_request_loop meth ?req_body ?etag nodes url []
+      make_request_loop meth ?quick ?req_body ?etag nodes url []
     )
 
 module StringSet = Set.Make(String)
@@ -633,7 +633,7 @@ let parse_nodelist_reply reply =
         failwith "bad locate nodes json");;
 
 let fetch_cluster_nodelist url =
-  let fetch ?etag _ = make_request_token ~token:!Config.secret_access_key `GET (fetch_nodes url) in
+  let fetch ?etag _ = make_request_token ~quick:true ~token:!Config.secret_access_key `GET (fetch_nodes url) in
   Caching.make_global_cached_request nodelist_cache "" ~fetch ~parse:parse_nodelist_reply
 
 let get_cluster_nodelist url =
@@ -646,7 +646,7 @@ let get_vol_nodelist url =
   let fetch ?etag volume =
     let url = Neturl.modify_url url ~path:["";volume] in
     get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
-    make_request `GET cluster_nodes (locate url)
+    make_request ~quick:true `GET cluster_nodes (locate url)
   in
   match url_path ~encoded:true url with
   | "" :: volume :: _ ->
@@ -780,7 +780,7 @@ let get_meta url =
   let fetch ?etag _ =
     get_vol_nodelist url >>= fun (nodes, _) ->
     let url = Neturl.modify_url ~syntax:http_syntax url ~query:"fileMeta" in
-    make_request `GET nodes ?etag url
+    make_request ~quick:true `GET nodes ?etag url
   in
   let parse reply =
     expect_content_type reply "application/json" >>= fun () ->
@@ -1440,13 +1440,13 @@ let exists url =
     begin match url_path ~encoded:true url with
       | "" :: _volume :: ("" :: [] | []) ->
         (* does volume exist? *)
-        make_http_request p (request_of_url ~token `HEAD (locate url))
+        make_http_request ~quick:true p (request_of_url ~token `HEAD (locate url))
         >>= fun reply ->
         return (reply.status = `Ok)
       | "" :: _volume :: _path ->
         Lwt.catch (fun () ->
             get_vol_nodelist url >>= fun (nodes, _) ->
-            make_request `HEAD nodes url >>= fun reply ->
+            make_request ~quick:true `HEAD nodes url >>= fun reply ->
             expect_content_type reply "application/json" >>= fun () ->
             return true
           ) (function
@@ -1455,7 +1455,7 @@ let exists url =
             | e -> fail e)
       | _ ->
         (* can I fetch the nodeslist? *)
-        make_http_request p (request_of_url ~token `HEAD (fetch_nodes url))
+        make_http_request ~quick:true p (request_of_url ~token `HEAD (fetch_nodes url))
         >>= fun reply ->
         return (reply.status = `Ok)
     end
