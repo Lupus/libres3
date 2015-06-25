@@ -70,6 +70,7 @@ let wait () =
     )
 
 open Http_client
+exception Periodic of string
 exception HTTP_Job_Callback of bool * int * http_call * (int -> http_call -> unit)
 (* This is not an exception in the usual sense, but simply a tagged
  * pair (call, f_done). This pair is pushed onto the event queue to
@@ -123,6 +124,11 @@ let http_thread (esys, keep_alive_group, handler_added) =
           pipeline_quick#add_with_callback call (cb retries)
         else
           pipeline_normal#add_with_callback call (cb retries)
+      | Unixqueue.Extra (Periodic host) ->
+        (* periodically send a request to keep (SSL) connection alive,
+           to avoid the cost of (SSL) handshakes *)
+        pipeline_quick#add (new options host);
+        pipeline_normal#add (new options host);
       | _ ->
         raise Equeue.Reject  (* The event is not for us *)
     );
@@ -222,6 +228,10 @@ let call_of_request ?(quick=false) req =
 let make_http_request state ?quick req =
   http_call state (call_of_request ?quick req)
 ;;
+
+let periodic (esys,_,_) host =
+  EventLog.debug (fun () -> Printf.sprintf "sending periodic keep-alive request to %s" host);
+  Unixqueue.add_event esys (Unixqueue.Extra (Periodic host))
 
 let return_http_error status =
   raise (HttpCode status)

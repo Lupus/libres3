@@ -636,8 +636,24 @@ let fetch_cluster_nodelist url =
   let fetch ?etag _ = make_request_token ~quick:true ~token:!Config.secret_access_key `GET (fetch_nodes url) in
   Caching.make_global_cached_request nodelist_cache "" ~fetch ~parse:parse_nodelist_reply
 
+let last_nodes = ref []
+
+let periodic url _ =
+  let p = pipeline () in
+  let send host =
+    P.periodic p (Neturl.string_of_url (Neturl.modify_url ~host url))
+  in
+  List.iter send !last_nodes
+
+
 let get_cluster_nodelist url =
   fetch_cluster_nodelist url >>= fun l ->
+  if !last_nodes = [] && l.nodes <> [] then begin
+    let url = Neturl.remove_from_url ~user:true ~query:true (fetch_nodes url) in
+    let url = Neturl.modify_url ~port:(url_port_opt url) url in
+    ignore (Lwt_engine.on_timer 30. true (periodic url))
+  end;
+  last_nodes := l.nodes;
   let nodes = l.nodes in
   l.nodes <- rot nodes;
   return (nodes, l.uuid)
