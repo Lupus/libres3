@@ -106,6 +106,9 @@ let http_thread (esys, keep_alive_group, handler_added) =
   https_setup pipeline;
   pipeline#set_options { pipeline#get_options with
                          Http_client.connection_timeout = 20.;
+                         (* we retry at the SXC level *)
+                         maximum_message_errors = 0;
+                         maximum_connection_failures = 0;
                          synchronization = Sync (* disable pipelining, but keep persistence *)
                        };
   Unixqueue.add_handler esys keep_alive_group (fun _ _ event ->

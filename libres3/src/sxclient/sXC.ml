@@ -585,6 +585,7 @@ let make_request meth ?req_body ?etag nodes url =
   Lwt.catch (fun () ->
       make_request_loop meth ?req_body ?etag nodes url []
     ) (fun _ ->
+      delay 20. >>= fun () ->
       make_request_loop meth ?req_body ?etag nodes url []
     )
 
