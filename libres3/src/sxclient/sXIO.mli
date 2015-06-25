@@ -45,6 +45,7 @@ type sink = int64 -> output_stream Lwt.t
 
 (* auth (note: the urls below should all have a user part too) *)
 val token_of_user : [< `Url of url ] -> string option Lwt.t
+val invalidate_token_of_user : [< `Url of url ] -> unit
 
 (* operations *)
 val get_meta: [< `Url of url] -> (string*string) list Lwt.t
@@ -85,6 +86,7 @@ module type SchemeOps = sig
   val syntax: Neturl.url_syntax
 
   val token_of_user : Neturl.url -> string option Lwt.t
+  val invalidate_token_of_user : Neturl.url -> unit
   val check: Neturl.url -> string option Lwt.t
   val open_source: Neturl.url -> (entry * state) Lwt.t
   val seek: state -> int64 -> (state * read_state) Lwt.t

@@ -52,6 +52,7 @@ module StringMap = Map.Make(String)
 let volumes = ref StringMap.empty
 
 let token_of_user _ = return (Some !Config.secret_access_key)
+let invalidate_token_of_user _ = ()
 let check _ = return None
 
 let find name m =

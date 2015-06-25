@@ -450,6 +450,7 @@ let make_http_request p url =
     let msg = "Invalid SX API version: " ^ apiverstr in
     fail (Http_client.Http_protocol(Failure msg))
 
+let usercache = Caching.cache 128
 let rec make_request_token ~token meth ?(req_body="") ?etag url =
   (* TODO: check that scheme is sx! *)
   let p = pipeline () in
@@ -466,7 +467,8 @@ let rec make_request_token ~token meth ?(req_body="") ?etag url =
     let code = match reply.status with
       | `Not_found | `Bad_request (* SX bug: returns 400 instead of 404 *) ->
         Some Unix.ENOENT
-      | `Unauthorized | `Forbidden -> Some Unix.EACCES
+      | `Unauthorized -> Some Unix.EACCES
+      | `Forbidden -> Some Unix.EACCES
       | `Conflict ->
         Some (if meth=`DELETE then Unix.ENOTEMPTY else Unix.EEXIST)
       | `Request_uri_too_long -> Some Unix.ENAMETOOLONG
@@ -477,7 +479,8 @@ let rec make_request_token ~token meth ?(req_body="") ?etag url =
       "SXErrorMessage",detail;
       "SXHttpCode", string_of_int reply.code
     ] in
-    match code with
+    let details = if reply.status = `Unauthorized then ["LibreS3ErrorMessage", detail] else details in
+     match code with
     | Some c ->
       fail (XIO.Detail(
           Unix.Unix_error(c,string_of_method meth,string_of_url url),
@@ -514,7 +517,6 @@ let filter_field_string field lst =
     failwith "string field expected";;
 
 module AJson = AsyncJson
-let usercache = Caching.cache 128
 
 let token_of_user url =
   let user = Neturl.url_user url in
@@ -547,6 +549,11 @@ let token_of_user url =
           Lwt.return None
         | e -> Lwt.fail e
       )
+
+let invalidate_token_of_user url =
+  let user = Neturl.url_user url in
+  EventLog.info (fun () -> Printf.sprintf "Invalidating token for user %S" user);
+  Caching.invalidate_cached usercache user
 
 let choose_error = function
   | e :: _ ->

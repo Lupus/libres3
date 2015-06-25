@@ -107,3 +107,7 @@ let make_private_cached_request cache ~fetch ~parse url =
   (* user is part of URL, so one user can't access the other ones cache *)
   make_cached_request cache ~fetch ~parse (Neturl.string_of_url url)
 
+let invalid = MCache.Result.fail Not_found
+
+let invalidate_cached cache key =
+  MCache.set cache key invalid

@@ -85,6 +85,7 @@ type op = {
   create: ?metafn:metafn -> ?replica:int -> url -> unit t;
   exists: url -> bool t;
   token_of_user: url -> string option t;
+  invalidate_token_of_user: url -> unit;
   check: url -> string option t;
   delete: ?async:bool -> url -> unit t;
   copy_same: ?metafn:metafn -> ?filesize:int64 -> url list -> url -> bool t;
@@ -207,6 +208,9 @@ let exists (`Url url) =
 let token_of_user (`Url url) =
   (ops_of_url url).token_of_user url;;
 
+let invalidate_token_of_user (`Url url) =
+  (ops_of_url url).invalidate_token_of_user url;;
+
 let check (`Url url) =
   (ops_of_url url).check url;;
 
@@ -275,6 +279,7 @@ module type SchemeOps = sig
   val syntax: Neturl.url_syntax
 
   val token_of_user: Neturl.url -> string option Lwt.t
+  val invalidate_token_of_user : Neturl.url -> unit
   val check: Neturl.url -> string option Lwt.t
   val open_source: Neturl.url -> (entry * state) Lwt.t
   val seek: state -> int64 -> (state * read_state) Lwt.t
@@ -352,6 +357,7 @@ module RegisterURLScheme(O: SchemeOps) = struct
     with_urls_source = withurls;
     fold_list = O.fold_list;
     token_of_user = O.token_of_user;
+    invalidate_token_of_user = O.invalidate_token_of_user;
     create = O.create;
     exists = O.exists;
     check = O.check;
