@@ -131,20 +131,15 @@ let parse_port s =
   Int64.to_int i
 
 let validate_host s =
-  (* TODO: use uri library *)
-  begin
-    try
-      (* try to parse as an IP address *)
-      ignore (Ipaddr.of_string_exn s)
-    with Ipaddr.Parse_error _ ->
-      (* try to parse as a DNS name *)
-      try ignore (validate_dns_name s)
-      with _ ->
-        failwith (Printf.sprintf
-                    "Invalid hostname (expected DNS name or IP address): %s" s)
-  end;
-  s
-
+  match Ipaddr.of_string s with
+  | Some (Ipaddr.V4 v4) -> Ipaddr.V4.to_string v4
+  | Some (Ipaddr.V6 v6) -> Printf.sprintf "[%s]" (Ipaddr.V6.to_string v6)
+  | None ->
+    (* try to parse as a DNS name *)
+    try validate_dns_name s
+    with _ ->
+      failwith (Printf.sprintf
+                  "Invalid hostname (expected DNS name or IP address): %s" s)
 
 let parse_positive_int s =
   let i = parse_int s in

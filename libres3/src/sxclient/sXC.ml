@@ -609,9 +609,13 @@ let rot l =
   if l = [] then []
   else List.rev_append (List.rev (List.tl l)) [List.hd l]
 
+let node_addr s = match Ipaddr.of_string_exn s with
+  | Ipaddr.V4 _ -> s
+  | Ipaddr.V6 v6 -> Printf.sprintf "[%s]" (Ipaddr.V6.to_string v6)
+
 let parse_nodelist headers nodes =
   let nodes = List.rev_map (function
-      | `String h -> h
+      | `String h -> node_addr h
       | _ -> failwith "bad locate nodes format"
     ) nodes in
   let uuid =
@@ -692,7 +696,7 @@ module NodesMap = Map.Make(struct
 let nodelist (hd, tl) = hd :: (StringSet.elements tl)
 
 let map_host = function
-  | `String host -> host
+  | `String host -> node_addr host
   | _ -> failwith "Bad json node format"
 
 let map_unique_nodes = function
@@ -1181,12 +1185,7 @@ let locate_upload url size =
               Unix.Unix_error(Unix.EACCES, volume, "Volume uses filters"),
               ["LibreS3ErrorMessage","Cannot access a volume that uses filters"]
             ))
-        else let nodes =
-               List.rev_map (function
-                   | `String h -> h
-                   | _ -> failwith "bad locate  nodes format"
-                 ) nodes
-          in
+        else let nodes = List.rev_map map_host nodes in
           let uuid =
             try parse_sx_cluster (reply.headers#field "SX-Cluster")
             with Not_found -> parse_server (reply.headers#field "Server")

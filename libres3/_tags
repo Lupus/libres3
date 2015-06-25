@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 028088faa79e9ebf82313e2aa3e3ae54)
+# DO NOT EDIT (digest: a4180dd60263eb31a6803ad5bacd3379)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -24,6 +24,7 @@ true: annot, bin_annot
 "src/sxclient/sxclient.cmxs": use_sxclient
 <src/sxclient/*.ml{,i,y}>: package(cryptokit)
 <src/sxclient/*.ml{,i,y}>: package(equeue-ssl)
+<src/sxclient/*.ml{,i,y}>: package(ipaddr)
 <src/sxclient/*.ml{,i,y}>: package(jsonm)
 <src/sxclient/*.ml{,i,y}>: package(lwt.unix)
 <src/sxclient/*.ml{,i,y}>: package(netclient)
@@ -34,6 +35,7 @@ true: annot, bin_annot
 # Executable sxuls
 <test/sxuls.{native,byte}>: package(cryptokit)
 <test/sxuls.{native,byte}>: package(equeue-ssl)
+<test/sxuls.{native,byte}>: package(ipaddr)
 <test/sxuls.{native,byte}>: package(jsonm)
 <test/sxuls.{native,byte}>: package(lwt.unix)
 <test/sxuls.{native,byte}>: package(netclient)
@@ -45,6 +47,7 @@ true: annot, bin_annot
 # Executable sxucp
 <test/sxucp.{native,byte}>: package(cryptokit)
 <test/sxucp.{native,byte}>: package(equeue-ssl)
+<test/sxucp.{native,byte}>: package(ipaddr)
 <test/sxucp.{native,byte}>: package(jsonm)
 <test/sxucp.{native,byte}>: package(lwt.unix)
 <test/sxucp.{native,byte}>: package(netclient)
