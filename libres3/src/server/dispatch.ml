@@ -182,11 +182,11 @@ module Make
       None
   ;;
 
-  let send_source url ~canon ~first sender =
+  let send_source source ~canon ~first sender =
     if canon.CanonRequest.req_method = `HEAD then return () (* ensure HEAD's body is empty *)
     else
-      U.copy url ~srcpos:first (U.of_sink (fun _ ->
-          return (S.send_data sender)))
+      source.seek first >>= fun stream ->
+      SXDefaultIO.iter stream (S.send_data sender)
   ;;
 
   let is_prefix ~prefix str =
@@ -202,37 +202,38 @@ module Make
 
   let quote s = "\"" ^ s ^ "\""
   let return_source ~req ~canon ~content_type url ~metalst =
-    U.with_url_source url (fun source -> return source.meta) >>= fun meta ->
-    let size = meta.size and mtime = meta.mtime and etag = meta.etag in
-    let headers = add_std_headers ~id:canon.CanonRequest.id
-        ~id2:(CanonRequest.gen_debug ~canon) ["ETag", quote etag] in
-    let headers = add_meta_headers headers metalst in
-    match (parse_ranges canon.CanonRequest.headers size) with
-    | None ->
-      S.send_headers req.server {
-        status = `Ok;
-        reply_headers = ("Accept-Ranges","bytes") :: headers;
-        last_modified = Some mtime;
-        content_type = Some content_type;
-        content_length = Some size;
-        etag_header = Some (etag);
-      } >>= send_source url ~canon ~first:0L
-    | Some (first, last) as range ->
-      if first > last then
-        invalid_range ~req ~canon size (* not satisfiable *)
-      else
-        let h = Headers.make_content_range
-            (`Bytes (range, Some size)) in
-        let length = Int64.add 1L (Int64.sub last first) in
-        S.send_headers req.server {
-          status = `Partial_content;
-          reply_headers = List.rev_append h headers;
-          last_modified = Some mtime;
-          content_type = Some content_type;
-          content_length = Some length;
-          etag_header = None;
-        } >>= send_source url ~canon ~first
-  ;;
+    U.with_url_source url (fun source ->
+        let meta = source.meta in
+        let size = meta.size and mtime = meta.mtime and etag = meta.etag in
+        let headers = add_std_headers ~id:canon.CanonRequest.id
+            ~id2:(CanonRequest.gen_debug ~canon) ["ETag", quote etag] in
+        let headers = add_meta_headers headers metalst in
+        match (parse_ranges canon.CanonRequest.headers size) with
+        | None ->
+          S.send_headers req.server {
+            status = `Ok;
+            reply_headers = ("Accept-Ranges","bytes") :: headers;
+            last_modified = Some mtime;
+            content_type = Some content_type;
+            content_length = Some size;
+            etag_header = Some (etag);
+          } >>= send_source source ~canon ~first:0L
+        | Some (first, last) as range ->
+          if first > last then
+            invalid_range ~req ~canon size (* not satisfiable *)
+          else
+            let h = Headers.make_content_range
+                (`Bytes (range, Some size)) in
+            let length = Int64.add 1L (Int64.sub last first) in
+            S.send_headers req.server {
+              status = `Partial_content;
+              reply_headers = List.rev_append h headers;
+              last_modified = Some mtime;
+              content_type = Some content_type;
+              content_length = Some length;
+              etag_header = None;
+            } >>= send_source source ~canon ~first
+      ) ;;
 
   let xml_decl = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
 
