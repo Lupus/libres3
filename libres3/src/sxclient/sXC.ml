@@ -1491,20 +1491,27 @@ let acl_url =
   Neturl.modify_url ~encoded:true ~query:"o=acl" ~scheme:"http"
     ~syntax:http_syntax
 
-let get_acl url =
-  (* cluster_nodelist would suffice, but vol_nodelist gives better error msg
-     (404 instead of 500) *)
-  get_vol_nodelist url >>= fun (nodes, _) ->
-  let url = acl_url url in
-  make_request `GET nodes url >>= fun reply ->
-  expect_content_type reply "application/json" >>= fun () ->
-  let input = P.input_of_async_channel reply.body in
-  json_parse_tree input >>= function
-  | [`O obj] ->
-    return (List.rev_map map_acl obj)
-  | p ->
-    warning "bad ACL format: %a" pp_json_lst p;
-    fail (Failure "bad ACL format")
+let acl_cache = Caching.cache 128
+
+let get_acl url : acl list Lwt.t =
+  let fetch ?etag _ =
+    (* cluster_nodelist would suffice, but vol_nodelist gives better error msg
+       (404 instead of 500) *)
+    get_vol_nodelist url >>= fun (nodes, _) ->
+    let url = acl_url url in
+    make_request ~quick:true `GET ?etag nodes url
+  in
+  let parse reply =
+    expect_content_type reply "application/json" >>= fun () ->
+    let input = P.input_of_async_channel reply.body in
+    json_parse_tree input >>= function
+    | [`O obj] ->
+      return (List.rev_map map_acl obj)
+    | p ->
+      warning "bad ACL format: %a" pp_json_lst p;
+      fail (Failure "bad ACL format")
+  in
+  Caching.make_private_cached_request acl_cache ~fetch ~parse url
 
 let find_acl_op dir op l =
   List.find_all (fun (gr, id, acl) ->
