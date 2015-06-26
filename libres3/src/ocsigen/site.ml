@@ -32,12 +32,57 @@ open Ocsigen_http_frame
 open Lwt
 open SXDefaultIO
 
+type access = {
+  user: string option;
+  undecoded_url: string;
+  ri  : Ocsigen_request_info.request_info;
+  body: int64 option;
+  code: int
+}
+
+module Log = Accesslog.Make(struct
+    type t = access
+
+    let body_bytes_sent i =
+      i.body
+
+    let string_opt = function
+      | "" -> None
+      | s -> Some s
+
+    let http_referer i =
+      Ocsigen_headers.get_referer (Ocsigen_request_info.http_frame i.ri)
+
+    let http_user_agent i =
+      string_opt (Ocsigen_request_info.user_agent i.ri)
+
+    let remote_addr i =
+      Ocsigen_request_info.remote_ip i.ri
+
+    let remote_user i = i.user
+
+    let request i =
+      Printf.sprintf "%s %s %s"
+        (Framepp.string_of_method (Ocsigen_request_info.meth i.ri))
+        i.undecoded_url
+        (Framepp.string_of_proto (Ocsigen_request_info.protocol i.ri))
+
+    let status i = i.code
+
+    let clf = "%d/%b/%Y:%H:%M:%S %z"
+    let time_local () =
+      Netdate.mk_date ~localzone:true ~fmt:clf (Unix.gettimeofday ())
+end)
+
 module Server = struct
   type t = {
     mutable headers: Dispatch.headers option;
     mutable woken: bool;
     mutable woken_body: bool;
     mutable stream_error : bool;
+    mutable auth_user : string option;
+    mutable body_sent: int64;
+    mutable info : access option;
     headers_wait: unit Lwt.t;
     headers_wake: unit Lwt.u;
     mvar: (string * int * int) Lwt_mvar.t;
@@ -66,6 +111,8 @@ module Server = struct
       s.stream_error <- true;
       s.body_wait
     end
+
+  let set_user s user = s.auth_user <- Some user
   let log _ str = Ocsigen_messages.warning str
 end
 
@@ -122,13 +169,19 @@ let stream_of_reply wait_eof server =
       let substr =
         if pos = 0 && len = String.length str then str
         else String.sub str pos len in
+      server.Server.body_sent <- Int64.add server.Server.body_sent (Int64.of_int len);
       Ocsigen_stream.cont substr read
     end
   in
   Ocsigen_stream.make ~finalize:(fun _ ->
       Lwt.cancel wait_eof;
       Lwt.cancel server.Server.body_wait;
-      return ()) read
+      begin match server.Server.info with
+      | Some info ->
+        Log.log ~template:Accesslog.combined { info with body = Some server.Server.body_sent }
+      | None -> ()
+      end;
+      return_unit) read
 ;;
 
 let max_input_mem = 65536L
@@ -173,6 +226,7 @@ let process_request dispatcher ri () =
   let bw, bu = Lwt.task () in
   let server = {
     Server.headers = None; stream_error = false;
+    auth_user = None; body_sent = 0L; info = None;
     headers_wait = w; headers_wake = u;woken=false;
     body_wait = bw; body_wake = bu;woken_body=false;
     mvar = Lwt_mvar.create_empty () } in
@@ -200,8 +254,16 @@ let process_request dispatcher ri () =
   match server.Server.headers with
   | None -> res
   | Some h ->
+    let code = Nethttp.int_of_http_status h.D.status in
+    server.Server.info <- Some {
+      user = server.Server.auth_user;
+      undecoded_url = undecoded_url;
+      ri = ri;
+      body = h.D.content_length;
+      code = code
+    };
     Ocsigen_http_frame.Result.update res
-      ~code:(Nethttp.int_of_http_status h.D.status)
+      ~code
       ~content_length:(h.D.content_length)
       ~content_type:h.D.content_type
       ~headers:(convert_headers h.D.reply_headers)
@@ -339,6 +401,13 @@ let fun_site _ config_info _ _ _ _ =
   Configfile.base_hostname := config_info.default_hostname;
   if Lwt_log.Section.level EventLog.section = Lwt_log.Debug then
     Lwt_log.default := Lwt_log.broadcast [ !Lwt_log.default; debug_logger ];
+  let default = !Lwt_log.default in
+  (* ignore default access.log messages *)
+  Lwt_log.default := Lwt_log.dispatch (fun sect level ->
+      if String.compare (Lwt_log.Section.name sect) "access" = 0 then
+        Lwt_log.null
+      else default
+    );
   Ocsigen_messages.console (fun () ->
       Printf.sprintf "LibreS3 default hostname: %s"  !Configfile.base_hostname
     );

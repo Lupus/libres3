@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 6c240398b9039feb6efff183fa0ee48c)
+# DO NOT EDIT (digest: f992453729953ea38b582fee218b8e5e)
 EventIO
 SXIO
 SXFile
@@ -7,6 +7,7 @@ SXC
 SXDefaultIO
 Config
 EventLog
+Accesslog
 Http
 Caching
 # OASIS_STOP

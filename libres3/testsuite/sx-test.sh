@@ -5,11 +5,11 @@ SXDIR=../../sx
 PREFIX=`pwd`/test-libres3
 $PREFIX/sbin/libres3_ocsigen --stop || true
 
-if false; then
+if true; then
 make distclean
 rm -rf "$PREFIX"
 mkdir "$PREFIX"
-./configure --prefix="$PREFIX" --enable-tests --disable-docs
+./configure --prefix="$PREFIX" --enable-tests --disable-docs --override ocamlbuildflags '-j\ 0'
 make
 
 . ./setup.data

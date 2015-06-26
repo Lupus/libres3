@@ -268,8 +268,10 @@ let initialize config pipe =
 ;;
 
 let command_pipe = Filename.concat Paths.var_lib_dir "command.pipe"
+
 let reopen_logs _ =
   try
+    Lwt.async (fun () -> Accesslog.reopen ());
     let f = open_out command_pipe in
     begin try output_string f "reopen_logs\n" with _ -> () end;
     close_out f
@@ -279,7 +281,7 @@ let reopen_logs _ =
 let run_server commandpipe =
   Pid.write_pid !Configfile.pidfile;
   begin try unlink commandpipe with _ -> () end;
-  if Lwt_log.Section.level EventLog.section <> Lwt_log.Debug || !Configfile.daemonize then begin
+  if !Configfile.daemonize then begin
     let dev_null = Unix.openfile "/dev/null" [Unix.O_RDWR] 0o666 in
     Unix.dup2 dev_null Unix.stdin;
     Unix.dup2 dev_null Unix.stdout;
@@ -338,6 +340,8 @@ let run () =
       run_server !(config.commandpipe)
     end
   end else begin
+    if Lwt_log.Section.level EventLog.section > Lwt_log.Notice then
+      Lwt_log.Section.set_level EventLog.section Lwt_log.Notice;
     run_server !(config.commandpipe)
   end;
   Printf.printf "Waiting for server to start (5s) ... %!";

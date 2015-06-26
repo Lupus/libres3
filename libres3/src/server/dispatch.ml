@@ -50,6 +50,7 @@ module type Server = sig
   type t
   type u
   val log: t -> string -> unit
+  val set_user  : t -> string -> unit
   val send_headers: t -> ?body_header:string -> headers -> u Lwt.t
   val send_data: u -> string * int * int -> unit Lwt.t
 end
@@ -1558,6 +1559,7 @@ module Make
     | CanonRequest.AuthorizationV4 (auth, signature,expires) ->
       let credential = auth.CanonRequest.credential in
       let user = credential.CanonRequest.keyid in
+      S.set_user request.server user;
       begin match !Configfile.sx_host with
         | Some host ->
           let url = Neturl.make_url ~encoded:false ~scheme:"sx" ~host ~path:[""]
@@ -1603,6 +1605,7 @@ module Make
             ~canon:{ canon with CanonRequest.user = "" } expires
       end
     | CanonRequest.Authorization (user, signature, expires) ->
+      S.set_user request.server user;
       match !Configfile.sx_host with
       | Some host ->
         let url = Neturl.make_url ~encoded:false ~scheme:"sx" ~host ~path:[""]
@@ -1792,7 +1795,8 @@ module Make
       fail (Failure "SX secret access key must be set!")
     else begin
       Gc.compact ();
-      return ()
+      let path = Filename.concat !Paths.log_dir "access.log" in
+      Accesslog.reopen ~path ()
     end
   ;;
 

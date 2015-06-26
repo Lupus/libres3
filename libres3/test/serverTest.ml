@@ -73,6 +73,8 @@ module Server = struct
       (>>=) (send_data s (b, 0, String.length b))
         (fun () -> return s)
     | None -> return s
+
+  let set_user _ _ = ()
 end
 
 
