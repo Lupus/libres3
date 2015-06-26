@@ -31,8 +31,8 @@
 (*  reasons why the executable file might be covered by the GNU Library   *)
 (*  General Public License.                                               *)
 (**************************************************************************)
-open Lwt
 
+open Lwt
 type log_id = {
   id: int;
   nesting: string;
@@ -44,29 +44,28 @@ let id = ref 0
 
 let section = Lwt_log.Section.make "request"
 
-(*TODO: dir configurable *)
-let open_files () =
-  Lwt_log.file ~file_name:(Filename.temp_file "libres3_debug" ".log") () >>= fun debug ->
-  Lwt_log.Section.set_level section Lwt_log.Debug;
-  let default = !Lwt_log.default in
-  Lwt_log.default :=
-    Lwt_log.dispatch (fun sect lev ->
-        if lev <= Lwt_log.Info then debug
-        else default
-      );
-  return_unit
+let rec lines_of_string str pos lst =
+  try
+    let next_pos = String.index_from str pos '\n' in
+    lines_of_string str (next_pos+1) (String.sub str pos (next_pos - pos) :: lst)
+  with Not_found -> List.rev (String.sub str pos (String.length str - pos) :: lst)
 
 let log_nested ?exn level log_id t sep message =
   let dt_ms = (t -. log_id.start) *. 1000. in
-  Lwt_log.ign_log_f ?exn ~section ~level "[%d][@%.6f][+%7.3f ms]%s%s %s" log_id.id t dt_ms log_id.nesting sep message
+  let prefix = Printf.sprintf "[%6d][+%7.3f ms]" log_id.id dt_ms in
+  let linesep = ("\n" ^ (String.make (String.length prefix) ' ') ^ log_id.nesting ^ "│") in
+  let msg = String.concat linesep (lines_of_string message 0 []) in
+  Lwt_log.ign_log_f ?exn ~section ~level "%s%s%s%s" prefix log_id.nesting sep msg
 
 let log level ?exn f =
-  if Lwt_log.Section.level section <= level then match Lwt.get log_id_key with
+  if Lwt_log.Section.level section <= level then
+    let msg = f () in
+    match Lwt.get log_id_key with
     | Some log_id ->
       let t = Unix.gettimeofday () in
-      log_nested ?exn level log_id t "├" (f ())
+      log_nested ?exn level log_id t "├" msg
     | None ->
-      Lwt_log.ign_log_f ?exn ~section ~level "[-][@%6.f] %s" (Unix.gettimeofday ()) (f ())
+      Lwt_log.ign_log_f ?exn ~section ~level "[     -]             │%s" msg
 
 let with_label label f =
   if Lwt_log.Section.level section > Lwt_log.Info then f ()
@@ -79,7 +78,7 @@ let with_label label f =
     let log_id = { prev_log_id with nesting = prev_log_id.nesting ^ "│" } in
     Lwt.with_value log_id_key (Some log_id) f >>= fun r ->
     let t = Unix.gettimeofday () in
-    log_nested Lwt_log.Info prev_log_id t "├┘" (Printf.sprintf "<+%7.3f> ms" (t -. t0));
+    log_nested Lwt_log.Info prev_log_id t "├┘" (Printf.sprintf "<+%7.3f> ms" ((t -. t0) *. 1000.));
     return r
 
 let debug ?exn f = log Lwt_log.Debug ?exn f

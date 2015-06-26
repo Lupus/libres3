@@ -332,8 +332,13 @@ let periodic_check () =
     OS.sleep !Configfile.initial_interval >>= fun () ->
     dns_check_loop resolver url
 
+let debug_logger =
+  Lwt_log.channel ~template:"$(date).$(milliseconds): $(message)" ~close_mode:`Keep ~channel:Lwt_io.stderr ()
+
 let fun_site _ config_info _ _ _ _ =
   Configfile.base_hostname := config_info.default_hostname;
+  if Lwt_log.Section.level EventLog.section = Lwt_log.Debug then
+    Lwt_log.default := Lwt_log.broadcast [ !Lwt_log.default; debug_logger ];
   Ocsigen_messages.console (fun () ->
       Printf.sprintf "LibreS3 default hostname: %s"  !Configfile.base_hostname
     );

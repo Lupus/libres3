@@ -19,20 +19,21 @@
 (*                                                                        *)
 (*  As a special exception to the GNU Library General Public License,     *)
 (*  you may link, statically or dynamically, a "work that uses the        *)
-    (*  Library" with a publicly distributed version of the Library to        *)
+(*  Library" with a publicly distributed version of the Library to        *)
 (*  produce an executable file containing portions of the Library, and    *)
 (*  distribute that executable file under terms of your choice, without   *)
 (*  any of the additional requirements listed in clause 6 of the GNU      *)
 (*  Library General Public License. By "a publicly distributed version    *)
-    (*  of the Library", we mean either the unmodified Library, or a          *)
+(*  of the Library", we mean either the unmodified Library, or a          *)
 (*  modified version of the Library that is distributed under the         *)
 (*  conditions defined in clause 3 of the GNU Library General Public      *)
 (*  License. This exception does not however invalidate any other         *)
 (*  reasons why the executable file might be covered by the GNU Library   *)
 (*  General Public License.                                               *)
 (**************************************************************************)
+
 val with_label : string -> (unit -> 'a Lwt.t) -> 'a Lwt.t
-val open_files : unit -> unit Lwt.t
+val section : Lwt_log.section
 val debug : ?exn:exn -> (unit -> string) -> unit
 val info : ?exn:exn -> (unit -> string) -> unit
 val notice : ?exn:exn -> ('a, unit, string, unit) format4 -> 'a

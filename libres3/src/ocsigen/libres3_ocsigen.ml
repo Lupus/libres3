@@ -205,6 +205,9 @@ let list_of_opt ptr = match !ptr with
   | Some v -> [ref v]
   | None -> []
 
+let enable_debug () =
+  Lwt_log.Section.set_level EventLog.section Lwt_log.Debug
+
 let initialize config pipe =
   let stop = ref false and status = ref false in
   let extra_spec = [
@@ -212,9 +215,7 @@ let initialize config pipe =
                                                      daemonize)";
     "--stop", Arg.Set stop, " Stop running process (based on PIDfile)";
     "--status", Arg.Set status, " Print running process status (based on PIDfile)";
-    "--debug", Arg.Unit (fun () ->
-        set_veryverbose ();
-        set_debugmode true), " Turn on verbose/debug messages";
+    "--debug", Arg.Unit enable_debug, " Turn on verbose/debug messages";
   ] in
 
   Cmdline.parse_cmdline extra_spec;
@@ -278,7 +279,7 @@ let reopen_logs _ =
 let run_server commandpipe =
   Pid.write_pid !Configfile.pidfile;
   begin try unlink commandpipe with _ -> () end;
-  if not (get_debugmode ()) || !Configfile.daemonize then begin
+  if Lwt_log.Section.level EventLog.section <> Lwt_log.Debug || !Configfile.daemonize then begin
     let dev_null = Unix.openfile "/dev/null" [Unix.O_RDWR] 0o666 in
     Unix.dup2 dev_null Unix.stdin;
     Unix.dup2 dev_null Unix.stdout;
