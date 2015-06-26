@@ -1796,7 +1796,10 @@ module Make
     else begin
       Gc.compact ();
       let path = Filename.concat !Paths.log_dir "access.log" in
-      Accesslog.reopen ~path ()
+      Lwt.catch (fun () -> Accesslog.reopen ~path ())
+        (fun exn ->
+           EventLog.warning ~exn "cannot open access.log";
+           return_unit)
     end
   ;;
 
