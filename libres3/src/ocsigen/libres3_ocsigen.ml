@@ -254,7 +254,8 @@ let initialize config pipe =
   set_maxuploadfilesize (Some  5368709120L);
   set_respect_pipeline ();
   set_filebuffersize Config.buffer_size;
-  set_netbuffersize Config.buffer_size;
+  set_netbuffersize !Configfile.netbuffersize;
+  Lwt_io.set_default_buffer_size !Configfile.netbuffersize;
   let rundir = Filename.dirname !Configfile.pidfile in
   List.iter (fun d -> mkdir_p ~perm:0o770 !d)
     (ref rundir :: config.datadir :: config.uploaddir :: list_of_opt config.logdir);

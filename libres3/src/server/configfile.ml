@@ -225,7 +225,7 @@ let maxdetachedcomputationsqueued = ref None
 let timeout = ref 30
 let keepalivetimeout = ref 30
 let shutdowntimeout = ref 10
-let netbuffersize = ref 8192
+let netbuffersize = ref 65536
 let filebuffersize = ref 8192
 let maxretries = ref 10
 
