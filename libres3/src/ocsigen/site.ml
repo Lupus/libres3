@@ -85,16 +85,17 @@ module Server = struct
     mutable info : access option;
     headers_wait: unit Lwt.t;
     headers_wake: unit Lwt.u;
-    mvar: (string * int * int) Lwt_mvar.t;
-    body_wait: t Lwt.t;
-    body_wake: t Lwt.u;
+    body_stream : string Lwt_stream.t;
+    body_stream_push : string Lwt_stream.bounded_push;
   }
   type u = t
-  let send_data s data =
-    if s.stream_error then
-      Lwt_mvar.put s.mvar ("ERROR", 0, 0)
+  let send_data s (str, pos, len) =
+    if s.stream_error then return_unit
     else
-      Lwt_mvar.put s.mvar data
+      let data =
+        if len = String.length str then str
+        else String.sub str pos len in
+      s.body_stream_push#push data
 
   let send_headers s ?body_header h =
     s.headers <- Some h;
@@ -103,13 +104,12 @@ module Server = struct
       s.woken <- true;
       Lwt.wakeup s.headers_wake ();
       match body_header with
-      | Some b ->
-        Lwt.bind (send_data s (b, 0, String.length b))
-          (fun () -> s.body_wait)
-      | None -> s.body_wait
+      | Some b -> send_data s (b, 0, String.length b) >>= fun () ->
+        return s
+      | None -> return s
     end else begin
       s.stream_error <- true;
-      s.body_wait
+      return s
     end
 
   let set_user s user = s.auth_user <- Some user
@@ -148,34 +148,27 @@ let empty_read () =
 let return_eof server () =
   if not server.Server.woken then
     Lwt.wakeup server.Server.headers_wake ();
-  Lwt_mvar.put server.Server.mvar ("EOF",0,0);;
+  server.Server.body_stream_push#close;
+  return_unit
 
 let stream_of_reply wait_eof server =
-  let eof = wait_eof >>= return_eof server in
+  wait_eof >>= return_eof server |> ignore_result;
   let rec read () =
-    if not server.Server.woken_body then begin
-      Lwt.wakeup server.Server.body_wake server;
-      server.Server.woken_body <- true;
-    end;
-    Lwt_mvar.take server.Server.mvar >>= fun (str, pos, len) ->
-    if len = 0 then
+    Lwt_stream.get server.Server.body_stream >>= function
+    | None ->
       if server.Server.stream_error then begin
         Server.log () "error encountered after headers already sent: truncating reply";
         Lwt.fail Lwt.Canceled
       end else
-        eof >>= fun () ->
         Ocsigen_stream.empty None
-    else begin
-      let substr =
-        if pos = 0 && len = String.length str then str
-        else String.sub str pos len in
+    | Some substr ->
+      let len = String.length substr in
+      EventLog.debug (fun () ->  Printf.sprintf "send: %d" len);
       server.Server.body_sent <- Int64.add server.Server.body_sent (Int64.of_int len);
       Ocsigen_stream.cont substr read
-    end
   in
   Ocsigen_stream.make ~finalize:(fun _ ->
       Lwt.cancel wait_eof;
-      Lwt.cancel server.Server.body_wait;
       begin match server.Server.info with
       | Some info ->
         Log.log ~template:Accesslog.combined { info with body = Some server.Server.body_sent }
@@ -222,14 +215,14 @@ let process_request dispatcher ri () =
       List.rev_append (List.map (fun v -> namestr, v) values) accum
     ) (Ocsigen_request_info.http_frame ri).frame_header.headers [] in
   let stream = stream_of_request ri in
+  let body_stream, body_stream_push = Lwt_stream.create_bounded 16 in
   let w, u = Lwt.wait () in
-  let bw, bu = Lwt.task () in
   let server = {
     Server.headers = None; stream_error = false;
     auth_user = None; body_sent = 0L; info = None;
-    headers_wait = w; headers_wake = u;woken=false;
-    body_wait = bw; body_wake = bu;woken_body=false;
-    mvar = Lwt_mvar.create_empty () } in
+    headers_wait = w; headers_wake = u; woken=false;
+    woken_body=false;
+    body_stream = body_stream; body_stream_push = body_stream_push } in
   let cl = match Ocsigen_request_info.content_length ri with
     | Some l -> l
     | None -> 0L in

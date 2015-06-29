@@ -95,6 +95,9 @@ let rec run esys =
     run esys
 ;;
 
+let configure_socket sock =
+  Unix.setsockopt sock Unix.TCP_NODELAY true
+
 let new_pipeline esys cache =
   let pipeline = new pipeline in
   pipeline#set_event_system esys;
@@ -105,15 +108,16 @@ let new_pipeline esys cache =
                          (* we retry at the SXC level *)
                          maximum_message_errors = 0;
                          maximum_connection_failures = 0;
+                         configure_socket = configure_socket
                        };
   pipeline
 
 let http_thread (esys, keep_alive_group, handler_added) =
   let cache = create_aggressive_cache () in
   let pipeline_quick, pipeline_normal = new_pipeline esys cache, new_pipeline esys cache in
-  (*    Http_client.Debug.enable := true;
-        Uq_ssl.Debug.enable := true;
-        Netlog.Debug.enable_all ();*)
+  (*      Http_client.Debug.enable := true;*)
+      (*      Uq_ssl.Debug.enable := true; *)
+  (*        Netlog.Debug.enable_all ();*)
   pipeline_normal#set_options { pipeline_normal#get_options with
                                synchronization = Sync (* disable pipelining, but keep persistence *)
                              };
