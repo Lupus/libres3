@@ -870,26 +870,31 @@ let rec seek_hashes bs target_pos hashes pos = match hashes with
     else seek_hashes bs target_pos tl next
   | [] -> [], pos
 
+let download_hashes (push, url, blocksize, remaining, skip) hashes_rev =
+  let n = List.length hashes_rev in
+  let offset = skip in
+  let reply = download_full_mem url blocksize (List.rev hashes_rev) in
+  let len = min (Int64.mul (Int64.of_int n) (Int64.of_int blocksize)) remaining in
+  let remaining = Int64.sub remaining len in
+  push#push (reply >|= fun s -> (s, offset, Int64.to_int len - offset)) >|= fun () ->
+  (push, url, blocksize, remaining, 0)
+
 let seek s pos =
   let hashes, start = seek_hashes (Int64.of_int s.blocksize) pos s.hashes 0L in
   let nodes = max 1 (List.length !last_nodes) in
-  let split_map = ref (split_at_threshold s.blocksize
-                         (s.blocksize * nodes * download_max_blocks) hashes [] [] 0) in
-  let remaining = ref (Int64.sub s.filesize start) in
-  let skip = ref (Int64.to_int (Int64.sub pos start)) in
+  let split_map = split_at_threshold s.blocksize
+                         (s.blocksize * nodes * download_max_blocks) hashes [] [] 0 in
+  let remaining = Int64.sub s.filesize start in
+  let skip = Int64.to_int (Int64.sub pos start) in
+  let download, download_push = Lwt_stream.create_bounded 4 in
+  Lwt.ignore_result (Lwt.try_bind (fun () ->
+      Lwt_list.fold_left_s download_hashes (download_push, s.url, s.blocksize, remaining, skip) split_map)
+    (fun _ -> download_push#close; return_unit)
+    (fun exn -> download_push#push (fail exn) >>= fun () -> download_push#close; return_unit));
   return (s, fun () ->
-      match !split_map with
-      | hd :: tl ->
-        split_map := tl;
-        download_full_mem s.url s.blocksize (List.rev hd) >>= fun reply ->
-        let n = String.length reply in
-        let len = min (Int64.of_int n) !remaining in
-        remaining := Int64.sub !remaining len;
-        let offset = !skip in
-        skip := 0;
-        return (reply, offset, (Int64.to_int len) - offset)
-      | [] ->
-        return ("",0,0);
+      Lwt_stream.get download >>= function
+      | None -> return ("", 0, 0)
+      | Some r -> r
     )
 
 let remove_leading_slash name =
