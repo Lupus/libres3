@@ -872,8 +872,9 @@ let rec seek_hashes bs target_pos hashes pos = match hashes with
 
 let seek s pos =
   let hashes, start = seek_hashes (Int64.of_int s.blocksize) pos s.hashes 0L in
+  let nodes = max 1 (List.length !last_nodes) in
   let split_map = ref (split_at_threshold s.blocksize
-                         (s.blocksize * download_max_blocks) hashes [] [] 0) in
+                         (s.blocksize * nodes * download_max_blocks) hashes [] [] 0) in
   let remaining = ref (Int64.sub s.filesize start) in
   let skip = ref (Int64.to_int (Int64.sub pos start)) in
   return (s, fun () ->
