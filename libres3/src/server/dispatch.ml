@@ -887,6 +887,26 @@ module Make
     | None -> []
     | Some s -> [Xml.d (String.make 1 s)]
 
+  let index_bucket ~req ~canon bucket path =
+    let base, url = url_of_volpath ~canon bucket path in
+    U.exists url >>= fun exists ->
+    let path = Util.string_before_suffix path ".sxnewdir" in
+    let base, url = url_of_volpath ~canon bucket path in
+    let dirs = ref [] in
+    U.fold_list ~no_recurse:true ~base url
+      ~entry:(fun accum entry -> return (("/" ^ entry.name, Some entry) :: accum))
+      ~recurse:(fun _ -> false)
+      [] >>= fun entries ->
+    if entries = [] && not exists then
+      return_string ~id:canon.CanonRequest.id ~id2:(CanonRequest.gen_debug ~canon)
+        ~content_type:"text/plain"
+        ~req ~status:`Not_found ~reply_headers:[] "Not found"
+    else
+      return_string ~id:canon.CanonRequest.id ~id2:(CanonRequest.gen_debug ~canon)
+        ~content_type:"text/html; charset=utf-8"
+        ~req ~status:`Ok ~reply_headers:[]
+        (DirectoryListing.html_of_list bucket path (List.rev_append !dirs entries))
+
   let list_bucket ~req ~canon bucket params =
     get_delim params >>= fun delim ->
     let prefix = try List.assoc "prefix" params with Not_found -> "" in
@@ -1429,6 +1449,17 @@ module Make
     | "uploadId" | "uploads" | "versioning" | "versions" | "website" -> true
     | _ -> false
 
+  let is_s3_index canon =
+    match
+      canon.CanonRequest.req_method, canon.CanonRequest.bucket,
+      canon.CanonRequest.path, CanonRequest.actual_query_params canon
+    with
+    | (`GET | `HEAD), Bucket _, path, [] ->
+      let path = Util.string_before_suffix path ".sxnewdir" in
+      String.length path > 0 &&
+      path.[String.length path-1] = '/'
+    | _ -> false
+
   let dispatch_request ~request ~canon expires =
     match expires with
     | Some e when e < Unix.gettimeofday () ->
@@ -1450,6 +1481,8 @@ module Make
         send_default_acl ~req:request ~canon bucket
       | `GET, Bucket bucket, "/", ["policy",""] ->
         get_bucket_policy ~req:request ~canon bucket
+      | `GET, Bucket bucket, path, [] when canon.CanonRequest.user = libres3_all_users && is_s3_index canon ->
+        index_bucket ~req:request ~canon bucket path
       | `GET, Bucket bucket, "/",params ->
         list_bucket ~req:request ~canon bucket params
       | `HEAD, Bucket bucket, "/",_ ->
@@ -1541,7 +1574,7 @@ module Make
           ~id:canon.CanonRequest.id ~id2:(CanonRequest.gen_debug ~canon)
           ~status:`Ok ~reply_headers:[] ~content_type:"text/html"
           Homepage.root
-      else if is_s3_get_object canon then
+      else if is_s3_get_object canon ||  (!Configfile.allow_public_bucket_index && is_s3_index canon) then
         Lwt.catch (fun () ->
             dispatch_request None ~request
               ~canon:{ canon with CanonRequest.user = libres3_all_users })

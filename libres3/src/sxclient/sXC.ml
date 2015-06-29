@@ -903,13 +903,13 @@ let parse_file = function
   | `F (name,[`O meta]) ->
     {
       name = remove_leading_slash name;
-      size = (match filter_field_one "fileSize" meta with
+      size = (try (match filter_field_one "fileSize" meta with
           | `Float f -> Int64.of_float f
-          | _ -> failwith "bad filesize format");
-      mtime = (match filter_field_one "createdAt" meta with
+          | _ -> failwith "bad filesize format") with _ -> 0L);
+      mtime = (try (match filter_field_one "createdAt" meta with
           | `Float f -> f
-          | _ -> failwith "bad mtime format");
-      etag = etag_of_revision (filter_field_one "fileRevision" meta)
+          | _ -> failwith "bad mtime format") with _ -> 0.);
+      etag = try etag_of_revision (filter_field_one "fileRevision" meta) with _ -> "";
     }
   | p ->
     warning "bad filelist format: %a" pp_json_lst [p];
@@ -1324,15 +1324,16 @@ let put ?metafn src srcpos url =
     | _ ->
       fail (Failure "can only put a file (not a volume or the root)")
 
-let fold_list url f recurse accum =
+let fold_list url ?(no_recurse=false) f recurse accum =
   let fullpath = url_path ~encoded:true url in
   match fullpath with
   | "" :: volume :: path ->
     let base = Neturl.modify_url url ~encoded:true ~path:["";volume] in
+    let recursive = if no_recurse then "" else "recursive" in
     let query = match path with
-      | [] | [""] -> "recursive"
+      | [] | [""] -> recursive
       | _ ->
-        Printf.sprintf "recursive&filter=%s"
+        Printf.sprintf "%s&filter=%s" recursive
           ((join_path path) ^ "*") in
     let url = Neturl.modify_url url
         ~encoded:true ~scheme:"http" ~syntax:http_syntax

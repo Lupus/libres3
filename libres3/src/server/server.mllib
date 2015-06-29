@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 4c65d357e5aef9309a9b7bd6252da5a1)
+# DO NOT EDIT (digest: 9dc9499e249cef55b7a54a5b0056207c)
 Paths
 Cmdline
 Dispatch
@@ -15,4 +15,5 @@ Configfile
 Pid
 Murmur
 Policy
+DirectoryListing
 # OASIS_STOP

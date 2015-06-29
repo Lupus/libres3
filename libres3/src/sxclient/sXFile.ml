@@ -123,7 +123,7 @@ let filter_recurse recurse prefix dir =
   else
     false;;
 
-let fold_list url f recurse accum =
+let fold_list url ?no_recurse f recurse accum =
   let vol, path = file url in
   if vol = "" then begin
     StringMap.iter (fun vol _ ->

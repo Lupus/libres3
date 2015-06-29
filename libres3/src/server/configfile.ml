@@ -232,7 +232,11 @@ let maxretries = ref 10
 let check_interval = ref (float_of_int (24*60*60 + Random.int 3600 - 30*60))
 let initial_interval = ref (float_of_int (Random.int 10800))
 
+(* not the way S3 works, but users need this feature *)
 let show_all_volumes = ref false
+
+(* not the way S3 works, but useful feature for public buckets *)
+let allow_public_bucket_index = ref false
 
 (* libres3.conf entries *)
 let entries : (string * (string -> unit) * string) list = [
@@ -273,7 +277,9 @@ let entries : (string * (string -> unit) * string) list = [
   "allow_volume_create_any_user", expect parse_bool Config.volume_create_elevate_to_admin,
   " Allow creating volumes as any user (elevate to admin privileges)";
   "allow_list_all_volumes", expect parse_bool show_all_volumes,
-  " Allow showing all volumes that you have read/write privileges to, not just the volumes that you own";
+  " Allow showing all volumes that you have read/write privileges to, not just the volumes that you own (not stricly S3 compatible)";
+  "allow_public_bucket_index", expect parse_bool allow_public_bucket_index,
+  " Allow showing a browsable 'directory' index for public buckets (not stricly S3 compatible)";
   "mimefile", expect validate_readable mimefile,
   (Printf.sprintf " Path to mime.types file (default: %s)" !mimefile);
   (* advanced configuration *)
