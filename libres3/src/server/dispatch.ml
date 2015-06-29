@@ -1382,7 +1382,8 @@ module Make
     let self = canon.CanonRequest.user in
     Lwt_list.rev_map_p (fun bucket ->
         get_owner ~canon bucket >>= fun owner_name ->
-        return (if owner_name = self then bucket else "")) !buckets >>= fun buckets ->
+        return (if !Configfile.show_all_volumes || owner_name = self then bucket else "")
+      ) !buckets >>= fun buckets ->
     let buckets = List.filter (fun s -> s <> "") buckets in
     return_xml_canon ~req:request ~canon ~status:`Ok ~reply_headers:[]
       (list_all_buckets buckets self);;

@@ -232,6 +232,8 @@ let maxretries = ref 10
 let check_interval = ref (float_of_int (24*60*60 + Random.int 3600 - 30*60))
 let initial_interval = ref (float_of_int (Random.int 10800))
 
+let show_all_volumes = ref false
+
 (* libres3.conf entries *)
 let entries : (string * (string -> unit) * string) list = [
   "secret_key", expect validate_secret_key Config.secret_access_key,
@@ -270,6 +272,8 @@ let entries : (string * (string -> unit) * string) list = [
   " Maximum number of connections to handle in parallel";
   "allow_volume_create_any_user", expect parse_bool Config.volume_create_elevate_to_admin,
   " Allow creating volumes as any user (elevate to admin privileges)";
+  "allow_list_all_volumes", expect parse_bool show_all_volumes,
+  " Allow showing all volumes that you have read/write privileges to, not just the volumes that you own";
   "mimefile", expect validate_readable mimefile,
   (Printf.sprintf " Path to mime.types file (default: %s)" !mimefile);
   (* advanced configuration *)
