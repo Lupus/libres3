@@ -1,0 +1,19 @@
+commit c308a74658d9dd38d49e5a62460ab2ad53cba15d
+Author: Török Edwin <edwin@skylable.com>
+Date:   Mon Jun 29 14:40:51 2015 +0300
+
+    ocamlnet: do not pause between reconnections
+
+diff --git a/src/netclient/http_client.ml b/3rdparty/libs/ocamlnet/src/netclient/http_client.ml
+index 9e0c6eb..8db047e 100644
+--- a/src/netclient/http_client.ml
++++ b/src/netclient/http_client.ml
+@@ -4796,7 +4796,7 @@ let robust_pipeline
+ 	if !options.verbose_connection then
+ 	  dlog "HTTP connection: retrying after failure";
+ 	
+-	connect_pause <- 1.0;
++	connect_pause <- 0.0;
+ 	self#reconnect()      
+       )
+ 

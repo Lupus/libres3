@@ -4796,7 +4796,7 @@ let robust_pipeline
 	if !options.verbose_connection then
 	  dlog "HTTP connection: retrying after failure";
 	
-	connect_pause <- 1.0;
+	connect_pause <- 0.0;
 	self#reconnect()      
       )
 
