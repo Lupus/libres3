@@ -127,8 +127,8 @@ let http_thread (esys, keep_alive_group, handler_added) =
       | Unixqueue.Extra (Periodic host) ->
         (* periodically send a request to keep (SSL) connection alive,
            to avoid the cost of (SSL) handshakes *)
-        pipeline_quick#add (new options host);
-        pipeline_normal#add (new options host);
+        pipeline_quick#add (new head host);
+        pipeline_normal#add (new head host);
       | _ ->
         raise Equeue.Reject  (* The event is not for us *)
     );
