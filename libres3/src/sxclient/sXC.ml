@@ -1329,17 +1329,22 @@ let put ?metafn src srcpos url =
     | _ ->
       fail (Failure "can only put a file (not a volume or the root)")
 
-let fold_list url ?(no_recurse=false) f recurse accum =
+let fold_list url ?marker ?(no_recurse=false) f recurse accum =
   let fullpath = url_path ~encoded:true url in
   match fullpath with
   | "" :: volume :: path ->
     let base = Neturl.modify_url url ~encoded:true ~path:["";volume] in
-    let recursive = if no_recurse then "" else "recursive" in
+    let recursive =
+      if no_recurse then ""
+      else Printf.sprintf "recursive&limit=%d" Config.maxkeys in
     let query = match path with
       | [] | [""] -> recursive
       | _ ->
         Printf.sprintf "%s&filter=%s" recursive
           ((join_path path) ^ "*") in
+    let query = match marker with
+      | Some m -> Printf.sprintf "%s&after=%s" query (Netencoding.Url.encode m)
+      | None -> query in
     let url = Neturl.modify_url url
         ~encoded:true ~scheme:"http" ~syntax:http_syntax
         ~path:["";volume] ~query in

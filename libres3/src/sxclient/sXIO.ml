@@ -81,7 +81,7 @@ type acl = [`Grant | `Revoke] * [`UserName of string ] * [`Owner | `Read | `Writ
 type op = {
   with_url_source : 'a. url -> (source -> 'a t) -> 'a t;
   with_urls_source : 'a. url list -> int64 -> (source -> 'a t) -> 'a t;
-  fold_list: 'a. url -> ?no_recurse:bool -> ('a -> entry -> 'a t) -> (string -> bool) -> 'a -> 'a t;
+  fold_list: 'a. url -> ?marker:string -> ?no_recurse:bool -> ('a -> entry -> 'a t) -> (string -> bool) -> 'a -> 'a t;
   create: ?metafn:metafn -> ?replica:int -> url -> unit t;
   exists: url -> bool t;
   token_of_user: url -> string option t;
@@ -188,7 +188,7 @@ let remove_base base str =
   else
     "";;
 
-let fold_list ~base:(`Url base) (`Url url) ?no_recurse ~entry ~recurse =
+let fold_list ~base:(`Url base) (`Url url) ?marker ?no_recurse ~entry ~recurse =
   let prefix = join_path (url_path base) in
   let fold_entry accum e =
     entry accum {
@@ -197,7 +197,7 @@ let fold_list ~base:(`Url base) (`Url url) ?no_recurse ~entry ~recurse =
     } in
   let fold_recurse dir =
     recurse (remove_base prefix dir) in
-  (ops_of_url url).fold_list url ?no_recurse fold_entry fold_recurse;;
+  (ops_of_url url).fold_list url ?marker ?no_recurse fold_entry fold_recurse;;
 
 let create ?replica (`Url url) =
   (ops_of_url url).create ?replica url;;
@@ -295,7 +295,7 @@ module type SchemeOps = sig
   val get_acl : Neturl.url -> acl list Lwt.t
   val create_user: Neturl.url -> string -> string Lwt.t
 
-  val fold_list: Neturl.url -> ?no_recurse:bool ->
+  val fold_list: Neturl.url -> ?marker:string -> ?no_recurse:bool ->
     ('a -> entry -> 'a t) -> (string -> bool) -> 'a -> 'a Lwt.t
 end
 

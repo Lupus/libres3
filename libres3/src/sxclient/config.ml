@@ -47,3 +47,4 @@ let list_cache_expires = ref 30. (* 30s *)
 
 let apiver_min = 0
 let apiver_max = 1
+let maxkeys = 1000

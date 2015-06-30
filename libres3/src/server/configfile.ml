@@ -214,7 +214,6 @@ let syslog_facility = ref None (* local7 *)
 let small_buffer_size = 4096
 let min_multipart = 5242880L
 let reply_ns = "http://s3.amazonaws.com/doc/2006-03-01/"
-let max_keys = 1000
 let verbose = ref false
 let mimefile = ref (Filename.concat Configure.sysconfdir "libres3/mime.types")
 let min_threads = ref None
