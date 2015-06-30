@@ -32,11 +32,7 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
-open Lwt
 exception Detail of exn * (string * string) list
-type output_data = string * int * int
-type input_stream = unit -> output_data Lwt.t
-type output_stream = output_data -> unit Lwt.t
 
 type entry = {
   name: string;
@@ -47,21 +43,15 @@ type entry = {
 
 type source = {
   meta: entry;
-  seek: int64 -> input_stream Lwt.t
+  seek: int64 -> string Lwt_stream.t Lwt.t
 }
 
 type acl = [`Grant | `Revoke] * [`UserName of string] * [`Owner | `Read | `Write] list
 let read_string str pos =
-  let eof = ref false in
-  return (fun () ->
-      if !eof then return ("",0,0)
-      else begin
-        eof := true;
-        let len = Int64.sub (Int64.of_int (String.length str)) pos in
-        if len < 0L then return ("",0,0)
-        else return (str, Int64.to_int pos, Int64.to_int len)
-      end
-    );;
+  let pos = Int64.to_int pos in
+  let str = String.sub str pos (String.length str - pos) in
+  Lwt.return (Lwt_stream.of_list [str])
+
 let of_string str = `Source {
     meta = {
       name = "";
@@ -71,10 +61,3 @@ let of_string str = `Source {
     };
     seek = read_string str;
   }
-
-let rec iter stream f =
-  stream () >>= fun (str,pos,len) ->
-  f (str,pos,len) >>= fun () ->
-  if len = 0 then return ()
-  else iter stream f
-;;

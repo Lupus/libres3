@@ -27,52 +27,33 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
-open Lwt
 open OUnit
 module IO = EventIO
 module Server = struct
-  type t = {
-    mutable hstatus: Nethttp.http_status;
-    mutable headers: (string * string) list;
-    buf: Buffer.t
-  }
+  type t = unit
   type u = t
 
   let log _ _ = ()
   open Dispatch
-  let send_data s (str, pos, len) =
-    Buffer.add_substring s.buf str pos len;
-    return ()
-  let send_headers s ?body_header h =
-    s.hstatus <- h.status;
-    begin match h.content_length with
-      | Some len ->
-        s.headers <-
-          ("Content-Length",Int64.to_string len) ::
-          h.reply_headers;
-      | None ->
-        s.headers <- h.reply_headers
-    end;
-    begin match h.content_type with
-      | None -> ()
-      | Some c ->
-        s.headers <- ("Content-Type", c) :: s.headers
-    end;
-    begin match h.last_modified with
-      | None -> ()
-      | Some c ->
-        s.headers <- ("Last-Modified", Util.format_date c) :: s.headers
-    end;
-    begin match h.etag_header with
-      | None -> ()
-      | Some c ->
-        s.headers <- ("ETag", c) :: s.headers
-    end;
-    match body_header with
-    | Some b ->
-      (>>=) (send_data s (b, 0, String.length b))
-        (fun () -> return s)
-    | None -> return s
+  let transform_headers h =
+    let headers = h.reply_headers in
+    let headers = begin match h.content_length with
+      | Some len -> ("Content-Length",Int64.to_string len) :: headers
+      | None -> headers
+    end in
+    let headers = begin match h.content_type with
+      | None -> headers
+      | Some c -> ("Content-Type", c) :: headers
+    end in
+    let headers = begin match h.last_modified with
+      | None -> headers
+      | Some c -> ("Last-Modified", Util.format_date c) :: headers
+    end in
+    let headers = begin match h.etag_header with
+      | None -> headers
+      | Some c -> ("ETag", c) :: headers
+    end in
+    headers
 
   let set_user _ _ = ()
 end
@@ -95,7 +76,7 @@ let map_method meth source = match meth with
 
 let perform_queries dispatcher lst =
   Lwt_main.run (
-    let server = { Server.hstatus = `Service_unavailable; Server.headers = []; Server.buf = Buffer.create 4096 } in
+    let server = () in
     Lwt_list.rev_map_p (fun req ->
         let `Source source = SXIO.of_string req.req_body in
         let host = if req.port = 80 then req.host else
@@ -108,14 +89,13 @@ let perform_queries dispatcher lst =
             req_headers = ("Host",host) :: req.req_headers;
             CanonRequest.undecoded_url = req.relative_url;(* TODO: encode it! *)
           };
-        } >>= fun () ->
-        return server
-      ) lst >>= Lwt_list.rev_map_p (fun server ->
-        let body = Buffer.contents server.Server.buf in
+        }
+      ) lst >>= Lwt_list.rev_map_p (fun (headers, body) ->
+        body () >>= Lwt_stream.to_list >>= fun lst ->
         return {
-          headers = server.Server.headers;
-          code = Nethttp.int_of_http_status server.Server.hstatus;
-          body = body;
+          headers = Server.transform_headers headers;
+          code = Nethttp.int_of_http_status headers.Dispatch.status;
+          body = String.concat "" lst
         }
       ) >>= fun r -> return (List.rev r)
   );;

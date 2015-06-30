@@ -76,42 +76,11 @@ end)
 
 module Server = struct
   type t = {
-    mutable headers: Dispatch.headers option;
-    mutable woken: bool;
-    mutable woken_body: bool;
-    mutable stream_error : bool;
     mutable auth_user : string option;
     mutable body_sent: int64;
     mutable info : access option;
-    headers_wait: unit Lwt.t;
-    headers_wake: unit Lwt.u;
-    body_stream : string Lwt_stream.t;
-    body_stream_push : string Lwt_stream.bounded_push;
   }
   type u = t
-  let send_data s (str, pos, len) =
-    if s.stream_error then return_unit
-    else
-      let data =
-        if len = String.length str then str
-        else String.sub str pos len in
-      s.body_stream_push#push data
-
-  let send_headers s ?body_header h =
-    s.headers <- Some h;
-    if not s.woken then begin
-      (* send headers and body xml header only once *)
-      s.woken <- true;
-      Lwt.wakeup s.headers_wake ();
-      match body_header with
-      | Some b -> send_data s (b, 0, String.length b) >>= fun () ->
-        return s
-      | None -> return s
-    end else begin
-      s.stream_error <- true;
-      return s
-    end
-
   let set_user s user = s.auth_user <- Some user
   let log _ str = Ocsigen_messages.warning str
 end
@@ -145,36 +114,27 @@ let convert_headers h =
 let empty_read () =
   Ocsigen_stream.empty None
 
-let return_eof server () =
-  if not server.Server.woken then
-    Lwt.wakeup server.Server.headers_wake ();
-  server.Server.body_stream_push#close;
-  return_unit
-
-let stream_of_reply wait_eof server =
-  wait_eof >>= return_eof server |> ignore_result;
-  let rec read () =
-    Lwt_stream.get server.Server.body_stream >>= function
-    | None ->
-      if server.Server.stream_error then begin
-        Server.log () "error encountered after headers already sent: truncating reply";
-        Lwt.fail Lwt.Canceled
-      end else
-        Ocsigen_stream.empty None
+let stream_of_reply server body_gen =
+  let rec read stream () =
+    Lwt_stream.get stream >>= function
+    | None -> Ocsigen_stream.empty None
     | Some substr ->
       let len = String.length substr in
       EventLog.debug (fun () ->  Printf.sprintf "send: %d" len);
       server.Server.body_sent <- Int64.add server.Server.body_sent (Int64.of_int len);
-      Ocsigen_stream.cont substr read
+      Ocsigen_stream.cont substr (read stream)
+  in
+  let start () =
+    body_gen () >>= fun stream ->
+    Ocsigen_stream.cont "" (read stream)
   in
   Ocsigen_stream.make ~finalize:(fun _ ->
-      Lwt.cancel wait_eof;
       begin match server.Server.info with
       | Some info ->
         Log.log ~template:Accesslog.combined { info with body = Some server.Server.body_sent }
       | None -> ()
       end;
-      return_unit) read
+      return_unit) start
 ;;
 
 let max_input_mem = 65536L
@@ -184,13 +144,13 @@ let stream_of arg pos =
     fail (Failure "position is not 0 in input")
   else
     let s = ref (Ocsigen_stream.get arg) in
-    return (fun () ->
+    return (Lwt_stream.from (fun () ->
         Ocsigen_stream.next !s >>= function
-        | Ocsigen_stream.Finished _ -> return ("",0,0)
+        | Ocsigen_stream.Finished _ -> return_none
         | Ocsigen_stream.Cont (buf, next_stream) ->
           s := next_stream;
-          return (buf, 0, String.length buf)
-      );;
+          return (Some buf)
+      ));;
 
 let source_of arg size =
   return (`Source {
@@ -215,14 +175,7 @@ let process_request dispatcher ri () =
       List.rev_append (List.map (fun v -> namestr, v) values) accum
     ) (Ocsigen_request_info.http_frame ri).frame_header.headers [] in
   let stream = stream_of_request ri in
-  let body_stream, body_stream_push = Lwt_stream.create_bounded 16 in
-  let w, u = Lwt.wait () in
-  let server = {
-    Server.headers = None; stream_error = false;
-    auth_user = None; body_sent = 0L; info = None;
-    headers_wait = w; headers_wake = u; woken=false;
-    woken_body=false;
-    body_stream = body_stream; body_stream_push = body_stream_push } in
+  let server = {Server.auth_user = None; body_sent = 0L; info = None;} in
   let cl = match Ocsigen_request_info.content_length ri with
     | Some l -> l
     | None -> 0L in
@@ -231,37 +184,33 @@ let process_request dispatcher ri () =
   let undecoded_url = match (Ocsigen_request_info.http_frame ri).frame_header.mode with
     | Query (_, url) -> url
     | _ -> "/" ^ (Ocsigen_request_info.url_string ri) in
-  let wait_eof =
-    handle_request dispatcher {
-      server = server;
-      meth = req_method;
-      body_file = None;(* TODO: write to tmpfile *)
-      info = {
-        CanonRequest.req_headers = headers;
-        undecoded_url = undecoded_url;
-      };
-    } in
+  handle_request dispatcher {
+    server = server;
+    meth = req_method;
+    body_file = None;(* TODO: write to tmpfile *)
+    info = {
+      CanonRequest.req_headers = headers;
+      undecoded_url = undecoded_url;
+    };
+  } >>= fun (headers, body_gen) ->
   Ocsigen_senders.Stream_content.result_of_content
-    (stream_of_reply wait_eof server) >>= fun res ->
-  server.Server.headers_wait >|= fun () ->
-  match server.Server.headers with
-  | None -> res
-  | Some h ->
-    let code = Nethttp.int_of_http_status h.D.status in
-    server.Server.info <- Some {
+    (stream_of_reply server body_gen) >|= fun res ->
+  let h = headers in
+  let code = Nethttp.int_of_http_status h.D.status in
+  server.Server.info <- Some {
       user = server.Server.auth_user;
       undecoded_url = undecoded_url;
       ri = ri;
       body = h.D.content_length;
       code = code
     };
-    Ocsigen_http_frame.Result.update res
-      ~code
-      ~content_length:(h.D.content_length)
-      ~content_type:h.D.content_type
-      ~headers:(convert_headers h.D.reply_headers)
-      ~lastmodified:h.D.last_modified
-      ~etag:h.D.etag_header ()
+  Ocsigen_http_frame.Result.update res
+    ~code
+    ~content_length:(h.D.content_length)
+    ~content_type:h.D.content_type
+    ~headers:(convert_headers h.D.reply_headers)
+    ~lastmodified:h.D.last_modified
+    ~etag:h.D.etag_header ()
 ;;
 
 open Dns.Packet

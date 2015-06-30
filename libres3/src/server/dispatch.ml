@@ -51,8 +51,6 @@ module type Server = sig
   type u
   val log: t -> string -> unit
   val set_user  : t -> string -> unit
-  val send_headers: t -> ?body_header:string -> headers -> u Lwt.t
-  val send_data: u -> string * int * int -> unit Lwt.t
 end
 
 module type Sig = sig
@@ -67,7 +65,7 @@ module type Sig = sig
 
   type t
   val init : unit -> t Lwt.t
-  val handle_request: t -> 'a request -> unit Lwt.t
+  val handle_request: t -> 'a request -> (headers * (unit -> string Lwt_stream.t Lwt.t)) Lwt.t
 end
 module U = SXIO
 module IO = EventIO
@@ -114,24 +112,24 @@ module Make
     result
   ;;
 
-  let return_string ~id ~id2 ~req ~status ?last_modified ~reply_headers ~content_type ?body_header str =
+  let empty () = None
+  let empty_stream () = return (Lwt_stream.from_direct empty)
+
+  let return_string ~id ~id2 ~req ~status ?last_modified ~reply_headers ~content_type ?(body_header="") str =
     let headers = add_std_headers ~id ~id2 reply_headers ~dbg_body:str in
-    let body_header = if req.meth = `HEAD then None else body_header in
-    let body_header_len = match body_header with
-      | Some s -> String.length s
-      | None -> 0 in
-    S.send_headers req.server ?body_header {
-      status = status;
-      reply_headers = headers;
-      last_modified = last_modified;
-      content_type = Some content_type;
-      content_length = Some (Int64.of_int (String.length str + body_header_len));
-      etag_header = None;
-    } >>= fun sender ->
-    if req.meth = `HEAD then return () (* ensure HEAD has empty body, but all
-                                          headers preserved, including Content-Length *)
-    else S.send_data sender (str, 0, String.length str)
-  ;;
+    let body_header = if req.meth = `HEAD then "" else body_header in
+    let str = body_header ^ str in
+    return ({
+        status = status;
+        reply_headers = headers;
+        last_modified = last_modified;
+        content_type = Some content_type;
+        content_length = Some (Int64.of_int (String.length str));
+        etag_header = None;
+      },
+        if req.meth = `HEAD then empty_stream (* ensure HEAD has empty body, but all
+                                                 headers preserved, including Content-Length *)
+        else fun () -> return (Lwt_stream.of_list [str]))
 
   let return_empty ~req ~canon ~status ~reply_headers =
     let headers =
@@ -139,15 +137,14 @@ module Make
         ~id:canon.CanonRequest.id
         ~id2:(CanonRequest.gen_debug ~canon)
         reply_headers in
-    S.send_headers req.server {
+    return ({
       status = status;
       reply_headers = headers;
       last_modified = None;
       content_type = None;
       content_length = Some 0L;
       etag_header = None
-    } >>= fun _ -> return ()
-  ;;
+      }, empty_stream)
 
   let invalid_range ~req ~canon length =
     let header = Headers.make_content_range (`Bytes (None, Some length))
@@ -183,11 +180,9 @@ module Make
       None
   ;;
 
-  let send_source source ~canon ~first sender =
-    if canon.CanonRequest.req_method = `HEAD then return () (* ensure HEAD's body is empty *)
-    else
-      source.seek first >>= fun stream ->
-      SXDefaultIO.iter stream (S.send_data sender)
+  let send_source source ~canon ~first () =
+    if canon.CanonRequest.req_method = `HEAD then empty_stream () (* ensure HEAD's body is empty *)
+    else source.seek first
   ;;
 
   let is_prefix ~prefix str =
@@ -203,7 +198,7 @@ module Make
 
   let quote s = "\"" ^ s ^ "\""
   let return_source ~req ~canon ~content_type url ~metalst =
-    U.with_url_source url (fun source ->
+    U.url_source url >>= fun source ->
         let meta = source.meta in
         let size = meta.size and mtime = meta.mtime and etag = meta.etag in
         let headers = add_std_headers ~id:canon.CanonRequest.id
@@ -211,14 +206,14 @@ module Make
         let headers = add_meta_headers headers metalst in
         match (parse_ranges canon.CanonRequest.headers size) with
         | None ->
-          S.send_headers req.server {
+          return ({
             status = `Ok;
             reply_headers = ("Accept-Ranges","bytes") :: headers;
             last_modified = Some mtime;
             content_type = Some content_type;
             content_length = Some size;
             etag_header = Some (etag);
-          } >>= send_source source ~canon ~first:0L
+          }, send_source source ~canon ~first:0L)
         | Some (first, last) as range ->
           if first > last then
             invalid_range ~req ~canon size (* not satisfiable *)
@@ -226,15 +221,14 @@ module Make
             let h = Headers.make_content_range
                 (`Bytes (range, Some size)) in
             let length = Int64.add 1L (Int64.sub last first) in
-            S.send_headers req.server {
+            return ({
               status = `Partial_content;
               reply_headers = List.rev_append h headers;
               last_modified = Some mtime;
               content_type = Some content_type;
               content_length = Some length;
               etag_header = None;
-            } >>= send_source source ~canon ~first
-      ) ;;
+            }, send_source source ~canon ~first)
 
   let xml_decl = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
 
@@ -310,16 +304,16 @@ module Make
 
   let read_all ~input ~max =
     let buf = Buffer.create Configfile.small_buffer_size in
-    U.copy (`Source input) ~srcpos:0L (U.of_sink (fun _ ->
-        return (fun (str,pos,len) ->
-            if (Buffer.length buf) + len > max then
-              fail (Failure ("input too large"))
-            else begin
-              Buffer.add_substring buf str pos len;
-              return ()
-            end
-          ))
-      ) >>= fun () ->
+    input.seek 0L >>= fun source ->
+    Lwt_stream.iter_s (fun str ->
+        let len = String.length str in
+        if (Buffer.length buf) + len > max then
+          fail (Failure ("input too large"))
+        else begin
+          Buffer.add_string buf str;
+          return_unit
+        end
+      ) source >>= fun () ->
     return (Buffer.contents buf);;
 
   let parse_input_xml_opt body root_tag validate f =
@@ -511,18 +505,16 @@ module Make
       Util.url_split_first_component (Neturl.split_path source) in
     let decoded_path = CanonRequest.uri_decode source_path in
     let _, url = url_of_volpath ~canon source_bucket decoded_path in
-    U.with_url_source url (fun source -> return source.meta) >>= fun meta ->
+    U.url_source url >>= fun source ->
+    let meta = source.meta in
     return (url, meta.mtime, meta.etag)
 
-  let hash_stream2 hash stream () =
-    stream () >>= fun (str,pos,len) ->
-    if len > 0 then
-      hash#add_substring str pos len;
-    return (str, pos, len);;
-
   let hash_seek_source2 hash source pos =
-    source.seek pos >>= fun stream ->
-    return (hash_stream2 hash stream);;
+    let hash_stream2 str =
+      hash#add_string str;
+      str in
+    source.seek pos >|= fun stream ->
+    Lwt_stream.map hash_stream2 stream
 
   let hash_source2 hash source =
     `Source {
@@ -530,13 +522,17 @@ module Make
       seek = hash_seek_source2 hash source
     };;
 
-  let fd_seek fd pos =
-    IO.lseek fd pos >>= fun () ->
-    return (fun () ->
-        let buf = String.make Config.buffer_size '\x00' in
-        IO.really_read fd buf 0 (String.length buf) >>= fun amount ->
-        return (buf, 0, amount)
-      )
+  let check_eof = function
+    | "" -> return_none
+    | s -> return (Some s)
+
+  let fd_seek rd pos =
+    Lwt_io.set_position rd pos >|= fun () ->
+    let count = Lwt_io.buffer_size rd in
+    Lwt_stream.from (fun () ->
+        Lwt_io.read ~count rd >>= check_eof)
+
+  let keep () = return_unit
 
   let filter_sha256 input f =
     if input.meta.size <= max_input_mem then
@@ -545,15 +541,17 @@ module Make
       f (U.of_string str) ~sha256
     else
       IO.with_tempfile (fun tmpfd ->
+          let wr = Lwt_io.of_fd ~close:keep ~mode:Lwt_io.output tmpfd in
+          let rd = Lwt_io.of_fd ~close:keep ~mode:Lwt_io.input tmpfd in
           let sha256 = Cryptokit.Hash.sha256 () in
-          U.copy (hash_source2 sha256 input) ~srcpos:0L (U.of_sink (fun pos ->
-              IO.lseek tmpfd pos >>= fun () ->
-              return (fun (buf, pos, len) -> IO.really_write tmpfd buf pos len)))
-          >>= fun () ->
-          IO.lseek tmpfd 0L >>= fun () ->
+          let `Source source = hash_source2 sha256 input in
+          source.seek 0L >>= fun stream ->
+          Lwt_stream.iter_s (fun str ->
+              Lwt_io.write wr str) stream >>= fun () ->
+          Lwt_io.close wr >>= fun () ->
           let source = U.of_source {
               meta = input.meta;
-              seek = fd_seek tmpfd
+              seek = fd_seek rd
             } in
           f source ~sha256:sha256#result
         );;
@@ -1228,24 +1226,9 @@ module Make
     mput_delete_common ~canon ~request ~uploadId bucket path >>= fun _ ->
     return_empty ~req:request ~canon ~status:`No_content ~reply_headers:[];;
 
-  let rec periodic_send sender got_result msg =
-    IO.sleep 10. >>= fun () ->
-    if !got_result = true then return ()
-    else begin
-      S.send_data sender (msg, 0, String.length msg) >>= fun () ->
-      periodic_send sender got_result msg
-    end
-
   let spaces = String.make 4096 ' '
 
   module Result = LRUCacheMonad.ResultT(Lwt)
-
-  let periodic_send_until sender msg result_wait =
-    let got_result = ref false in
-    let _periodic = periodic_send sender got_result spaces in
-    result_wait >>= fun result ->
-    got_result := true; (* stop sending periodic messages *)
-    Result.unwrap result
 
   module MpartPending = Pendinglimit.Make(Lwt)(struct
       type t = string * string
@@ -1254,21 +1237,32 @@ module Make
   let mpart_pending = MpartPending.create ()
 
   let send_long_running_uncached ~canon ~req f _ =
-    let result_wait = Result.lift f () in
+    let result =
+      Result.lift f () >>= fun result ->
+      Result.unwrap result >>= fun res ->
+      return (Some (CodedIO.Xml.to_string ~decl:false res)) in
     let id = canon.CanonRequest.id
     and id2 = CanonRequest.gen_debug ~canon in
     let headers = add_std_headers ~id ~id2 [] in
-    S.send_headers req.server ~body_header:xml_decl {
+    let decl_stream = Lwt_stream.of_list [xml_decl] in
+    let finished = ref false in
+    let periodic = Lwt_stream.from (fun () ->
+        if !finished then return_none
+        else match Lwt.state result with
+          | Lwt.Sleep ->
+            Lwt.catch (fun () ->
+                Lwt.choose [result; Lwt_unix.timeout 10.])
+              (function Lwt_unix.Timeout -> return (Some spaces) | e -> fail e)
+          | _ -> finished := true; result
+    ) in
+    return ({
       status = `Ok; (* we send 200 with an <Error> in the body if needed *)
       reply_headers = headers;
       last_modified = None;
       content_type = Some "application/xml";
       content_length = None;
       etag_header = None;
-    } >>= fun sender ->
-    periodic_send_until sender " " result_wait >>= fun result ->
-    let str = CodedIO.Xml.to_string ~decl:false result in
-    S.send_data sender (str, 0, String.length str)
+        }, fun () -> return (Lwt_stream.append decl_stream periodic))
 
   let send_long_running ~canon ~req key f =
     MpartPending.bind mpart_pending key
@@ -1418,7 +1412,8 @@ module Make
   let delete_bucket_policy ~canon ~request bucket =
     create_special_users ~canon () >>= fun _ ->
     let anon_read = `Revoke, `UserName libres3_all_users, [`Read] in
-    U.set_acl (fst (url_of_volpath ~canon bucket "")) [anon_read]
+    U.set_acl (fst (url_of_volpath ~canon bucket "")) [anon_read] >>= fun () ->
+    return_empty ~req:request ~canon ~status:`Ok ~reply_headers:[]
 
   let set_bucket_policy ~canon ~request body bucket =
     read_all ~input:body ~max:max_input_xml >>= fun json ->
@@ -1428,7 +1423,8 @@ module Make
         if Policy.is_anon_bucket_policy policy bucket then
           create_special_users ~canon () >>= fun _ ->
           let anon_read = `Grant, `UserName libres3_all_users, [`Read] in
-          U.set_acl (fst (url_of_volpath ~canon bucket "")) [anon_read]
+          U.set_acl (fst (url_of_volpath ~canon bucket "")) [anon_read] >>= fun () ->
+          return_empty ~req:request ~canon ~status:`Ok ~reply_headers:[]
         else
           return_error Error.NotImplemented
             ["LibreS3ErrorMessage",

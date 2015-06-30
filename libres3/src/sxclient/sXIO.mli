@@ -35,7 +35,7 @@
 open SXDefaultIO
 type url
 
-type output_data = string * int * int
+type output_data = string
 type input_stream = unit -> output_data Lwt.t
 type output_stream = output_data -> unit Lwt.t
 
@@ -76,12 +76,11 @@ val of_sink: sink -> [> `Sink of sink ]
 (* urls *)
 val of_url : string -> [> `Url of url]
 val of_neturl: Neturl.url -> [> `Url of url]
-val with_url_source: [< `Url of url] -> (source -> 'a Lwt.t) -> 'a Lwt.t
-val with_urls_source: [< `Url of url] list -> int64 -> (source -> 'a Lwt.t) -> 'a Lwt.t
+val url_source: [< `Url of url] -> source Lwt.t
+val urls_source: [< `Url of url] list -> int64 -> source
 
 module type SchemeOps = sig
   type state
-  type read_state
   val scheme : string
   val syntax: Neturl.url_syntax
 
@@ -89,9 +88,7 @@ module type SchemeOps = sig
   val invalidate_token_of_user : Neturl.url -> unit
   val check: Neturl.url -> string option Lwt.t
   val open_source: Neturl.url -> (entry * state) Lwt.t
-  val seek: state -> int64 -> (state * read_state) Lwt.t
-  val read: (state * read_state) -> output_data Lwt.t
-  val close_source : state -> unit Lwt.t
+  val seek: state -> int64 -> string Lwt_stream.t Lwt.t
 
   (* true: optimized copy if scheme and authority matches
    * false: fallback to generic copy *)

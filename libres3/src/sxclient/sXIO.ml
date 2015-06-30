@@ -35,23 +35,16 @@
 open Lwt
 open SXDefaultIO
 type metafn = unit -> (string * string) list
-type output_data = string * int * int
+type output_data = string
 type input_stream = unit -> output_data t
 type output_stream = output_data -> unit t
 
 type sink = int64 -> output_stream t
 
 let read_string str pos =
-  let eof = ref false in
-  return (fun () ->
-      if !eof then return ("",0,0)
-      else begin
-        eof := true;
-        let len = Int64.sub (Int64.of_int (String.length str)) pos in
-        if len < 0L then return ("",0,0)
-        else return (str, Int64.to_int pos, Int64.to_int len)
-      end
-    );;
+  let pos = Int64.to_int pos in
+  let str = String.sub str pos (String.length str - pos) in
+  return (Lwt_stream.of_list [str])
 
 (* sources *)
 let of_string str = `Source {
@@ -79,8 +72,8 @@ let scheme_re = Netstring_str.regexp "^\\([a-zA-Z][a-zA-Z0-9+.-]*\\)://"
 let schemes = Hashtbl.create 16
 type acl = [`Grant | `Revoke] * [`UserName of string ] * [`Owner | `Read | `Write] list
 type op = {
-  with_url_source : 'a. url -> (source -> 'a t) -> 'a t;
-  with_urls_source : 'a. url list -> int64 -> (source -> 'a t) -> 'a t;
+  url_source : 'a. url -> source Lwt.t;
+  urls_source : 'a. url list -> int64 -> source;
   fold_list: 'a. url -> ?no_recurse:bool -> ('a -> entry -> 'a t) -> (string -> bool) -> 'a -> 'a t;
   create: ?metafn:metafn -> ?replica:int -> url -> unit t;
   exists: url -> bool t;
@@ -167,18 +160,16 @@ let ops_of_url url =
     (* TODO: use fail *)
     raise (Failure ("Unregistered URL scheme: " ^ scheme));;
 
-let with_url_source (`Url url) f =
-  (ops_of_url url).with_url_source url f;;
+let url_source (`Url url) = (ops_of_url url).url_source url;;
 
-let with_urls_source urls filesize f =
+let urls_source urls filesize =
   match urls with
   | [] ->
-    let `Source s = of_string "" in
-    f s
+    let `Source src = of_string "" in src
   | (`Url url) :: _ ->
     (* TODO: check they all have same scheme *)
     let urls = List.rev (List.rev_map (fun (`Url url) -> url) urls) in
-    (ops_of_url url).with_urls_source urls filesize f;;
+    (ops_of_url url).urls_source urls filesize;;
 
 let remove_base base str =
   let n = String.length str in
@@ -224,25 +215,22 @@ let delete ?async (`Url url) =
 let put ?metafn dsturl source ~srcpos =
   (ops_of_url dsturl).put ?metafn source srcpos dsturl;;
 
-let with_src src f = match src with
-  | `Source source -> f source
-  | `Url _ as srcurl -> with_url_source srcurl f
+let of_src = function
+  | `Source source -> return source
+  | `Url _ as srcurl -> url_source srcurl
   | `Urls (url :: _ as urls, filesize) ->
-    (ops_of_url url).with_urls_source urls filesize f
+    return ((ops_of_url url).urls_source urls filesize)
   | `Urls ([], _ ) ->
-    let `Source s = of_string "" in f s
-
-let noop _ = return ()
+    let `Source src = of_string "" in return src
 
 let generic_copy ?metafn src ~srcpos dst = match dst with
   | `Url dsturl ->
-    with_src src (put ?metafn dsturl ~srcpos)
+    of_src src >>= fun source -> put ?metafn dsturl ~srcpos source
   | `Sink (sink:sink) ->
     sink 0L >>= fun out ->
-    with_src src (fun source ->
-        source.seek srcpos >>= fun stream ->
-        iter stream out
-      );;
+    of_src src >>= fun source ->
+    source.seek srcpos >>= fun stream ->
+    Lwt_stream.iter_s out stream
 
 let get_meta (`Url src) =
   (ops_of_url src).get_meta src
@@ -270,7 +258,6 @@ let copy ?metafn src ~srcpos dst =
 
 module type SchemeOps = sig
   type state
-  type read_state
   val scheme : string
   val syntax: Neturl.url_syntax
 
@@ -278,9 +265,7 @@ module type SchemeOps = sig
   val invalidate_token_of_user : Neturl.url -> unit
   val check: Neturl.url -> string option Lwt.t
   val open_source: Neturl.url -> (entry * state) Lwt.t
-  val seek: state -> int64 -> (state * read_state) Lwt.t
-  val read: (state * read_state) -> output_data Lwt.t
-  val close_source : state -> unit Lwt.t
+  val seek: state -> int64 -> string Lwt_stream.t Lwt.t
 
   (* true: optimized copy if scheme and authority matches
    * false: fallback to generic copy *)
@@ -300,57 +285,30 @@ module type SchemeOps = sig
 end
 
 module RegisterURLScheme(O: SchemeOps) = struct
-  let readurl state () = O.read state
-  let seekurl state pos =
-    O.seek state pos >>= fun read_state ->
-    return (readurl read_state);;
+  let seekurl state pos = O.seek state pos
 
-  let withurl url f =
-    O.open_source url >>= fun (entry, state) ->
-    EventIO.try_finally
-      (fun () ->
-         f { meta = entry; seek = seekurl state }
-      )
-      (fun () ->
-         O.close_source state
-      ) ();;
+  let url_source url =
+    O.open_source url >|= fun (entry, state) ->
+    { meta = entry; seek = seekurl state }
 
-  let rec read_urls current_source current_urls () =
-    match !current_source with
-    | Some ((state, _) as read_state) ->
-      O.read read_state >>= fun (str, pos, len) ->
-      if len = 0 then begin
-        O.close_source state >>= fun () ->
-        current_source := None;
-        read_urls current_source current_urls ()
-      end else
-        return (str, pos, len)
-    | None ->
-      match !current_urls with
-      | [] -> return ("", 0, 0)
-      | url :: tl ->
-        current_urls := tl;
-        O.open_source url >>= fun (_, state) ->
-        O.seek state 0L >>= fun read_state ->
-        current_source := Some read_state;
-        read_urls current_source current_urls ()
+  let stream_of_url url =
+    O.open_source url >>= fun (_, state) ->
+    O.seek state 0L
 
-  let withurls urls filesize f =
-    let current_source = ref None in
-    let current_urls = ref urls in
-    f {
+  let urls_source urls filesize =
+    {
       meta = { name = ""; size = filesize; mtime = 0.; etag = "" };
       seek = (fun pos ->
           if pos <> 0L then
-            fail (Failure "Non-seekable stream")
+            return (Lwt_stream.from (fun () -> fail (Failure "Non-seekable stream")))
           else
-            return (read_urls current_source current_urls)
+            return (Lwt_stream.concat (Lwt_stream.map_s stream_of_url (Lwt_stream.of_list urls)))
         )
     }
 
   let ops = {
-    with_url_source = withurl;
-    with_urls_source = withurls;
+    url_source = url_source;
+    urls_source = urls_source;
     fold_list = O.fold_list;
     token_of_user = O.token_of_user;
     invalidate_token_of_user = O.invalidate_token_of_user;

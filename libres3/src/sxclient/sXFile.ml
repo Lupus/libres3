@@ -34,8 +34,7 @@
 
 open Lwt
 module OS = EventIO.OS
-type state = string * int ref
-type read_state = unit
+type state = string
 let scheme = "file"
 let syntax = Hashtbl.find Neturl.common_url_syntax "file"
 
@@ -64,11 +63,11 @@ let open_source url =
   let vol, name = file url in
   find vol !volumes >>= fun volume ->
   find name volume >>= fun (meta, _, contents) ->
-  return (meta, (contents, ref 0))
+  return (meta, contents)
 
-let seek ((_, fpos) as s) pos =
-  fpos := Int64.to_int pos;
-  return (s, ())
+let seek contents pos =
+  let pos = Int64.to_int pos in
+  return (Lwt_stream.of_list [String.sub contents pos (String.length contents - pos)])
 
 let read ((contents, fpos),_) =
   (* TODO: check that there is only one read in-flight on this fd? *)
@@ -178,9 +177,9 @@ let put ?metafn src srcpos dsturl =
   end in
   src.IO.seek srcpos >>= fun stream ->
   let buf = Buffer.create 128 in
-  IO.iter stream (fun (str,pos,len) ->
-      Buffer.add_substring buf str pos len;
-      return ()) >>= fun () ->
+  Lwt_stream.iter_s (fun s ->
+      Buffer.add_string buf s;
+      return_unit) stream >>= fun () ->
   let contents = Buffer.contents buf in
   let entry = {
     IO.name = "/" ^ Netencoding.Url.encode vol ^ path;

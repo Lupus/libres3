@@ -876,8 +876,13 @@ let download_hashes (push, url, blocksize, remaining, skip) hashes_rev =
   let reply = download_full_mem url blocksize (List.rev hashes_rev) in
   let len = min (Int64.mul (Int64.of_int n) (Int64.of_int blocksize)) remaining in
   let remaining = Int64.sub remaining len in
-  push#push (reply >|= fun s -> (s, offset, Int64.to_int len - offset)) >|= fun () ->
+  push#push (reply >|= fun s ->
+             let len = Int64.to_int len - offset in
+             if offset = 0 && len = String.length s then s
+             else String.sub s offset len) >|= fun () ->
   (push, url, blocksize, remaining, 0)
+
+let join s = s
 
 let seek s pos =
   let hashes, start = seek_hashes (Int64.of_int s.blocksize) pos s.hashes 0L in
@@ -891,11 +896,7 @@ let seek s pos =
       Lwt_list.fold_left_s download_hashes (download_push, s.url, s.blocksize, remaining, skip) split_map)
     (fun _ -> download_push#close; return_unit)
     (fun exn -> download_push#push (fail exn) >>= fun () -> download_push#close; return_unit));
-  return (s, fun () ->
-      Lwt_stream.get download >>= function
-      | None -> return ("", 0, 0)
-      | Some r -> r
-    )
+  return (Lwt_stream.map_s join download)
 
 let remove_leading_slash name =
   let n = String.length name in
@@ -1030,13 +1031,17 @@ type buf = {
 let rec read_block stream buf pos size =
   if size > 0 then
     let read = if buf.pos + buf.n <= String.length buf.str && buf.n > 0 then
-        return ()
+        return_unit
       else begin
-        stream () >>= fun (src, srcpos, n) ->
-        buf.str <- src;
-        buf.pos <- srcpos;
-        buf.n <- n;
-        return ()
+        Lwt_stream.get stream >|= function
+        | None ->
+          buf.str <- "";
+          buf.pos <- 0;
+          buf.n <- 0;
+        | Some str ->
+          buf.str <- str;
+          buf.pos <- 0;
+          buf.n <- String.length str
       end in
     read >>= fun () ->
     let n = min buf.n size in
@@ -1055,12 +1060,12 @@ let rec read_block stream buf pos size =
 ;;
 
 (* TODO: these would belong in eventIO *)
-let rec compute_hashes_loop uuid tmpfd stream buf blocksize lst map pos stop =
+let rec compute_hashes_loop uuid wr stream buf blocksize lst map pos stop =
   if pos >= stop then return (lst, map, stop)
   else begin
     String.fill buf.buf 0 (String.length buf.buf) '\x00';
     read_block stream buf 0 blocksize >>= fun status ->
-    IO.really_write tmpfd buf.buf 0 (String.length buf.buf) >>= fun () ->
+    Lwt_io.write wr buf.buf >>= fun () ->
     if status = EOF then return (lst, map, pos)
     else
       let h = Hash.sha1 () in
@@ -1072,14 +1077,14 @@ let rec compute_hashes_loop uuid tmpfd stream buf blocksize lst map pos stop =
       let nextpos = Int64.add pos (Int64.of_int blocksize) in
       match status with
       | FullBlock ->
-        compute_hashes_loop uuid tmpfd stream buf blocksize nextlst nextmap nextpos stop
+        compute_hashes_loop uuid wr stream buf blocksize nextlst nextmap nextpos stop
       | PartialBlock len ->
         return (nextlst, nextmap, Int64.add pos (Int64.of_int len)) (* it was a partial block, we're done *)
       | _ -> assert false
   end
 ;;
 
-let fold_upload user port (offset, tmpfd) map token blocksize nodes hashes previous =
+let fold_upload user port (offset, rd) map token blocksize nodes hashes previous =
   previous >>= fun () ->
   let buf = {
     buf = String.make (blocksize * (List.length hashes)) '\x00';
@@ -1094,11 +1099,9 @@ let fold_upload user port (offset, tmpfd) map token blocksize nodes hashes previ
         let seekpos = StringMap.find hash map in
         (*          Printf.printf "Uploading hash %s from offset %Ld\n" hash seekpos;*)
         let offset = Int64.sub seekpos offset in
-        IO.lseek tmpfd offset >>= fun _ ->
-        IO.really_read tmpfd buf.buf pos blocksize >>= function
-        | 0 -> fail (Failure "eof when trying to read hash")
-        | _ ->
-          return (pos + blocksize)
+        Lwt_io.set_position rd offset >>= fun () ->
+        Lwt_io.read_into_exactly rd buf.buf pos blocksize >>= fun () ->
+        return (pos + blocksize)
       with Not_found ->
         debug (fun () ->
             let buf = Buffer.create 128 in
@@ -1271,7 +1274,7 @@ let upload_part ?metafn nodelist url source blocksize hashes map size extendSeq 
  * when uploading the partial blocks.
  * partial blocks = stuff under auto-bs threshold
 *)
-let rec upload_chunks ?metafn buf tmpfd nodes url size uuid stream blocksize pos token =
+let rec upload_chunks ?metafn buf (rd, wr) nodes url size uuid stream blocksize pos token =
   let endpos = min (Int64.add pos (Int64.of_int multipart_threshold)) size in
   let end_threshold = Int64.sub size last_threshold in
   let endpos =
@@ -1287,7 +1290,7 @@ let rec upload_chunks ?metafn buf tmpfd nodes url size uuid stream blocksize pos
     flush_token url token
   end else begin
     (* still have parts to upload *)
-    compute_hashes_loop uuid tmpfd stream buf blocksize [] StringMap.empty pos endpos
+    compute_hashes_loop uuid wr stream buf blocksize [] StringMap.empty pos endpos
     >>= fun (hashes_rev, map, _) ->
     let hashes = List.rev_map (fun h -> `String h) hashes_rev in
     let n = List.length hashes_rev in
@@ -1301,14 +1304,17 @@ let rec upload_chunks ?metafn buf tmpfd nodes url size uuid stream blocksize pos
       let url = if extendseq > 0L then
           Neturl.modify_url url ~path:["";".upload";token] ~encoded:false
         else url in
-      IO.lseek tmpfd 0L >>= fun _ ->
+      Lwt_io.flush wr >>= fun () ->
+      Lwt_io.set_position rd 0L >>= fun () ->
       let metafn_final = if endpos = size then metafn else None in
-      upload_part ?metafn:metafn_final nodes url (pos, tmpfd) blocksize hashes map size extendseq >>= fun (host, token) ->
+      upload_part ?metafn:metafn_final nodes url (pos, rd) blocksize hashes map size extendseq >>= fun (host, token) ->
       let url = Neturl.modify_url ~host url in
-      IO.lseek tmpfd 0L >>= fun _ ->
-      upload_chunks ?metafn buf tmpfd [host] url size uuid stream blocksize endpos token
+      Lwt_io.set_position wr 0L >>= fun () ->
+      upload_chunks ?metafn buf (rd, wr) [host] url size uuid stream blocksize endpos token
   end
 ;;
+
+let keep () = return_unit
 
 let put ?metafn src srcpos url =
   let host = url_host url in
@@ -1325,7 +1331,11 @@ let put ?metafn src srcpos url =
           let buf = {
             buf = String.make blocksize '\x00';
             str = ""; pos = 0; n = 0 } in
-          upload_chunks ?metafn buf tmpfd nodes url size uuid stream blocksize srcpos "")
+          let rd = Lwt_io.of_fd ~mode:Lwt_io.input ~close:keep tmpfd
+          and wr = Lwt_io.of_fd ~mode:Lwt_io.output ~close:keep tmpfd in
+          Lwt.finalize (fun () ->
+              upload_chunks ?metafn buf (rd, wr) nodes url size uuid stream blocksize srcpos "")
+            (fun () -> ignore_result (Lwt_io.abort rd); ignore_result (Lwt_io.abort wr); return_unit))
     | _ ->
       fail (Failure "can only put a file (not a volume or the root)")
 
@@ -1365,10 +1375,6 @@ let open_source url =
     etag = entry.etag
   },
   reader
-
-let close_source _ =
-  (* TODO: abort download*)
-  return ()
 
 let extract_hash = function
   | `O [ `F (hash, _) ] -> `String hash

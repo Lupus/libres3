@@ -43,8 +43,8 @@ let () =
   close_in f;
   try
     Lwt_main.run (
-      SXIO.with_url_source (SXIO.of_url src) (fun source ->
-          return source.meta.size) >>= fun size ->
+      SXIO.url_source (SXIO.of_url src) >>= fun source ->
+      let size = source.meta.size in
       Printf.printf "Data size: %Ld\n" size;
       let t0 = Unix.gettimeofday () in
       SXIO.copy (SXIO.of_url src) ~srcpos:0L (SXIO.of_url dst) >>= fun () ->
