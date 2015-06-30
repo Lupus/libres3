@@ -195,9 +195,12 @@ module Make
     (String.length str) >= plen &&
     (String.sub str 0 plen) = prefix
 
+  let meta_headers = ["cache-control"; "content-disposition"; "content-encoding"; "expires"]
+
   let add_meta_headers other_headers xamz_headers =
     List.fold_left (fun accum (key,value) ->
-        if is_prefix ~prefix:"x-amz-meta-" key then (key, value) :: accum
+        if is_prefix ~prefix:"x-amz-meta-" key ||
+           List.mem key meta_headers then (key, value) :: accum
         else accum
       ) other_headers xamz_headers
 
