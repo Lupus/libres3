@@ -51,7 +51,7 @@ val invalidate_token_of_user : [< `Url of url ] -> unit
 val get_meta: [< `Url of url] -> (string*string) list Lwt.t
 val copy: ?metafn:metafn ->
   [< `Source of source | `Url of url | `Urls of url list * int64] -> srcpos:int64 ->
-  [< `Sink of sink | `Url of url | `Null] -> unit Lwt.t
+  [< `Sink of sink | `Url of url] -> unit Lwt.t
 val delete: ?async:bool -> [< `Url of url ] -> unit Lwt.t
 
 (* create a volume, directory, or file as appropiate *)

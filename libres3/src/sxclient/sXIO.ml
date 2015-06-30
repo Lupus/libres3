@@ -235,10 +235,6 @@ let with_src src f = match src with
 let noop _ = return ()
 
 let generic_copy ?metafn src ~srcpos dst = match dst with
-  | `Null ->
-    with_src src (fun source ->
-        source.seek srcpos >>= fun stream ->
-        iter stream noop)
   | `Url dsturl ->
     with_src src (put ?metafn dsturl ~srcpos)
   | `Sink (sink:sink) ->
@@ -264,7 +260,7 @@ let copy ?metafn src ~srcpos dst =
       (ops_of_url dsturl).copy_same ?metafn ~filesize srcurls dsturl
     | 0L, (`Url srcurl), (`Url dsturl) when same_cluster srcurl dsturl ->
       (ops_of_url dsturl).copy_same ?metafn [ srcurl ] dsturl
-    | _, (`Source _ | `Url _ | `Urls _), (`Sink _ | `Url _ | `Null) -> return false
+    | _, (`Source _ | `Url _ | `Urls _), (`Sink _ | `Url _) -> return false
   end >>= function
   | true -> return ()
   | false ->
