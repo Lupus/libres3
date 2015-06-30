@@ -1570,11 +1570,14 @@ module Make
 
   let empty_sha256 = Cryptokit.hash_string (Cryptokit.Hash.sha256 ()) ""
 
-  let return_error_signature url lst =
-    U.invalidate_token_of_user (U.of_neturl url);
-    return_error Error.SignatureDoesNotMatch lst
+  let rec return_error_signature tries ~request ~canon url lst =
+    if tries = 0 then begin
+      U.invalidate_token_of_user (U.of_neturl url);
+      validate_authorization (tries+1) ~request ~canon
+    end else
+      return_error Error.SignatureDoesNotMatch lst
 
-  let validate_authorization ~request ~canon =
+  and validate_authorization tries ~request ~canon =
     match CanonRequest.parse_authorization canon with
     | CanonRequest.AuthNone ->
       if is_root_get canon then
@@ -1615,7 +1618,7 @@ module Make
                 let expected_signature =
                   CanonRequest.sign_string_v4 ~key:hmac_key credential string_to_sign in
                 if expected_signature <> signature then
-                  return_error_signature url [
+                  return_error_signature tries ~request ~canon url [
                     ("StringToSign", string_to_sign);
                     ("CanonicalRequest", canonical_request);
                     ("Host", canon.CanonRequest.host);
@@ -1657,7 +1660,7 @@ module Make
             let string_to_sign = CanonRequest.string_to_sign canon in
             let expected_signature = Cryptoutil.sign_str hmac_key string_to_sign in
             if expected_signature <> signature then
-              return_error_signature url [
+              return_error_signature tries ~request ~canon url [
                 ("StringToSign", string_to_sign);
                 ("Host", canon.CanonRequest.host);
                 ("UndecodedPath", canon.CanonRequest.undecoded_uri_path);
@@ -1688,7 +1691,7 @@ module Make
             "/" ^ (Bucket.to_string  canon.CanonRequest.bucket) ^
             canon.CanonRequest.path in
         Lwt.catch (fun () ->
-            validate_authorization ~request ~canon
+            validate_authorization 0 ~request ~canon
           )
           (function
             | Error.ErrorReply (code, details, headers) ->
