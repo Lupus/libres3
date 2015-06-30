@@ -152,7 +152,7 @@ let return_eof server () =
   return_unit
 
 let stream_of_reply wait_eof server =
-  wait_eof >>= return_eof server |> ignore_result;
+  ignore_result (wait_eof >>= return_eof server);
   let rec read () =
     Lwt_stream.get server.Server.body_stream >>= function
     | None ->
