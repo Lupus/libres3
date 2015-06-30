@@ -72,7 +72,7 @@ module Log = Accesslog.Make(struct
     let clf = "%d/%b/%Y:%H:%M:%S %z"
     let time_local () =
       Netdate.mk_date ~localzone:true ~fmt:clf (Unix.gettimeofday ())
-end)
+  end)
 
 module Server = struct
   type t = {
@@ -170,9 +170,9 @@ let stream_of_reply wait_eof server =
   Ocsigen_stream.make ~finalize:(fun _ ->
       Lwt.cancel wait_eof;
       begin match server.Server.info with
-      | Some info ->
-        Log.log ~template:Accesslog.combined { info with body = Some server.Server.body_sent }
-      | None -> ()
+        | Some info ->
+          Log.log ~template:Accesslog.combined { info with body = Some server.Server.body_sent }
+        | None -> ()
       end;
       return_unit) read
 ;;
@@ -249,12 +249,12 @@ let process_request dispatcher ri () =
   | Some h ->
     let code = Nethttp.int_of_http_status h.D.status in
     server.Server.info <- Some {
-      user = server.Server.auth_user;
-      undecoded_url = undecoded_url;
-      ri = ri;
-      body = h.D.content_length;
-      code = code
-    };
+        user = server.Server.auth_user;
+        undecoded_url = undecoded_url;
+        ri = ri;
+        body = h.D.content_length;
+        code = code
+      };
     Ocsigen_http_frame.Result.update res
       ~code
       ~content_length:(h.D.content_length)

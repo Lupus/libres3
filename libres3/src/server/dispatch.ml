@@ -850,22 +850,22 @@ module Make
   let fold_entry ~canon bucket prefix delim marker (fileset, dirset) entry =
     if Some entry.name = marker then return (fileset, dirset)
     else
-    let common_prefix = match delim with
-      | Some d ->
-        begin try
-            let pos = String.index_from entry.name (String.length prefix) d in
-            Some (String.sub entry.name 0 pos)
-          with Not_found | Invalid_argument _ -> None
-        end
-      | None -> None in
-    match common_prefix with
-    | Some prefix ->
-      return (fileset, StringSet.add prefix dirset)
-    | None ->
-      let etag = entry.etag in
-      let meta=
-        entry.size, entry.mtime, etag in
-      return (StringMap.add entry.name meta fileset, dirset)
+      let common_prefix = match delim with
+        | Some d ->
+          begin try
+              let pos = String.index_from entry.name (String.length prefix) d in
+              Some (String.sub entry.name 0 pos)
+            with Not_found | Invalid_argument _ -> None
+          end
+        | None -> None in
+      match common_prefix with
+      | Some prefix ->
+        return (fileset, StringSet.add prefix dirset)
+      | None ->
+        let etag = entry.etag in
+        let meta=
+          entry.size, entry.mtime, etag in
+        return (StringMap.add entry.name meta fileset, dirset)
 
 
   let recurse prefix delim dir =

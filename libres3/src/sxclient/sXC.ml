@@ -444,7 +444,7 @@ let make_http_request ?quick p url =
       let msg = Printf.sprintf "Unsupported SX API version: %d, expected between %d and %d"
           apiver Config.apiver_min Config.apiver_max in
       fail (XIO.Detail(Http_client.Http_protocol(Failure msg),
-                        ["LibreS3ErrorMessage", msg]))
+                       ["LibreS3ErrorMessage", msg]))
     else return reply
   with Failure _ ->
     let msg = "Invalid SX API version: " ^ apiverstr in
@@ -480,7 +480,7 @@ let rec make_request_token ?quick ~token meth ?(req_body="") ?etag url =
       "SXHttpCode", string_of_int reply.code
     ] in
     let details = if reply.status = `Unauthorized then ["LibreS3ErrorMessage", detail] else details in
-     match code with
+    match code with
     | Some c ->
       fail (XIO.Detail(
           Unix.Unix_error(c,string_of_method meth,string_of_url url),
@@ -883,14 +883,14 @@ let seek s pos =
   let hashes, start = seek_hashes (Int64.of_int s.blocksize) pos s.hashes 0L in
   let nodes = max 1 (List.length !last_nodes) in
   let split_map = split_at_threshold s.blocksize
-                         (s.blocksize * nodes * download_max_blocks) hashes [] [] 0 in
+      (s.blocksize * nodes * download_max_blocks) hashes [] [] 0 in
   let remaining = Int64.sub s.filesize start in
   let skip = Int64.to_int (Int64.sub pos start) in
   let download, download_push = Lwt_stream.create_bounded 4 in
   Lwt.ignore_result (Lwt.try_bind (fun () ->
       Lwt_list.fold_left_s download_hashes (download_push, s.url, s.blocksize, remaining, skip) split_map)
-    (fun _ -> download_push#close; return_unit)
-    (fun exn -> download_push#push (fail exn) >>= fun () -> download_push#close; return_unit));
+      (fun _ -> download_push#close; return_unit)
+      (fun exn -> download_push#push (fail exn) >>= fun () -> download_push#close; return_unit));
   return (s, fun () ->
       Lwt_stream.get download >>= function
       | None -> return ("", 0, 0)
@@ -1103,7 +1103,7 @@ let fold_upload user port (offset, tmpfd) map token blocksize nodes hashes previ
         debug (fun () ->
             let buf = Buffer.create 128 in
             Buffer.contents (StringMap.fold (fun k v buf -> Printf.bprintf buf "%s -> %Ld\n" k v; buf) map buf)
-        );
+          );
         fail (Failure ("hash not found:" ^ hash))
     ) (return 0) hashes >>= fun _ ->
   (* TODO: retry on failure *)
@@ -1253,7 +1253,7 @@ let upload_part ?metafn nodelist url source blocksize hashes map size extendSeq 
       `F ("uploadData",[`O upload_map])
     ]] ->
     debug (fun () -> Printf.sprintf "offering %d hashes, requested %d hashes\n%!"
-      (List.length hashes) (List.length upload_map));
+              (List.length hashes) (List.length upload_map));
     let split_map = split_at_threshold blocksize chunk_size upload_map [] [] 0 in
     List.fold_left
       (fun accum umap ->

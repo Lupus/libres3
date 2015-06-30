@@ -116,11 +116,11 @@ let http_thread (esys, keep_alive_group, handler_added) =
   let cache = create_aggressive_cache () in
   let pipeline_quick, pipeline_normal = new_pipeline esys cache, new_pipeline esys cache in
   (*      Http_client.Debug.enable := true;*)
-      (*      Uq_ssl.Debug.enable := true; *)
+  (*      Uq_ssl.Debug.enable := true; *)
   (*        Netlog.Debug.enable_all ();*)
   pipeline_normal#set_options { pipeline_normal#get_options with
-                               synchronization = Sync (* disable pipelining, but keep persistence *)
-                             };
+                                synchronization = Sync (* disable pipelining, but keep persistence *)
+                              };
   Unixqueue.add_handler esys keep_alive_group (fun _ _ event ->
       match event with
       | Unixqueue.Extra (HTTP_Job_Callback (is_quick, retries, call, cb)) ->
@@ -169,9 +169,9 @@ let start_pipeline () =
 let http_call (esys,_,_) (category, call, host) =
   let waiter, wakener = wait () in
   let rec handle_reply = fun retries call ->
-(*    EventLog.debug (fun () ->
-        String.concat "\n> " (List.rev_map (fun (k,v) -> k ^ ": " ^ v)
-                                (call#request_header `Effective)#fields));*)
+    (*    EventLog.debug (fun () ->
+            String.concat "\n> " (List.rev_map (fun (k,v) -> k ^ ": " ^ v)
+                                    (call#request_header `Effective)#fields));*)
     (* this runs in http_thread *)
     match call#status with
     | `Http_protocol_error (Http_client.Bad_message _ | Http_client.No_reply as exn) when retries < 4 ->
@@ -198,9 +198,9 @@ let http_call (esys,_,_) (category, call, host) =
                          "%s %s" (call#get_req_method ()) call#request_uri)
     (fun () ->
        (* the callback is needed when it fails to connect *)
-      Unixqueue.add_event esys
-        (Unixqueue.Extra (HTTP_Job_Callback (category, 0, call, handle_reply)));
-      waiter);;
+       Unixqueue.add_event esys
+         (Unixqueue.Extra (HTTP_Job_Callback (category, 0, call, handle_reply)));
+       waiter);;
 
 let call_of_request ?(quick=false) req =
   let call = match req.meth with

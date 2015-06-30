@@ -88,8 +88,8 @@ module Make(I:Info) = struct
   let substitute i = function
     |"body_bytes_sent" ->
       begin match I.body_bytes_sent i with
-      | None | Some 0L -> "-"
-      | Some n -> Int64.to_string n
+        | None | Some 0L -> "-"
+        | Some n -> Int64.to_string n
       end
     |"http_referer" -> opt (I.http_referer i)
     |"http_user_agent" -> opt (I.http_user_agent i)

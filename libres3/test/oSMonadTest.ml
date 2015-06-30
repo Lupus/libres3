@@ -125,26 +125,26 @@ let bracket_tmpdir f =
 
 let test_largefile () =
   run (EventIO.with_tempfile (fun fd ->
-    let large_pos = Int64.shift_left 1L 33 in
-    OS.LargeFile.fstat fd >>= fun stat ->
-    assert_equal ~printer:Int64.to_string stat.Unix.LargeFile.st_size 0L;
-    OS.write fd "a" 0 1 >>= fun _ ->
-    OS.LargeFile.lseek fd large_pos Unix.SEEK_SET >>= fun pos ->
-    assert_equal ~printer:Int64.to_string large_pos pos;
-    OS.write fd "t" 0 1 >>= fun _ ->
-    OS.LargeFile.fstat fd >>= fun stat2 ->
-    assert_equal ~printer:Int64.to_string
-      stat2.Unix.LargeFile.st_size
-      (Int64.add large_pos 1L);
-    let buf = String.create 1 in
-    OS.LargeFile.lseek fd 0L Unix.SEEK_SET >>= fun _ ->
-    OS.read fd buf 0 1 >>= fun _ ->
-    assert_equal ~printer:id "a" buf;
-    OS.LargeFile.lseek fd large_pos Unix.SEEK_SET >>= fun _ ->
-    OS.read fd buf 0 1 >>= fun _ ->
-    assert_equal ~printer:id "t" buf;
-    return ();
-  ));;
+      let large_pos = Int64.shift_left 1L 33 in
+      OS.LargeFile.fstat fd >>= fun stat ->
+      assert_equal ~printer:Int64.to_string stat.Unix.LargeFile.st_size 0L;
+      OS.write fd "a" 0 1 >>= fun _ ->
+      OS.LargeFile.lseek fd large_pos Unix.SEEK_SET >>= fun pos ->
+      assert_equal ~printer:Int64.to_string large_pos pos;
+      OS.write fd "t" 0 1 >>= fun _ ->
+      OS.LargeFile.fstat fd >>= fun stat2 ->
+      assert_equal ~printer:Int64.to_string
+        stat2.Unix.LargeFile.st_size
+        (Int64.add large_pos 1L);
+      let buf = String.create 1 in
+      OS.LargeFile.lseek fd 0L Unix.SEEK_SET >>= fun _ ->
+      OS.read fd buf 0 1 >>= fun _ ->
+      assert_equal ~printer:id "a" buf;
+      OS.LargeFile.lseek fd large_pos Unix.SEEK_SET >>= fun _ ->
+      OS.read fd buf 0 1 >>= fun _ ->
+      assert_equal ~printer:id "t" buf;
+      return ();
+    ));;
 
 let tests =
   "OS">:::

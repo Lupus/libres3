@@ -63,9 +63,9 @@ let html_of_list volume path l =
       match meta with
       | None -> []
       | Some meta -> [
-        td ~a:aname [pcdata (string_of_timestamp meta.mtime)];
-        td ~a:asize [pcdata (Int64.to_string meta.size)]
-      ]
+          td ~a:aname [pcdata (string_of_timestamp meta.mtime)];
+          td ~a:asize [pcdata (Int64.to_string meta.size)]
+        ]
     )
   in
   Html5.P.print ~output:(Buffer.add_string buf) (
@@ -77,12 +77,12 @@ let html_of_list volume path l =
            tablex
              ~a:[a_style "width: 100%"]
              ~thead:(thead [
-               tr [th ~a:aname [pcdata "Name"]; th ~a:adate [pcdata "Last Modified"]; th ~a:asize [pcdata "Size"]]
-             ])
+                 tr [th ~a:aname [pcdata "Name"]; th ~a:adate [pcdata "Last Modified"]; th ~a:asize [pcdata "Size"]]
+               ])
              [tbody (
-                tr_of_file ("../", empty)
-                ::
-                (List.rev (List.rev_map tr_of_file l)))];
+                 tr_of_file ("../", empty)
+                 ::
+                 (List.rev (List.rev_map tr_of_file l)))];
            hr ();
            p [pcdata "LibreS3 server"]
          ]
