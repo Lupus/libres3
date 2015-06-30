@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: a4180dd60263eb31a6803ad5bacd3379)
+# DO NOT EDIT (digest: dd7e47858e7c303b709b1d3a274db5d8)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -58,6 +58,7 @@ true: annot, bin_annot
 <test/sxucp.{native,byte}>: use_sxclient
 # Library server
 "src/server/server.cmxs": use_server
+<src/server/*.ml{,i,y}>: package(mirage-profile.unix)
 <src/server/*.ml{,i,y}>: package(netsys)
 <src/server/*.ml{,i,y}>: package(ocplib-endian)
 <src/server/*.ml{,i,y}>: package(ocsigenserver)
@@ -72,6 +73,7 @@ true: annot, bin_annot
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(ipaddr)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(jsonm)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(lwt.unix)
+<src/ocsigen/libres3_ocsigen.{native,byte}>: package(mirage-profile.unix)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(netclient)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(netstring)
 <src/ocsigen/libres3_ocsigen.{native,byte}>: package(netsys)
@@ -92,6 +94,7 @@ true: annot, bin_annot
 <src/ocsigen/*.ml{,i,y}>: package(ipaddr)
 <src/ocsigen/*.ml{,i,y}>: package(jsonm)
 <src/ocsigen/*.ml{,i,y}>: package(lwt.unix)
+<src/ocsigen/*.ml{,i,y}>: package(mirage-profile.unix)
 <src/ocsigen/*.ml{,i,y}>: package(netclient)
 <src/ocsigen/*.ml{,i,y}>: package(netstring)
 <src/ocsigen/*.ml{,i,y}>: package(netsys)
@@ -145,6 +148,7 @@ true: annot, bin_annot
 <test/test_server.{native,byte}>: package(ipaddr)
 <test/test_server.{native,byte}>: package(jsonm)
 <test/test_server.{native,byte}>: package(lwt.unix)
+<test/test_server.{native,byte}>: package(mirage-profile.unix)
 <test/test_server.{native,byte}>: package(netclient)
 <test/test_server.{native,byte}>: package(netstring)
 <test/test_server.{native,byte}>: package(netsys)
@@ -164,6 +168,7 @@ true: annot, bin_annot
 <test/test_lwtio.{native,byte}>: package(ipaddr)
 <test/test_lwtio.{native,byte}>: package(jsonm)
 <test/test_lwtio.{native,byte}>: package(lwt.unix)
+<test/test_lwtio.{native,byte}>: package(mirage-profile.unix)
 <test/test_lwtio.{native,byte}>: package(netclient)
 <test/test_lwtio.{native,byte}>: package(netstring)
 <test/test_lwtio.{native,byte}>: package(netsys)
@@ -185,6 +190,7 @@ true: annot, bin_annot
 <test/test_misc.{native,byte}>: package(ipaddr)
 <test/test_misc.{native,byte}>: package(jsonm)
 <test/test_misc.{native,byte}>: package(lwt.unix)
+<test/test_misc.{native,byte}>: package(mirage-profile.unix)
 <test/test_misc.{native,byte}>: package(netclient)
 <test/test_misc.{native,byte}>: package(netstring)
 <test/test_misc.{native,byte}>: package(netsys)
@@ -204,6 +210,7 @@ true: annot, bin_annot
 <test/netTest.{native,byte}>: package(ipaddr)
 <test/netTest.{native,byte}>: package(jsonm)
 <test/netTest.{native,byte}>: package(lwt.unix)
+<test/netTest.{native,byte}>: package(mirage-profile.unix)
 <test/netTest.{native,byte}>: package(netclient)
 <test/netTest.{native,byte}>: package(netstring)
 <test/netTest.{native,byte}>: package(netsys)
@@ -223,6 +230,7 @@ true: annot, bin_annot
 <test/sigv4Test.{native,byte}>: package(ipaddr)
 <test/sigv4Test.{native,byte}>: package(jsonm)
 <test/sigv4Test.{native,byte}>: package(lwt.unix)
+<test/sigv4Test.{native,byte}>: package(mirage-profile.unix)
 <test/sigv4Test.{native,byte}>: package(netclient)
 <test/sigv4Test.{native,byte}>: package(netstring)
 <test/sigv4Test.{native,byte}>: package(netsys)
@@ -241,6 +249,7 @@ true: annot, bin_annot
 <test/*.ml{,i,y}>: package(ipaddr)
 <test/*.ml{,i,y}>: package(jsonm)
 <test/*.ml{,i,y}>: package(lwt.unix)
+<test/*.ml{,i,y}>: package(mirage-profile.unix)
 <test/*.ml{,i,y}>: package(netclient)
 <test/*.ml{,i,y}>: package(netstring)
 <test/*.ml{,i,y}>: package(netsys)

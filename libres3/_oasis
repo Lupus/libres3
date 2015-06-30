@@ -87,7 +87,7 @@ Library server
   Path: src/server
   Modules: Paths, Cmdline, Dispatch, Bucket, BucketOps, ObjectOps, Error, CodedIO, CanonRequest, Cryptoutil, Util, Configfile, Pid, Murmur, Policy, DirectoryListing
   CompiledObject: Best
-  BuildDepends: xmlm, netstring, netsys, str, cryptokit, sxclient, threads, ocsigenserver, ipaddr, ocplib-endian
+  BuildDepends: xmlm, netstring, netsys, str, cryptokit, sxclient, threads, ocsigenserver, ipaddr, ocplib-endian, mirage-profile.unix
   Install: false
 
 Document "api-server"

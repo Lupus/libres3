@@ -293,6 +293,11 @@ let run_server commandpipe =
   Ocsigen_server.start_server ();
   exit 0
 
+let () =
+  let buffer = MProf_unix.mmap_buffer ~size:1000000 "trace.ctf" in
+  let trace_config = MProf.Trace.Control.make buffer MProf_unix.timestamper in
+  MProf.Trace.Control.start trace_config
+
 let run () =
   Configfile.max_connected := 350;
   handle_signal Sys.sigint "Exiting due to user interrupt";
