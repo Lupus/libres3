@@ -87,6 +87,7 @@ module Server = struct
     headers_wake: unit Lwt.u;
     body_stream : string Lwt_stream.t;
     body_stream_push : string Lwt_stream.bounded_push;
+    mutable had_body_header : bool;
   }
   type u = t
   let send_data s (str, pos, len) =
@@ -100,15 +101,19 @@ module Server = struct
   let send_headers s ?body_header h =
     s.headers <- Some h;
     if not s.woken then begin
+      EventLog.debug (fun () -> Printf.sprintf "sending reply code %d" (Nethttp.int_of_http_status h.Dispatch.status));
       (* send headers and body xml header only once *)
       s.woken <- true;
       Lwt.wakeup s.headers_wake ();
+      s.had_body_header <- body_header <> None;
       match body_header with
       | Some b -> send_data s (b, 0, String.length b) >>= fun () ->
         return s
       | None -> return s
     end else begin
-      s.stream_error <- true;
+      (* for long running mput complete/delete we do want to send error body after 200 *)
+      if not s.had_body_header then
+        s.stream_error <- true;
       return s
     end
 
@@ -146,26 +151,36 @@ let empty_read () =
   Ocsigen_stream.empty None
 
 let return_eof server () =
+  EventLog.debug (fun () -> "return EOF");
   if not server.Server.woken then
     Lwt.wakeup server.Server.headers_wake ();
+  server.Server.body_stream_push#push "" >>= fun () ->
   server.Server.body_stream_push#close;
+  EventLog.debug (fun () -> "closed");
   return_unit
 
 let stream_of_reply wait_eof server =
-  ignore_result (wait_eof >>= return_eof server);
+  ignore_result (Lwt.finalize (fun () -> wait_eof) (return_eof server));
   let rec read () =
-    Lwt_stream.get server.Server.body_stream >>= function
-    | None ->
-      if server.Server.stream_error then begin
-        Server.log () "error encountered after headers already sent: truncating reply";
-        Lwt.fail Lwt.Canceled
-      end else
+    EventLog.debug (fun () -> "waiting for reply data");
+    Lwt.catch (fun () ->
+        Lwt_stream.get server.Server.body_stream >>= function
+        | None ->
+          EventLog.debug (fun () -> "EOF on reply");
+          if server.Server.stream_error then begin
+            Server.log () "error encountered after headers already sent: truncating reply";
+            Lwt.fail Lwt.Canceled
+          end else
+            Ocsigen_stream.empty None
+        | Some substr ->
+          let len = String.length substr in
+          EventLog.debug (fun () ->  Printf.sprintf "send: %d" len);
+          server.Server.body_sent <- Int64.add server.Server.body_sent (Int64.of_int len);
+          Ocsigen_stream.cont substr read
+      ) (fun exn ->
+        EventLog.warning ~exn "stream reply failed";
         Ocsigen_stream.empty None
-    | Some substr ->
-      let len = String.length substr in
-      EventLog.debug (fun () ->  Printf.sprintf "send: %d" len);
-      server.Server.body_sent <- Int64.add server.Server.body_sent (Int64.of_int len);
-      Ocsigen_stream.cont substr read
+      )
   in
   Ocsigen_stream.make ~finalize:(fun _ ->
       Lwt.cancel wait_eof;
@@ -218,7 +233,7 @@ let process_request dispatcher ri () =
   let body_stream, body_stream_push = Lwt_stream.create_bounded 16 in
   let w, u = Lwt.wait () in
   let server = {
-    Server.headers = None; stream_error = false;
+    Server.headers = None; stream_error = false; had_body_header = false;
     auth_user = None; body_sent = 0L; info = None;
     headers_wait = w; headers_wake = u; woken=false;
     woken_body=false;
@@ -245,8 +260,14 @@ let process_request dispatcher ri () =
     (stream_of_reply wait_eof server) >>= fun res ->
   server.Server.headers_wait >|= fun () ->
   match server.Server.headers with
-  | None -> res
+  | None ->
+    EventLog.debug (fun () -> "no content-length");
+    res
   | Some h ->
+    EventLog.debug (fun () ->
+        match h.D.content_length with
+        | None -> "content-length: -"
+        | Some l -> Printf.sprintf "content-length: %Ld" l);
     let code = Nethttp.int_of_http_status h.D.status in
     server.Server.info <- Some {
         user = server.Server.auth_user;
