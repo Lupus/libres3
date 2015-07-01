@@ -8,8 +8,7 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 echo "Running unit tests"
-#./netTest.native --s3cfg $1 --backtrace -verbose
-#exit 0
+./netTest.native --s3cfg $1 --backtrace -verbose
 echo "Running s3cmd tests"
 
 S3CMD="$S3CMD_BIN -c $1"
@@ -69,3 +68,6 @@ upload_download $MPART_CHUNK `expr $MPART_CHUNK + $MPART_CHUNK - 1` s3://$VOL1
 SX_CHUNK=134217728
 upload_download $SX_CHUNK $SX_CHUNK s3://$VOL2
 upload_download $SX_CHUNK `expr 3 \* $SX_CHUNK` s3://$VOL2
+echo
+echo "TESTS FINISHED"
+echo

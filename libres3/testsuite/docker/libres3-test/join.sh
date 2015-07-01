@@ -10,7 +10,7 @@ libres3_setup --s3-host libres3.skylable.com --s3-http-port 8008 --s3-https-port
     --batch
 
 cd /usr/src/libres3/libres3
-libres3_ocsigen --foreground&
+libres3_ocsigen
 echo "$SX_ADMIN_KEY" >admin.key
 chmod 0600 admin.key
 sxinit sx://admin@$SX_CLUSTER_NAME --host-list=$NODE_1_PORT_443_TCP_ADDR\

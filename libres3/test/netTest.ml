@@ -131,6 +131,8 @@ let parse_s3cfg s3cfg =
                   end
                 | "secret_key" ->
                   S3Test.secret_access_key := value
+                |  "use_https" ->
+                  Config.sx_ssl := value = "True"
                 | _ -> ()
               );
           with Scanf.Scan_failure _ | End_of_file -> ()
