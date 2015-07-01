@@ -16,12 +16,13 @@ RUN opam init -y && apt-get update && apt-get install --no-install-recommends -y
 RUN opam install -y --deps-only libres3 &&\
     opam install ounit bisect
 
-RUN apt-get update && apt-get install -y --no-install-recommends s3cmd python-boto uuid-runtime && apt-get clean
+RUN echo 'deb http://httpredir.debian.org/debian jessie-backports main contrib non-free' >>/etc/apt/sources.list.d/backports.list
+RUN apt-get update && apt-get install -y --no-install-recommends s3cmd/jessie-backports python-boto uuid-runtime && apt-get clean
 
 ADD libres3.tar /usr/src/libres3/
 
 WORKDIR /usr/src/libres3/libres3
 RUN eval `opam config env` &&\
-        ./configure --disable-docs --enable-tests --override ocamlbuildflags '-j 0'\
-        && make cov-build install
+        ./configure --disable-docs --enable-tests --override ocamlbuildflags '-j\ 0'\
+        && make  && make install
 EXPOSE 8443

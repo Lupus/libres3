@@ -20,7 +20,7 @@ RUN git clean -x -f -d && ./configure --prefix=/opt/sx/4 CC="ccache gcc" && make
 USER root
 RUN apt-get install -y opam aspcud ocaml-native-compilers
 # for testing
-RUN apt-get install -y s3cmd python-boto
+RUN apt-get install -y s3cmd/jessie-backports python-boto
 RUN mkdir /opt/libres3 && chown build:build /opt/libres3
 
 USER build

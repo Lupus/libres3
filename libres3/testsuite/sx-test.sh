@@ -33,6 +33,5 @@ $sbindir/libres3_setup --no-ssl --s3-host libres3.skylable.com --s3-http-port 80
 echo "list_cache_expires=0." >>$sysconfdir/libres3/libres3.conf
 $sbindir/libres3_ocsigen
 echo "Running tests"
-cd testsuite
-./run-test.sh $sysconfdir/libres3/libres3-insecure.sample.s3cfg 2>&1 | tee sx.log
+testsuite/docker/run-test.sh $sysconfdir/libres3/libres3-insecure.sample.s3cfg 2>&1 | tee sx.log
 echo "OK"
