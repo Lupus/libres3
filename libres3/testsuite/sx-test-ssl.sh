@@ -2,7 +2,7 @@
 set -e
 cd ..
 SXDIR=../../sx
-if false; then
+if true; then
 make distclean
 PREFIX=`pwd`/test-libres3
 $PREFIX/sbin/libres3_ocsigen --stop || true
@@ -29,9 +29,9 @@ $sbindir/libres3_ocsigen --version
 echo "Configuring ocsigen"
 
 conf=$SXDIR/server/test-sx/1/etc/sxserver/sxsetup.conf
-$sbindir/libres3_setup --s3-host libres3.skylable.com --s3-port 8443 --default-volume-size 100G --default-replica 1 --sxsetup-conf $conf --batch
+$sbindir/libres3_setup --s3-host libres3.skylable.com --s3-http-port 8008 --s3-https-port 8443 --default-volume-size 100G --default-replica 1 --sxsetup-conf $conf --batch
 echo "list_cache_expires=0." >>$sysconfdir/libres3/libres3.conf
 $sbindir/libres3_ocsigen
 echo "Running tests"
-./netTest.native --s3cfg $sysconfdir/libres3/libres3.sample.s3cfg --backtrace 2>&1 | tee sx.log
+testsuite/docker/run-test.sh $sysconfdir/libres3/libres3.sample.s3cfg 2>&1 | tee sx.log
 echo "OK"
