@@ -2,6 +2,7 @@
 
 cd $HOME
 . $HOME/sxsetup.conf
+chmod 0600 $HOME/admin.key
 test -d $HOME/.sx || \
     sxinit sx://admin@$SX_CLUSTER_NAME --host-list=$FIRST_PORT_443_TCP_ADDR\
     --auth-file=$HOME/admin.key --batch-mode

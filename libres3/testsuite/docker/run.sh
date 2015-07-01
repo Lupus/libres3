@@ -77,7 +77,7 @@ sudo docker exec ${IMG_PREFIX}_libres3\
     sh -x -c '\
         sed -e "s/SX_NODE_IP.*/SX_NODE_IP=$FIRST_PORT_443_TCP_ADDR/"\
             /root/sxsetup.conf >/root/sxsetup.conf.first &&\
-        libres3_setup --s3-host libres3.skylable.com --s3-port 8443\
+        libres3_setup --s3-host libres3.skylable.com --s3-http-port 8008 --s3-https-port 8443\
             --default-volume-size 10G\
             --default-replica 1\
             --sxsetup-conf /root/sxsetup.conf.first\

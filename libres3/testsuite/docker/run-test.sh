@@ -4,18 +4,18 @@ S3CMD_BIN=s3cmd
 RANDGEN_BIN=./randgen.native
 
 if [ $# -ne 1 ]; then
-    echo "Usage: $0 </path/to/libres3.s3cfg>\n" >&2
+    echo "Usage: $0 </path/to/libres3.s3cfg>" >&2
     exit 1
 fi
 echo "Running unit tests"
-./netTest.native --s3cfg $1 --backtrace -verbose
-exit 0
+#./netTest.native --s3cfg $1 --backtrace -verbose
+#exit 0
 echo "Running s3cmd tests"
 
 S3CMD="$S3CMD_BIN -c $1"
-VOL_PREFIX=vtest.`uuidgen -r`
-VOL1=$VOL_PREFIX.v1
-VOL2=$VOL_PREFIX.v2
+VOL_PREFIX=vtest$(uuidgen -r)
+VOL1=${VOL_PREFIX}v1
+VOL2=${VOL_PREFIX}v2
 RANDGEN=$RANDGEN_BIN
 
 cleanup() {
@@ -58,7 +58,7 @@ $S3CMD sync inputs/ s3://$VOL2
 $S3CMD sync inputs/ s3://$VOL2
 $S3CMD ls s3://$VOL2
 rm -rf outputs && mkdir outputs
-$S3CMD sync s3://$VOL2 outputs/ --debug
+$S3CMD sync s3://$VOL2 outputs/
 $S3CMD sync s3://$VOL2 outputs/
 $S3CMD sync s3://$VOL2 inputs/
 diff -ru inputs/ outputs/
