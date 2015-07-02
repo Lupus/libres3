@@ -1604,6 +1604,8 @@ module Make
             | Error.ErrorReply (Error.NoSuchBucket, _, _) ->
               return_error Error.AccessDenied ["MissingHeader", "Authorization"]
             | e -> fail e)
+      else if is_s3_index canon then
+        return_error Error.AccessDenied ["MissingHeader", "Authorization"; "LibreS3ErrorMessage", "Directory indexing is not allowed: add allow_public_bucket_index=true to libres3.conf to enable it"]
       else
         return_error Error.AccessDenied ["MissingHeader", "Authorization"]
     | CanonRequest.AuthEmpty ->

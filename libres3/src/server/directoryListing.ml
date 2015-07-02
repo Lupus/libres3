@@ -84,7 +84,7 @@ let html_of_list volume path l =
                  ::
                  (List.rev (List.rev_map tr_of_file l)))];
            hr ();
-           p [pcdata "LibreS3 server"]
+           a ~a:[a_href "http://www.skylable.com/products/libres3/"] [pcdata "LibreS3 server"]
          ]
        )
     )
