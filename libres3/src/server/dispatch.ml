@@ -1349,15 +1349,26 @@ module Make
         >>= fun metalst ->
         check_parts ~canon bucket path ~uploadId body >>= fun (min_partsize, filesize, urls) ->
         let key = canon.CanonRequest.user, uploadId in
-        send_long_running ~canon ~req:request key (fun url ->
-            let _, url = url_of_volpath ~canon bucket path in
-            let etag = uploadId ^ "-1" in
-            let content_type = List.assoc meta_key_content_type metalst in
-            let meta = add_meta_headers [meta_key, etag;
-                                         meta_key_content_type, content_type] metalst in
-            U.copy ~metafn:(fun () -> meta) (`Urls (urls, filesize)) ~srcpos:0L url
-            >>= fun () ->
-            mput_delete_common ~canon ~request ~uploadId bucket path >>= fun _ ->
+        let _, url = url_of_volpath ~canon bucket path in
+        let etag = uploadId ^ "-1" in
+        let content_type = List.assoc meta_key_content_type metalst in
+        let meta = add_meta_headers [meta_key, etag;
+                                     meta_key_content_type, content_type] metalst in
+        let quotaok_wait, quotaok_wake = Lwt.task () in
+        let result =
+          Lwt.finalize (fun () ->
+              Lwt.catch (fun () ->
+                  U.copy ~quotaok:(fun () -> Lwt.wakeup quotaok_wake ()) ~metafn:(fun () -> meta) (`Urls (urls, filesize)) ~srcpos:0L url)
+                (fun exn ->
+                   Lwt.wakeup_exn quotaok_wake exn;
+                   fail exn
+                )
+            ) (fun () ->
+              mput_delete_common ~canon ~request ~uploadId bucket path >>= fun _ -> return_unit)
+        in
+        quotaok_wait >>= fun () ->
+          send_long_running ~canon ~req:request key (fun url ->
+            result >>= fun () ->
             return (
               Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "CompleteMultipartUploadResult"
                 [

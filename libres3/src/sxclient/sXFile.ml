@@ -168,7 +168,7 @@ let get_meta url : (string*string) list Lwt.t =
 
 let etag_cnt = ref 0
 
-let put ?metafn src srcpos dsturl =
+let put ?quotaok ?metafn src srcpos dsturl =
   let vol, path = file dsturl in
   find vol !volumes >>= fun volume ->
   incr etag_cnt;
@@ -189,6 +189,10 @@ let put ?metafn src srcpos dsturl =
     etag = string_of_int !etag_cnt
   }, meta, contents in
   volumes := StringMap.add vol (StringMap.add path entry volume) !volumes;
+  begin match quotaok with
+  | Some fn -> fn ()
+  | None -> ()
+  end;
   return ()
 
 let users = ref []

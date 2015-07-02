@@ -1237,12 +1237,13 @@ let build_meta = function
           ) (f ())
       )]
 
-let upload_part ?metafn nodelist url source blocksize hashes map size extendSeq =
+let upload_part ?metafn nodelist url source blocksize hashes map size extendSeq token =
   let obj = List.rev_append [
       "fileData", `Array hashes;
-      if extendSeq > 0L then
+      match token with
+      | Some _ ->
         "extendSeq", `Float (Int64.to_float extendSeq)
-      else
+      | None ->
         "fileSize", `Float (Int64.to_float size);
     ] (build_meta metafn) in
   send_json nodelist url (`Object obj) >>= fun reply ->
@@ -1282,10 +1283,11 @@ let rec upload_chunks ?metafn buf tmpfd nodes url size uuid stream blocksize pos
     else endpos in
   let bs64 = Int64.of_int blocksize in
   let extendseq = Int64.div (Int64.add pos (Int64.sub bs64 1L)) bs64 in
-  if pos = endpos && token <> "" then begin
+  match token with
+  | Some token when pos = endpos ->
     (* all multiparts uploaded, flush token *)
     flush_token url token
-  end else begin
+  | _ ->
     (* still have parts to upload *)
     compute_hashes_loop uuid tmpfd stream buf blocksize [] StringMap.empty pos endpos
     >>= fun (hashes_rev, map, _) ->
@@ -1298,19 +1300,20 @@ let rec upload_chunks ?metafn buf tmpfd nodes url size uuid stream blocksize pos
       fail (Failure (Printf.sprintf "Bad hash counts: %d != %d; pos: %Ld, bytes: %d"
                        n expected pos expected_bytes))
     else
-      let url = if extendseq > 0L then
+      let url =
+        match token with
+        | Some token ->
           Neturl.modify_url url ~path:["";".upload";token] ~encoded:false
-        else url in
+        | None -> url in
       IO.lseek tmpfd 0L >>= fun _ ->
       let metafn_final = if endpos = size then metafn else None in
-      upload_part ?metafn:metafn_final nodes url (pos, tmpfd) blocksize hashes map size extendseq >>= fun (host, token) ->
+      upload_part ?metafn:metafn_final nodes url (pos, tmpfd) blocksize hashes map size extendseq token >>= fun (host, token) ->
       let url = Neturl.modify_url ~host url in
       IO.lseek tmpfd 0L >>= fun _ ->
-      upload_chunks ?metafn buf tmpfd [host] url size uuid stream blocksize endpos token
-  end
+      upload_chunks ?metafn buf tmpfd [host] url size uuid stream blocksize endpos (Some token)
 ;;
 
-let put ?metafn src srcpos url =
+let put ?quotaok ?metafn src srcpos url =
   let host = url_host url in
   let size = Int64.sub (src.XIO.meta.XIO.size)  srcpos in
   if size < 0L then
@@ -1325,7 +1328,14 @@ let put ?metafn src srcpos url =
           let buf = {
             buf = String.make blocksize '\x00';
             str = ""; pos = 0; n = 0 } in
-          upload_chunks ?metafn buf tmpfd nodes url size uuid stream blocksize srcpos "")
+          begin match quotaok with
+            | Some fn ->
+              upload_part ?metafn nodes url (0L, tmpfd) blocksize [] StringMap.empty size 0L None >|= fun (host, token) ->
+              fn ();
+              Neturl.modify_url ~host url, Some token
+            | None -> return (url, None)
+          end >>= fun (url, token) ->
+          upload_chunks ?metafn buf tmpfd nodes url size uuid stream blocksize srcpos token)
     | _ ->
       fail (Failure "can only put a file (not a volume or the root)")
 

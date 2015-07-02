@@ -90,7 +90,7 @@ type op = {
   delete: ?async:bool -> url -> unit t;
   copy_same: ?metafn:metafn -> ?filesize:int64 -> url list -> url -> bool t;
   get_meta: url -> (string*string) list t;
-  put: ?metafn:metafn -> source -> int64 -> url -> unit t;
+  put: ?quotaok:(unit->unit) -> ?metafn:metafn -> source -> int64 -> url -> unit t;
   set_acl: url -> acl list -> unit t;
   get_acl: url -> acl list t;
   create_user: url -> string -> string t;
@@ -221,8 +221,8 @@ let create_user (`Url url) name = (ops_of_url url).create_user url name
 let delete ?async (`Url url) =
   (ops_of_url url).delete ?async url;;
 
-let put ?metafn dsturl source ~srcpos =
-  (ops_of_url dsturl).put ?metafn source srcpos dsturl;;
+let put ?quotaok ?metafn dsturl source ~srcpos =
+  (ops_of_url dsturl).put ?quotaok ?metafn source srcpos dsturl;;
 
 let with_src src f = match src with
   | `Source source -> f source
@@ -232,15 +232,18 @@ let with_src src f = match src with
   | `Urls ([], _ ) ->
     let `Source s = of_string "" in f s
 
-let noop _ = return ()
+let callopt = function
+  | Some fn -> fn ()
+  | None -> ()
 
-let generic_copy ?metafn src ~srcpos dst = match dst with
+let generic_copy ?quotaok ?metafn src ~srcpos dst = match dst with
   | `Url dsturl ->
-    with_src src (put ?metafn dsturl ~srcpos)
+    with_src src (put ?quotaok ?metafn dsturl ~srcpos)
   | `Sink (sink:sink) ->
     sink 0L >>= fun out ->
     with_src src (fun source ->
         source.seek srcpos >>= fun stream ->
+        callopt quotaok;
         iter stream out
       );;
 
@@ -254,17 +257,17 @@ let same_cluster a b =
   url_scheme a = url_scheme b
 let same_clusters lst b = List.for_all (same_cluster b) lst
 
-let copy ?metafn src ~srcpos dst =
+let copy ?quotaok ?metafn src ~srcpos dst =
   begin match srcpos, src, dst with
     | 0L, `Urls (srcurls, filesize), (`Url dsturl) when same_clusters srcurls dsturl ->
       (ops_of_url dsturl).copy_same ?metafn ~filesize srcurls dsturl
     | 0L, (`Url srcurl), (`Url dsturl) when same_cluster srcurl dsturl ->
       (ops_of_url dsturl).copy_same ?metafn [ srcurl ] dsturl
-    | _, (`Source _ | `Url _ | `Urls _), (`Sink _ | `Url _) -> return false
+    | _, (`Source _ | `Url _ | `Urls _), (`Sink _ | `Url _) -> return_false
   end >>= function
-  | true -> return ()
+  | true -> callopt quotaok; return_unit
   | false ->
-    generic_copy ?metafn src ~srcpos dst
+    generic_copy ?quotaok ?metafn src ~srcpos dst
 
 
 
@@ -287,7 +290,7 @@ module type SchemeOps = sig
   val copy_same: ?metafn:metafn -> ?filesize:int64 -> Neturl.url list -> Neturl.url -> bool Lwt.t
 
   val get_meta: Neturl.url -> (string*string) list Lwt.t
-  val put: ?metafn:metafn -> source -> int64 -> Neturl.url -> unit Lwt.t
+  val put: ?quotaok:(unit->unit) -> ?metafn:metafn -> source -> int64 -> Neturl.url -> unit Lwt.t
   val delete: ?async:bool -> Neturl.url -> unit Lwt.t
   val create: ?metafn:metafn -> ?replica:int -> Neturl.url -> unit Lwt.t
   val exists: Neturl.url -> bool Lwt.t

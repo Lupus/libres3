@@ -49,7 +49,7 @@ val invalidate_token_of_user : [< `Url of url ] -> unit
 
 (* operations *)
 val get_meta: [< `Url of url] -> (string*string) list Lwt.t
-val copy: ?metafn:metafn ->
+val copy: ?quotaok:(unit->unit) -> ?metafn:metafn ->
   [< `Source of source | `Url of url | `Urls of url list * int64] -> srcpos:int64 ->
   [< `Sink of sink | `Url of url] -> unit Lwt.t
 val delete: ?async:bool -> [< `Url of url ] -> unit Lwt.t
@@ -98,7 +98,7 @@ module type SchemeOps = sig
   val copy_same: ?metafn:metafn -> ?filesize:int64 -> Neturl.url list -> Neturl.url -> bool Lwt.t
 
   val get_meta: Neturl.url -> (string*string) list Lwt.t
-  val put: ?metafn:metafn -> source -> int64 -> Neturl.url -> unit Lwt.t
+  val put: ?quotaok:(unit->unit) -> ?metafn:metafn -> source -> int64 -> Neturl.url -> unit Lwt.t
   val delete: ?async:bool -> Neturl.url -> unit Lwt.t
   val create: ?metafn:metafn -> ?replica:int -> Neturl.url -> unit Lwt.t
   val exists: Neturl.url -> bool Lwt.t
