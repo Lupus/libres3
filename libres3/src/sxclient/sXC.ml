@@ -1148,7 +1148,7 @@ let rec job_poll origurl url expected_id interval max_interval =
         return ()
       | "ERROR" ->
         let e = match msg with
-          | "Volume already exists" ->
+          | "Volume already exists" | "File exists" ->
             Unix.Unix_error(Unix.EEXIST,"PUT",string_of_url origurl)
           | _ ->
             Failure ("Operation failed: " ^ msg) in
