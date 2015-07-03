@@ -46,5 +46,5 @@ let volume_create_elevate_to_admin = ref true
 let list_cache_expires = ref 30. (* 30s *)
 
 let apiver_min = 0
-let apiver_max = 1
+let apiver_max = 2
 let maxkeys = 1000
