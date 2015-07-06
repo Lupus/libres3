@@ -919,10 +919,11 @@ module Make
     let marker = try Some (List.assoc "marker" params) with Not_found -> None in
     let base, url = url_of_volpath ~canon bucket prefix in
     let pathprefix = prefix in
+    let no_recurse = delim = Some '/' in
     let limit = if delim = None then Some Config.maxkeys else None in
     Lwt.catch
       (fun () ->
-         U.fold_list ~base ?limit ?marker url
+         U.fold_list ~base ~no_recurse ?limit ?marker url
            ~entry:(fold_entry ~canon bucket pathprefix delim marker)
            ~recurse:(recurse pathprefix delim)
            (StringMap.empty, StringSet.empty)
