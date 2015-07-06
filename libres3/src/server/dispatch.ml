@@ -859,6 +859,7 @@ module Make
           end
         | None -> None in
       match common_prefix with
+      | Some prefix when Some prefix = marker -> return (fileset, dirset)
       | Some prefix ->
         return (fileset, StringSet.add prefix dirset)
       | None ->
@@ -918,9 +919,10 @@ module Make
     let marker = try Some (List.assoc "marker" params) with Not_found -> None in
     let base, url = url_of_volpath ~canon bucket prefix in
     let pathprefix = prefix in
+    let limit = if delim = None then Some Config.maxkeys else None in
     Lwt.catch
       (fun () ->
-         U.fold_list ~base ?marker url
+         U.fold_list ~base ?limit ?marker url
            ~entry:(fold_entry ~canon bucket pathprefix delim marker)
            ~recurse:(recurse pathprefix delim)
            (StringMap.empty, StringSet.empty)
@@ -941,7 +943,8 @@ module Make
     get_owner ~canon bucket >>= fun owner ->
     let xml = List.rev (list_bucket_files2 owner files common_prefixes) in
     let files = List.length xml in
-    let is_truncated = files >= Config.maxkeys - 1 in
+    let maxkeys = if delim = None then (List.length xml) else Config.maxkeys in
+    let is_truncated = limit <> None && files > 0 in
     return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
       Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "ListBucketResult" (
         List.rev_append [
@@ -949,7 +952,7 @@ module Make
           Xml.tag "Prefix" [Xml.d prefix];(* TODO: impl these *)
           Xml.tag "Marker" (match marker with | Some m -> [Xml.d m] | None -> []);
           Xml.tag "Delimiter" (delim_opt delim);
-          Xml.tag "MaxKeys" [Xml.d (string_of_int Config.maxkeys)];
+          Xml.tag "MaxKeys" [Xml.d (string_of_int maxkeys)];
           Xml.tag "IsTruncated" [if is_truncated then Xml.d "true" else Xml.d "false"];
         ] xml)
     );;

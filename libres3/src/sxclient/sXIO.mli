@@ -56,7 +56,7 @@ val delete: ?async:bool -> [< `Url of url ] -> unit Lwt.t
 
 (* create a volume, directory, or file as appropiate *)
 val create: ?replica:int -> [< `Url of url ] -> unit Lwt.t
-val fold_list: base:[< `Url of url] -> [< `Url of url ] -> ?marker:string -> ?no_recurse:bool ->
+val fold_list: base:[< `Url of url] -> [< `Url of url ] -> ?marker:string -> ?limit:int -> ?no_recurse:bool ->
   entry:('a -> entry -> 'a Lwt.t) -> recurse:(string -> bool) -> 'a -> 'a Lwt.t
 
 val exists: [< `Url of url ] -> bool Lwt.t
@@ -107,7 +107,7 @@ module type SchemeOps = sig
   val get_acl : Neturl.url -> acl list Lwt.t
   val create_user: Neturl.url -> string -> string Lwt.t
 
-  val fold_list: Neturl.url -> ?marker:string -> ?no_recurse:bool -> ('a -> entry -> 'a Lwt.t) -> (string -> bool) -> 'a -> 'a Lwt.t
+  val fold_list: Neturl.url -> ?marker:string -> ?limit:int -> ?no_recurse:bool -> ('a -> entry -> 'a Lwt.t) -> (string -> bool) -> 'a -> 'a Lwt.t
 end
 module RegisterURLScheme(O: SchemeOps) : sig
   val register: unit -> unit

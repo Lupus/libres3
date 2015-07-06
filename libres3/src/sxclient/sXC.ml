@@ -1339,14 +1339,16 @@ let put ?quotaok ?metafn src srcpos url =
     | _ ->
       fail (Failure "can only put a file (not a volume or the root)")
 
-let fold_list url ?marker ?(no_recurse=false) f recurse accum =
+let fold_list url ?marker ?limit ?(no_recurse=false) f recurse accum =
   let fullpath = url_path ~encoded:true url in
   match fullpath with
   | "" :: volume :: path ->
     let base = Neturl.modify_url url ~encoded:true ~path:["";volume] in
     let recursive =
-      if no_recurse then ""
-      else Printf.sprintf "recursive&limit=%d" Config.maxkeys in
+      match no_recurse, limit with
+      | true, _ -> ""
+      | false, Some limit -> Printf.sprintf "recursive&limit=%d" limit
+      | false, None -> "recursive" in
     let query = match path with
       | [] | [""] -> recursive
       | _ ->
