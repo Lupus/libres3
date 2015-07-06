@@ -284,19 +284,27 @@ let update_s3cfg cert_file host port key name =
   close_out f;
   Sys.rename (name ^ ".tmp") name
 
-let generate_boto secure host port key name =
+let generate_boto cert_file host port key name =
   Printf.printf "Generating '%s'\n" name;
   let f = open_out (name ^ ".tmp") in
   (* restrict access to the file because it contains keys *)
   Unix.fchmod (Unix.descr_of_out_channel f) 0o600;
   Printf.fprintf f "[Credentials]\ns3_host=%s\n" host;
-  Printf.fprintf f "[Credentials]\ns3_port=%d\n" port;
+  Printf.fprintf f "s3_port=%d\n" port;
   output_string f ("# For older versions of python-boto you should\n" ^
     "# put the port on s3_host instead\n");
   Printf.fprintf f "aws_secret_access_key=%s\n" key;
   Printf.fprintf f "aws_access_key_id=%s\n" !Config.key_id;
   Printf.fprintf f "\n[Boto]\nis_secure=%s\n"
-    (if secure then "True" else "False");
+    (if cert_file <> None then "True" else "False");
+  begin match cert_file with
+  | None -> ()
+  | Some file ->
+    (* Python 2.7.9 enabled SSL certificate verification, which causes it to fail with python-boto by default on self-signed certificates.
+       Explicitly enabling certificate verification will use python-boto's certificate validation code with the custom CA file and succeed.
+    *)
+    Printf.fprintf f "ca_certificates_file=%s\nhttps_validate_certificates=True\n" file
+  end;
   close_out f;
   Sys.rename (name ^ ".tmp") name
 
@@ -470,11 +478,11 @@ let () =
       let port = int_of_string portstr in
       let cert_file = StringMap.find "s3_ssl_certificate_file" generated in
       update_s3cfg (Some cert_file) s3_host port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.s3cfg");
-      generate_boto true s3_host port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.boto")
+      generate_boto (Some cert_file) s3_host port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3.sample.boto")
     end;
     let s3_port = int_of_string (StringMap.find "s3_http_port" generated) in
     update_s3cfg None s3_host s3_port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
-    generate_boto false s3_host s3_port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.boto");
+    generate_boto None s3_host s3_port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.boto");
     if not !batch_mode then
       ask_start ();
   with
