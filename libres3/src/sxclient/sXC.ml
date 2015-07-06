@@ -1355,7 +1355,8 @@ let fold_list url ?marker ?limit ?(no_recurse=false) f recurse accum =
         Printf.sprintf "%s&filter=%s" recursive
           ((join_path path) ^ "*") in
     let query = match marker with
-      | Some m -> Printf.sprintf "%s&after=%s" query (Netencoding.Url.encode m)
+      | Some m ->
+        Printf.sprintf "%s&after=%s" query (Netencoding.Url.encode ~plus:false m)
       | None -> query in
     let url = Neturl.modify_url url
         ~encoded:true ~scheme:"http" ~syntax:http_syntax
