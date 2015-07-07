@@ -3,7 +3,6 @@ setup.data
 *.native
 reply.log
 src/files/s3genlink.py
-src/files/sbin/libres3_env.sh
 src/files/sbin/libres3
 src/files/sbin/libres3_certgen
 src/files/conf/libres3.conf

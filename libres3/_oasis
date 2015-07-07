@@ -25,7 +25,6 @@ FilesAB:
     src/files/conf/libres3.sample.s3cfg.ab,
     src/files/conf/libres3-insecure.sample.s3cfg.ab,
     src/files/conf/logrotate.d/libres3.ab,
-    src/files/sbin/libres3_env.sh.ab,
     src/files/sbin/libres3.ab,
     src/files/sbin/libres3_certgen.ab,
     src/files/s3genlink.py.ab
@@ -116,7 +115,6 @@ Executable libres3_ocsigen
     ../files/conf/libres3-insecure.sample.s3cfg ($sysconfdir/libres3/),
     ../files/conf/logrotate.d/libres3 ($docdir/logrotate.d/),
     ../files/conf/mime.types ($sysconfdir/libres3/),
-    ../files/sbin/libres3_env.sh ($sbindir/),
     ../files/sbin/libres3 ($sbindir/),
     ../files/sbin/libres3_certgen ($sbindir/),
     ../files/s3genlink.py ($docdir/),
