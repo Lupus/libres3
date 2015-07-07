@@ -75,7 +75,7 @@ let spec = [
     " Default volume size"
   ;
   "--sxsetup-conf", Arg.Set_string sxsetup_conf, " Path to sxsetup.conf";
-  "--batch", Arg.Set batch_mode, "  Turn off interactive confirmations and assume safe defaults";
+  "--batch", Arg.Set batch_mode, " Turn off interactive confirmations and assume safe defaults";
   "--version", Arg.Unit print_version, " Print version";
   "-V", Arg.Unit print_version, " Print version";
   "--no-ssl", Arg.Clear ssl, ""
