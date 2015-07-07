@@ -1,3 +1,26 @@
+1.1
+---
+
+Changes since the last release include:
+ * New features:
+   + public bucket indexing (allow_public_bucket_index, bb #1340)
+   + allow to list all volumes (allow_list_all_volumes, bb #1114)
+   + IPv6 support (requires SX version 1.2 or newer, bb #1332)
+   + support for Cache-Control/Expires/... headers
+   + access.log now uses Apache/NCSA Combined Log Format
+   + support user token changing
+ * Improvements:
+   + reduce S3 download latency: improve persistent connection to SX
+   + tweak SSL ciphers: disable RC4 by default
+   + improved quota exceeded errors
+   + ignore unknown parameters in GET
+   + max-keys for recursive bucket listing (bb #1333)
+   + improve ETag handling (bb #1318)
+   + document supported features and caveats (bb #1243)
+ * Bug fixes:
+   + fix Content-Range for Chromium and APT
+   + fix auto-generated python-boto config for Python 2.7.9 and self-signed certificates
+
 1.0
 ---
 

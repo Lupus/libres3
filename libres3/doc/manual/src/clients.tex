@@ -1,0 +1,185 @@
+% !TEX root = manual.tex
+\chapter{Client configuration}
+\section{Authentication}
+S3 clients require that you provide an ``Access key'' and a ``Secret key''.
+The ``Access key'' is your \SX username, and your ``Secret key'' is your \SX
+token (key).
+
+In case you are accessing your \SX cluster using a username and password,
+you need to find out your \SX token by running \verb|sxinit| if you haven't
+already done so:
+\begin{lstlisting}
+$ sxinit sx://username@clustername
+$ cat $HOME/.sx/clustername/auth/username
+\end{lstlisting}
+
+\section{s3cmd}
+\label{sec:s3cmd}
+
+You can use the generated s3cfg config file
+\footnote{\path{/etc/libres3/libres3.sample.s3cfg}}
+ or configure s3cmd from scratch.
+Below we assume that your LibreS3
+is running on \verb|libres3.example.com| and it supports TLS\@.
+The important s3cmd configuration settings are:
+
+\begin{lstlisting}
+^\textbf{use\_https}^ True
+^\textbf{host\_base}^ libres3.example.com:8443
+^\textbf{host\_bucket}^ %(bucket)s.libres3.example.com:8443
+^\textbf{access\_key}^ <your-sx-username>
+^\textbf{secret\_key}^ <your-sx-key>
+^\textbf{ca\_certs\_file}^ s/etc/ssl/certs/libres3.pem
+\end{lstlisting}
+
+
+If you don't use TLS, please use the port 8008 instead of 8443, and set
+\verb|use_https| to \verb|False|. Once you've configured s3cmd check
+that it properly connects to LibreS3:
+
+\begin{lstlisting}
+$ s3cmd ls --debug 2>&1 | grep host
+\end{lstlisting}
+
+
+Supported s3cmd commands:
+\begin{description}
+    \item[Bucket] \verb|mb|, \verb|rb|, \verb|ls|, \verb|la|, \verb|du|, \verb|info|,
+		\verb|setpolicy|, \verb|delpolicy|,
+		\verb|multipart|
+    \item[Object] \verb|put|, \verb|get|, \verb|del|, \verb|rm|, \verb|sync|, \verb|info|,
+        \verb|cp|, \verb|modify|, \verb|mv|, \verb|abortmp|, \verb|listmp|,
+        \verb|sign|, \verb|signurl|
+\end{description}
+
+\subsection{Encrypted files}
+
+You can set \verb|gpg_passphrase| in \path{.s3cfg} and use
+\verb|s3cmd --encrypt| to upload/download encrypted files
+\footnote{Accessing files on \SX volumes that use the aes filter is not supported, because
+this would require decrypting the files by LibreS3 server-side, and encrypted volumes in \SX
+are meant to be used with client-side encryption}.
+
+\subsection{Caveats}
+
+Certificate verification changed in Python version \verb|2.7.9+|, and you'll need
+\verb|s3cmd| version \verb|1.5.1| or newer to match.
+The \path{.s3cfg} must contain a \verb|ca_certs_file| entry pointing to the certificate
+of the LibreS3 server, otherwise certificate verification (and thus HTTPS
+connections) will fail.
+
+Note that wildcard TLS certificates only match one level, hence you should avoid
+using bucket names which contain dots.
+
+For example a certificate for \verb|*.s3.example.com| is:
+\begin{itemize}
+\item valid for \verb|a.s3.example.com| 
+\item NOT valid for \verb|a.b.s3.example.com| 
+\end{itemize}
+
+\section{Python-boto}
+\label{sec:python-boto}
+
+S3 clients using Python boto are configured in \path{~/.boto},
+or you can use the generated\footnote{\path{/etc/libres3/libres3.sample.boto}} file.
+A typical configuration is:
+
+\begin{lstlisting}
+[Credentials]
+aws_access_key_id=<your-sx-username>
+aws_secret_access_key=<your-sx-key>
+s3_host=libres3.example.com
+s3_port=8443
+[Boto]
+is_secure = True
+ca_certificates_file=/etc/libres3/libres3.pem
+https_validate_certificates=True
+\end{lstlisting}
+
+Note that setting \verb|s3_host| will override the hostname you give to
+applications on the command-line. If you are using an application that allows
+setting the S3 hostname on the command-line, you might want to use that instead.
+
+Note that old version of python-boto require the port to be on \verb|s3_host|
+instead of \verb|s3_port|.
+
+\subsection{Caveats}
+
+Certificate verification changed in Python version \verb|2.7.9+|, and you'll need
+to add \verb|ca_certificates_file| and \verb|https_validate_certificates=True| entries in the \verb|[Boto]| section of
+your \path{.boto} file.
+Otherwise python-boto applications will keep trying to reconnect, and eventually
+fail with:
+\begin{lstlisting}
+ssl.SSLError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:581)
+\end{lstlisting}
+
+The \verb|libres3_setup| generated python-boto configuration files already have
+the necessary entries since LibreS3 version \verb|1.1|.
+
+\section{s3fs-fuse}
+
+S3FS can be used to provide a FUSE-based file system backed by LibreS3.
+
+You must specify the \SX username and access token in \path{~/.passwd-s3fs},
+the URL for your LibreS3 server with \verb|-o url|, and the certificate
+used by LibreS3 in \verb|CURL_CA_BUNDLE|:
+\begin{lstlisting}
+$ cat >~/.passwd-s3fs <<EOF
+admin:0DPiKuNIrrVmD8IUCuw1hQxNqZfJ0hlBUgyckAolodd4C/4r4ecY3QAA
+EOF
+$ chmod 0600 ~/.passwd-s3fs
+$ mkdir ~/libres3-vol1
+$ CURL_CA_BUNDLE=/etc/ssl/certs/libres3.pem s3fs -o url=https://libres3.example.com:8443 vol1 ~/libres3-vol1 -o uid=1000
+\end{lstlisting}
+
+If you want to access LibreS3 unencrypted for debugging purposes then:
+\begin{lstlisting}
+$ s3fs -o url=http://libres3.example.com:8008 vol1 ~/libres3-vol1 -o uid=1000
+\end{lstlisting}
+
+\subsection{Caveats}
+
+If s3fs fails to connect to LibreS3 it quits without an error message,
+and the next time you access the mountpoint you get an error,
+including trying to start s3fs again:
+\begin{lstlisting}
+$ touch ~/libres3-vol1/x
+touch: cannot touch '/home/USER/libres3-vol1/x': Transport endpoint is not connected
+$ s3fs ...
+s3fs: unable to access MOUNTPOINT /home/USER/libres3-vol1: Transport endpoint is not connected
+$ fusermount -u ~/libres3-vol1
+$ s3fs ...
+\end{lstlisting}
+
+You'll have to manually unmount and it is useful to run \verb|s3fs| in the
+foreground to see the actual error message:
+\begin{lstlisting}
+$ fusermount -u ~/libres3-vol1
+$ CURL_CA_BUNDLE=/etc/ssl/certs/libres3.pem s3fs -o url=https://libres3.example.com:8443 vol1 ~/libres3-vol1 -o uid=1000 -f
+[...]
+\end{lstlisting}
+
+Common errors are using the wrong user/token in \path{~/.passwd-s3fs}, or
+s3fs reading the wrong passwd-s3fs (from path{/etc} for example), or that you don't have permissions to access the volume, etc.
+
+\section{DragonDisk}
+\label{sec:dragondisk}
+
+Add an account configured like this:
+\begin{description}
+\item [Provider] Other S3 compatible service
+\item [Service endpoint] \verb|libres3.example.com| (\verb|s3_host| from \path{libres3.conf})
+\item [Access key] your \SX username
+\item [Secret key] your \SX secret token
+\item [HTTP port] 8008 (\verb|s3_http_port| from \path{libres3.conf})
+\item [HTTPS port] 8443 (\verb|s3_https_port| from \path{libres3.conf})
+\end{description}
+
+\section{Other clients}
+For information on other clients please refer to our wiki:
+\url{http://wiki.skylable.com/wiki/LibreS3_Clients}
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "manual"
+%%% End:

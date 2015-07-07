@@ -1,0 +1,98 @@
+% !TEX root = manual.tex
+\chapter{Installation}
+
+LibreS3 is regularly tested on Linux and FreeBSD\@. We recommend using the
+binary packages from \url{http://www.skylable.com/download} if your platform
+is supported.
+
+\section{Binary packages}
+
+\subsection{Debian Wheezy and Jessie}
+Add the following entry to \path{/etc/apt/sources.list.d/skylable.list}:
+\begin{lstlisting}
+deb http://cdn.skylable.com/debian wheezy main
+\end{lstlisting}
+then run the following commands:
+\begin{lstlisting}
+# curl 'https://pgp.mit.edu/pks/lookup?op=get&search=0x5377E192B7BC1D2E' | sudo apt-key add -
+# apt-get install libres3
+\end{lstlisting}
+
+\subsection{CentOS 6/7}
+Create the file \path{/etc/yum.repos.d/skylable-sx.repo} with this content:
+\begin{lstlisting}
+[skylable-sx]
+name=Skylable SX
+baseurl=http://cdn.skylable.com/centos/$releasever/$basearch
+enabled=1
+gpgcheck=0
+\end{lstlisting}
+then execute:
+\begin{lstlisting}
+# yum install libres3
+\end{lstlisting}
+
+\subsection{Fedora 21+}
+Create the file \path{/etc/yum.repos.d/skylable-sx.repo} with this content:
+\begin{lstlisting}
+[skylable-sx]
+name=Skylable SX
+baseurl=http://cdn.skylable.com/fedora/$releasever/$basearch
+enabled=1
+gpgcheck=0
+\end{lstlisting}
+then execute:
+\begin{lstlisting}
+# yum install libres3
+\end{lstlisting}
+
+\section{Source code}
+
+On most Unix platforms you can compile LibreS3
+from source. You will need the following packages to be installed together with their
+development versions:
+\begin{itemize}
+    \item OCaml (>= 3.12.1)
+    \item camlp4 (matching your OCaml compiler version)
+    \item OpenSSL
+    \item PCRE C library
+    \item GNU Make and m4
+    \item Zlib
+    \item pkg-config
+\end{itemize}
+For example, on Debian run:
+
+\begin{lstlisting}
+# apt-get install ocaml-native-compilers camlp4-extra libssl-dev libpcre3-dev zlib1g-dev\
+ pkg-config make m4
+\end{lstlisting}
+
+On Fedora run:
+
+\begin{lstlisting}
+# yum install ocaml /usr/bin/camlp4of /usr/bin/camlp4rf /usr/bin/camlp4 openssl-devel\
+ pcre-devel zlib-devel pkgconfig make m4 ncurses-devel
+\end{lstlisting}
+
+
+\subsection{Compilation}
+
+Follow the standard installation procedure to install
+LibreS3 into the default location (\path{/usr/local}):
+
+\begin{lstlisting}
+$ ./configure && make && make check
+# make install
+\end{lstlisting}
+The rest of the manual assumes that LibreS3 was installed from a binary
+package, so some paths may be different.
+
+Note: On OpenSolaris/OmniOS you need some additional flags:
+\begin{lstlisting}
+$ CPPFLAGS=-m64 ./configure --destdir=${DESTDIR} && make && make check
+# make install
+\end{lstlisting}
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "manual"
+%%% End:

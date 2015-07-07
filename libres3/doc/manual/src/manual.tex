@@ -1,14 +1,15 @@
 \documentclass[oneside,a4paper]{memoir}
 \PassOptionsToPackage{linktocpage}{hyperref}
-\usepackage{color,calc,graphicx,soul,fourier,anyfontsize,xspace,listings,url,fancyvrb,hyperref}
+\PassOptionsToPackage{obeyspaces,hyphens}{url}
+\usepackage{color,calc,graphicx,soul,fourier,anyfontsize,xspace,listings,fancyvrb,url,hyperref,microtype}
 \hypersetup{
     breaklinks=true, colorlinks=true, pdfborder={0 0 0},
     citecolor=blue, urlcolor=blue, linkcolor=red
 }
-\VerbatimFootnotes
+\VerbatimFootnotes{}
 \definecolor{skylableblue}{rgb}{0,.467,.757}
 \makeatletter
-\newlength\dlf@normtxtw
+\newlength\dlf@normtxtw{}
 \setlength\dlf@normtxtw{\textwidth}
 \def\myhelvetfont{\def\sfdefault{mdput}}
 \newsavebox{\feline@chapter}
@@ -35,7 +36,7 @@
   \renewcommand\printchaptername{}
   \renewcommand\printchapternum{\null\hfill\feline@chm[2.5cm]\par}
   \renewcommand\afterchapternum{\par\vskip\midchapskip}
-  \renewcommand\printchaptertitle[1]{\chaptitlefont\raggedleft ##1\par}
+  \renewcommand\printchaptertitle[1]{\chaptitlefont\raggedleft{}##1\par}
 }
 \setsecheadstyle{\LARGE\scshape\color{skylableblue}\raggedright}
 \setsubsecheadstyle{\large\scshape\color{skylableblue}\raggedright}
@@ -47,8 +48,25 @@
 \newcommand{\SX}{S\textsuperscript{X}\xspace}
 \makeatother
 \chapterstyle{daleif1}
-\setlength\afterchapskip {\onelineskip }
-\setlength\beforechapskip {\onelineskip }
+\setlength\afterchapskip{\onelineskip}
+\setlength\beforechapskip{\onelineskip}
+\lstset{
+    escapeinside=\^\^,
+    frame=single,
+    breaklines=true,
+    backgroundcolor=\color{black},
+    %backgroundcolor=\color{lightblue},
+    basicstyle=\scriptsize\color{white}\ttfamily,columns=fullflexible
+}
+\newcommand{\marked}[1]{\color{yellow}\textbf{#1}}
+\newcommand{\markedG}[1]{\color{green}\textbf{#1}}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+%\definecolor{lightblue}{rgb}{.780,.886,.953}
+\definecolor{lightblue}{rgb}{.835,.910,.965}
+
+\newcommand{\seeref}[1]{see~\titleref{#1} on~\pref{#1}}
+
 \begin{document}
 
 \pagestyle{empty}
@@ -67,5 +85,11 @@
 \tableofcontents
 \vspace{1.0cm}
 
-\input{quick.tex}
+\input{intro.tex}
+\input{install.tex}
+\input{config.tex}
+\input{clients.tex}
+\input{features.tex}
+\input{public.tex}
+\input{troubleshoot.tex}
 \end{document}

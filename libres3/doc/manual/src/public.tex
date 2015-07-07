@@ -1,0 +1,174 @@
+% !TEX root = manual.tex
+\chapter{Public access to objects}
+\section{Signed URLs}
+
+To create a signed URL valid for 24 hours for retrieving the object \verb|x| from the bucket \verb|vol1|:
+\begin{lstlisting}
+# s3cmd -c /etc/libres3/libres3.sample.s3cfg signurl s3://vol1/x `date -d '24 hours' +%s` | sed -e 's/http:/https:/'
+https://vol1.libres3.example.com:8443/x?AWSAccessKeyId=admin&Expires=1421780366&Signature=uT1uzWiRKOcr%2F459zjLvmWoMTSg%3D
+\end{lstlisting}
+
+The URL can be pasted into a browser, and used with curl or wget to download the file without additional authorization. After 24 hours the URL expires and can't be used anymore.
+
+There is also a python script as a sample for writing your applications that
+would generate signed URLs:
+\begin{lstlisting}
+$ git clone http://git.skylable.com/experimental
+$ cd experimental/s3genlink
+# BOTO_CONFIG=/etc/libres3/libres3.sample.boto ./s3genlink.py vol1/x
+\end{lstlisting}
+
+\section{Public read-only access to objects}
+
+Signing URLs can be inconvenient if you want to make all objects in a bucket
+publicly accessible.
+In this case you can enable public access to all objects in a bucket by setting
+a bucket policy (replace \verb|volpublic| with the name of your bucket):
+\begin{lstlisting}
+$ cat >anon.json <<EOF
+{"Version":"2012-10-17",
+ "Statement" : [{ "Sid":"AddPerm",
+    "Effect": "Allow", "Principal": "*",
+    "Action": ["s3:GetObject"],
+    "Resource":["arn:aws:s3:::volpublic/*"]}]}
+EOF
+# s3cmd -c /etc/libres3/libres3.sample.s3cfg setpolicy anon.json s3://volpublic
+# s3cmd -c /etc/libres3/libres3.sample.s3cfg info s3://volpublic
+[...]
+$ wget volpublic.libres3.example.com:8008/x
+$ wget libres3.example.com:8008/volpublic/x
+\end{lstlisting}
+
+To disable public access just delete the policy:
+
+\begin{lstlisting}
+# s3cmd -c /etc/libres3/libres3.sample.s3cfg delpolicy s3://volpublic
+\end{lstlisting}
+
+Note that public/anonymous users can only download individual objects ---
+they are not allowed to list the bucket's contents.
+
+There are some scripts to help managing public buckets:
+\begin{lstlisting}
+$ git clone http://git.skylable.com/experimental
+$ cd experimental/s3publicvol
+# BOTO_CONFIG=/etc/libres3/libres3.sample.boto ./s3publicvol.py volpublic/x
+Using access key id: admin
+Turning on public access for bucket volpublic
+# BOTO_CONFIG=/etc/libres3/libres3.sample.boto ./s3policy.py volpublic/x
+Using access key id: admin
+Bucket volpublic has an access policy:
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::volpublic/*"
+    }
+  ]
+}
+# BOTO_CONFIG=/etc/libres3/libres3.sample.boto ./s3privatevol.py volpublic/x
+Using access key id: admin
+Turning off public access for bucket volpublic
+# BOTO_CONFIG=/etc/libres3/libres3.sample.boto ./s3policy.py volpublic/x
+Using access key id: admin
+Bucket volpublic is private
+\end{lstlisting}
+
+Note that using ACLs to set individual objects as publicly accessible
+is not supported.
+
+\section{Setting Content-Type, Cache-Control and other headers}
+\label{sec:setting-headers}
+When uploading an object the following headers can be set:
+
+\verb|Cache-Control|, \verb|Content-Disposition|, \verb|Content-Encoding|,
+\verb|Expires|, and \verb|Content-Type|.
+
+When downloading an object (either authenticated or from a public bucket),
+LibreS3 will send these customized header values if they are set.
+Therefore an object's Content-Type on download will match the value used on upload
+via LibreS3.
+If you use \verb|s3cmd| to upload or copy your files the \verb|Content-Type|
+will be determined correctly in most cases, but you can override it with
+\verb|--mime-type=|.
+For files uploaded via \SX the \verb|Content-Type| is guessed automatically based on
+file extension.
+
+You can modify the headers of already uploaded files:
+\begin{lstlisting}
+s3cmd modify --add-header 'Cache-Control: max-age=86400' s3://bucket/object
+\end{lstlisting}
+
+If you want to set a header for all currently existing objects in a bucket:
+\begin{lstlisting}
+s3cmd modify --add-header 'Cache-Control: max-age=86400' s3://bucket --recursive
+\end{lstlisting}
+
+\section{Virtual hosting for public buckets}
+\label{sec:pubvirtualhosting}
+
+Using a FQDN as bucket name (\seeref{sec:virtualhosting}) can be useful if you
+want to host a website through HTTP\@. All public bucket features are supported with virtual hosted buckets.
+
+Note that when using TLS LibreS3 will still serve its self-signed wildcard certificate for \verb|*.libres3.example.com| even with virtual hosted buckets, so this is not suitable for serving a website over TLS\@.
+
+\section{Streaming videos}
+\label{sec:streaming-videos}
+
+Using LibreS3's range request support\footnote{\seeref{sec:streaming}}, a web browser
+or media player can play videos directly from a LibreS3 public bucket, and the
+clients can efficiently seek to a particular position in the video!
+
+Note that the file must be fully uploaded and its size known before streaming
+can begin, so this won't work for live video streams.
+
+\section{Directory indexing}
+\label{sec:directory-indexing}
+A public bucket only allows accessing files directly by name, if you try to
+access the root of the bucket or a ``directory'' then you get an error message
+in XML\@.
+
+Although the S3 API doesn't provide this feature directly (static website mode
+would allow a static \verb|index.html| only), you can enable directory listing
+for public buckets in LibreS3 by adding the following to \verb|libres3.conf| and
+restarting LibreS3 (please make sure all LibreS3 instances get updated):
+\begin{lstlisting}
+allow_public_bucket_index=true
+\end{lstlisting}
+
+As long as you access the buckets using virtual hosted style (\seeref{sec:pubvirtualhosting}) you will be able to
+navigate the directory listing of the bucket directly from your web browser by
+just opening the root of the bucket:
+\begin{verbatim}
+http://volpublic.libres3.example.com:8008/
+\end{verbatim}
+
+\section{Query parameters}
+
+LibreS3 ignores any query parameters in GET that are not part of a known S3 API
+(\verb|acl|,\verb|cors|,\ldots).
+
+Some websites use a query parameter in the URL of images/scripts accessed from
+an HTML file to make sure that the new/up-to-date version is used instead of an
+old cached version. LibreS3 supports that, however it would probably be more
+reliable to change the filename of those assets each time they are modified
+(e.g.\ by \href{https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/http-caching#invalidating-and-updating-cached-responses}{embedding its hash in the name}).
+
+\section{Using caching proxy or web accelerator}
+
+LibreS3 sends an \verb|ETag| header for each file based on the coresponding \SX file's
+revision. This uniquely identifies the file across the cluster and is guaranteed
+to change every time you upload a new file.
+A \verb|Last-Modified| header is also sent for files.
+
+These two headers should already be sufficient to use a caching proxy or a web
+accelerator (such as Varnish), however for better results you should also set
+\href{https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/http-caching#defining-optimal-cache-control-policy}
+{Cache-Control headers} with a \verb|max-age|, \seeref{sec:setting-headers}.
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "manual"
+%%% End:

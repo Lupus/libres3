@@ -1,0 +1,131 @@
+% !TEX root = manual.tex
+\chapter{Highlighted features}
+\section{Virtual hosting}
+\label{sec:virtualhosting}
+
+Buckets in LibreS3 can be accessed in three ways:
+\begin{description}
+\item [path-style] \verb|libres3.example.com/bucket/object|
+
+ A direct access to the object, which works even if the bucket name is not DNS compatible.
+\item [virtual-hosted subdomain style] \verb|bucket.libres3.example.com/object|
+
+ Requires that bucket names are DNS compatible and a DNS/hosts entry for each
+  bucket or a wildcard DNS record (\seeref{sec:dnszone})
+\item [virtual-hosted FQDN] \verb|bucket.example.net/object|
+
+  Equivalent to \verb|bucket.example.net.libres3.example.com|.
+
+  The client should send a \verb|Host: bucket.example.net| header, which usually requires a
+  \verb|CNAME| DNS entry, \seeref{sec:dnszone}.
+  Requires that bucket names are DNS compatible, and that you use your FQDN as
+  the bucket name, for example:
+
+ \verb|s3cmd mb s3://bucket.example.net|
+\end{description}
+
+The latter can be useful for public buckets, \seeref{sec:pubvirtualhosting}.
+
+\section{Streaming and range-requests}
+\label{sec:streaming}
+
+LibreS3 supports streaming files from \SX by downloading blocks as they are
+needed (streaming a large file begins as soon as the first batch of blocks is
+downloaded by LibreS3).
+
+It is also possible to begin streaming a file from an arbitrary position, and
+retrieve less than the entire file, i.e.\ range requests.
+
+This works both for authenticated  (\verb|s3cmd get --continue|) and public
+requests (\verb|wget --continue|), \seeref{sec:streaming-videos}.
+
+\section{Access logs}
+
+Since version \verb|1.1| LibreS3 uses the Apache/NCSA Combined Log Format for
+its \verb|access.log| file, for example:
+\begin{lstlisting}
+196.168.1.2 - edwin [06/Jul/2015:08:38:20 +0200] "GET /volpublic/?policy HTTP/1.1" 200 190 "-" "Boto/2.34.0 Python/2.7.9 Linux/3.16.0-4-amd64"
+192.168.1.2 - - [06/Jul/2015:09:58:26 +0200] "GET /slider_logo.png HTTP/1.1" 200 11436 "http://volpublic.libres3.example.com:8008/" "Mozilla/5.0 (X11; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0 Iceweasel/38.1.0"
+\end{lstlisting}
+
+The first line is an example for an authenticated request, and the second line
+is an example for an anonymous request (using directory indexing according to
+the referer).
+
+The format is:
+\begin{description}
+\item[192.168.1.2] IP address of client
+\item[-] always unavailable (the \verb|identd| identity)
+\item[edwin] name of the authenticated \SX user. If the HTTP result code is
+  \verb|401| or \verb|5xx| then it cannot be trusted because the user may not be
+  authenticated yet
+\item[[06/Jul/2015:09:58:26 +0200]] the server's local date, time and
+  timezone
+\item[``GET /volpublic/?policy HTTP/1.1''] the request method, path and
+  HTTP version
+\item[200] the HTTP result code
+\item[190] the size of the reply body sent to the client. Note that if the
+  connection is closed/reset then this shows the truncated size, not the size
+  that would have been sent. This is shown as \verb|-| when the body is empty.
+\item[``-''] no HTTP referer available
+\item[``Boto/2.34.0 Python/2.7.9 Linux/3.16.0-4-amd64'']
+
+ User-Agent of the client (not all S3 clients send a user-agent, for example \verb|s3cmd| doesn't)
+\end{description}
+
+Access.log entries are written asynchronously, after the entire reply body is
+sent to the client.
+
+\section{Listing buckets}
+\label{sec:listing-buckets}
+
+\verb|s3cmd ls s3://| shows only the buckets that are owned by your user,
+what is consistent with S3's behaviour. In case you have access to some buckets
+in read or write mode and would like to use them with s3cmd or other clients,
+you can enable listing of all accessible buckets by adding the following to
+\verb|libres3.conf| and restarting LibreS3:
+\begin{lstlisting}
+allow_list_all_volumes=true
+\end{lstlisting}
+
+\section{IPv6 support}
+
+LibreS3 supports IPv6 communication with \SX version \verb|1.2| or newer
+(note that an \SX node can have either an IPv4 or an IPv6 public address, but not both at the same time).
+LibreS3 can be reached either by IPv4 or IPv6, depending on how your DNS
+wildcard record is set up, and whether your S3 client and OS support IPv6. 
+
+\section{Quota support}
+
+Each volume in \SX has a maximum size (its quota).
+There is no equivalent concept in S3, thus you need to specify the default
+volume size (and replica count) for buckets created through S3 in \verb|libres3.conf| using the
+\verb|volume_size| field. This is done automatically if you used
+\verb|libres3_setup| to configure LibreS3.
+
+In case a new file would exceed the \SX volume's quota, LibreS3 should report an
+HTTP 413 error. The quota errors will be reported for both normal and multipart
+uploads, however in the case of multipart ones, the quota error will only be
+reported after all parts have been uploaded to LibreS3.
+
+LibreS3 creates an internal volume for each user to store the parts uploaded
+during a multipart upload. This volume's name is prefixed by \verb|libres3-|
+and is created with the size specified in the
+\verb|volume_size| field and replica count 1. You have to ensure that the size is sufficient to
+hold all in-progress (and interrupted) multipart uploads for a user, otherwise
+one may run out of space during multipart upload even if the destination volume
+has plenty of space available.
+
+Interrupted multipart uploads are not automatically removed (because one can
+resume by providing the upload ID), to clean them first run
+\verb|s3cmd multipart| on each bucket in turn to find out the objects and upload
+IDs, and \verb|s3cmd abortmp| on each upload ID in turn to actually delete it:
+
+\begin{lstlisting}
+$ s3cmd multipart -c s3://bucket
+$ s3cmd abortmp s3://bucket/object Id
+\end{lstlisting}
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "manual"
+%%% End:

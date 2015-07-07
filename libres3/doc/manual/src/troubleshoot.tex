@@ -1,0 +1,42 @@
+% !TEX root = manual.tex
+\chapter{Troubleshooting}
+\section{libres3\_report}
+
+If you face a problem connecting to your LibreS3 server, please run
+\verb|libres3_report| which generates a file \path{libres3-report-*.log} in the
+current directory, containing details about LibreS3's build and runtime
+configuration, and logs.
+
+By default the secret key is removed from the output, but names and IP addresses
+are not anonymized to make debugging easier.
+You can anonymize the logged information by running
+ \verb|libres3_report --anonymize| which replaces each name and IP address with
+ a hash.
+
+\section{Logs}
+
+You can read the logs directly at \path{/var/log/libres3/*.log}.
+
+To enable logging of full HTTP requests run the following commands:
+
+\begin{lstlisting}
+# export LIBRES3_DEBUG=1
+# libres3 restart
+\end{lstlisting}
+
+To enable debugging of the LibreS3 and \SX communication:
+\begin{lstlisting}
+# libres3 stop
+# libres3_ocsigen --foreground --debug
+\end{lstlisting}
+
+\section{Further information}
+
+For more information and FAQ please visit \url{http://wiki.skylable.com}.
+
+If you can't find your solution there, please subscribe to our mailing list
+at \url{http://lists.skylable.com} and post about your issues.
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "manual"
+%%% End:
