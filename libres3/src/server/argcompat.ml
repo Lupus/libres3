@@ -55,7 +55,7 @@ let parse_align ~extra spec f usage =
   let spec = ref spec in
   spec := Arg.align (!spec @ [
       "-help",Arg.Unit (fun () -> raise (Arg.Bad "use --help or -h")),"";
-      "-h",Arg.Unit (print_help ~extra spec usage), " Display this list of options";
+      "-h",Arg.Unit (print_help ~extra spec usage), " ";
       "--help",Arg.Unit (print_help ~extra spec usage), " Display this list of options"
     ]);
   Arg.parse !spec f usage
