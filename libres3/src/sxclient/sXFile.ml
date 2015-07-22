@@ -145,7 +145,7 @@ let create ?metafn ?replica url =
     else begin
       volumes := StringMap.add vol StringMap.empty !volumes;
       Hashtbl.replace acl_table url [`Grant, `UserName !Config.key_id,
-                                     [`Owner;`Read;`Write]];
+                                     [`Owner;`Manager;`Read;`Write]];
       return ();
     end
   | vol, path ->

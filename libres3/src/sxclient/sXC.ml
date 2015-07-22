@@ -436,10 +436,10 @@ let detail_of_reply reply =
 let make_http_request ?quick p url =
   P.make_http_request ?quick p url >>= fun reply ->
   let apiverstr =
-    try reply.headers#field "SX-API-Version"
-    with Not_found -> "0" in
+    try reply.headers#multiple_field "SX-API-Version"
+    with Not_found -> ["0"] in
   try
-    let apiver = int_of_string apiverstr in
+    let apiver = List.fold_left max 0 (List.rev_map int_of_string apiverstr) in
     if apiver < Config.apiver_min || apiver > Config.apiver_max then
       let msg = Printf.sprintf "Unsupported SX API version: %d, expected between %d and %d"
           apiver Config.apiver_min Config.apiver_max in
@@ -447,7 +447,7 @@ let make_http_request ?quick p url =
                        ["LibreS3ErrorMessage", msg]))
     else return reply
   with Failure _ ->
-    let msg = "Invalid SX API version: " ^ apiverstr in
+    let msg = "Invalid SX API version: " ^ (String.concat "," apiverstr) in
     fail (Http_client.Http_protocol(Failure msg))
 
 let usercache = Caching.cache 128
@@ -1517,6 +1517,7 @@ let map_perm = function
   | `String "read" -> `Read
   | `String "write" -> `Write
   | `String "owner" -> `Owner
+  | `String "manager" -> `Manager
   | p ->
     warning "bad ACL json: %a" pp_json_lst [p];
     failwith "bad ACL json"

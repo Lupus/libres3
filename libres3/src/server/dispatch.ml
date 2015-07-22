@@ -676,7 +676,7 @@ module Make
       ["FULL_CONTROL"]
     | l when List.mem `Read l && List.mem `Write l ->
       ["READ";"WRITE"]
-    | l when List.mem `Owner l -> ["READ_ACP"; "WRITE_ACP"]
+    | l when List.mem `Manager l -> ["READ_ACP"; "WRITE_ACP"]
     | _ -> failwith "TODO: unknown permissions"
 
   let libres3_all_users = "libres3-all-users"
@@ -753,9 +753,9 @@ module Make
   let map_permission = function
     | "READ" -> [ `Read ]
     | "WRITE" -> [ `Write ]
-    | "READ_ACP" -> [ `Owner ]
-    | "WRITE_ACP" -> [ `Owner ]
-    | "FULL_CONTROL" -> [ `Owner; `Read; `Write]
+    | "READ_ACP" -> [ `Manager ]
+    | "WRITE_ACP" -> [ `Manager ]
+    | "FULL_CONTROL" -> [ `Owner; `Manager; `Read; `Write]
     | _ -> failwith "Unknown permission"
 
   let map_acl x =  match x with

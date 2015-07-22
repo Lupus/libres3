@@ -50,7 +50,7 @@ type source = {
   seek: int64 -> input_stream Lwt.t
 }
 
-type acl = [`Grant | `Revoke] * [`UserName of string] * [`Owner | `Read | `Write] list
+type acl = [`Grant | `Revoke] * [`UserName of string] * [`Owner | `Manager | `Read | `Write] list
 let read_string str pos =
   let eof = ref false in
   return (fun () ->

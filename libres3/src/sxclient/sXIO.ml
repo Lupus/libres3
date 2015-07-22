@@ -77,7 +77,6 @@ type url = Neturl.url
 
 let scheme_re = Netstring_str.regexp "^\\([a-zA-Z][a-zA-Z0-9+.-]*\\)://"
 let schemes = Hashtbl.create 16
-type acl = [`Grant | `Revoke] * [`UserName of string ] * [`Owner | `Read | `Write] list
 type op = {
   with_url_source : 'a. url -> (source -> 'a t) -> 'a t;
   with_urls_source : 'a. url list -> int64 -> (source -> 'a t) -> 'a t;
