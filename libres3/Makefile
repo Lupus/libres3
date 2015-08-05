@@ -2,7 +2,6 @@
 # DO NOT EDIT (digest: 46f8bd9984975bd4727bed22d0876cd2)
 
 SETUP = ./setup.exe
-RM=rm -f
 
 build: setup.data $(SETUP)
 	$(SETUP) -build $(BUILDFLAGS)
@@ -38,8 +37,8 @@ setup.data: $(SETUP)
 configure: $(SETUP)
 	$(SETUP) -configure $(CONFIGUREFLAGS)
 
-$(SETUP): setup.ml
-	ocamlfind ocamlopt -o setup.exe setup.ml || ocamlfind ocamlc -o $@ $< || true
+setup.exe: setup.ml
+	ocamlfind ocamlopt -o $@ $< || ocamlfind ocamlc -o $@ $< || true
 	$(RM) setup.cmi setup.cmo setup.cmx setup.o
 
 .PHONY: build doc test all install uninstall reinstall clean distclean configure

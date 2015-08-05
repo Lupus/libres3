@@ -27,7 +27,7 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
-open Http_client
+open Nethttp_client
 open HttpTest
 
 let out = open_out "reply.log"
@@ -66,15 +66,15 @@ let () = Ssl.init ~thread_safe:true ();;
 let perform_http_queries lst =
   try
     let pipeline = new pipeline in
-    (*  Http_client.Debug.enable := true;
+    (*  Nethttp_client.Debug.enable := true;
         Uq_ssl.Debug.enable := true;
         Netlog.Debug.enable_all ();*)
     let ctx = Ssl.create_context Ssl.TLSv1 Ssl.Client_context in
     let tct = Https_client.https_transport_channel_type ctx in
-    pipeline # configure_transport Http_client.https_cb_id tct;
+    pipeline # configure_transport Nethttp_client.https_cb_id tct;
     (* without this we get an 'EOF on message' error *)
     pipeline#set_options { pipeline#get_options with
-                           Http_client.connection_timeout = 10.; };
+                           Nethttp_client.connection_timeout = 10.; };
     let calls = List.rev_map (fun req ->
         let call = match req.meth with
           | `GET -> new get_call

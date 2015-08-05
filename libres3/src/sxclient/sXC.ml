@@ -335,11 +335,11 @@ let expect_content_type reply ct =
     let expected = "Skylable" in
     if (String.length server < String.length expected ||
         String.sub server 0 (String.length expected) <> expected) then
-      fail (Http_client.Http_protocol
+      fail (Nethttp_client.Http_protocol
               (SXProto (Printf.sprintf "Not an SX server: %s" server)))
     else
       try
-        let actual, _ = reply.headers#content_type () in
+        let actual, _ = Netmime_header.get_content_type reply.headers in
         if actual <> ct then
           fail (SXProto (Printf.sprintf
                            "Bad content-type: %s, expected: %s" actual ct))
@@ -443,12 +443,12 @@ let make_http_request ?quick p url =
     if apiver < Config.apiver_min || apiver > Config.apiver_max then
       let msg = Printf.sprintf "Unsupported SX API version: %d, expected between %d and %d"
           apiver Config.apiver_min Config.apiver_max in
-      fail (XIO.Detail(Http_client.Http_protocol(Failure msg),
+      fail (XIO.Detail(Nethttp_client.Http_protocol(Failure msg),
                        ["LibreS3ErrorMessage", msg]))
     else return reply
   with Failure _ ->
     let msg = "Invalid SX API version: " ^ (String.concat "," apiverstr) in
-    fail (Http_client.Http_protocol(Failure msg))
+    fail (Nethttp_client.Http_protocol(Failure msg))
 
 let usercache = Caching.cache 128
 let rec make_request_token ?quick ~token meth ?(req_body="") ?etag url =

@@ -28,7 +28,7 @@ index 446b031..cbbca97 100644
                     Uq_engines.multiplex_controller
 +  method default_port : int option
  end
- (** Same as {!Http_client.transport_channel_type} *)	  
+ (** Same as {!Nethttp_client.transport_channel_type} *)	  
  
 diff --git a/src/netclient/http_client.ml b/src/netclient/http_client.ml
 index 23b4051..e708254 100644
@@ -59,7 +59,7 @@ index 23b4051..e708254 100644
  	  if close_flag then
 @@ -3573,9 +3578,10 @@ object
                     string -> int -> Unixqueue.event_system ->
-                    Http_client_conncache.private_data ->
+                    Nethttp_client_conncache.private_data ->
                       Uq_engines.multiplex_controller
 +  method default_port : int option
  end

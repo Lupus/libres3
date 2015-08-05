@@ -69,7 +69,7 @@ let wait () =
       Lwt_unix.send_notification notif_id
     )
 
-open Http_client
+open Nethttp_client
 exception Periodic of string
 exception HTTP_Job_Callback of bool * int * http_call * (int -> http_call -> unit)
 (* This is not an exception in the usual sense, but simply a tagged
@@ -83,9 +83,19 @@ exception HTTP_Job_Callback of bool * int * http_call * (int -> http_call -> uni
 type pipeline = Unixqueue.event_system * Unixqueue.group * Thread.t
 
 let https_setup pipeline =
-  let ctx = Ssl.create_context Ssl.TLSv1 Ssl.Client_context in
-  let tct = Https_client.https_transport_channel_type ctx in
-  pipeline # configure_transport Http_client.https_cb_id tct
+    Nettls_gnutls.init();
+    let provider = Netsys_crypto.current_tls() in
+    let tls_config =
+    Netsys_tls.create_x509_config
+     ~system_trust:true
+     ~peer_auth:`None
+     provider in
+    let http_config = pipeline # get_options in
+    let new_config =
+      { http_config with
+        Nethttp_client.tls = Some tls_config
+      } in
+    pipeline # set_options new_config
 
 let rec run esys =
   try
@@ -104,7 +114,7 @@ let new_pipeline esys cache =
   pipeline#set_connection_cache cache;
   https_setup pipeline;
   pipeline#set_options { pipeline#get_options with
-                         Http_client.connection_timeout = 20.;
+                         Nethttp_client.connection_timeout = 20.;
                          (* we retry at the SXC level *)
                          maximum_message_errors = 0;
                          maximum_connection_failures = 0;
@@ -115,7 +125,7 @@ let new_pipeline esys cache =
 let http_thread (esys, keep_alive_group, handler_added) =
   let cache = create_aggressive_cache () in
   let pipeline_quick, pipeline_normal = new_pipeline esys cache, new_pipeline esys cache in
-  (*      Http_client.Debug.enable := true;*)
+  (*      Nethttp_client.Debug.enable := true;*)
   (*      Uq_ssl.Debug.enable := true; *)
   (*        Netlog.Debug.enable_all ();*)
   pipeline_normal#set_options { pipeline_normal#get_options with
@@ -174,7 +184,7 @@ let http_call (esys,_,_) (category, call, host) =
                                     (call#request_header `Effective)#fields));*)
     (* this runs in http_thread *)
     match call#status with
-    | `Http_protocol_error (Http_client.Bad_message _ | Http_client.No_reply as exn) when retries < 4 ->
+    | `Http_protocol_error (Nethttp_client.Bad_message _ | Nethttp_client.No_reply as exn) when retries < 4 ->
       (*      EventLog.debug ~exn (fun () -> "retrying after lost connection");*)
       (* each of the cached connections may return an error once *)
       Unixqueue.add_event esys

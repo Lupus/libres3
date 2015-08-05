@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 943f8d3ff3a51a74886cda17cc4c7653) *)
+(* DO NOT EDIT (digest: 9df8b3c1ea34593567a2028c8ae58c55) *)
 
 This is the INSTALL file for the libres3 distribution.
 
@@ -25,10 +25,10 @@ In order to compile this package, you will need:
   executable lwtio_test, executable misc_test, executable net_test,
   executable sigv4_test
 * ssl (>= 0.4.4) for library sxclient
-* equeue-ssl for library sxclient
 * lwt for library sxclient
 * ipaddr for library server, library sxclient, executable libres3_report,
   executable libres3_setup
+* nettls-gnutls for library sxclient
 * xmlm for library server
 * netsys for library server, executable libres3_ocsigen
 * ocsigenserver for library server, executable libres3_ocsigen

@@ -1717,21 +1717,21 @@ module Make
                 ~id2:(CanonRequest.gen_debug ~canon)
                 ~id:canon.CanonRequest.id ~path ~headers
                 code details
-            | Http_client.Http_protocol (Http_client.Timeout e) ->
+            | Nethttp_client.Http_protocol (Nethttp_client.Timeout e) ->
               return_error_xml
                 ~req:request
                 ~id2:(CanonRequest.gen_debug ~canon)
                 ~id:canon.CanonRequest.id ~path ~headers:[]
                 Error.RemoteServiceUnavailable [
                 "SXTimeout",e]
-            | Http_client.Http_protocol e ->
+            | Nethttp_client.Http_protocol e ->
               return_error_xml
                 ~req:request
                 ~id2:(CanonRequest.gen_debug ~canon)
                 ~id:canon.CanonRequest.id ~path ~headers:[]
                 Error.RemoteServiceUnavailable [
                 "SXUnavailable",(Printexc.to_string e)]
-            | Detail (Http_client.Http_protocol e, detail) ->
+            | Detail (Nethttp_client.Http_protocol e, detail) ->
               return_error_xml
                 ~req:request
                 ~id2:(CanonRequest.gen_debug ~canon)

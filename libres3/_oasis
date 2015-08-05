@@ -58,7 +58,7 @@ Library sxclient
   Install: false
   Modules: EventIO, SXIO, SXFile, SXC, SXDefaultIO, Config, EventLog, Accesslog
   InternalModules: Http, Caching
-  BuildDepends: netclient (>= 3.7.4), netstring, threads, jsonm, cryptokit (>= 1.3), ssl (>= 0.4.4), equeue-ssl, anycache, lwt.unix, ipaddr
+  BuildDepends: netclient (>= 3.7.4), netstring, threads, jsonm, cryptokit (>= 1.3), ssl (>= 0.4.4), anycache, lwt.unix, ipaddr, nettls-gnutls
   CompiledObject: Best
 
 Executable "sxuls"
