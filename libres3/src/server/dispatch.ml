@@ -63,7 +63,7 @@ module type Sig = sig
     body_file: string option;
     info: CanonRequest.request_info;
     meth: 'a;
-  } constraint 'a = [> `DELETE | `GET | `HEAD | `POST of source | `PUT of source]
+  } constraint 'a = [> `DELETE | `GET | `HEAD | `POST of source | `PUT of source | `OPTIONS ]
 
   type t
   val init : unit -> t Lwt.t
@@ -82,7 +82,7 @@ module Make
     body_file: string option;
     info: CanonRequest.request_info;
     meth: 'a;
-  } constraint 'a = [> `DELETE | `GET | `HEAD | `POST of source | `PUT of source]
+  } constraint 'a = [> `DELETE | `GET | `HEAD | `POST of source | `PUT of source | `OPTIONS ]
   let debug_output =
     try
       let name = Printf.sprintf "/tmp/libres3-debug.%d.log" (Unix.getpid ()) in
@@ -264,6 +264,7 @@ module Make
     | `HEAD -> "HEAD"
     | `POST _ -> "POST"
     | `PUT _ -> "PUT"
+    | `OPTIONS -> "OPTIONS"
     | _ -> "N/A"
 
   let return_error_xml ~id ~id2 ~req ~path ~headers code detail =
@@ -305,7 +306,7 @@ module Make
     fail (Error.ErrorReply (code, details, []));;
 
   let map_method = function
-    | (`DELETE | `GET | `HEAD | `POST _| `PUT _) as a -> a
+    | (`DELETE | `GET | `HEAD | `POST _| `PUT _ | `OPTIONS) as a -> a
     | _ -> `UNSUPPORTED
 
   let max_input_xml = 5*1048576
@@ -1465,7 +1466,6 @@ module Make
       return_error Error.InvalidPolicyDocument
         ["Failed to parse policy", Printexc.to_string s]
 
-
   let known_api (name, _) = match name with
     | "acl" | "cors" | "delete" | "lifecycle" | "location" | "logging"
     | "notification" | "policy" | "requestPayment" | "tagging" | "torrent"
@@ -1483,6 +1483,92 @@ module Make
       path.[String.length path-1] = '/'
     | _ -> false
 
+  (* stubs *)
+  let delete_stub ~req ~canon bucket param =
+    head_bucket ~req ~canon bucket
+
+  let get_stub ~req ~canon bucket param ~root default =
+    let _, url = url_of_volpath ~canon bucket "" in
+    U.exists url >>= function
+    | true ->
+      return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
+        Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] root default)
+    | false ->
+      return_error Error.NoSuchBucket ["Bucket", bucket]
+
+  let get_bucket_lifecycle ~req ~canon bucket param =
+    let _, url = url_of_volpath ~canon bucket "" in
+    U.exists url >>= function
+    | true ->
+      return_error Error.NoSuchLifecycleConfiguration ["Bucket", bucket ]
+    | false ->
+      return_error Error.NoSuchBucket ["Bucket", bucket]
+
+  let put_stub ~req ~canon ~body bucket param =
+    head_bucket ~req ~canon bucket >>= fun () ->
+    read_all ~input:body ~max:max_input_xml >>= function
+    | "" -> return ()
+    | str ->
+      try ignore (Xml.parse_string str); return ()
+      with Xmlm.Error ((line,col), err) ->
+        return_error Error.MalformedXML [
+          "ErrorLine", (string_of_int line);
+          "ErrorColumn", (string_of_int col);
+          "ErrorMessage", (Xmlm.error_message err)
+        ]
+
+  let get_cors ~req ~canon bucket path =
+    let _, url = url_of_volpath ~canon bucket "" in
+    U.exists url >>= function
+    | true ->
+      return_error Error.AccessDenied
+        ["Bucket", bucket; "LibreS3ErrorMessage", "CORS is not enabled"]
+    | false ->
+      return_error Error.NoSuchBucket ["Bucket", bucket]
+
+  let get_bucket_location ~req ~canon bucket =
+    let _, url = url_of_volpath ~canon bucket "" in
+    U.exists url >>= function
+    | true ->
+      return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
+        (* US classic region *)
+        Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "LocationConstraint" [])
+    | false ->
+      return_error Error.NoSuchBucket ["Bucket", bucket]
+
+  let get_bucket_cors ~req ~canon bucket =
+    let _, url = url_of_volpath ~canon bucket "" in
+    U.exists url >>= function
+    | true ->
+      return_error Error.NoSuchCORSConfiguration [ "BucketName", bucket ]
+    | false ->
+      return_error Error.NoSuchBucket ["Bucket", bucket]
+
+  let get_bucket_website ~req ~canon bucket =
+    let _, url = url_of_volpath ~canon bucket "" in
+    U.exists url >>= function
+    | true ->
+      return_error Error.NoSuchWebsiteConfiguration [ "BucketName", bucket ]
+    | false ->
+      return_error Error.NoSuchBucket ["Bucket", bucket]
+
+  let get_bucket_replication ~req ~canon bucket =
+    let _, url = url_of_volpath ~canon bucket "" in
+    U.exists url >>= function
+    | true ->
+      return_error Error.NoSuchReplicationConfiguration [ "BucketName", bucket ]
+    | false ->
+      return_error Error.NoSuchBucket ["Bucket", bucket]
+
+  let get_bucket_tagging ~req ~canon bucket =
+    let _, url = url_of_volpath ~canon bucket "" in
+    U.exists url >>= function
+    | true ->
+      return_error Error.NoSuchTagSetError [ "BucketName", bucket ]
+    | false ->
+      return_error Error.NoSuchBucket ["Bucket", bucket]
+
+
   let dispatch_request ~request ~canon expires =
     match expires with
     | Some e when e < Unix.gettimeofday () ->
@@ -1495,44 +1581,133 @@ module Make
       | _, Bucket bucket, _, _ when is_mpart_bucket bucket ->
         return_error Error.AccessDenied
           ["Bucket", bucket; "LibreS3ErrorMessage","This bucketname is reserved for internal use"]
+
+      (* Service GET API *)
       | `GET, Bucket "", "/",[] ->
         list_buckets request canon
+
+      (* Bucket DELETE APIs *)
+      | `DELETE, Bucket bucket, "/",[] ->
+        delete_bucket ~req:request ~canon bucket
+      | `DELETE, Bucket bucket, "/", ["cors" as param, ""] ->
+        delete_stub ~canon ~req:request bucket param
+      | `DELETE, Bucket bucket, "/", ["lifecycle" as param, ""] ->
+        delete_stub ~canon ~req:request bucket param
+      | `DELETE, Bucket bucket, "/", ["policy", ""] ->
+        delete_bucket_policy ~canon ~request bucket
+      | `DELETE, Bucket bucket, "/", ["replication" as param, ""] ->
+        delete_stub ~canon ~req:request bucket param
+      | `DELETE, Bucket bucket, "/", ["tagging" as param, ""] ->
+        delete_stub ~canon ~req:request bucket param
+      | `DELETE, Bucket bucket, "/", ["website" as param, ""] ->
+        delete_stub ~canon ~req:request bucket param
+
+      (* Bucket GET APIs *)
+      | `GET, Bucket bucket, "/", ["acl",""] ->
+        send_default_acl ~req:request ~canon bucket
+      | `GET, Bucket bucket, "/", ["cors",""] ->
+        get_bucket_cors ~req:request ~canon bucket
+      | `GET, Bucket bucket, "/", ["lifecycle" as param,""] ->
+        get_bucket_lifecycle ~req:request ~canon bucket param
+      | `GET, Bucket bucket, "/", ["policy",""] ->
+        get_bucket_policy ~req:request ~canon bucket
+      | `GET, Bucket bucket, "/", ["location",""] ->
+        get_bucket_location ~req:request ~canon bucket
+      | `GET, Bucket bucket, "/", ["logging" as param,""] ->
+        get_stub ~req:request ~canon bucket param ~root:"BucketLoggingStatus" []
+      | `GET, Bucket bucket, "/", ["notification" as param,""] ->
+        get_stub ~req:request ~canon bucket param ~root:"NotificationConfiguration" []
+      | `GET, Bucket bucket, "/", ["replication",""] ->
+        get_bucket_replication ~req:request ~canon bucket
+      | `GET, Bucket bucket, "/", ["tagging",""] ->
+        get_bucket_tagging ~req:request ~canon bucket
+      | `GET, Bucket bucket, "/", (["versions" ,""] as params) ->
+        return_error Error.NotImplemented params
+      | `GET, Bucket bucket, "/", ["requestPayment" as param,""] ->
+        get_stub ~req:request ~canon bucket param ~root:"RequestPaymentConfiguration"
+          [ Xml.tag "Payer" [Xml.d "BucketOwner"] ]
+      | `GET, Bucket bucket, "/", ["versioning" as param,""] ->
+        get_stub ~req:request ~canon bucket param ~root:"VersioningConfiguration" []
+      | `GET, Bucket bucket, "/", ["website",""] ->
+        get_bucket_website ~req:request ~canon bucket
       | `GET, Bucket bucket, "/", params
         when List.mem_assoc "uploads" params && List.assoc "uploads" params = "" ->
         mpart_list ~canon ~req:request bucket params
-      | `GET, Bucket bucket, _, ["acl",""] ->
-        send_default_acl ~req:request ~canon bucket
-      | `GET, Bucket bucket, "/", ["policy",""] ->
-        get_bucket_policy ~req:request ~canon bucket
-      | `GET, Bucket bucket, path, [] when canon.CanonRequest.user = libres3_all_users && is_s3_index canon ->
-        index_bucket ~req:request ~canon bucket path
-      | `GET, Bucket bucket, "/",params ->
+      | `GET, Bucket bucket, "/", params ->
         list_bucket ~req:request ~canon bucket params
+
+      (* Bucket HEAD API *)
       | `HEAD, Bucket bucket, "/",_ ->
         head_bucket ~req:request ~canon bucket
+
+      (* Bucket PUT APIs *)
+      | `PUT body, Bucket bucket, "/",[] ->
+        create_bucket ~canon ~request body bucket
+      | `PUT body, Bucket bucket, "/", ["acl",""] ->
+        set_noop_acl ~request ~canon body bucket
+      | `PUT body, Bucket bucket, "/", ["cors" as param,""] ->
+        put_stub ~req:request ~canon ~body bucket param
+      | `PUT body, Bucket bucket, "/", ["lifecycle" as param,""] ->
+        put_stub ~req:request ~canon ~body bucket param
+      | `PUT body, Bucket bucket, "/", ["policy",""] ->
+        set_bucket_policy ~canon ~request body bucket
+      | `PUT body, Bucket bucket, "/", ["logging" as param,""] ->
+        put_stub ~req:request ~canon ~body bucket param
+      | `PUT body, Bucket bucket, "/", ["notification" as param,""] ->
+        put_stub ~req:request ~canon ~body bucket param
+      | `PUT body, Bucket bucket, "/", ["replication" as param,""] ->
+        put_stub ~req:request ~canon ~body bucket param
+      | `PUT body, Bucket bucket, "/", ["tagging" as param,""] ->
+        put_stub ~req:request ~canon ~body bucket param
+      | `PUT body, Bucket bucket, "/", ["requestPayment" as param,""] ->
+        put_stub ~req:request ~canon ~body bucket param
+      | `PUT body, Bucket bucket, "/", ["versioning" as param,""] ->
+        put_stub ~req:request ~canon ~body bucket param
+      | `PUT body, Bucket bucket, "/", ["website" as param,""] ->
+        put_stub ~req:request ~canon ~body bucket param
+
+      (* Object APIs *)
+      | `DELETE, Bucket bucket, path,[] ->
+        delete_object ~req:request ~canon bucket path
+      | `POST body, Bucket bucket, "/", ["delete", ""] ->
+        multi_delete_objects ~canon ~request bucket ~body
+
       | `GET, Bucket bucket, path, params when not (List.exists known_api params) ->
         (* TODO: use params! *)
         get_object ~req:request ~canon bucket path
-      | `GET, Bucket bucket, path, ["uploadId", uploadId] ->
-        mput_list_parts ~canon ~req:request bucket path ~uploadId
-      | `GET, Bucket _, _, params ->
+      | `GET, Bucket bucket, path, [] when canon.CanonRequest.user = libres3_all_users && is_s3_index canon ->
+        index_bucket ~req:request ~canon bucket path
+
+      | `GET, Bucket bucket, _, params when List.mem_assoc "acl" params && List.assoc "acl" params = "" ->
+        (* TODO: versioning *)
+        send_default_acl ~req:request ~canon bucket
+
+      | `GET, Bucket bucket, _, (["torrent",""] as params) ->
         return_error Error.NotImplemented params
+
       | `HEAD, Bucket bucket, path, _ ->
+        (* TODO: versioning *)
         get_object ~req:request ~canon bucket path
-      | `PUT body, Bucket bucket, "/",[] ->
-        create_bucket ~canon ~request body bucket
-      | `PUT body, Bucket bucket, "/", ["policy",""] ->
-        set_bucket_policy ~canon ~request body bucket
+
+      | `OPTIONS, Bucket bucket, path, _ ->
+        get_cors ~req:request ~canon bucket path
+
+      | `POST body, Bucket bucket, path, ([] as params) ->
+        return_error Error.NotImplemented params
+      | `POST body, Bucket bucket, path, (["restore", ""] as params) ->
+        return_error Error.NotImplemented params
+
       | `PUT body, Bucket bucket, path,[] ->
+        (* TODO: versioning *)
         if Headers.has_header canon.CanonRequest.headers "x-amz-copy-source"
         then
           copy_object ~canon ~request body bucket path
         else
           put_object ~canon ~request body bucket path
+
       | `PUT body, Bucket bucket, _, ["acl",""] ->
         set_noop_acl ~request ~canon body bucket
-      | `POST body, Bucket bucket, "/", ["delete", ""] ->
-        multi_delete_objects ~canon ~request bucket ~body
+
       | `POST _, Bucket bucket, path,["uploads",""] ->
         if Headers.has_header canon.CanonRequest.headers "x-amz-copy-source"
         then
@@ -1541,23 +1716,25 @@ module Make
                               cannot be used be used when initiating a multipart upload"]
         else
           mput_initiate ~canon ~request bucket path
+
       | `PUT body, Bucket bucket, path, [
           "partNumber",partNumber;
           "uploadId",uploadId;
         ] ->
         (* TODO: path should be part of uploadId, check that they match! *)
         mput_part ~canon ~request ~partNumber ~uploadId body bucket path
+
       | `POST body, Bucket bucket, path, ["uploadId",uploadId] ->
+        (* TODO: versioning *)
         (* TODO: path should be part of uploadId, check that they match! *)
         mput_complete ~canon ~request ~uploadId ~body bucket path
-      | `DELETE, Bucket bucket, "/",[] ->
-        delete_bucket ~req:request ~canon bucket
-      | `DELETE, Bucket bucket, path,[] ->
-        delete_object ~req:request ~canon bucket path
+
       | `DELETE, Bucket bucket, path, ["uploadId", uploadId] ->
         mput_delete ~canon ~request ~uploadId bucket path
-      | `DELETE, Bucket bucket, "/", ["policy",""] ->
-        delete_bucket_policy ~canon ~request bucket
+
+      | `GET, Bucket bucket, path, ["uploadId", uploadId] ->
+        mput_list_parts ~canon ~req:request bucket path ~uploadId
+
       | meth, Bucket bucket, path,params ->
         return_error Error.MethodNotAllowed [
           ("NotImplemented", CanonRequest.string_of_method meth);

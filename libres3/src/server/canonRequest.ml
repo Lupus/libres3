@@ -29,7 +29,7 @@
 
 open Netstring_str
 
-type ('a,'b) methods = [ `DELETE | `GET | `HEAD | `POST of 'a | `PUT of 'b | `UNSUPPORTED ]
+type ('a,'b) methods = [ `DELETE | `GET | `HEAD | `POST of 'a | `PUT of 'b | `OPTIONS | `UNSUPPORTED ]
 type header = string * string
 type request_info = {
   req_headers: header list;
@@ -67,6 +67,7 @@ let string_of_method = function
   | `HEAD -> "HEAD"
   | `POST _ -> "POST"
   | `PUT _ -> "PUT"
+  | `OPTIONS -> "OPTIONS"
   | _ -> "N/A";;
 
 let canonicalized_amz_headers c =
@@ -100,10 +101,11 @@ let canonicalized_resource c =
   let filtered_subresources = List.filter (fun (n,_) ->
       (* TODO: would it be more efficient to take the difference
        * of two maps than this linear comparison?*)
-      n = "acl" || n = "lifecycle" || n = "location" || n = "logging" ||
+      n = "acl" || n = "cors" || n = "lifecycle" || n = "location" || n = "logging" ||
       n = "notification" || n = "partNumber" || n = "policy" ||
       n = "requestPayment" || n = "torrent" || n = "uploadId" ||
-      n = "delete" || n = "uploads" || n = "versionId" || n = "versions" ||
+      n = "replication" || n = "tagging" ||
+      n = "delete" || n = "uploads" || n = "versionId" || n = "versioning" || n = "versions" ||
       n = "website") (stringmap_all c.query_params) in
   let sorted_subresources = List.fast_sort compare_nameval filtered_subresources
   in

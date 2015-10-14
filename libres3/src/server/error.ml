@@ -80,6 +80,10 @@ type t =
   | NoSuchBucket
   | NoSuchKey
   | NoSuchLifecycleConfiguration
+  | NoSuchCORSConfiguration
+  | NoSuchWebsiteConfiguration
+  | NoSuchReplicationConfiguration
+  | NoSuchTagSetError
   | NoSuchUpload
   | NoSuchVersion
   | NotImplemented
@@ -319,6 +323,22 @@ let info = function
   | NoSuchLifecycleConfiguration ->
     "NoSuchLifecycleConfiguration",
     "No such lifecycle configuration.",
+    `Not_found
+  | NoSuchCORSConfiguration ->
+    "NoSuchCORSConfiguration",
+    "The CORS configuration does not exist",
+    `Not_found
+  | NoSuchTagSetError ->
+    "NoSuchTagSetError",
+    "There is no tag set associated with the bucket",
+    `Not_found
+  | NoSuchWebsiteConfiguration ->
+    "NoSuchWebsiteConfiguration",
+    "The specified bucket does not have a website configuration",
+    `Not_found
+  |  NoSuchReplicationConfiguration ->
+    "NoSuchReplicationConfiguration",
+    "The specified bucket does not have a replication configuration",
     `Not_found
   | NoSuchUpload ->
     "NoSuchUpload",
