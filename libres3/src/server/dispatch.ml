@@ -1485,12 +1485,25 @@ module Make
 
   (* stubs *)
   let delete_stub ~req ~canon bucket param =
-    head_bucket ~req ~canon bucket
+    let _, url = url_of_volpath ~canon bucket "" in
+    U.exists url >>= function
+    | true ->
+      IO.try_finally (fun () ->
+          S.log req.server (Printf.sprintf "Stub DELETE for %s/?%s" bucket param);
+          mpart_get_bucket ~canon >>= fun mpart_bucket ->
+          let path = bucket ^ "-" ^ param in
+          let _, url = url_of_volpath ~canon mpart_bucket path in
+          U.delete ~async:true url)
+        (fun () ->
+           return_empty ~req ~canon ~status:`No_content ~reply_headers:[]) ()
+    | false ->
+      return_error Error.NoSuchBucket ["Bucket", bucket]
 
   let get_stub ~req ~canon bucket param ~root default =
     let _, url = url_of_volpath ~canon bucket "" in
     U.exists url >>= function
     | true ->
+      S.log req.server (Printf.sprintf "Stub GET for %s/?%s" bucket param);
       return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
         Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] root default)
     | false ->
@@ -1505,17 +1518,30 @@ module Make
       return_error Error.NoSuchBucket ["Bucket", bucket]
 
   let put_stub ~req ~canon ~body bucket param =
-    head_bucket ~req ~canon bucket >>= fun () ->
-    read_all ~input:body ~max:max_input_xml >>= function
-    | "" -> return ()
-    | str ->
-      try ignore (Xml.parse_string str); return ()
-      with Xmlm.Error ((line,col), err) ->
-        return_error Error.MalformedXML [
-          "ErrorLine", (string_of_int line);
-          "ErrorColumn", (string_of_int col);
-          "ErrorMessage", (Xmlm.error_message err)
-        ]
+    let _, url = url_of_volpath ~canon bucket "" in
+    U.exists url >>= function
+    | true ->
+      mpart_get_bucket ~canon >>= fun mpart_bucket ->
+      read_all ~input:body ~max:max_input_xml >>= begin function
+        | "" -> return ()
+        | str ->
+          try
+            S.log req.server (Printf.sprintf "Stub PUT for %s/?%s: %s" bucket param str);
+            ignore (Xml.parse_string str);
+            let path = bucket ^ "-" ^ param in
+            let _, url = url_of_volpath ~canon mpart_bucket path in
+            U.copy (U.of_string str) ~srcpos:0L url >>= fun () ->
+            return ()
+          with Xmlm.Error ((line,col), err) ->
+            return_error Error.MalformedXML [
+              "ErrorLine", (string_of_int line);
+              "ErrorColumn", (string_of_int col);
+              "ErrorMessage", (Xmlm.error_message err)
+            ]
+      end >>= fun () ->
+      return_empty ~req ~canon ~status:`No_content ~reply_headers:[]
+    | false ->
+      return_error Error.NoSuchBucket ["Bucket", bucket]
 
   let get_cors ~req ~canon bucket path =
     let _, url = url_of_volpath ~canon bucket "" in
