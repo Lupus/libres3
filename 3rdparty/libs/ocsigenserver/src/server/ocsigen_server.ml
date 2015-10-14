@@ -1027,6 +1027,11 @@ let rec wait_connection use_ssl port socket =
            (fun e ->
               Ocsigen_messages.unexpected_exception e
                 "Server.wait_connection (handle connection)";
+              (match e with
+              | Ssl.Accept_error(Ssl.Error_ssl|Ssl.Error_syscall) ->
+                Ocsigen_messages.warning
+                  ("Last SSL error: " ^ Ssl.get_error_string ())
+              | _ -> ());
               return ())
          >>= fun () ->
          Ocsigen_messages.debug2 "** CLOSE";
