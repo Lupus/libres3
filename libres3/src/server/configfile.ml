@@ -276,9 +276,9 @@ let entries : (string * (string -> unit) * string) list = [
   "allow_volume_create_any_user", expect parse_bool Config.volume_create_elevate_to_admin,
   " Allow creating volumes as any user (elevate to admin privileges)";
   "allow_list_all_volumes", expect parse_bool show_all_volumes,
-  " Allow showing all volumes that you have read/write privileges to, not just the volumes that you own (not stricly S3 compatible)";
+  " Allow showing all volumes that you have read/write privileges to, not just the volumes that you own (not strictly S3 compatible)";
   "allow_public_bucket_index", expect parse_bool allow_public_bucket_index,
-  " Allow showing a browsable 'directory' index for public buckets (not stricly S3 compatible)";
+  " Allow showing a browsable 'directory' index for public buckets (not strictly S3 compatible)";
   "mimefile", expect validate_readable mimefile,
   (Printf.sprintf " Path to mime.types file (default: %s)" !mimefile);
   (* advanced configuration *)
