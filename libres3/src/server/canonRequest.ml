@@ -370,7 +370,7 @@ type auth_header =
 let did_expire_v4 date expires =
   if expires = "" then true
   else
-    try (date +. float (int_of_string expires)) < Unix.gettimeofday ()
+    try (date +. Int64.to_float (Int64.of_string expires)) < Unix.gettimeofday ()
     with _ -> true (* consider expired if malformed *)
 ;;
 
@@ -414,7 +414,7 @@ let parse_authorization req =
       else if keyid = "" || signature = "" || expires = "" then
         AuthEmpty
       else
-        Authorization (keyid, signature, Some (float (int_of_string expires)))
+        Authorization (keyid, signature, Some (Int64.to_float (Int64.of_string expires)))
   | auth :: [] ->
     begin try
         Scanf.sscanf auth "AWS4-HMAC-SHA256 Credential=%s@, SignedHeaders=%s@, Signature=%s"
