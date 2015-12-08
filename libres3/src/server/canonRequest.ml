@@ -398,7 +398,7 @@ let parse_authorization req =
       and signed = get_query_param_opt req.query_params "X-Amz-SignedHeaders"
       and signature = get_query_param_opt req.query_params "X-Amz-Signature"
       in
-      let expiration = date +. float (int_of_string expires) in
+      let expiration = date +. Int64.to_float (Int64.of_string expires) in
       AuthorizationV4 ({
           signed_headers = set_of_header_list signed;
           credential = parse_credential credential;
