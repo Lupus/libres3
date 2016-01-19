@@ -183,10 +183,10 @@ module Make
       None
   ;;
 
-  let send_source source ~canon ~first sender =
+  let send_source source ~canon ~first ?length sender =
     if canon.CanonRequest.req_method = `HEAD then return () (* ensure HEAD's body is empty *)
     else
-      source.seek first >>= fun stream ->
+      source.seek ?len:length first >>= fun stream ->
       SXDefaultIO.iter stream (S.send_data sender)
   ;;
 
@@ -236,7 +236,7 @@ module Make
               content_type = Some content_type;
               content_length = Some length;
               etag_header = None;
-            } >>= send_source source ~canon ~first
+            } >>= send_source source ~canon ~first ~length
       ) ;;
 
   let xml_decl = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
@@ -524,8 +524,8 @@ module Make
       hash#add_substring str pos len;
     return (str, pos, len);;
 
-  let hash_seek_source2 hash source pos =
-    source.seek pos >>= fun stream ->
+  let hash_seek_source2 hash source ?len pos =
+    source.seek ?len pos >>= fun stream ->
     return (hash_stream2 hash stream);;
 
   let hash_source2 hash source =
@@ -534,7 +534,7 @@ module Make
       seek = hash_seek_source2 hash source
     };;
 
-  let fd_seek fd pos =
+  let fd_seek fd ?len pos =
     IO.lseek fd pos >>= fun () ->
     return (fun () ->
         let buf = String.make Config.buffer_size '\x00' in

@@ -89,7 +89,7 @@ module type SchemeOps = sig
   val invalidate_token_of_user : Neturl.url -> unit
   val check: Neturl.url -> string option Lwt.t
   val open_source: Neturl.url -> (entry * state) Lwt.t
-  val seek: state -> int64 -> (state * read_state) Lwt.t
+  val seek: state -> ?len:int64 -> int64 -> (state * read_state) Lwt.t
   val read: (state * read_state) -> output_data Lwt.t
   val close_source : state -> unit Lwt.t
 

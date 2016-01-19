@@ -194,7 +194,7 @@ let stream_of_reply wait_eof server =
 
 let max_input_mem = 65536L
 
-let stream_of arg pos =
+let stream_of arg ?len pos =
   if pos <> 0L then
     fail (Failure "position is not 0 in input")
   else

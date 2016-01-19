@@ -66,7 +66,7 @@ let open_source url =
   find name volume >>= fun (meta, _, contents) ->
   return (meta, (contents, ref 0))
 
-let seek ((_, fpos) as s) pos =
+let seek ((_, fpos) as s) ?len pos =
   fpos := Int64.to_int pos;
   return (s, ())
 

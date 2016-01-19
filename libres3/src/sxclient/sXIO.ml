@@ -41,13 +41,15 @@ type output_stream = output_data -> unit t
 
 type sink = int64 -> output_stream t
 
-let read_string str pos =
+let read_string str ?len pos =
   let eof = ref false in
   return (fun () ->
       if !eof then return ("",0,0)
       else begin
         eof := true;
-        let len = Int64.sub (Int64.of_int (String.length str)) pos in
+        let len = match len with
+          | None -> Int64.sub (Int64.of_int (String.length str)) pos
+          | Some len -> len in
         if len < 0L then return ("",0,0)
         else return (str, Int64.to_int pos, Int64.to_int len)
       end
@@ -280,7 +282,7 @@ module type SchemeOps = sig
   val invalidate_token_of_user : Neturl.url -> unit
   val check: Neturl.url -> string option Lwt.t
   val open_source: Neturl.url -> (entry * state) Lwt.t
-  val seek: state -> int64 -> (state * read_state) Lwt.t
+  val seek: state -> ?len:int64 -> int64 -> (state * read_state) Lwt.t
   val read: (state * read_state) -> output_data Lwt.t
   val close_source : state -> unit Lwt.t
 
@@ -303,8 +305,8 @@ end
 
 module RegisterURLScheme(O: SchemeOps) = struct
   let readurl state () = O.read state
-  let seekurl state pos =
-    O.seek state pos >>= fun read_state ->
+  let seekurl state ?len pos =
+    O.seek state ?len pos >>= fun read_state ->
     return (readurl read_state);;
 
   let withurl url f =
@@ -342,7 +344,7 @@ module RegisterURLScheme(O: SchemeOps) = struct
     let current_urls = ref urls in
     f {
       meta = { name = ""; size = filesize; mtime = 0.; etag = "" };
-      seek = (fun pos ->
+      seek = (fun ?len pos ->
           if pos <> 0L then
             fail (Failure "Non-seekable stream")
           else

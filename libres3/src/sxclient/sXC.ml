@@ -885,13 +885,15 @@ let download_hashes (push, url, blocksize, remaining, skip) hashes_rev =
   push#push (reply >|= fun s -> (s, offset, Int64.to_int len - offset)) >|= fun () ->
   (push, url, blocksize, remaining, 0)
 
-let seek s pos =
+let seek s ?len pos =
   let hashes, start = seek_hashes (Int64.of_int s.blocksize) pos s.hashes 0L in
   let nodes = max 1 (List.length !last_nodes) in
   let split_map = split_at_threshold s.blocksize
       (s.blocksize * nodes * download_max_blocks) hashes [] [] 0 in
-  let remaining = Int64.sub s.filesize start in
   let skip = Int64.to_int (Int64.sub pos start) in
+  let remaining = match len with
+    | None -> Int64.sub s.filesize start
+    | Some len -> Int64.add (Int64.of_int skip) len in
   let download, download_push = Lwt_stream.create_bounded 4 in
   Lwt.ignore_result (Lwt.try_bind (fun () ->
       Lwt_list.fold_left_s download_hashes (download_push, s.url, s.blocksize, remaining, skip) split_map)
