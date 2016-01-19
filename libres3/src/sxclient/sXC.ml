@@ -668,14 +668,20 @@ let get_vol_nodelist url =
   | "" :: volume :: _ ->
     let parse reply =
       json_parse_tree (P.input_of_async_channel reply.body) >>= function
-      | [`O [`F ("nodeList", [`A nodes]); `F ("volumeMeta", [`O metalist])]] ->
-        if has_field "filterActive" metalist then
-          fail (Detail(
-              Unix.Unix_error(Unix.EACCES, volume, "Volume uses filters"),
-              ["LibreS3ErrorMessage","Cannot access a volume that uses filters"]
-            ))
-        else
-          parse_nodelist reply.headers nodes
+      | [`O json ] as lst ->
+        begin match filter_field_one "nodeList" json, filter_field_one "volumeMeta" json with
+        | `A nodes, `O metalist ->
+          if has_field "filterActive" metalist then
+            fail (Detail(
+                Unix.Unix_error(Unix.EACCES, volume, "Volume uses filters"),
+                ["LibreS3ErrorMessage","Cannot access a volume that uses filters"]
+              ))
+          else
+            parse_nodelist reply.headers nodes
+        | _ ->
+          warning "bad locate nodes json (missing fields): %a" pp_json_lst lst;
+          failwith "bad locate nodes json"
+        end
       | lst ->
         warning "bad locate nodes json: %a" pp_json_lst lst;
         failwith "bad locate nodes json"
@@ -1198,11 +1204,10 @@ let locate_upload url size =
                                      ~query:(Printf.sprintf "o=locate&volumeMeta&size=%Ld" size) url)
       >>= fun reply ->
       AJson.json_parse_tree (P.input_of_async_channel reply.body) >>= function
-      | [`O [
-          `F ("nodeList",[`A nodes]);
-          `F ("blockSize",[`Float blocksize]);
-          `F ("volumeMeta", [`O metalist])
-        ]] ->
+      | [`O obj ] ->
+        let nodes = filter_field_array "nodeList" obj in
+        let blocksize = Int64.to_int (filter_field_int "blockSize" obj) in
+        let metalist = match filter_field_one "volumeMeta" obj with `O l -> l | _ -> failwith "bad volumemeta" in
         if has_field "filterActive" metalist then
           fail (XIO.Detail(
               Unix.Unix_error(Unix.EACCES, volume, "Volume uses filters"),
@@ -1213,7 +1218,7 @@ let locate_upload url size =
             try parse_sx_cluster (reply.headers#field "SX-Cluster")
             with Not_found -> parse_server (reply.headers#field "Server")
           in
-          return (uuid, nodes, int_of_float blocksize)
+          return (uuid, nodes, blocksize)
       | p ->
         warning "bad json locate format: %a" pp_json_lst p;
         fail (Failure "bad json locate format")
