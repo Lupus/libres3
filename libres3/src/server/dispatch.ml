@@ -155,8 +155,17 @@ module Make
     return_empty ~req ~canon ~status:`Requested_range_not_satisfiable
       ~reply_headers:header
 
-  let parse_ranges headers content_length  =
+  let parse_ranges headers etag content_length =
     let default_last = Int64.sub content_length 1L in
+    match Headers.get_ifrange headers with
+    | Some (`Date _) | Some (`Etag (`Weak _)) ->
+      (* Date is not a strong-validator in our case:
+         we don't know whether the file changed twice during a second,
+         cf. RFC7232#section-2.2.2 *)
+        None
+    | Some (`Etag (`Strong expected_etag)) when etag <> expected_etag ->
+      None
+    | Some (`Etag (`Strong _)) | None ->
     match Headers.get_range headers with
     | Some (`Bytes [range]) ->
       begin match range with
@@ -212,7 +221,7 @@ module Make
         let headers = add_std_headers ~id:canon.CanonRequest.id
             ~id2:(CanonRequest.gen_debug ~canon) ["ETag", quote etag] in
         let headers = add_meta_headers headers metalst in
-        match (parse_ranges canon.CanonRequest.headers size) with
+        match (parse_ranges canon.CanonRequest.headers etag size) with
         | None ->
           S.send_headers req.server {
             status = `Ok;

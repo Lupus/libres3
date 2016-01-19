@@ -72,6 +72,10 @@ let get_range h =
   with Not_found ->
     None;;
 
+let get_ifrange h =
+  try Some (Nethttp.Header.get_if_range h.ro)
+  with Not_found -> None
+
 let parse_iso8601 date =
   Scanf.sscanf date
     "%04d%02d%02dT%02d%02d%02dZ" (fun y m d hh mm ss ->
