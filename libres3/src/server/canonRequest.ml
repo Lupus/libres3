@@ -325,7 +325,7 @@ let scope_of_credential c =
 let string_to_sign_v4 auth ?sha256 ~canon_req =
   let absolute_uri =
     if canon_req.is_virtual_hosted then canon_req.lpath
-    else "/" ^(Bucket.to_string canon_req.bucket) ^ canon_req.lpath
+    else (prefix_bucket canon_req.bucket) ^ canon_req.lpath
   in
   let signed_headers =
     Headers.StringSet.elements (Headers.StringSet.union auth.signed_headers
