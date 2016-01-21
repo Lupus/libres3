@@ -292,7 +292,7 @@ let starts_with s with_ =
   String.length s >= n && String.sub s 0 n = with_
 
 let must_sign_header header =
-  header = "host" || header = "content-type" ||
+  header = "host" (*|| header = "content-type" *)||
   starts_with header "x-amz-"
 
 let trim v = v (* already trimmed? *)
