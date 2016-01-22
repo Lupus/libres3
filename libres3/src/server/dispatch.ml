@@ -1134,14 +1134,13 @@ module Make
       parse_parts (get_part_sizes ~canon bucket path ~uploadId)
 
   let list_bucket_uploads owner_name l common =
-    let _, contents = StringMap.fold (fun name (size, mtime, md5) (lastkey, accum) ->
+    let contents = StringMap.fold (fun name (size, mtime, md5) (accum) ->
         let name = Filename.dirname name in
         let key = Filename.dirname name in
         let _, key = Util.url_split_first_component (Neturl.split_path key)
         and uploadId = Filename.basename name in
         let key = String.sub key 1 (String.length key-1) in
-        if key = lastkey then lastkey, accum
-        else key, (Xml.tag "Upload" [
+        (Xml.tag "Upload" [
             Xml.tag "Key" [Xml.d key];
             Xml.tag "UploadId" [Xml.d uploadId];
             Xml.tag "Initiator" (owner owner_name);
@@ -1151,7 +1150,7 @@ module Make
                 Util.format_date mtime)
               ]
           ]) :: accum
-      ) l ("",[]) in
+      ) l ([]) in
     StringSet.fold (fun name accum ->
         (Xml.tag "CommonPrefixes" [
             Xml.tag "Prefix" [Xml.d (name ^ "/")]
