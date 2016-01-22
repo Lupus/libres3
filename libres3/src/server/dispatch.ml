@@ -496,8 +496,12 @@ module Make
     ]
 
   module StringSet = Set.Make(String)
-  let list_bucket_files2 owner_name l common =
-    let contents = StringMap.fold (fun name (size, mtime, etag) accum ->
+  let list_bucket_files2 limit owner_name l common =
+    let is_truncated,length,contents = StringMap.fold (fun name (size, mtime, etag) (is_truncated,n, accum) ->
+        match limit with
+        | Some lim when n = lim -> true,n, accum
+        | _ ->
+        false, n+1,
         (Xml.tag "Contents" [
             Xml.tag "Key" [Xml.d name];
             Xml.tag "LastModified" [Xml.d (
@@ -508,8 +512,8 @@ module Make
             Xml.tag "StorageClass" [Xml.d "STANDARD"];
             Xml.tag "Owner" (owner owner_name)
           ]) :: accum
-      ) l [] in
-    StringSet.fold (fun name accum ->
+      ) l (false,0,[]) in
+    is_truncated,length,StringSet.fold (fun name accum ->
         (Xml.tag "CommonPrefixes" [
             Xml.tag "Prefix" [Xml.d (name ^ "/")]
           ]) :: accum
@@ -930,7 +934,10 @@ module Make
     let base, url = url_of_volpath ~canon bucket prefix in
     let pathprefix = prefix in
     let no_recurse = delim = Some '/' in
-    let limit = if delim = None then Some Config.maxkeys else None in
+    let limit =
+      try Some (min (int_of_string (List.assoc "max-keys" params)) Config.maxkeys)
+      with Not_found ->
+        if delim = None then Some Config.maxkeys else None in
     Lwt.catch
       (fun () ->
          U.fold_list ~base ~no_recurse ?limit ?marker url
@@ -952,10 +959,9 @@ module Make
       end else return ()
     end >>= fun () ->
     get_owner ~canon bucket >>= fun owner ->
-    let xml = List.rev (list_bucket_files2 owner files common_prefixes) in
-    let files = List.length xml in
-    let maxkeys = if delim = None then (List.length xml) else Config.maxkeys in
-    let is_truncated = limit <> None && files > 0 in
+    let is_truncated, files, rev_xml = list_bucket_files2 limit owner files common_prefixes in
+    let xml = List.rev rev_xml in
+    let maxkeys = if delim = None then files else Config.maxkeys in
     return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
       Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] "ListBucketResult" (
         List.rev_append [

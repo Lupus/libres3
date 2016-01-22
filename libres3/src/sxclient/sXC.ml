@@ -1354,7 +1354,9 @@ let fold_list url ?marker ?limit ?(no_recurse=false) f recurse accum =
     let recursive =
       match no_recurse, limit with
       | true, _ -> ""
-      | false, Some limit -> Printf.sprintf "recursive&limit=%d" limit
+      | false, Some limit ->
+        (* +1 for removing first item, +1 to check for truncation *)
+        Printf.sprintf "recursive&limit=%d" (limit+2)
       | false, None -> "recursive" in
     let query = match path with
       | [] | [""] -> recursive
