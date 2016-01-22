@@ -208,7 +208,7 @@ let canonicalize_request ~id req_method
    * fixup_url_string doesn't help with [ either.
    * Do the safe thing: decode the URL path, and encode it again *)
   let is_virtual_hosted, bucket, undecoded_uri_path = Bucket.from_url hurl undecoded_url in
-  let decoded = Neturl.norm_path (Neturl.split_path
+  let decoded = (*Neturl.norm_path*) (Neturl.split_path
                                     (uri_decode undecoded_uri_path)) in
   let absolute_url = Neturl.modify_url hurl ~path:decoded ~encoded:false in
   let query =
