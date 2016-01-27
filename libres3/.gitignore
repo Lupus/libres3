@@ -1,3 +1,4 @@
+setup.exe
 setup.log
 setup.data
 *.native
@@ -16,3 +17,5 @@ metrics.html
 bisect*.out
 coverage.html/
 README.txt
+_build
+sigs.log
