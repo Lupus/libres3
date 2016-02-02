@@ -2,6 +2,7 @@ sbin: [
   "libres3/_build/src/server/libres3_setup.native" {"libres3_setup"}
   "libres3/_build/src/server/libres3_report.native" {"libres3_report"}
   "libres3/_build/src/ocsigen/libres3_ocsigen.native" {"libres3_ocsigen"}
+  "libres3/_build/test/netTest.native" {"libres3_net_test"}
   "libres3/src/files/sbin/libres3_certgen"
   "libres3/src/files/sbin/libres3"
 ]
