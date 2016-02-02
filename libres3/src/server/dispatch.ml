@@ -1617,6 +1617,10 @@ module Make
         return_error Error.AccessDenied
           ["Bucket", bucket; "LibreS3ErrorMessage","This bucketname is reserved for internal use"]
 
+      (* public bucket indexing *)
+      | `GET, Bucket bucket, path, [] when canon.CanonRequest.user = libres3_all_users && is_s3_index canon ->
+        index_bucket ~req:request ~canon bucket path
+
       (* Service GET API *)
       | `GET, Bucket "", "/",[] ->
         list_buckets request canon
@@ -1710,8 +1714,6 @@ module Make
       | `GET, Bucket bucket, path, params when not (List.exists known_api params) ->
         (* TODO: use params! *)
         get_object ~req:request ~canon bucket path
-      | `GET, Bucket bucket, path, [] when canon.CanonRequest.user = libres3_all_users && is_s3_index canon ->
-        index_bucket ~req:request ~canon bucket path
 
       | `GET, Bucket bucket, _, params when List.mem_assoc "acl" params && List.assoc "acl" params = "" ->
         (* TODO: versioning *)
