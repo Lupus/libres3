@@ -1517,9 +1517,15 @@ module Make
     let _, url = url_of_volpath ~canon bucket "" in
     U.exists url >>= function
     | true ->
+      mpart_get_bucket ~canon >>= fun mpart_bucket ->
+      let path = bucket ^ "-" ^ param in
+      let _, url = url_of_volpath ~canon mpart_bucket path in
+      Lwt.catch (fun () ->
+          U.with_url_source url (fun input -> read_all ~input ~max:max_input_xml) >|= Xml.parse_string)
+        (fun _ ->
+           return (Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] root default)) >>= fun xml ->
       S.log req.server (Printf.sprintf "Stub GET for %s/?%s" bucket param);
-      return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (
-        Xml.tag ~attrs:[Xml.attr "xmlns" reply_ns] root default)
+      return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] xml
     | false ->
       return_error Error.NoSuchBucket ["Bucket", bucket]
 
@@ -1527,7 +1533,14 @@ module Make
     let _, url = url_of_volpath ~canon bucket "" in
     U.exists url >>= function
     | true ->
-      return_error Error.NoSuchLifecycleConfiguration ["Bucket", bucket ]
+      mpart_get_bucket ~canon >>= fun mpart_bucket ->
+      let path = bucket ^ "-" ^ param in
+      let _, url = url_of_volpath ~canon mpart_bucket path in
+      Lwt.catch (fun () ->
+          U.with_url_source url (fun input -> read_all ~input ~max:max_input_xml) >>= fun xml ->
+          return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (Xml.parse_string xml))
+        (fun _ ->
+           return_error Error.NoSuchLifecycleConfiguration ["Bucket", bucket ])
     | false ->
       return_error Error.NoSuchBucket ["Bucket", bucket]
 
@@ -1553,7 +1566,7 @@ module Make
               "ErrorMessage", (Xmlm.error_message err)
             ]
       end >>= fun () ->
-      return_empty ~req ~canon ~status:`No_content ~reply_headers:[]
+      return_empty ~req ~canon ~status:`Ok ~reply_headers:[]
     | false ->
       return_error Error.NoSuchBucket ["Bucket", bucket]
 
