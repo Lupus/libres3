@@ -1539,7 +1539,7 @@ let map_acl = function
     failwith "bad ACL json"
 
 let acl_url =
-  Neturl.modify_url ~encoded:true ~query:"o=acl" ~scheme:"http"
+  Neturl.modify_url ~encoded:true ~query:"o=acl&manager" ~scheme:"http"
     ~syntax:http_syntax
 
 let acl_cache = Caching.cache 128
