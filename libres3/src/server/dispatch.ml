@@ -1678,7 +1678,7 @@ module Make
         get_bucket_replication ~req:request ~canon bucket
       | `GET, Bucket bucket, "/", ["tagging",""] ->
         get_bucket_tagging ~req:request ~canon bucket
-      | `GET, Bucket bucket, "/", (["versions" ,""] as params) ->
+      | `GET, Bucket bucket, "/", params when List.mem_assoc "versions" params ->
         return_error Error.NotImplemented params
       | `GET, Bucket bucket, "/", ["requestPayment" as param,""] ->
         get_stub ~req:request ~canon bucket param ~root:"RequestPaymentConfiguration"
@@ -2006,6 +2006,12 @@ module Make
             | Lwt.Canceled ->
               (* do not send anything back to client, it has already disconnected *)
               fail Ocsigen_http_com.Aborted
+            | (Failure msg | Invalid_argument msg) as e ->
+              return_error_xml
+                ~req:request
+                ~id2:(CanonRequest.gen_debug ~canon)
+                ~id:canon.CanonRequest.id ~path ~headers:[]
+                Error.InvalidArgument ["Exception", Printexc.to_string e]
             | e ->
               let bt = if Printexc.backtrace_status () then
                   ["Backtrace", Printexc.get_backtrace ()]
