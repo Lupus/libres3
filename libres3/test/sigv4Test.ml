@@ -93,7 +93,8 @@ let parse_req s =
         canonicalize_request ~id:(RequestId.generate ())
           (meth_of_string ~body meth) {
           req_headers = headers;
-          undecoded_url = path
+          undecoded_url = path;
+          cors = false, None;
         }), body
   | _ ->
     failwith "malformed request"

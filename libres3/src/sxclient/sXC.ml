@@ -800,20 +800,38 @@ let meta_cache = Caching.cache 1024
 
 let get_meta url =
   let fetch ?etag _ =
-    get_vol_nodelist url >>= fun (nodes, _) ->
-    let url = Neturl.modify_url ~syntax:http_syntax url ~query:"fileMeta" in
-    make_request ~quick:true `GET nodes ?etag url
+    match url_path ~encoded:true url with
+    | "" :: volume :: [""|"/"] ->
+      let url = Neturl.modify_url url ~path:["";volume] in
+      get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
+      let url =
+        Neturl.modify_url url
+          ~encoded:true
+          ~query:"o=locate&volumeMeta&customVolumeMeta"
+          ~scheme:"http"
+          ~syntax:http_syntax in
+      make_request ~quick:true `GET cluster_nodes url
+    | _ ->
+      get_vol_nodelist url >>= fun (nodes, _) ->
+      let url = Neturl.modify_url ~syntax:http_syntax url ~query:"fileMeta" in
+      make_request ~quick:true `GET nodes ?etag url
   in
   let parse reply =
     expect_content_type reply "application/json" >>= fun () ->
     let input = P.input_of_async_channel reply.body in
     AJson.json_parse_tree input >>= function
-    | [`O [`F ("fileMeta", [`O metalist])]] ->
+    | [`O obj ] ->
+      begin match filter_field "fileMeta" obj, filter_field "customVolumeMeta" obj with
+      |  [ `F (_, [`O metalist]) ], _ | _, [ `F (_, [`O metalist]) ] ->
       return (List.rev_map (function
           | `F (k, [`String v]) -> k, transform_string (Hexa.decode()) v
-          | _ -> failwith "bad meta reply format"
+          | _ -> failwith "bad meta reply format (obj)"
         ) metalist)
-    | _ -> failwith "bad meta reply format"
+      | l1, l2 ->
+        warning "missing field for meta in json: %a" pp_json_lst [`O obj];
+        failwith (Printf.sprintf "bad meta reply format (field: %d,%d)" (List.length l1) (List.length l2))
+      end
+    | _ -> failwith "bad meta reply format (json)"
   in
   Caching.make_private_cached_request meta_cache ~fetch ~parse url
 
@@ -1235,14 +1253,22 @@ let upload_batch user port source map token blocksize upload_map () =
     grouped_hashes (return ())
 ;;
 
-let build_meta = function
-  | None -> []
-  | Some f ->
-    ["fileMeta", `Object (
+let build_meta_raw field lst =
+    [field, `Object (
         List.rev_map (fun (k,v) ->
             k, `String (transform_string (Hexa.encode ()) v)
-          ) (f ())
-      )]
+          ) lst)]
+
+let build_meta = function
+  | None -> []
+  | Some f -> build_meta_raw "fileMeta" (f ())
+
+let set_meta url meta =
+  let url = Neturl.modify_url url ~encoded:true ~query:"o=mod" ~scheme:"http"
+    ~syntax:http_syntax in
+  get_cluster_nodelist url >>= fun (nodes, _) ->
+  send_json nodes url (`Object (build_meta_raw "customVolumeMeta" meta)) >>=
+  job_get url
 
 let upload_part ?metafn nodelist url source blocksize hashes map size extendSeq token =
   let obj = List.rev_append [

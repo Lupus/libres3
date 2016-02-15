@@ -30,9 +30,11 @@
 type t =
   | NoError
   | AccessDenied
+  | AccessForbidden
   | AccountProblem
   | AmbiguousGrantByEmailAddress
   | BadDigest
+  | BadRequest
   | BucketAlreadyExists
   | BucketAlreadyOwnedByYou
   | BucketNotEmpty
@@ -123,6 +125,10 @@ let sig_error () =
 let info = function
   | NoError ->
     "", "", `Ok
+  | AccessForbidden ->
+    "AccessForbidden",
+    "Access Denied",
+    `Forbidden
   | AccessDenied ->
     "AccessDenied",
     "Access Denied",
@@ -138,6 +144,10 @@ let info = function
   | BadDigest ->
     "BadDigest",
     "Content-MD5 mismatch.",
+    `Bad_request
+  | BadRequest ->
+    "BadRequest",
+    "Bad request",
     `Bad_request
   | BucketAlreadyExists ->
     "BucketAlreadyExists",

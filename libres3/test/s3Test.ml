@@ -129,7 +129,8 @@ let sign_request req =
   let meth = map_method req.meth in
   let h = ("Date", date) :: req.req_headers in
   let canon = CanonRequest.canonicalize_request ~id:(RequestId.generate()) meth
-      {CanonRequest.req_headers = ("Authorization","") :: h; CanonRequest.undecoded_url = req.relative_url} in
+      {CanonRequest.req_headers = ("Authorization","") :: h; CanonRequest.undecoded_url = req.relative_url;
+       cors = false, None;} in
   let tosign = CanonRequest.string_to_sign canon in
   let signature = Cryptoutil.sign_str (!secret_access_key) tosign in
   Printf.fprintf siglog "URL:%s\nStringToSignBytes:%s\nSignature:%s\n\n"

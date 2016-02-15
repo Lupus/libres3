@@ -29,12 +29,103 @@
 
 open Netstring_str
 
+type cors_rule = {
+  origin: string option;
+  allowed_method: string list;
+  allowed_header: string list;
+  max_age_seconds: int option;
+  expose_header: string list;
+}
+
 type ('a,'b) methods = [ `DELETE | `GET | `HEAD | `POST of 'a | `PUT of 'b | `OPTIONS | `UNSUPPORTED ]
 type header = string * string
 type request_info = {
   req_headers: header list;
   undecoded_url: string;
+  cors: bool * (cors_rule option);
 }
+
+let (|>) x f = f x
+
+open CodedIO
+
+let is_xml_tag find = function
+  | (`El (((_, tag),_),_)) -> tag = find
+  | (`Data _) -> failwith "tag expected"
+
+let get_children = function
+  | `El (_, children) -> children
+  | _ -> failwith "Tag expected"
+
+let get_child xml =
+  match get_children xml with
+  | [`Data d] -> d
+  | _ -> failwith "data expected"
+
+let get_xml_tags find (lst:Xml.t list) =
+  List.find_all (is_xml_tag find) lst |>
+  List.rev_map get_child |> List.rev
+
+let get_xml_tag find xml =
+  if is_xml_tag find xml then
+    get_children xml
+  else []
+
+let match_hostname ~origin allowed =
+  let allowed_left, allowed_right =
+    try
+      let pos = String.index allowed '*' in
+      String.sub allowed 0 pos,
+      String.sub allowed (pos+1) ((String.length allowed) - pos - 1)
+    with Not_found -> allowed, "" in
+  let allowed_left_n, allowed_right_n =
+    String.length allowed_left, String.length allowed_right in
+  let origin_n = String.length origin in
+  allowed_left_n <= origin_n &&
+  allowed_right_n <= origin_n &&
+  String.sub origin 0 allowed_left_n = allowed_left &&
+  String.sub origin (origin_n - allowed_right_n) allowed_right_n = allowed_right
+
+let cors_rule_of_xml (lst:CodedIO.Xml.t list) =
+  let allowed_origin = get_xml_tags "AllowedOrigin" lst in
+  let allowed_method = get_xml_tags "AllowedMethod" lst in
+  (allowed_origin, allowed_method), lazy {
+      origin = None;
+      allowed_method = allowed_method;
+      allowed_header = get_xml_tags "AllowedHeader" lst;
+      max_age_seconds =
+        (match get_xml_tags "MaxAgeSeconds" lst with
+         | [ seconds ] -> Some (int_of_string seconds)
+         | [] -> None
+         | _ -> failwith "duplicate MaxAgeSeconds");
+      expose_header = get_xml_tags "ExposeHeader" lst;
+    }
+
+let cors_rules_of_xml (xml: CodedIO.Xml.t) =
+  xml |> get_xml_tag "CORSConfiguration" |>
+  List.rev_map (get_xml_tag "CORSRule") |>
+  List.rev_map cors_rule_of_xml
+
+let string_of_method = function
+  | `DELETE -> "DELETE"
+  | `GET -> "GET"
+  | `HEAD -> "HEAD"
+  | `POST _ -> "POST"
+  | `PUT _ -> "PUT"
+  | `OPTIONS -> "OPTIONS"
+  | _ -> "N/A";;
+
+let cors_rule_of_origin ~origin ~meth rules =
+  let match_cors_rule ((allowed_origin, allowed_method), rule) =
+    let origin_ok = List.exists (match_hostname ~origin) allowed_origin in
+    let meth_ok = List.exists (fun s -> s = meth) allowed_method in
+    origin_ok && meth_ok
+  in
+  try
+    let _, lazy rule = List.find match_cors_rule rules in
+    Some  { rule with origin = Some origin }
+  with Not_found -> None
+
 
 module StringMap = Map.Make(String)
 type ('a,'b) t = {
@@ -55,20 +146,13 @@ type ('a,'b) t = {
   query_params: string StringMap.t;
   id: RequestId.t;
   user : string;
-  is_virtual_hosted: bool
+  is_virtual_hosted: bool;
+  origin: string option;
+  access_control_request_method: string option;
 }
 
 
 let x_amz_re = regexp_case_fold "x-amz-.*"
-
-let string_of_method = function
-  | `DELETE -> "DELETE"
-  | `GET -> "GET"
-  | `HEAD -> "HEAD"
-  | `POST _ -> "POST"
-  | `PUT _ -> "PUT"
-  | `OPTIONS -> "OPTIONS"
-  | _ -> "N/A";;
 
 let canonicalized_amz_headers c =
   let sorted_lowercased_amz = Headers.filter_names (fun name ->
@@ -223,6 +307,18 @@ let canonicalize_request ~id req_method
   let query_params = StringMap.map merge query_params_multi in
   let lpath = Neturl.join_path (Neturl.url_path ~encoded:false absolute_url) in
   let path = transform_path lpath in
+  let origin = match Headers.field_values headers "Origin" with
+    | [ origin ] -> Some origin
+    | _ -> None
+  in
+  let access_control_request_method = match req_method with
+    | `OPTIONS ->
+      begin match Headers.field_values headers "Access-Control-Request-Method" with
+      | [ meth ] -> Some meth
+      | _ -> None
+      end
+    | _ -> Some (string_of_method req_method)
+  in
   {
     req_method = req_method;
     content_md5 = Headers.field_single_value headers "Content-MD5" "";
@@ -241,7 +337,9 @@ let canonicalize_request ~id req_method
     query_params = query_params;
     id = id;
     user = "";
-    is_virtual_hosted = is_virtual_hosted
+    is_virtual_hosted = is_virtual_hosted;
+    origin = origin;
+    access_control_request_method = access_control_request_method;
   };;
 
 let string_to_sign canon_req =

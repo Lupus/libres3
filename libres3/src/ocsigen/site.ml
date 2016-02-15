@@ -254,6 +254,7 @@ let process_request dispatcher ri () =
       info = {
         CanonRequest.req_headers = headers;
         undecoded_url = undecoded_url;
+        cors = false, None;
       };
     } in
   Ocsigen_senders.Stream_content.result_of_content

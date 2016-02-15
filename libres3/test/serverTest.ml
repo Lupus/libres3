@@ -107,6 +107,7 @@ let perform_queries dispatcher lst =
           info = {
             req_headers = ("Host",host) :: req.req_headers;
             CanonRequest.undecoded_url = req.relative_url;(* TODO: encode it! *)
+            cors = false, None;
           };
         } >>= fun () ->
         return server

@@ -166,6 +166,18 @@ let get_meta url : (string*string) list Lwt.t =
   find path volume >>= fun (_, meta, _) ->
   return meta
 
+let set_meta url meta =
+  let vol, path = file url in
+  find vol !volumes >>= fun volume ->
+  let entry = {
+    IO.name="";
+    size=0L;
+    mtime=0.;
+    etag=""
+  }, meta, "" in
+  volumes := StringMap.add vol (StringMap.add path entry volume) !volumes;
+  return ()
+
 let etag_cnt = ref 0
 
 let put ?quotaok ?metafn src srcpos dsturl =

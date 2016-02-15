@@ -34,6 +34,8 @@ open Lwt
 open SXDefaultIO
 module StringMap = Map.Make(String)
 
+let (|>) x f = f x
+
 let server_name = ("libres3-" ^ Version.version)
 type substr = string * int * int
 
@@ -91,13 +93,37 @@ module Make
       end else None
     with Not_found -> None;;
 
-  let add_std_headers ~id ~id2 ?dbg_body headers =
+  let header_opt accum = function
+    | (k, Some v) -> (k,v) :: accum
+    | (_, None) -> accum
+
+  let concat_opt = function
+    | [] -> None
+    | lst -> Some (String.concat ", " lst)
+
+  let add_std_headers ~id ~id2 ~req ?dbg_body headers =
+   let aca_origin, expose_header, allowed_methods, max_age_seconds = match req.info.CanonRequest.cors with
+      | true, Some rule ->
+        rule.CanonRequest.origin,
+        rule.CanonRequest.expose_header,
+        rule.CanonRequest.allowed_method,
+        (match rule.CanonRequest.max_age_seconds with
+          | None -> None
+          | Some i -> Some (string_of_int i))
+      | _ -> None, [], [], None in
     let result =
-      List.rev_append [
-        "Server", server_name;
-        "x-amz-id-2", id2;
-        "x-amz-request-id", RequestId.to_string id
-      ] headers in
+      List.fold_left header_opt headers [
+        "Server", Some server_name;
+        "x-amz-id-2", Some id2;
+        "x-amz-request-id", Some (RequestId.to_string id);
+        "Access-Control-Allow-Origin", aca_origin;
+        "Access-Control-Allow-Credentials", if aca_origin = None then None else Some "true";
+        "Access-Control-Expose-Headers", concat_opt expose_header;
+        "Vary", if aca_origin = None then None else Some "Origin, Access-Control-Request-Headers, Access-Control-Request-Method";
+        (* these are not required for non-preflight, but AWS adds them to all replies *)
+        "Access-Control-Max-Age", max_age_seconds;
+        "Access-Control-Allow-Methods", concat_opt allowed_methods
+      ] in
     begin match debug_output with
       | None -> ()
       | Some ch ->
@@ -115,7 +141,7 @@ module Make
   ;;
 
   let return_string ~id ~id2 ~req ~status ?last_modified ~reply_headers ~content_type ?body_header str =
-    let headers = add_std_headers ~id ~id2 reply_headers ~dbg_body:str in
+    let headers = add_std_headers ~req ~id ~id2 reply_headers ~dbg_body:str in
     let body_header = if req.meth = `HEAD then None else body_header in
     let body_header_len = match body_header with
       | Some s -> String.length s
@@ -135,7 +161,7 @@ module Make
 
   let return_empty ~req ~canon ~status ~reply_headers =
     let headers =
-      add_std_headers
+      add_std_headers ~req
         ~id:canon.CanonRequest.id
         ~id2:(CanonRequest.gen_debug ~canon)
         reply_headers in
@@ -218,7 +244,7 @@ module Make
     U.with_url_source url (fun source ->
         let meta = source.meta in
         let size = meta.size and mtime = meta.mtime and etag = meta.etag in
-        let headers = add_std_headers ~id:canon.CanonRequest.id
+        let headers = add_std_headers ~req ~id:canon.CanonRequest.id
             ~id2:(CanonRequest.gen_debug ~canon) ["ETag", quote etag] in
         let headers = add_meta_headers headers metalst in
         match (parse_ranges canon.CanonRequest.headers etag size) with
@@ -578,6 +604,7 @@ module Make
   let meta_key = "libres3-etag-md5"
   let meta_key_size = "libres3-filesize"
   let meta_key_content_type = "libres3-content-type"
+  let meta_key_cors = "libres3-cors"
 
   let default_mime_type = "binary/octet-stream"
   let content_type canon =
@@ -1284,7 +1311,7 @@ module Make
     let result_wait = Result.lift f () in
     let id = canon.CanonRequest.id
     and id2 = CanonRequest.gen_debug ~canon in
-    let headers = add_std_headers ~id ~id2 [] in
+    let headers = add_std_headers ~id ~id2 ~req [] in
     S.send_headers req.server ~body_header:xml_decl {
       status = `Ok; (* we send 200 with an <Error> in the body if needed *)
       reply_headers = headers;
@@ -1570,14 +1597,102 @@ module Make
     | false ->
       return_error Error.NoSuchBucket ["Bucket", bucket]
 
-  let get_cors ~req ~canon bucket path =
+  let opt_of_list = function
+    | [] -> None
+    | [one] -> Some one
+    | _ -> failwith "duplicate header"
+
+  let get_xml_tag expected (xml:Xml.t) = match xml with
+    | `El (((_, tag),_), children) when tag=expected ->
+      children
+    | `El (((_, tag),_), _) ->
+      failwith ("Unknown tag: " ^ tag)
+    | `Data _ -> failwith "tag expected"
+
+  let cors_rules_of_xml (xml: CodedIO.Xml.t) =
+    xml |> get_xml_tag "CORSConfiguration" |>
+    List.rev_map (get_xml_tag "CORSRule") |>
+    List.rev_map CanonRequest.cors_rule_of_xml
+
+  let validate_cors_xml xml =
+    try
+      cors_rules_of_xml xml |>
+      List.iter (fun (_, rule) -> Lazy.force rule |> ignore);
+      Lwt.return_unit
+    with e ->
+      return_error Error.MalformedXML [
+        "Error", Printexc.to_string e
+      ]
+
+  let put_cors ~req ~canon ~body bucket =
     let _, url = url_of_volpath ~canon bucket "" in
     U.exists url >>= function
     | true ->
-      return_error Error.AccessDenied
-        ["Bucket", bucket; "LibreS3ErrorMessage", "CORS is not enabled"]
+      parse_input_xml_opt body "CORSConfiguration" (fun x -> x) (fun cors ->
+          let xml = Xml.tag ~attrs:[Xml.attr ~ns:"http://www.w3.org/2000/xmlns/" "xmlns" reply_ns] "CORSConfiguration" cors in
+          validate_cors_xml xml >>= fun () ->
+          U.get_meta url >>= fun meta ->
+          let meta = List.remove_assoc meta_key_cors meta in
+          U.set_meta url ((meta_key_cors, Xml.to_string xml) :: meta)
+      )
     | false ->
       return_error Error.NoSuchBucket ["Bucket", bucket]
+
+  let delete_cors ~req ~canon bucket =
+    let _, url = url_of_volpath ~canon bucket "" in
+    U.exists url >>= function
+    | true ->
+      U.get_meta url >>= fun meta ->
+      let meta = List.remove_assoc meta_key_cors meta in
+      U.set_meta url meta
+    | false ->
+      return_error Error.NoSuchBucket ["Bucket", bucket]
+
+  let cors_of_url ~req url =
+    Lwt.catch (fun () ->
+        U.get_meta url >|= fun meta ->
+        Some (List.assoc meta_key_cors meta)
+      ) (fun _ -> return_none)
+
+  let update_cors_rule_opt ~req ~canon =
+    match canon.CanonRequest.origin, canon.CanonRequest.access_control_request_method with
+    | None, _ | _, None -> return req
+    | Some origin, Some meth ->
+      let Bucket bucket = canon.CanonRequest.bucket in
+      (* TODO: can't we use the all-users key? *)
+      let elevated_canon = { canon with CanonRequest.user = !Config.key_id } in
+      let _, url = url_of_volpath ~canon:elevated_canon bucket "" in
+      cors_of_url ~req url >|= function
+      | Some xml ->
+        let rule = xml |> Xml.parse_string |> cors_rules_of_xml |>
+                   CanonRequest.cors_rule_of_origin ~origin ~meth in
+        { req with info = { req.info with CanonRequest.cors = true, rule } }
+      | None ->
+        { req with info = { req.info with CanonRequest.cors = false, None } }
+
+  (* also for individual requests when Origin header is present *)
+  let get_cors_preflight ~req ~canon =
+    let Bucket bucket = canon.CanonRequest.bucket in
+    match canon.CanonRequest.origin, canon.CanonRequest.access_control_request_method, req.info.CanonRequest.cors with
+    | None, _, _ ->
+      return_error Error.BadRequest ["LibreS3ErrorMessage", "Origin request header is missing"]
+    | _, None, _ ->
+      return_error Error.BadRequest ["LibreS3ErrorMessage", "Access-Control-Request-Method request header is missing"]
+    | _, _, (false, _) ->
+      return_error Error.AccessForbidden ["Bucket", bucket; "LibreS3ErrorMessage", "CORS is not enabled for this bucket"]
+    | _, _, (true, None) ->
+      return_error Error.AccessForbidden ["LibreS3ErrorMessage", "CORS Origin or method not allowed"]
+    | Some origin, Some acr_method, (true, Some rule) ->
+      let allowed, rejected = List.partition (fun h -> List.mem h rule.CanonRequest.allowed_header)
+                   (Headers.field_values canon.CanonRequest.headers "Access-Control-Request-Headers")
+      in
+      if rejected <> [] then
+        return_error Error.AccessForbidden ["LibreS3ErrorMessage", "CORS header not allowed"]
+      else
+        return_empty ~req ~canon ~status:`Ok ~reply_headers:(List.fold_left header_opt [] [
+          (* origin, credentials added by add_std_headers *)
+          "Access-Control-Allow-Headers", concat_opt allowed;
+          ])
 
   let get_bucket_location ~req ~canon bucket =
     let _, url = url_of_volpath ~canon bucket "" in
@@ -1593,7 +1708,12 @@ module Make
     let _, url = url_of_volpath ~canon bucket "" in
     U.exists url >>= function
     | true ->
-      return_error Error.NoSuchCORSConfiguration [ "BucketName", bucket ]
+      begin cors_of_url ~req url >>= function
+      | Some xml ->
+        return_xml_canon ~req ~canon ~status:`Ok ~reply_headers:[] (Xml.parse_string xml)
+      | None ->
+        return_error Error.NoSuchCORSConfiguration [ "BucketName", bucket ]
+      end
     | false ->
       return_error Error.NoSuchBucket ["Bucket", bucket]
 
@@ -1631,6 +1751,10 @@ module Make
         canon.CanonRequest.req_method, canon.CanonRequest.bucket,
         canon.CanonRequest.path, CanonRequest.actual_query_params canon
       with
+      | `OPTIONS, _, _, _ ->
+        (* get_cors_preflight would've handled it *)
+        return_error Error.BadRequest ["LibreS3ErrorMessage", "Origin request header is missing"]
+
       | _, Bucket bucket, _, _ when is_mpart_bucket bucket ->
         return_error Error.AccessDenied
           ["Bucket", bucket; "LibreS3ErrorMessage","This bucketname is reserved for internal use"]
@@ -1646,8 +1770,8 @@ module Make
       (* Bucket DELETE APIs *)
       | `DELETE, Bucket bucket, "/",[] ->
         delete_bucket ~req:request ~canon bucket
-      | `DELETE, Bucket bucket, "/", ["cors" as param, ""] ->
-        delete_stub ~canon ~req:request bucket param
+      | `DELETE, Bucket bucket, "/", ["cors", ""] ->
+        delete_cors ~canon ~req:request bucket
       | `DELETE, Bucket bucket, "/", ["lifecycle" as param, ""] ->
         delete_stub ~canon ~req:request bucket param
       | `DELETE, Bucket bucket, "/", ["policy", ""] ->
@@ -1702,8 +1826,8 @@ module Make
         create_bucket ~canon ~request body bucket
       | `PUT body, Bucket bucket, "/", ["acl",""] ->
         set_noop_acl ~request ~canon body bucket
-      | `PUT body, Bucket bucket, "/", ["cors" as param,""] ->
-        put_stub ~req:request ~canon ~body bucket param
+      | `PUT body, Bucket bucket, "/", ["cors",""] ->
+        put_cors ~req:request ~canon ~body bucket
       | `PUT body, Bucket bucket, "/", ["lifecycle" as param,""] ->
         put_stub ~req:request ~canon ~body bucket param
       | `PUT body, Bucket bucket, "/", ["policy",""] ->
@@ -1743,9 +1867,6 @@ module Make
       | `HEAD, Bucket bucket, path, _ ->
         (* TODO: versioning *)
         get_object ~req:request ~canon bucket path
-
-      | `OPTIONS, Bucket bucket, path, _ ->
-        get_cors ~req:request ~canon bucket path
 
       | `POST body, Bucket bucket, path, ([] as params) ->
         return_error Error.NotImplemented params
@@ -1817,6 +1938,9 @@ module Make
 
   let empty_sha256 = Cryptokit.hash_string (Cryptokit.Hash.sha256 ()) ""
 
+  let is_cors_preflight canon =
+    canon.CanonRequest.req_method = `OPTIONS
+
   let rec return_error_signature tries ~request ~canon url lst =
     if tries = 0 then begin
       U.invalidate_token_of_user (U.of_neturl url);
@@ -1842,6 +1966,8 @@ module Make
             | e -> fail e)
       else if is_s3_index canon then
         return_error Error.AccessDenied ["MissingHeader", "Authorization"; "LibreS3ErrorMessage", "Directory indexing is not allowed: add allow_public_bucket_index=true to libres3.conf to enable it"]
+      else if is_cors_preflight canon then
+        get_cors_preflight ~req:request ~canon
       else
         return_error Error.AccessDenied ["MissingHeader", "Authorization"]
     | CanonRequest.AuthEmpty ->
@@ -1939,6 +2065,8 @@ module Make
           else
             "/" ^ (Bucket.to_string  canon.CanonRequest.bucket) ^
             canon.CanonRequest.path in
+        Lwt.catch (fun () -> update_cors_rule_opt ~req:request ~canon)
+          (fun _ -> return request) >>= fun request ->
         Lwt.catch (fun () ->
             validate_authorization 0 ~request ~canon
           )

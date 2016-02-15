@@ -67,7 +67,8 @@ let test_request_parse_sign data =
       let canon_req =
         canonicalize_request ~id:(RequestId.generate ()) meth {
           req_headers = data.headers;
-          undecoded_url = data.orig_url
+          undecoded_url = data.orig_url;
+          cors = false, None;
         } in
       assert_str_equal ~msg:"bucket" data.expected_bucket (Bucket.to_string canon_req.bucket);
       let tosign = string_to_sign canon_req in
@@ -85,7 +86,8 @@ let test_request_parse_sign_v4 (key, data,expected_canonical,body) =
       let canon_req =
         canonicalize_request ~id:(RequestId.generate ()) meth {
           req_headers = data.headers;
-          undecoded_url = data.orig_url
+          undecoded_url = data.orig_url;
+          cors = false, None;
         } in
       assert_str_equal ~msg:"bucket" data.expected_bucket (Bucket.to_string canon_req.bucket);
       match CanonRequest.parse_authorization canon_req with
