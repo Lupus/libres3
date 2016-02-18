@@ -965,21 +965,26 @@ module ListCache = Pendinglimit.Make(Lwt)(struct
   end)
 let listcache = ListCache.create ()
 
-let listit url =
+let listit ?etag url =
   let user = Neturl.url_user url in
   let req = user, string_of_url url in
   ListCache.bind listcache req (fun _ ->
       get_vol_nodelist url >>= fun (nodes, _) ->
-      make_request `GET nodes url >>=  fun reply ->
+      make_request ?etag `GET nodes url >>=  fun reply ->
       begin
         expect_content_type reply "application/json" >>= fun () ->
+        let (`Strong etag| `Weak etag) = Nethttp.Header.get_etag reply.headers in
+        match reply.status with
+        | `Not_modified ->
+          return { dir_etag = Some etag; data = [] }
+        | _ ->
         let input = P.input_of_async_channel reply.body in
         json_parse_tree input >>= function
         | [`O obj] ->
           (* TODO: stream parse instead *)
           begin match filter_field_one "fileList" obj with
             | `O files ->
-              return (List.rev_map parse_file files)
+              return { dir_etag = Some etag; data = List.rev_map parse_file files }
             | p ->
               warning "bad volume list format: %a" pp_json_lst [p];
               fail (Failure "bad volume list format")
@@ -1009,17 +1014,23 @@ let remove_volumes_filters url l =
         (fun _ -> return None)) l >>= fun lst ->
   return (filter_opt lst)
 
-let volumelist url =
+let volumelist ?etag url =
   get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
-  make_request `GET cluster_nodes url >>=  fun reply ->
+  make_request ?etag `GET cluster_nodes url >>=  fun reply ->
   begin
     expect_content_type reply "application/json" >>= fun () ->
+    let (`Strong etag| `Weak etag) = Nethttp.Header.get_etag reply.headers in
+    match reply.status with
+    | `Not_modified ->
+      return { dir_etag = Some etag; data = [] }
+    | _ ->
     let input = P.input_of_async_channel reply.body in
     json_parse_tree input >>= function
     | [`O obj] ->
       begin match filter_field_one "volumeList" obj with
         | `O files ->
-          remove_volumes_filters url (List.rev_map parse_volume files)
+          remove_volumes_filters url (List.rev_map parse_volume files) >>= fun lst ->
+          return { dir_etag = Some etag; data = lst}
         | p ->
           warning "bad volumes list format: %a" pp_json_lst [p];
           fail (Failure "bad volumes list format")
@@ -1381,7 +1392,10 @@ let put ?quotaok ?metafn src srcpos url =
     | _ ->
       fail (Failure "can only put a file (not a volume or the root)")
 
-let fold_list url ?marker ?limit ?(no_recurse=false) f recurse accum =
+let fold_list url ?etag ?marker ?limit ?(no_recurse=false) f recurse accum =
+  let etag = match etag with
+    | None -> None
+    | Some e -> Some (`Strong e) in
   let fullpath = url_path ~encoded:true url in
   match fullpath with
   | "" :: volume :: path ->
@@ -1405,16 +1419,17 @@ let fold_list url ?marker ?limit ?(no_recurse=false) f recurse accum =
     let url = Neturl.modify_url url
         ~encoded:true ~scheme:"http" ~syntax:http_syntax
         ~path:["";volume] ~query in
-    listit url >>= fun lst ->
-    foldl base volume f lst accum
+    listit ?etag url >>= fun lst ->
+    foldl base volume f lst.data accum >|= fun accum ->
+    { lst with data = accum }
   | [""] | [] ->
     let base = Neturl.modify_url url
         ~encoded:true ~path:[""] ~scheme:"http" ~syntax:http_syntax
         ~query:"volumeList" in
-    volumelist base >>= fun lst ->
+    volumelist ?etag base >>= fun lst ->
     List.iter (fun dir ->
-        ignore (recurse ("/" ^ dir))) lst;
-    return accum
+        ignore (recurse ("/" ^ dir))) lst.data;
+    return { lst with data = accum }
   | _ ->
     failwith "invalid URL";;
 

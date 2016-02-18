@@ -53,7 +53,7 @@ let () =
   Config.secret_access_key := input_line f;
   close_in f;
   try
-    Lwt_main.run (SXIO.fold_list ~base:(SXIO.of_url "/") (SXIO.of_url url) ~entry:print_entry ~recurse ())
+    Lwt_main.run (SXIO.fold_list ~base:(SXIO.of_url "/") (SXIO.of_url url) ~entry:print_entry ~recurse ()) |> ignore
   with e ->
     Printexc.print_backtrace stderr;
     Printf.eprintf "Error: %s\n" (Printexc.to_string e);;

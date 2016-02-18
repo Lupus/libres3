@@ -123,17 +123,18 @@ let filter_recurse recurse prefix dir =
   else
     false;;
 
-let fold_list url ?marker ?limit ?no_recurse f recurse accum =
+let fold_list url ?etag ?marker ?limit ?no_recurse f recurse accum =
   let vol, path = file url in
   if vol = "" then begin
     StringMap.iter (fun vol _ ->
         ignore (recurse ("/" ^ vol))) !volumes;
-    return accum
+    return { SXDefaultIO.dir_etag = None; data = accum; }
   end else
     find vol !volumes >>= fun volume ->
     StringMap.fold (fun _ (e,_,_) accum ->
         accum >>= fun accum -> filter_fold f path accum e
-      ) volume (return accum)
+      ) volume (return accum) >>= fun accum ->
+    return { SXDefaultIO.dir_etag = None; data = accum }
 
 let acl_table = Hashtbl.create 16
 

@@ -140,7 +140,7 @@ module Make
     result
   ;;
 
-  let return_string ~id ~id2 ~req ~status ?last_modified ~reply_headers ~content_type ?body_header str =
+  let return_string ?etag_header ~id ~id2 ~req ~status ?last_modified ~reply_headers ~content_type ?body_header str =
     let headers = add_std_headers ~req ~id ~id2 reply_headers ~dbg_body:str in
     let body_header = if req.meth = `HEAD then None else body_header in
     let body_header_len = match body_header with
@@ -152,7 +152,7 @@ module Make
       last_modified = last_modified;
       content_type = Some content_type;
       content_length = Some (Int64.of_int (String.length str + body_header_len));
-      etag_header = None;
+      etag_header = etag_header;
     } >>= fun sender ->
     if req.meth = `HEAD then return () (* ensure HEAD has empty body, but all
                                           headers preserved, including Content-Length *)
@@ -936,22 +936,24 @@ module Make
 
   let index_bucket ~req ~canon bucket path =
     let base, url = url_of_volpath ~canon bucket path in
-    U.exists url >>= fun exists ->
+    (*    U.exists url >>= fun exists ->*)
     let path = Util.string_before_suffix path ".sxnewdir" in
     let base, url = url_of_volpath ~canon bucket path in
     let dirs = ref [] in
-    U.fold_list ~no_recurse:true ~base url
+    let etag = Headers.get_etag_request canon.CanonRequest.headers in
+    U.fold_list ~no_recurse:true ~base url ?etag
       ~entry:(fun accum entry -> return (("/" ^ entry.name, Some entry) :: accum))
       ~recurse:(fun _ -> false)
-      [] >>= fun entries ->
-    if entries = [] && not exists then
+      [] >>= fun c ->
+    let entries = c.data in
+    if entries = [] && path <> "" && path <> "/" then
       return_string ~id:canon.CanonRequest.id ~id2:(CanonRequest.gen_debug ~canon)
-        ~content_type:"text/plain"
+        ~content_type:"text/plain" ?etag_header:c.dir_etag
         ~req ~status:`Not_found ~reply_headers:[] "Not found"
     else
       return_string ~id:canon.CanonRequest.id ~id2:(CanonRequest.gen_debug ~canon)
         ~content_type:"text/html; charset=utf-8"
-        ~req ~status:`Ok ~reply_headers:[]
+        ~req ~status:`Ok ~reply_headers:[] ?etag_header:c.dir_etag
         (DirectoryListing.html_of_list bucket path (List.rev_append !dirs entries))
 
   let list_bucket ~req ~canon bucket params =
@@ -977,7 +979,7 @@ module Make
          | true -> fail e
          | false ->
            return_error Error.NoSuchBucket ["Bucket",bucket]
-      ) >>= fun (files, common_prefixes) ->
+      ) >>= fun {data = (files, common_prefixes); _ } ->
     begin if files = StringMap.empty then begin
         U.exists base >>= function
         | true -> return ()
@@ -1202,7 +1204,7 @@ module Make
          | true -> fail e
          | false ->
            return_error Error.NoSuchBucket ["Bucket",bucket]
-      ) >>= fun (files, common_prefixes) ->
+      ) >>= fun {data = (files, common_prefixes); _ } ->
     begin if files = StringMap.empty then begin
         U.exists base >>= function
         | true -> return ()
@@ -1233,7 +1235,7 @@ module Make
     let base, url = url_of_volpath ~canon mpart_bucket mpart_path in
     U.fold_list ~base url ~entry:(fun names entry ->
         return (entry.name :: names)
-      ) ~recurse:(fun _ -> true) [] >|= fun names ->
+      ) ~recurse:(fun _ -> true) [] >|= fun  {data = names;_} ->
     mpart_bucket, List.fast_sort String.compare names
 
   let mput_list_parts ~canon ~req bucket path ~uploadId =
@@ -1257,7 +1259,7 @@ module Make
               Xml.tag "Size" [Xml.d (Int64.to_string entry.size)]
             ] :: parts)
         else return parts
-      ) ~recurse:(fun _ -> true) [] >>= fun parts ->
+      ) ~recurse:(fun _ -> true) [] >>= fun {data = parts;_} ->
     (* TODO: support maxParts *)
     (* TODO: check consistency of uploadId with bucket/path *)
     get_owner ~canon mpart_bucket >>= fun owner_name ->
@@ -1463,7 +1465,7 @@ module Make
             | _ -> () (* hide volumes with non-S3 compliant names *)
           end;
           false
-        ) () >>= fun () ->
+        ) () >>= fun _ ->
     let self = canon.CanonRequest.user in
     Lwt_list.rev_map_p (fun bucket ->
         get_owner ~canon bucket >>= fun owner_name ->

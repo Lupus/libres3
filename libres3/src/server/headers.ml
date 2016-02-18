@@ -72,6 +72,13 @@ let get_range h =
   with Not_found ->
     None;;
 
+let get_etag_request h =
+  try
+    match Nethttp.Header.get_if_none_match h.ro with
+    | Some ((`Strong etag) :: _) -> Some etag
+    | _ -> None
+  with Not_found -> None
+
 let get_ifrange h =
   try Some (Nethttp.Header.get_if_range h.ro)
   with Not_found -> None

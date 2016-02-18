@@ -38,6 +38,10 @@ type output_data = string * int * int
 type input_stream = unit -> output_data Lwt.t
 type output_stream = output_data -> unit Lwt.t
 
+type 'a cond = {
+  data: 'a;
+  dir_etag: string option;
+}
 type entry = {
   name: string;
   size: int64;
@@ -80,3 +84,4 @@ let rec iter stream f =
   if len = 0 then return ()
   else iter stream f
 ;;
+

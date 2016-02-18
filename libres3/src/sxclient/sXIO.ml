@@ -79,10 +79,11 @@ type url = Neturl.url
 
 let scheme_re = Netstring_str.regexp "^\\([a-zA-Z][a-zA-Z0-9+.-]*\\)://"
 let schemes = Hashtbl.create 16
+
 type op = {
   with_url_source : 'a. url -> (source -> 'a t) -> 'a t;
   with_urls_source : 'a. url list -> int64 -> (source -> 'a t) -> 'a t;
-  fold_list: 'a. url -> ?marker:string -> ?limit:int -> ?no_recurse:bool -> ('a -> entry -> 'a t) -> (string -> bool) -> 'a -> 'a t;
+  fold_list: 'a. url -> ?etag:string -> ?marker:string -> ?limit:int -> ?no_recurse:bool -> ('a -> entry -> 'a t) -> (string -> bool) -> 'a -> 'a cond t;
   create: ?metafn:metafn -> ?replica:int -> url -> unit t;
   exists: url -> bool t;
   token_of_user: url -> string option t;
@@ -190,7 +191,7 @@ let remove_base base str =
   else
     "";;
 
-let fold_list ~base:(`Url base) (`Url url) ?marker ?limit ?no_recurse ~entry ~recurse =
+let fold_list ~base:(`Url base) (`Url url) ?etag ?marker ?limit ?no_recurse ~entry ~recurse =
   let prefix = join_path (url_path base) in
   let fold_entry accum e =
     entry accum {
@@ -199,7 +200,7 @@ let fold_list ~base:(`Url base) (`Url url) ?marker ?limit ?no_recurse ~entry ~re
     } in
   let fold_recurse dir =
     recurse (remove_base prefix dir) in
-  (ops_of_url url).fold_list url ?marker ?limit ?no_recurse fold_entry fold_recurse;;
+  (ops_of_url url).fold_list url ?etag ?marker ?limit ?no_recurse fold_entry fold_recurse;;
 
 let create ?replica (`Url url) =
   (ops_of_url url).create ?replica url;;
@@ -304,8 +305,8 @@ module type SchemeOps = sig
   val get_acl : Neturl.url -> acl list Lwt.t
   val create_user: Neturl.url -> string -> string Lwt.t
 
-  val fold_list: Neturl.url -> ?marker:string -> ?limit:int -> ?no_recurse:bool ->
-    ('a -> entry -> 'a t) -> (string -> bool) -> 'a -> 'a Lwt.t
+  val fold_list: Neturl.url -> ?etag:string -> ?marker:string -> ?limit:int -> ?no_recurse:bool ->
+    ('a -> entry -> 'a t) -> (string -> bool) -> 'a -> 'a cond Lwt.t
 end
 
 module RegisterURLScheme(O: SchemeOps) = struct
