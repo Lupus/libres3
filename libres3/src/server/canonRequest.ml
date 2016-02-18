@@ -282,7 +282,7 @@ let merge s =
   | multi -> String.concat "\x00" multi
 
 let canonicalize_request ~id req_method
-    {req_headers=req_headers; undecoded_url=undecoded_url} =
+    {req_headers=req_headers; undecoded_url=undecoded_url; _} =
   let headers = Headers.build header_overrides req_headers in
   let host = Headers.field_single_value headers "host" !Configfile.base_hostname in
   let hurl = Neturl.parse_url ~base_syntax (
