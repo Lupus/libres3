@@ -1474,14 +1474,14 @@ module Make
       (list_all_buckets buckets self);;
 
 
-  let create_special_users ~canon () =
+  let create_special_users () =
     List.fold_left (fun accum name ->
         accum >>= fun _ ->
-        U.create_user (fst (url_of_volpath ~canon "" "")) name)
+        U.create_user (fst (url_of_volpath_user ~user:libres3_all_users "" "")) name)
       (return "") [ libres3_all_users ]
 
   let delete_bucket_policy ~canon ~request bucket =
-    create_special_users ~canon () >>= fun _ ->
+    create_special_users () >>= fun _ ->
     let anon_read = `Revoke, `UserName libres3_all_users, [`Read] in
     U.set_acl (fst (url_of_volpath ~canon bucket "")) [anon_read]
 
@@ -1491,7 +1491,7 @@ module Make
       let policy = Policy.of_string json in
       if Policy.valid policy bucket then
         if Policy.is_anon_bucket_policy policy bucket then
-          create_special_users ~canon () >>= fun _ ->
+          create_special_users () >>= fun _ ->
           let anon_read = `Grant, `UserName libres3_all_users, [`Read] in
           U.set_acl (fst (url_of_volpath ~canon bucket "")) [anon_read]
         else
@@ -1965,7 +1965,13 @@ module Make
               return_error Error.AccessDenied ["MissingHeader", "Authorization"]
             | e -> fail e)
       else if is_s3_index canon then
-        return_error Error.AccessDenied ["MissingHeader", "Authorization"; "LibreS3ErrorMessage", "Directory indexing is not allowed: add allow_public_bucket_index=true to libres3.conf to enable it"]
+        let Bucket bucket = canon.CanonRequest.bucket in
+        let _, url = url_of_volpath ~canon:{canon with CanonRequest.user = libres3_all_users } bucket "" in
+        U.exists url >>= function
+        | true ->
+          return_error Error.AccessDenied ["MissingHeader", "Authorization"; "LibreS3ErrorMessage", "Directory indexing is not allowed: add allow_public_bucket_index=true to libres3.conf to enable it"]
+        | false ->
+          return_error Error.NoSuchBucket ["Bucket", bucket;"IsIndex",bucket]
       else if is_cors_preflight canon then
         get_cors_preflight ~req:request ~canon
       else
@@ -2110,6 +2116,12 @@ module Make
                 ~id2:(CanonRequest.gen_debug ~canon)
                 ~id:canon.CanonRequest.id ~path ~headers:[]
                 Error.EntityTooLarge detail
+            | Detail (Unix.Unix_error(Unix.ENOTDIR, _, _), detail) ->
+              return_error_xml
+                ~req:request
+                ~id2:(CanonRequest.gen_debug ~canon)
+                ~id:canon.CanonRequest.id ~path ~headers:[]
+                Error.NoSuchBucket (("VolNodeNotFound","") :: detail)
             | Detail (Unix.Unix_error _ as ex, detail)->
               return_error_xml
                 ~req:request
@@ -2227,7 +2239,8 @@ module Make
       Lwt.catch (fun () -> Accesslog.reopen ~path ())
         (fun exn ->
            EventLog.warning ~exn "cannot open access.log";
-           return_unit)
+           return_unit) >|= fun () ->
+      Lwt.async create_special_users
     end
   ;;
 

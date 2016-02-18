@@ -420,6 +420,8 @@ let filter_field_one field lst =
 let detail_of_reply reply =
   Lwt.catch (fun () ->
       expect_content_type reply "application/json" >>= fun () ->
+      if reply.body = "" then return ""
+      else
       json_parse_tree (P.input_of_async_channel reply.body) >>= function
       | [`O obj] ->
         begin match filter_field "ErrorMessage" obj with
@@ -522,6 +524,8 @@ let token_of_user url =
   let user = Neturl.url_user url in
   if user = !Config.key_id then
     return (Some !Config.secret_access_key)
+  else if user = "" then
+    return_none
   else
     let fetch ?etag user =
       let url = Neturl.remove_from_url ~query:true
@@ -662,7 +666,12 @@ let get_vol_nodelist url =
   let fetch ?etag volume =
     let url = Neturl.modify_url url ~path:["";volume] in
     get_cluster_nodelist url >>= fun (cluster_nodes, _) ->
-    make_request ~quick:true `GET cluster_nodes (locate url)
+    Lwt.catch (fun () -> make_request ~quick:true `GET cluster_nodes (locate url))
+      (function
+        | Detail (Unix.Unix_error(Unix.ENOENT,fn,arg),l) ->
+          fail (Detail(Unix.Unix_error(Unix.ENOTDIR,fn,arg),l))
+        | e -> fail e
+      )
   in
   match url_path ~encoded:true url with
   | "" :: volume :: _ ->
@@ -1511,14 +1520,20 @@ let exists url =
   let p = pipeline () in
   token_of_user url >>= function
   | None ->
-    return false
+    let user = Neturl.url_user url in
+    fail (Detail(Unix.Unix_error(Unix.EACCES,"exists",user),["Exists",user]))
   | Some token ->
     begin match url_path ~encoded:true url with
       | "" :: _volume :: ("" :: [] | []) ->
         (* does volume exist? *)
-        make_http_request ~quick:true p (request_of_url ~token `HEAD (locate url))
-        >>= fun reply ->
-        return (reply.status = `Ok)
+        Lwt.try_bind (fun () ->
+            make_request_token ~quick:true ~token `HEAD (locate url))
+          (fun _ -> return_true)
+          (function
+            | Detail(Unix.Unix_error(Unix.ENOENT,_,_),_) ->
+              return_false
+            | e -> fail e
+          )
       | "" :: _volume :: _path ->
         Lwt.catch (fun () ->
             get_vol_nodelist url >>= fun (nodes, _) ->
