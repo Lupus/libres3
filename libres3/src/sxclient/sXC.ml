@@ -1024,10 +1024,9 @@ let volumelist ?etag url =
   make_request ?etag `GET cluster_nodes url >>=  fun reply ->
   begin
     expect_content_type reply "application/json" >>= fun () ->
-    let (`Strong etag| `Weak etag) = Nethttp.Header.get_etag reply.headers in
     match reply.status with
     | `Not_modified ->
-      return { dir_etag = Some etag; data = [] }
+      return { dir_etag = None; data = [] }
     | _ ->
     let input = P.input_of_async_channel reply.body in
     json_parse_tree input >>= function
@@ -1035,7 +1034,7 @@ let volumelist ?etag url =
       begin match filter_field_one "volumeList" obj with
         | `O files ->
           remove_volumes_filters url (List.rev_map parse_volume files) >>= fun lst ->
-          return { dir_etag = Some etag; data = lst}
+          return { dir_etag = None; data = lst}
         | p ->
           warning "bad volumes list format: %a" pp_json_lst [p];
           fail (Failure "bad volumes list format")
