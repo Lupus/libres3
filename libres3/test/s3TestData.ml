@@ -392,7 +392,7 @@ let suite real = [
       req_headers = [];
       req_body = "";
     };
-    expected = expect_error Error.AccessDenied "/foo"
+    expected = expect_error Error.NoSuchBucket "/foo"
   };
   Direct {
     name = "test auth";
