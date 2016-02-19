@@ -412,20 +412,18 @@ let periodic_check () =
 let debug_logger =
   Lwt_log.channel ~template:"$(date).$(milliseconds): $(message)" ~close_mode:`Keep ~channel:Lwt_io.stderr ()
 
+let update_logger () =
+  (* ignore default access.log messages *)
+  Lwt_log.add_rule "access" Lwt_log.Fatal;
+  if Lwt_log.Section.level EventLog.section = Lwt_log.Debug then
+    Lwt_log.default := Lwt_log.broadcast [ !Lwt_log.default; debug_logger ]
+
 let fun_site _ config_info _ _ _ _ =
   Configfile.base_hostname := config_info.default_hostname;
-  if Lwt_log.Section.level EventLog.section = Lwt_log.Debug then
-    Lwt_log.default := Lwt_log.broadcast [ !Lwt_log.default; debug_logger ];
-  let default = !Lwt_log.default in
-  (* ignore default access.log messages *)
-  Lwt_log.default := Lwt_log.dispatch (fun sect level ->
-      if String.compare (Lwt_log.Section.name sect) "access" = 0 then
-        Lwt_log.null
-      else default
-    );
   Ocsigen_messages.console (fun () ->
       Printf.sprintf "LibreS3 default hostname: %s"  !Configfile.base_hostname
     );
+  update_logger ();
   begin try
       Ssl.set_cipher_list !Ocsigen_http_client.sslcontext
         "HIGH+AES128:HIGH:!DH:!SSLv2:!aNULL:!eNULL:!MD5";
