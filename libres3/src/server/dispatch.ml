@@ -710,15 +710,14 @@ module Make
         Xml.tag "DisplayName" [Xml.d displayname]
       ]
 
-  let map_permission = function
-    | [`Read] -> ["READ"]
-    | [`Write] -> ["WRITE"]
-    | l when List.mem `Owner l && List.mem `Read l && List.mem `Write l ->
-      ["FULL_CONTROL"]
-    | l when List.mem `Read l && List.mem `Write l ->
-      ["READ";"WRITE"]
-    | l when List.mem `Manager l -> ["READ_ACP"; "WRITE_ACP"]
-    | _ -> failwith "TODO: unknown permissions"
+  let rec map_permission accum = function
+    | `Read :: tl -> map_permission ("READ" :: accum) tl
+    | `Write :: tl -> map_permission ("WRITE" :: accum) tl
+    | `Manager :: tl -> map_permission ("READ_ACP" :: "WRITE_ACP" :: accum) tl
+    | `Owner :: tl -> map_permission accum tl
+    | [] -> if List.length accum = 4 then ["FULL_CONTROL"] else accum
+
+  let map_permission lst = map_permission [] lst
 
   let libres3_all_users = "libres3-all-users"
   let uri_all_users = "http://acs.amazonaws.com/groups/global/AllUsers"
@@ -796,7 +795,7 @@ module Make
     | "WRITE" -> [ `Write ]
     | "READ_ACP" -> [ `Manager ]
     | "WRITE_ACP" -> [ `Manager ]
-    | "FULL_CONTROL" -> [ `Owner; `Manager; `Read; `Write]
+    | "FULL_CONTROL" -> [ `Manager; `Read; `Write]
     | _ -> failwith "Unknown permission"
 
   let map_acl x =  match x with
@@ -809,7 +808,11 @@ module Make
     | #CodedIO.Xml.t ->
       failwith "Bad xml" (* TODO: map to MalformedACLError *)
 
-  let canon_acl_map (op, user, acl) = op, user, List.stable_sort Pervasives.compare acl
+  let canon_acl_map (op, user, acl) =
+    op, user,
+    acl |>
+    List.filter (function `Owner -> false | _ -> true) |>
+    List.stable_sort Pervasives.compare
 
   let canon_acl a =
     List.stable_sort Pervasives.compare (List.rev_map canon_acl_map a)
