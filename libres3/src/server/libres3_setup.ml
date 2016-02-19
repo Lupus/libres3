@@ -27,6 +27,7 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
+open SXIO
 let print_version () =
   Printf.printf "libres3 setup version %s\n%!" Version.version;
   exit 0
@@ -374,16 +375,75 @@ let read_and_validate_admin_key ~key msg f x m =
   validate_and_add ~key ~default:(maybe_load_file (f x))
     (maybe_load_file (read_value msg)) m
 
-let generate_ssl_certificate m =
+let (|>) x f = f x
+
+open Lwt.Infix
+open Cryptokit
+
+let split s =
+  try
+    let p = String.index s '\x00' in
+    String.sub s 0 p, String.sub s (p+1) (String.length s - p -1)
+  with Not_found ->
+    failwith "Invalid libres3_private settings format"
+
+let join a b = a ^ "\x00" ^ b
+
+let save_to ~file data =
+  Lwt_io.with_file ~mode:Lwt_io.output file (fun ch ->
+      Lwt_io.write ch data >>= fun () ->
+      Lwt_io.flush ch
+  )
+
+let load_from ~file =
+  Lwt_io.with_file ~mode:Lwt_io.input file (fun ch -> Lwt_io.read ch)
+
+let generate_ssl_certificate ~ssl_key_file ~ssl_cert_file m =
   if !ssl then begin
     let s3_host = StringMap.find "s3_host" m in
-    let cmd = Printf.sprintf "%s/libres3_certgen '%s'" Configure.sbindir s3_host in
-    if Sys.command cmd <> 0 then
-      prerr_endline "Cannot generate SSL certificate";
+    let host = StringMap.find "sx_host" m in
+    let url = Neturl.make_url ~encoded:false
+        ~scheme:"sx" ~user:!Config.key_id ~port:!Config.sx_port ~host ~path:[""] SXC.syntax in
+    Printexc.register_printer (function
+        | Http_client.Http_protocol e ->
+          Some ("HTTP(S) error: " ^ (Printexc.to_string e))
+        | SXDefaultIO.Detail (e, l) ->
+          Some (Printf.sprintf "SX error: %s\n%s" (Printexc.to_string e)
+                  (String.concat "\n" (List.rev_map (fun (k,v) -> k ^"="^v) l))
+               )
+        | Unix.Unix_error(e,fn,arg) ->
+          Some (Printf.sprintf "%s(%s): %s" fn arg (Unix.error_message e))
+        | _ -> None
+      );
+    Sys.catch_break true;
+    Printf.printf "Locking LibreS3 private settings on SX cluster: %s\n%!" (Neturl.string_of_url url);
+    Lwt_main.run @@ (Lwt.catch (fun () ->
+        SXIO.with_settings ~max_wait:60. (SXIO.of_neturl url) (function
+            | "" ->
+              let cmd = Printf.sprintf "%s/libres3_certgen '%s'" Configure.sbindir s3_host in
+              (* TODO: Lwt *)
+              if Sys.command cmd <> 0 then
+                prerr_endline "Cannot generate SSL certificate";
+              load_from ~file:ssl_cert_file >>= fun cert ->
+              load_from ~file:ssl_key_file >>= fun key ->
+              let v = join cert key in
+              Printf.printf "Uploaded generated SSL certificate and key to SX cluster\n%!";
+              Lwt.return (Some (transform_string (Hexa.encode ()) v))
+            | old ->
+              let old = transform_string (Hexa.decode()) old in
+              let cert, key = split old in
+              save_to ssl_cert_file cert >>= fun () ->
+              save_to ssl_key_file key >>= fun () ->
+              Printf.printf "Downloaded SSL certificate and key from the cluster to %s and %s\n%!" ssl_key_file ssl_cert_file;
+              Lwt.return_none
+          ) "libres3_private"
+      ) (function
+        | e ->
+          Printf.eprintf "\nError updating settings: %s\n" (Printexc.to_string e);
+          Lwt.fail e) >|= fun () ->
+    Printf.printf "Settings completed\n%!");
   end;
   m
-
-let (|>) x f = f x
 
 let () =
   try
@@ -404,6 +464,9 @@ let () =
           exit 3
         else v
       with _ -> true in
+    Config.sx_ssl := sx_use_ssl;
+    let ssl_key_file = Filename.concat Configure.sysconfdir "ssl/private/libres3.key"
+    and ssl_cert_file = Filename.concat Configure.sysconfdir "ssl/certs/lbires3.pem" in
     let sx_server_port_msg =
       if sx_use_ssl then "SX server HTTPS port"
       else "SX server HTTP port" in
@@ -425,12 +488,12 @@ let () =
       |> validate_and_add ~key:"s3_host" ~default:(fun () ->
           if !s3_host <> "" then !s3_host
           else load "LIBRES3_HOST" ()) (read_value "S3 (DNS) name")
-      |> generate_ssl_certificate
+      |> generate_ssl_certificate ~ssl_key_file ~ssl_cert_file
       |> validate_and_add_opt !ssl ~key:"s3_ssl_privatekey_file" ~default:(fun () ->
-          Filename.concat Configure.sysconfdir "ssl/private/libres3.key")
+          ssl_key_file)
           (read_value "SSL private key file")
       |> validate_and_add_opt !ssl ~key:"s3_ssl_certificate_file" ~default:(fun () ->
-          Filename.concat Configure.sysconfdir "ssl/certs/libres3.pem")
+          ssl_cert_file)
           (read_value "SSL certificate file")
       |> (if !ssl then
           validate_and_add ~key:"s3_https_port" ~validate:port_validate ~default:(fun () ->

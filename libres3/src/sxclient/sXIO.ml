@@ -93,6 +93,7 @@ type op = {
   copy_same: ?metafn:metafn -> ?filesize:int64 -> url list -> url -> bool t;
   get_meta: url -> (string*string) list t;
   set_meta: url -> (string*string) list -> unit t;
+  with_settings : url -> max_wait:float -> (string -> string option Lwt.t) -> string -> unit Lwt.t;
   put: ?quotaok:(unit->unit) -> ?metafn:metafn -> source -> int64 -> url -> unit t;
   set_acl: url -> acl list -> unit t;
   get_acl: url -> acl list t;
@@ -256,6 +257,9 @@ let get_meta (`Url src) =
 let set_meta (`Url src) meta =
   (ops_of_url src).set_meta src meta
 
+let with_settings (`Url src) ~max_wait f key =
+  (ops_of_url src).with_settings src ~max_wait f key
+
 let url_port_opt u = try Some (url_port u) with Not_found -> None
 let same_cluster a b =
   url_host a = url_host b &&
@@ -297,6 +301,7 @@ module type SchemeOps = sig
 
   val get_meta: Neturl.url -> (string*string) list Lwt.t
   val set_meta: Neturl.url -> (string*string) list -> unit Lwt.t
+  val with_settings : Neturl.url -> max_wait:float -> (string -> string option Lwt.t) -> string -> unit Lwt.t
   val put: ?quotaok:(unit->unit) -> ?metafn:metafn -> source -> int64 -> Neturl.url -> unit Lwt.t
   val delete: ?async:bool -> Neturl.url -> unit Lwt.t
   val create: ?metafn:metafn -> ?replica:int -> Neturl.url -> unit Lwt.t
@@ -372,6 +377,7 @@ module RegisterURLScheme(O: SchemeOps) = struct
     put = O.put;
     get_meta = O.get_meta;
     set_meta = O.set_meta;
+    with_settings = O.with_settings;
     create_user = O.create_user;
     set_acl = O.set_acl;
     get_acl = O.get_acl;

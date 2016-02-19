@@ -218,3 +218,16 @@ let get_acl url = return (Hashtbl.find acl_table url)
 let set_acl (url:Neturl.url) (acls : IO.acl list) =
   Hashtbl.replace acl_table url acls;
   return ()
+
+let libres3_private = ref ""
+
+let with_settings url ~max_wait f key =
+  if key = "libres3_private" then begin
+    f !libres3_private >>= function
+    | Some r -> libres3_private := r; return ()
+    | None -> return ()
+  end else
+    failwith "bad settings key"
+
+
+

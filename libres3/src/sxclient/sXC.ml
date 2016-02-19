@@ -820,6 +820,11 @@ let get_meta url =
           ~scheme:"http"
           ~syntax:http_syntax in
       make_request ~quick:true `GET cluster_nodes url
+    | [""] | [] ->
+      get_cluster_nodelist url >>= fun (nodes, _) ->
+      get_vol_nodelist url >>= fun (nodes, _) ->
+      let url = Neturl.modify_url ~syntax:http_syntax url ~query:"clusterMeta" in
+      make_request ~quick:true `GET nodes ?etag url
     | _ ->
       get_vol_nodelist url >>= fun (nodes, _) ->
       let url = Neturl.modify_url ~syntax:http_syntax url ~query:"fileMeta" in
@@ -830,15 +835,15 @@ let get_meta url =
     let input = P.input_of_async_channel reply.body in
     AJson.json_parse_tree input >>= function
     | [`O obj ] ->
-      begin match filter_field "fileMeta" obj, filter_field "customVolumeMeta" obj with
-      |  [ `F (_, [`O metalist]) ], _ | _, [ `F (_, [`O metalist]) ] ->
+      begin match filter_field "fileMeta" obj, filter_field "customVolumeMeta" obj, filter_field "clusterMeta" obj with
+      |  [ `F (_, [`O metalist]) ], _, _ | _, [ `F (_, [`O metalist]) ], _ | _, _, [ `F (_, [`O metalist]) ] ->
       return (List.rev_map (function
           | `F (k, [`String v]) -> k, transform_string (Hexa.decode()) v
           | _ -> failwith "bad meta reply format (obj)"
         ) metalist)
-      | l1, l2 ->
+      | l1, l2, l3 ->
         warning "missing field for meta in json: %a" pp_json_lst [`O obj];
-        failwith (Printf.sprintf "bad meta reply format (field: %d,%d)" (List.length l1) (List.length l2))
+        failwith (Printf.sprintf "bad meta reply format (field: %d,%d,%d)" (List.length l1) (List.length l2) (List.length l3))
       end
     | _ -> failwith "bad meta reply format (json)"
   in
@@ -1752,3 +1757,49 @@ let delete ?async url =
       | XIO.Detail (Unix.Unix_error((Unix.ENOENT|Unix.ENOTEMPTY),_,_) as e, _) ->
         fail e
       | e -> fail e)
+
+let with_lock ~max_wait url f =
+  let url = Neturl.modify_url url ~encoded:true ~scheme:"http"
+      ~syntax:http_syntax ~path:["";".distlock"] in
+  get_cluster_nodelist url >>= fun (nodes, _) ->
+  let distlock op =
+    send_json nodes url (`Object ["op", `String op]) >>= job_get url
+  in
+  let sleep_time = 0.1 in
+  let rec acquire n =
+    Lwt.catch (fun () -> distlock "lock")
+      (function
+        | XIO.Detail((Unix.Unix_error(Unix.EEXIST,_,_) | Failure _), _) when n > 0 ->
+          Lwt_unix.sleep sleep_time >>= fun () ->
+          acquire (n-1)
+        | e -> Lwt.fail e)
+  in
+  acquire (int_of_float (max_wait /. sleep_time)) >>= fun () ->
+  Lwt.finalize (fun () -> f nodes)
+    (fun () -> distlock "unlock")
+
+(* lock the cluster, modify settings, unlock the cluster *)
+let with_settings url ~max_wait f key =
+  with_lock ~max_wait url (fun nodes ->
+      let url = Neturl.modify_url url ~encoded:true ~scheme:"http"
+          ~syntax:http_syntax ~path:["";".clusterSettings"]
+          ~query:("key="^key)
+      in
+      make_request ~quick:true `GET nodes url >>= fun reply ->
+      expect_content_type reply "application/json" >>= fun () ->
+      let input = P.input_of_async_channel reply.body in
+      AJson.json_parse_tree input >>= function
+      | [ `O [`F ("clusterSettings", [`O obj])] ] ->
+        let old = transform_string (Hexa.decode ()) (filter_field_string key obj) in
+        begin f old >>= function
+        | Some update ->
+          let value = transform_string (Hexa.encode ()) update in
+          let url = Neturl.modify_url ~query:"" url in
+          send_json nodes url (`Object ["clusterSettings", `Object [key, `String value]]) >>=
+          job_get url
+        | None -> return_unit
+        end
+      | o ->
+        warning "obj expected: %a" pp_json_lst o;
+        failwith "Bad json reply format: clusterSettings reply expected"
+  )
