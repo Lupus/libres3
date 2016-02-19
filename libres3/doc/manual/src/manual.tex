@@ -1,7 +1,9 @@
 \documentclass[oneside,a4paper]{memoir}
 \PassOptionsToPackage{linktocpage}{hyperref}
 \PassOptionsToPackage{obeyspaces,hyphens}{url}
+\usepackage{memhfixc}
 \usepackage{color,calc,graphicx,soul,fourier,anyfontsize,xspace,listings,fancyvrb,url,hyperref,microtype}
+\usepackage{ifpdf}
 \hypersetup{
     breaklinks=true, colorlinks=true, pdfborder={0 0 0},
     citecolor=blue, urlcolor=blue, linkcolor=red
@@ -65,8 +67,12 @@
 %\definecolor{lightblue}{rgb}{.780,.886,.953}
 \definecolor{lightblue}{rgb}{.835,.910,.965}
 
-\newcommand{\seeref}[1]{see~\titleref{#1} on~\pref{#1}}
+\newcommand{\seeref}[1]{see~\titleref{#1}\ifpdf{ on~\pref{#1}}\fi}
 
+\ifpdf
+\else
+\usepackage{tgbonum}
+\fi
 \begin{document}
 
 \pagestyle{empty}
@@ -74,11 +80,15 @@
 \begin{center}
     \includegraphics[width=119mm]{logo.eps}\\
     \vspace{4cm}
+    \ifpdf
     \rule{\textwidth}{1.6pt}\vspace*{-\baselineskip}\vspace*{2pt}
     \rule{\textwidth}{0.4pt}\\[\baselineskip]
+    \fi
     {\fontsize{40}{50}\bfseries\scshape LibreS3 Manual}
+    \ifpdf
     \rule{\textwidth}{0.4pt}\vspace*{-\baselineskip}\vspace{3.2pt}
     \rule{\textwidth}{1.6pt}\\[\baselineskip]
+    \fi
 \end{center}
 
 \newpage

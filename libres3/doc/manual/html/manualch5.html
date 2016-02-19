@@ -1,0 +1,364 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"  
+  "http://www.w3.org/TR/html4/loose.dtd">  
+<html > 
+<head><title>5 Highlighted features</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"> 
+<meta name="generator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
+<meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
+<!-- html,2,next,fn-in --> 
+<meta name="src" content="manual.tex"> 
+<meta name="date" content="2016-02-19 19:38:00"> 
+<link rel="stylesheet" type="text/css" href="manual.css"> 
+</head><body 
+>
+   <!--l. 2--><div class="crosslinks"><p class="noindent">[<a 
+href="manualch6.html" >next</a>] [<a 
+href="manualch4.html" >prev</a>] [<a 
+href="manualch4.html#tailmanualch4.html" >prev-tail</a>] [<a 
+href="#tailmanualch5.html">tail</a>] [<a 
+href="manual.html#manualch5.html" >up</a>] </p></div>
+   <h2 class="chapterHead"><span class="titlemark">Chapter&#x00A0;5</span><br /><a 
+ id="x7-290005"></a>Highlighted features</h2>
+   <h3 class="sectionHead"><span class="titlemark">5.1   </span> <a 
+ id="x7-300005.1"></a>Virtual hosting</h3>
+<!--l. 6--><p class="noindent" >Buckets in LibreS3 can be accessed in three ways:
+     <dl class="description"><dt class="description">
+<span 
+class="ec-qbkb-">path-style</span> </dt><dd 
+class="description"><span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">libres3.example.com/bucket/object</span></span></span>
+     <!--l. 10--><p class="noindent" >A direct access to the object, which works even if the bucket name
+     is not DNS compatible.
+     </dd><dt class="description">
+<span 
+class="ec-qbkb-">virtual-hosted subdomain style</span> </dt><dd 
+class="description"><span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">bucket.libres3.example.com/object</span></span></span>
+     <!--l. 13--><p class="noindent" >Requires that bucket names are DNS compatible and a DNS/hosts
+     entry for each bucket or a wildcard DNS record (see&#x00A0;<a 
+href="manualch3.html#x5-130003.1">3.1<!--tex4ht:ref: sec:dnszone --></a>)
+     </dd><dt class="description">
+<span 
+class="ec-qbkb-">virtual-hosted FQDN</span> </dt><dd 
+class="description"><span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">bucket.example.net/object</span></span></span>
+     <!--l. 17--><p class="noindent" >Equivalent to <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">bucket.example.net.libres3.example.com</span></span></span>.
+     <!--l. 19--><p class="noindent" >The client should send a <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">Host:</span><span 
+class="ectt-1000">&#x00A0;bucket.example.net</span></span></span> header, which
+     usually requires a <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">CNAME</span></span></span> DNS entry, see&#x00A0;<a 
+href="manualch3.html#x5-130003.1">3.1<!--tex4ht:ref: sec:dnszone --></a>. Requires that bucket
+     names are DNS compatible, and that you use your FQDN as the
+     bucket name, for example:
+     <!--l. 24--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">s3cmd</span><span 
+class="ectt-1000">&#x00A0;mb</span><span 
+class="ectt-1000">&#x00A0;s3://bucket.example.net</span></span></span></dd></dl>
+<!--l. 27--><p class="indent" >   The latter can be useful for public buckets, see&#x00A0;<a 
+href="manualch6.html#x8-400006.4">6.4<!--tex4ht:ref: sec:pubvirtualhosting --></a>.
+<!--l. 29--><p class="noindent" >
+   <h3 class="sectionHead"><span class="titlemark">5.2   </span> <a 
+ id="x7-310005.2"></a>Streaming and range-requests</h3>
+<!--l. 32--><p class="noindent" >LibreS3 supports streaming files from S<sup class="textsuperscript"><span 
+class="ec-qbkr-x-x-90">X</span></sup> by downloading blocks as they are
+needed (streaming a large file begins as soon as the first batch of blocks is
+downloaded by LibreS3).
+<!--l. 36--><p class="indent" >   It is also possible to begin streaming a file from an arbitrary position,
+and retrieve less than the entire file, i.e.&#x00A0;range requests.
+<!--l. 39--><p class="indent" >   This works both for authenticated (<span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">s3cmd</span><span 
+class="ectt-1000">&#x00A0;get</span><span 
+class="ectt-1000">&#x00A0;--continue</span></span></span>) and public
+requests (<span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">wget</span><span 
+class="ectt-1000">&#x00A0;--continue</span></span></span>), see&#x00A0;<a 
+href="manualch6.html#x8-410006.5">6.5<!--tex4ht:ref: sec:streaming-videos --></a>.
+<!--l. 42--><p class="noindent" >
+   <h3 class="sectionHead"><span class="titlemark">5.3   </span> <a 
+ id="x7-320005.3"></a>Access logs</h3>
+<!--l. 44--><p class="noindent" >Since version <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">1.1</span></span></span> LibreS3 uses the Apache/NCSA Combined Log Format for
+its <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">access.log</span></span></span> file, for example: <!--l. 46-->
+<div class="lstlisting" id="listing-26"><span class="label"><a 
+ id="x7-32001r1"></a></span><span 
+class="ectt-0800x-x-87">196.168.1.2</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">edwin</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">[06/</span><span 
+class="ectt-0800x-x-87">Jul</span><span 
+class="ectt-0800x-x-87">/2015:08:38:20</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">+0200]</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">"</span><span 
+class="ectt-0800x-x-87">GET</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">volpublic</span><span 
+class="ectt-0800x-x-87">/?</span><span 
+class="ectt-0800x-x-87">policy</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">HTTP</span><span 
+class="ectt-0800x-x-87">/1.1"</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">200</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">190</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">"-"</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">"</span><span 
+class="ectt-0800x-x-87">Boto</span><span 
+class="ectt-0800x-x-87">/2.34.0</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">Python</span><span 
+class="ectt-0800x-x-87">/2.7.9</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">Linux</span><span 
+class="ectt-0800x-x-87">/3.16.0-4-</span><span 
+class="ectt-0800x-x-87">amd64</span><span 
+class="ectt-0800x-x-87">"</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x7-32002r2"></a></span><span 
+class="ectt-0800x-x-87">192.168.1.2</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">[06/</span><span 
+class="ectt-0800x-x-87">Jul</span><span 
+class="ectt-0800x-x-87">/2015:09:58:26</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">+0200]</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">"</span><span 
+class="ectt-0800x-x-87">GET</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">slider_logo</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">png</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">HTTP</span><span 
+class="ectt-0800x-x-87">/1.1"</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">200</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">11436</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">"</span><span 
+class="ectt-0800x-x-87">http</span><span 
+class="ectt-0800x-x-87">://</span><span 
+class="ectt-0800x-x-87">volpublic</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">example</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">com</span><span 
+class="ectt-0800x-x-87">:8008/"</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">"</span><span 
+class="ectt-0800x-x-87">Mozilla</span><span 
+class="ectt-0800x-x-87">/5.0</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">(</span><span 
+class="ectt-0800x-x-87">X11</span><span 
+class="ectt-0800x-x-87">;</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">Linux</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">x86_64</span><span 
+class="ectt-0800x-x-87">;</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">rv</span><span 
+class="ectt-0800x-x-87">:38.0)</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">Gecko</span><span 
+class="ectt-0800x-x-87">/20100101</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">Firefox</span><span 
+class="ectt-0800x-x-87">/38.0</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">Iceweasel</span><span 
+class="ectt-0800x-x-87">/38.1.0"</span>
+                                                                 
+
+                                                                 
+   </div>
+<!--l. 51--><p class="indent" >   The first line is an example for an authenticated request, and the second
+line is an example for an anonymous request (using directory indexing
+according to the referer).
+<!--l. 55--><p class="indent" >   The format is:
+     <dl class="description"><dt class="description">
+<span 
+class="ec-qbkb-">192.168.1.2</span> </dt><dd 
+class="description">IP address of client
+     </dd><dt class="description">
+<span 
+class="ec-qbkb-">-</span> </dt><dd 
+class="description">always unavailable (the <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">identd</span></span></span> identity)
+     </dd><dt class="description">
+<span 
+class="ec-qbkb-">edwin</span> </dt><dd 
+class="description">name of the authenticated S<sup class="textsuperscript"><span 
+class="ec-qbkr-x-x-90">X</span></sup> user. If the HTTP result code is
+     <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">401</span></span></span> or <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">5xx</span></span></span> then it cannot be trusted because the user may not be
+     authenticated yet
+     </dd><dt class="description">
+<span 
+class="ec-qbkb-">[06/Jul/2015:09:58:26 +0200</span> </dt><dd 
+class="description">]  the  server&#8217;s  local  date,  time  and
+     timezone
+     </dd><dt class="description">
+<span 
+class="ec-qbkb-">&#8220;GET /volpublic/?policy HTTP/1.1&#8221;</span> </dt><dd 
+class="description">the request method, path and
+     HTTP version
+     </dd><dt class="description">
+<span 
+class="ec-qbkb-">200</span> </dt><dd 
+class="description">the HTTP result code
+     </dd><dt class="description">
+<span 
+class="ec-qbkb-">190</span> </dt><dd 
+class="description">the  size  of  the  reply  body  sent  to  the  client.  Note  that  if  the
+     connection is closed/reset then this shows the truncated size, not
+     the size that would have been sent. This is shown as <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">-</span></span></span> when the
+     body is empty.
+     </dd><dt class="description">
+<span 
+class="ec-qbkb-">&#8220;-&#8221;</span> </dt><dd 
+class="description">no HTTP referer available
+     </dd><dt class="description">
+<span 
+class="ec-qbkb-">&#8220;Boto/2.34.0 Python/2.7.9 Linux/3.16.0-4-amd64&#8221;</span> </dt><dd 
+class="description">
+     <!--l. 73--><p class="noindent" >User-Agent of the client (not all S3 clients send a user-agent, for
+     example <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">s3cmd</span></span></span> doesn&#8217;t)</dd></dl>
+<!--l. 76--><p class="indent" >   Access.log entries are written asynchronously, after the entire reply body
+is sent to the client.
+<!--l. 79--><p class="noindent" >
+   <h3 class="sectionHead"><span class="titlemark">5.4   </span> <a 
+ id="x7-330005.4"></a>Listing buckets</h3>
+<!--l. 82--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">s3cmd</span><span 
+class="ectt-1000">&#x00A0;ls</span><span 
+class="ectt-1000">&#x00A0;s3://</span></span></span> shows only the buckets that are owned by your user,
+what is consistent with S3&#8217;s behaviour. In case you have access to
+some buckets in read or write mode and would like to use them
+                                                                 
+
+                                                                 
+with s3cmd or other clients, you can enable listing of all accessible
+buckets by adding the following to <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">libres3.conf</span></span></span> and restarting LibreS3:
+<!--l. 87-->
+<div class="lstlisting" id="listing-27"><span class="label"><a 
+ id="x7-33001r1"></a></span><span 
+class="ectt-0800x-x-87">allow_list_all_volumes</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">true</span>
+   </div>
+<!--l. 91--><p class="noindent" >
+   <h3 class="sectionHead"><span class="titlemark">5.5   </span> <a 
+ id="x7-340005.5"></a>IPv6 support</h3>
+<!--l. 93--><p class="noindent" >LibreS3 supports IPv6 communication with S<sup class="textsuperscript"><span 
+class="ec-qbkr-x-x-90">X</span></sup> version <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">1.2</span></span></span> or newer (note
+that an S<sup class="textsuperscript"><span 
+class="ec-qbkr-x-x-90">X</span></sup> node can have either an IPv4 or an IPv6 public address, but not
+both at the same time). LibreS3 can be reached either by IPv4 or IPv6,
+depending on how your DNS wildcard record is set up, and whether your S3
+client and OS support IPv6.
+<!--l. 98--><p class="noindent" >
+   <h3 class="sectionHead"><span class="titlemark">5.6   </span> <a 
+ id="x7-350005.6"></a>Quota support</h3>
+<!--l. 100--><p class="noindent" >Each volume in S<sup class="textsuperscript"><span 
+class="ec-qbkr-x-x-90">X</span></sup> has a maximum size (its quota). There is no equivalent
+concept in S3, thus you need to specify the default volume size (and replica
+count) for buckets created through S3 in <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">libres3.conf</span></span></span> using the
+<span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">volume_size</span></span></span> field. This is done automatically if you used <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">libres3_setup</span></span></span> to
+configure LibreS3.
+<!--l. 106--><p class="indent" >   In case a new file would exceed the S<sup class="textsuperscript"><span 
+class="ec-qbkr-x-x-90">X</span></sup> volume&#8217;s quota, LibreS3 should
+report an HTTP 413 error. The quota errors will be reported for both normal
+and multipart uploads, however in the case of multipart ones, the quota
+error will only be reported after all parts have been uploaded to
+LibreS3.
+<!--l. 111--><p class="indent" >   LibreS3 creates an internal volume for each user to store the parts
+uploaded during a multipart upload. This volume&#8217;s name is prefixed by
+<span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">libres3-</span></span></span> and is created with the size specified in the <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">volume_size</span></span></span> field and
+replica count 1. You have to ensure that the size is sufficient to hold all
+in-progress (and interrupted) multipart uploads for a user, otherwise one
+may run out of space during multipart upload even if the destination
+volume has plenty of space available.
+<!--l. 119--><p class="indent" >   Interrupted multipart uploads are not automatically removed (because
+one can resume by providing the upload ID), to clean them first run
+<span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">s3cmd</span><span 
+class="ectt-1000">&#x00A0;multipart</span></span></span> on each bucket in turn to find out the objects and upload
+IDs, and <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">s3cmd</span><span 
+class="ectt-1000">&#x00A0;abortmp</span></span></span> on each upload ID in turn to actually delete
+it:
+   <!--l. 124-->
+<div class="lstlisting" id="listing-28"><span class="label"><a 
+ id="x7-35001r1"></a></span><span 
+class="ectt-0800x-x-87">$</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">s3cmd</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">multipart</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">c</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">s3</span><span 
+class="ectt-0800x-x-87">://</span><span 
+class="ectt-0800x-x-87">bucket</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x7-35002r2"></a></span><span 
+class="ectt-0800x-x-87">$</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">s3cmd</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">abortmp</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">s3</span><span 
+class="ectt-0800x-x-87">://</span><span 
+class="ectt-0800x-x-87">bucket</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">object</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">Id</span>
+   </div>
+                                                                 
+
+                                                                 
+   <!--l. 2--><div class="crosslinks"><p class="noindent">[<a 
+href="manualch6.html" >next</a>] [<a 
+href="manualch4.html" >prev</a>] [<a 
+href="manualch4.html#tailmanualch4.html" >prev-tail</a>] [<a 
+href="manualch5.html" >front</a>] [<a 
+href="manual.html#manualch5.html" >up</a>] </p></div>
+<!--l. 2--><p class="indent" >   <a 
+ id="tailmanualch5.html"></a>   
+</body></html> 

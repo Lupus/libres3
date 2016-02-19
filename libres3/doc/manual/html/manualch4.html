@@ -1,0 +1,758 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"  
+  "http://www.w3.org/TR/html4/loose.dtd">  
+<html > 
+<head><title>4 Client configuration</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"> 
+<meta name="generator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
+<meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
+<!-- html,2,next,fn-in --> 
+<meta name="src" content="manual.tex"> 
+<meta name="date" content="2016-02-19 19:38:00"> 
+<link rel="stylesheet" type="text/css" href="manual.css"> 
+</head><body 
+>
+   <!--l. 2--><div class="crosslinks"><p class="noindent">[<a 
+href="manualch5.html" >next</a>] [<a 
+href="manualch3.html" >prev</a>] [<a 
+href="manualch3.html#tailmanualch3.html" >prev-tail</a>] [<a 
+href="#tailmanualch4.html">tail</a>] [<a 
+href="manual.html#manualch4.html" >up</a>] </p></div>
+   <h2 class="chapterHead"><span class="titlemark">Chapter&#x00A0;4</span><br /><a 
+ id="x6-180004"></a>Client configuration</h2>
+   <h3 class="sectionHead"><span class="titlemark">4.1   </span> <a 
+ id="x6-190004.1"></a>Authentication</h3>
+<!--l. 4--><p class="noindent" >S3 clients require that you provide an &#8220;Access key&#8221; and a &#8220;Secret key&#8221;. The
+&#8220;Access key&#8221; is your S<sup class="textsuperscript"><span 
+class="ec-qbkr-x-x-90">X</span></sup> username, and your &#8220;Secret key&#8221; is your S<sup class="textsuperscript"><span 
+class="ec-qbkr-x-x-90">X</span></sup> token
+(key).
+<!--l. 8--><p class="indent" >   In case you are accessing your S<sup class="textsuperscript"><span 
+class="ec-qbkr-x-x-90">X</span></sup> cluster using a username and
+password, you need to find out your S<sup class="textsuperscript"><span 
+class="ec-qbkr-x-x-90">X</span></sup> token by running <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">sxinit</span></span></span> if you
+haven&#8217;t already done so: <!--l. 11-->
+<div class="lstlisting" id="listing-17"><span class="label"><a 
+ id="x6-19001r1"></a></span><span 
+class="ectt-0800x-x-87">$</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">sxinit</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">sx</span><span 
+class="ectt-0800x-x-87">://</span><span 
+class="ectt-0800x-x-87">username@clustername</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-19002r2"></a></span><span 
+class="ectt-0800x-x-87">$</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cat</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">$HOME</span><span 
+class="ectt-0800x-x-87">/.</span><span 
+class="ectt-0800x-x-87">sx</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">clustername</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">auth</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">username</span>
+   </div>
+<!--l. 16--><p class="noindent" >
+   <h3 class="sectionHead"><span class="titlemark">4.2   </span> <a 
+ id="x6-200004.2"></a>s3cmd</h3>
+<!--l. 19--><p class="noindent" >You can use the generated s3cfg config file
+<span class="footnote-mark"><a 
+href="#fn1x4" id="fn1x4-bk"><sup class="textsuperscript">1</sup></a></span><a 
+ id="x6-20001f1"></a> or
+configure s3cmd from scratch. Below we assume that your LibreS3 is
+running on <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">libres3.example.com</span></span></span> and it supports TLS. The important s3cmd
+configuration settings are:
+   <!--l. 26-->
+<div class="lstlisting" id="listing-18"><span class="label"><a 
+ id="x6-20002r1"></a></span><span 
+class="ectt-0800x-x-87">use_https</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">True</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-20003r2"></a></span><span 
+class="ectt-0800x-x-87">host_base</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">example</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">com</span><span 
+class="ectt-0800x-x-87">:8443</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-20004r3"></a></span><span 
+class="ectt-0800x-x-87">host_bucket</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">%(</span><span 
+class="ectt-0800x-x-87">bucket</span><span 
+class="ectt-0800x-x-87">)</span><span 
+class="ectt-0800x-x-87">s</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">example</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">com</span><span 
+class="ectt-0800x-x-87">:8443</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-20005r4"></a></span><span 
+class="ectt-0800x-x-87">access_key</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">&#x003C;</span><span 
+class="ectt-0800x-x-87">your</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">sx</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">username</span><span 
+class="ectt-0800x-x-87">&#x003E;</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-20006r5"></a></span><span 
+class="ectt-0800x-x-87">secret_key</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">&#x003C;</span><span 
+class="ectt-0800x-x-87">your</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">sx</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">key</span><span 
+class="ectt-0800x-x-87">&#x003E;</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-20007r6"></a></span><span 
+class="ectt-0800x-x-87">ca_certs_file</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">s</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">etc</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">ssl</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">certs</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">pem</span>
+   </div>
+<!--l. 36--><p class="indent" >   If you don&#8217;t use TLS, please use the port 8008 instead of 8443, and set
+<span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">use_https</span></span></span> to <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">False</span></span></span>. Once you&#8217;ve configured s3cmd check that it properly
+connects to LibreS3:
+   <!--l. 40-->
+<div class="lstlisting" id="listing-19"><span class="label"><a 
+ id="x6-20008r1"></a></span><span 
+class="ectt-0800x-x-87">$</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">s3cmd</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">ls</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">--</span><span 
+class="ectt-0800x-x-87">debug</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">2&#x003E;&amp;1</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">|</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">grep</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">host</span>
+   </div>
+<!--l. 45--><p class="indent" >   Supported s3cmd commands:
+     <dl class="description"><dt class="description">
+<span 
+class="ec-qbkb-">Bucket</span> </dt><dd 
+class="description"><span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">mb</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">rb</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">ls</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">la</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">du</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">info</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">setpolicy</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">delpolicy</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">multipart</span></span></span>
+     </dd><dt class="description">
+<span 
+class="ec-qbkb-">Object</span> </dt><dd 
+class="description"><span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">put</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">get</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">del</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">rm</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">sync</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">info</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">cp</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">modify</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">mv</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">abortmp</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">listmp</span></span></span>,
+     <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">sign</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">signurl</span></span></span></dd></dl>
+                                                                 
+
+                                                                 
+<!--l. 55--><p class="noindent" >
+   <h4 class="subsectionHead"><a 
+ id="x6-210004.2"></a>Encrypted files</h4>
+<!--l. 57--><p class="noindent" >You can set <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">gpg_passphrase</span></span></span> in <span class="path"><span 
+class="ectt-1000">.s3cfg</span></span> and use <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">s3cmd</span><span 
+class="ectt-1000">&#x00A0;--encrypt</span></span></span> to upload/download
+encrypted files <span class="footnote-mark"><a 
+href="#fn2x4" id="fn2x4-bk"><sup class="textsuperscript">2</sup></a></span><a 
+ id="x6-21001f2"></a>.
+<!--l. 63--><p class="noindent" >
+   <h4 class="subsectionHead"><a 
+ id="x6-220004.2"></a>Caveats</h4>
+<!--l. 65--><p class="noindent" >Certificate verification changed in Python version <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">2.7.9+</span></span></span>, and you&#8217;ll need
+<span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">s3cmd</span></span></span> version <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">1.5.1</span></span></span> or newer to match. The <span class="path"><span 
+class="ectt-1000">.s3cfg</span></span> must contain a
+<span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">ca_certs_file</span></span></span> entry pointing to the certificate of the LibreS3 server,
+otherwise certificate verification (and thus HTTPS connections) will
+fail.
+<!--l. 71--><p class="indent" >   Note that wildcard TLS certificates only match one level, hence you
+should avoid using bucket names which contain dots.
+<!--l. 74--><p class="indent" >   For example a certificate for <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">*.s3.example.com</span></span></span> is:
+     <ul class="itemize1">
+     <li class="itemize">valid for <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">a.s3.example.com</span></span></span>
+     </li>
+     <li class="itemize">NOT valid for <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">a.b.s3.example.com</span></span></span></li></ul>
+<!--l. 80--><p class="noindent" >
+   <h3 class="sectionHead"><span class="titlemark">4.3   </span> <a 
+ id="x6-230004.3"></a>Python-boto</h3>
+<!--l. 83--><p class="noindent" >S3 clients using Python boto are configured in <span class="path"><span 
+class="ectt-1000">~/.boto</span></span>, or you can use the
+generated<span class="footnote-mark"><a 
+href="#fn3x4" id="fn3x4-bk"><sup class="textsuperscript">3</sup></a></span><a 
+ id="x6-23001f3"></a>
+file. A typical configuration is:
+   <!--l. 87-->
+<div class="lstlisting" id="listing-20"><span class="label"><a 
+ id="x6-23002r1"></a></span><span 
+class="ectt-0800x-x-87">[</span><span 
+class="ectt-0800x-x-87">Credentials</span><span 
+class="ectt-0800x-x-87">]</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-23003r2"></a></span><span 
+class="ectt-0800x-x-87">aws_access_key_id</span><span 
+class="ectt-0800x-x-87">=&#x003C;</span><span 
+class="ectt-0800x-x-87">your</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">sx</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">username</span><span 
+class="ectt-0800x-x-87">&#x003E;</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-23004r3"></a></span><span 
+class="ectt-0800x-x-87">aws_secret_access_key</span><span 
+class="ectt-0800x-x-87">=&#x003C;</span><span 
+class="ectt-0800x-x-87">your</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">sx</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">key</span><span 
+class="ectt-0800x-x-87">&#x003E;</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-23005r4"></a></span><span 
+class="ectt-0800x-x-87">s3_host</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">example</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">com</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-23006r5"></a></span><span 
+class="ectt-0800x-x-87">s3_port</span><span 
+class="ectt-0800x-x-87">=8443</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-23007r6"></a></span><span 
+class="ectt-0800x-x-87">[</span><span 
+class="ectt-0800x-x-87">Boto</span><span 
+class="ectt-0800x-x-87">]</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-23008r7"></a></span><span 
+class="ectt-0800x-x-87">is_secure</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">True</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-23009r8"></a></span><span 
+class="ectt-0800x-x-87">ca_certificates_file</span><span 
+class="ectt-0800x-x-87">=/</span><span 
+class="ectt-0800x-x-87">etc</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">pem</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-23010r9"></a></span><span 
+class="ectt-0800x-x-87">https_validate_certificates</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">True</span>
+   </div>
+<!--l. 99--><p class="indent" >   Note that setting <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">s3_host</span></span></span> will override the hostname you give to
+applications on the command-line. If you are using an application that
+allows setting the S3 hostname on the command-line, you might want to
+use that instead.
+<!--l. 103--><p class="indent" >   Note that old version of python-boto require the port to be on <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">s3_host</span></span></span>
+instead of <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">s3_port</span></span></span>.
+<!--l. 106--><p class="noindent" >
+   <h4 class="subsectionHead"><a 
+ id="x6-240004.3"></a>Caveats</h4>
+                                                                 
+
+                                                                 
+<!--l. 108--><p class="noindent" >Certificate verification changed in Python version <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">2.7.9+</span></span></span>, and you&#8217;ll need to
+add <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">ca_certificates_file</span></span></span> and <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">https_validate_certificates=True</span></span></span>
+entries in the <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">[Boto]</span></span></span> section of your <span class="path"><span 
+class="ectt-1000">.boto</span></span> file. Otherwise python-boto
+applications will keep trying to reconnect, and eventually fail with:
+<!--l. 113-->
+<div class="lstlisting" id="listing-21"><span class="label"><a 
+ id="x6-24001r1"></a></span><span 
+class="ectt-0800x-x-87">ssl</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">SSLError</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">[</span><span 
+class="ectt-0800x-x-87">SSL</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">CERTIFICATE_VERIFY_FAILED</span><span 
+class="ectt-0800x-x-87">]</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">certificate</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">verify</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">failed</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">(</span><span 
+class="ectt-0800x-x-87">_ssl</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">c</span><span 
+class="ectt-0800x-x-87">:581)</span>
+   </div>
+<!--l. 117--><p class="indent" >   The <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">libres3_setup</span></span></span> generated python-boto configuration files already
+have the necessary entries since LibreS3 version <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">1.1</span></span></span>.
+<!--l. 120--><p class="noindent" >
+   <h3 class="sectionHead"><span class="titlemark">4.4   </span> <a 
+ id="x6-250004.4"></a>s3fs-fuse</h3>
+<!--l. 122--><p class="noindent" >S3FS can be used to provide a FUSE-based file system backed by
+LibreS3.
+<!--l. 124--><p class="indent" >   You must specify the S<sup class="textsuperscript"><span 
+class="ec-qbkr-x-x-90">X</span></sup> username and access token in <span class="path"><span 
+class="ectt-1000">~/.passwd-s3fs</span></span>,
+the URL for your LibreS3 server with <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">-o</span><span 
+class="ectt-1000">&#x00A0;url</span></span></span>, and the certificate used by
+LibreS3 in <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">CURL_CA_BUNDLE</span></span></span>: <!--l. 127-->
+<div class="lstlisting" id="listing-22"><span class="label"><a 
+ id="x6-25001r1"></a></span><span 
+class="ectt-0800x-x-87">$</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cat</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">&#x003E;~/.</span><span 
+class="ectt-0800x-x-87">passwd</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">s3fs</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">&#x003C;&#x003C;</span><span 
+class="ectt-0800x-x-87">EOF</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-25002r2"></a></span><span 
+class="ectt-0800x-x-87">admin</span><span 
+class="ectt-0800x-x-87">:0</span><span 
+class="ectt-0800x-x-87">DPiKuNIrrVmD8IUCuw1hQxNqZfJ0hlBUgyckAolodd4C</span><span 
+class="ectt-0800x-x-87">/4</span><span 
+class="ectt-0800x-x-87">r4ecY3QAA</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-25003r3"></a></span><span 
+class="ectt-0800x-x-87">EOF</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-25004r4"></a></span><span 
+class="ectt-0800x-x-87">$</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">chmod</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">0600</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">~/.</span><span 
+class="ectt-0800x-x-87">passwd</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">s3fs</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-25005r5"></a></span><span 
+class="ectt-0800x-x-87">$</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">mkdir</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">~/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">vol1</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-25006r6"></a></span><span 
+class="ectt-0800x-x-87">$</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">CURL_CA_BUNDLE</span><span 
+class="ectt-0800x-x-87">=/</span><span 
+class="ectt-0800x-x-87">etc</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">ssl</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">certs</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">pem</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">s3fs</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">o</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">url</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">https</span><span 
+class="ectt-0800x-x-87">://</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">example</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">com</span><span 
+class="ectt-0800x-x-87">:8443</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">vol1</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">~/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">vol1</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">o</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">uid</span><span 
+class="ectt-0800x-x-87">=1000</span>
+   </div>
+<!--l. 136--><p class="indent" >   If you want to access LibreS3 unencrypted for debugging purposes then:
+<!--l. 137-->
+<div class="lstlisting" id="listing-23"><span class="label"><a 
+ id="x6-25007r1"></a></span><span 
+class="ectt-0800x-x-87">$</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">s3fs</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">o</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">url</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">http</span><span 
+class="ectt-0800x-x-87">://</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">example</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">com</span><span 
+class="ectt-0800x-x-87">:8008</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">vol1</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">~/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">vol1</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">o</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">uid</span><span 
+class="ectt-0800x-x-87">=1000</span>
+   </div>
+<!--l. 141--><p class="noindent" >
+   <h4 class="subsectionHead"><a 
+ id="x6-260004.4"></a>Caveats</h4>
+<!--l. 143--><p class="noindent" >If s3fs fails to connect to LibreS3 it quits without an error message, and the
+next time you access the mountpoint you get an error, including trying to
+start s3fs again: <!--l. 146-->
+<div class="lstlisting" id="listing-24"><span class="label"><a 
+ id="x6-26001r1"></a></span><span 
+class="ectt-0800x-x-87">$</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">touch</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">~/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">vol1</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">x</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-26002r2"></a></span><span 
+class="ectt-0800x-x-87">touch</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cannot</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">touch</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">&#8217;/</span><span 
+class="ectt-0800x-x-87">home</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">USER</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">vol1</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">x</span><span 
+class="ectt-0800x-x-87">&#8217;:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">Transport</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">endpoint</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">is</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">not</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">connected</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-26003r3"></a></span><span 
+class="ectt-0800x-x-87">$</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">s3fs</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">...</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-26004r4"></a></span><span 
+class="ectt-0800x-x-87">s3fs</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">unable</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">to</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">access</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">MOUNTPOINT</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">home</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">USER</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">vol1</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">Transport</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">endpoint</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">is</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">not</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">connected</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-26005r5"></a></span><span 
+class="ectt-0800x-x-87">$</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">fusermount</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">u</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">~/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">vol1</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-26006r6"></a></span><span 
+class="ectt-0800x-x-87">$</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">s3fs</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">...</span>
+   </div>
+<!--l. 155--><p class="indent" >   You&#8217;ll have to manually unmount and it is useful to run <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">s3fs</span></span></span> in the
+foreground to see the actual error message: <!--l. 157-->
+<div class="lstlisting" id="listing-25"><span class="label"><a 
+ id="x6-26007r1"></a></span><span 
+class="ectt-0800x-x-87">$</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">fusermount</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">u</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">~/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">vol1</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-26008r2"></a></span><span 
+class="ectt-0800x-x-87">$</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">CURL_CA_BUNDLE</span><span 
+class="ectt-0800x-x-87">=/</span><span 
+class="ectt-0800x-x-87">etc</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">ssl</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">certs</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">pem</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">s3fs</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">o</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">url</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">https</span><span 
+class="ectt-0800x-x-87">://</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">example</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">com</span><span 
+class="ectt-0800x-x-87">:8443</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">vol1</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">~/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">vol1</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">o</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">uid</span><span 
+class="ectt-0800x-x-87">=1000</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">f</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x6-26009r3"></a></span><span 
+class="ectt-0800x-x-87">[...]</span>
+   </div>
+<!--l. 163--><p class="indent" >   Common errors are using the wrong user/token in <span class="path"><span 
+class="ectt-1000">~/.passwd-s3fs</span></span>, or
+s3fs reading the wrong passwd-s3fs (from path/etc for example), or that you
+don&#8217;t have permissions to access the volume, etc.
+                                                                 
+
+                                                                 
+<!--l. 166--><p class="noindent" >
+   <h3 class="sectionHead"><span class="titlemark">4.5   </span> <a 
+ id="x6-270004.5"></a>DragonDisk</h3>
+<!--l. 169--><p class="noindent" >Add an account configured like this:
+     <dl class="description"><dt class="description">
+<span 
+class="ec-qbkb-">Provider</span> </dt><dd 
+class="description">Other S3 compatible service
+     </dd><dt class="description">
+<span 
+class="ec-qbkb-">Service endpoint</span> </dt><dd 
+class="description"><span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">libres3.example.com</span></span></span> (<span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">s3_host</span></span></span> from <span class="path"><span 
+class="ectt-1000">libres3.conf</span></span>)
+     </dd><dt class="description">
+<span 
+class="ec-qbkb-">Access key</span> </dt><dd 
+class="description">your S<sup class="textsuperscript"><span 
+class="ec-qbkr-x-x-90">X</span></sup> username
+     </dd><dt class="description">
+<span 
+class="ec-qbkb-">Secret key</span> </dt><dd 
+class="description">your S<sup class="textsuperscript"><span 
+class="ec-qbkr-x-x-90">X</span></sup> secret token
+     </dd><dt class="description">
+<span 
+class="ec-qbkb-">HTTP port</span> </dt><dd 
+class="description">8008 (<span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">s3_http_port</span></span></span> from <span class="path"><span 
+class="ectt-1000">libres3.conf</span></span>)
+     </dd><dt class="description">
+<span 
+class="ec-qbkb-">HTTPS port</span> </dt><dd 
+class="description">8443 (<span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">s3_https_port</span></span></span> from <span class="path"><span 
+class="ectt-1000">libres3.conf</span></span>)</dd></dl>
+<!--l. 179--><p class="noindent" >
+   <h3 class="sectionHead"><span class="titlemark">4.6   </span> <a 
+ id="x6-280004.6"></a>Other clients</h3>
+<!--l. 180--><p class="noindent" >For information on other clients please refer to our wiki:
+<a 
+href="http://wiki.skylable.com/wiki/LibreS3_Clients" class="url" ><span 
+class="ectt-1000">http://wiki.skylable.com/wiki/LibreS3_Clients</span></a>
+                                                                 
+
+                                                                 
+   <div class="footnotes"><!--l. 20--><p class="indent" >   <span class="footnote-mark"><a 
+href="#fn1x4-bk" id="fn1x4"><sup class="textsuperscript">1</sup></a></span><span class="path"><span 
+class="ectt-0800">/etc/libres3/libres3.sample.s3cfg</span></span>
+<!--l. 61--><p class="indent" >    <span class="footnote-mark"><a 
+href="#fn2x4-bk" id="fn2x4"><sup class="textsuperscript">2</sup></a></span><span 
+class="ec-qbkr-x-x-80">Accessing files on S</span><sup class="textsuperscript"><span 
+class="ec-qbkr-x-x-90">X</span></sup> <span 
+class="ec-qbkr-x-x-80">volumes that use the aes filter is not supported, because this</span>
+<span 
+class="ec-qbkr-x-x-80">would require decrypting the files by LibreS3 server-side, and encrypted volumes in S</span><sup class="textsuperscript"><span 
+class="ec-qbkr-x-x-90">X</span></sup> <span 
+class="ec-qbkr-x-x-80">are</span>
+<span 
+class="ec-qbkr-x-x-80">meant to be used with client-side encryption</span>
+<!--l. 84--><p class="indent" >      <span class="footnote-mark"><a 
+href="#fn3x4-bk" id="fn3x4"><sup class="textsuperscript">3</sup></a></span><span class="path"><span 
+class="ectt-0800">/etc/libres3/libres3.sample.boto</span></span>                                        </div>
+<!--l. 2--><div class="crosslinks"><p class="noindent">[<a 
+href="manualch5.html" >next</a>] [<a 
+href="manualch3.html" >prev</a>] [<a 
+href="manualch3.html#tailmanualch3.html" >prev-tail</a>] [<a 
+href="manualch4.html" >front</a>] [<a 
+href="manual.html#manualch4.html" >up</a>] </p></div>
+<!--l. 2--><p class="indent" >   <a 
+ id="tailmanualch4.html"></a>   
+</body></html> 
