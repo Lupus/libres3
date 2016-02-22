@@ -436,7 +436,13 @@ let detail_of_reply reply =
        return ("Unparsable reply" ^ (Printexc.to_string e)));;
 
 let make_http_request ?quick p url =
-  P.make_http_request ?quick p url >>= fun reply ->
+  Lwt.catch (fun () -> P.make_http_request ?quick p url)
+    (function
+      | Http_client.Http_protocol exn ->
+        EventLog.warning ~exn "HTTP(S) request failed to %s:%d" url.host url.port;
+        Lwt.fail exn
+      | e -> Lwt.fail e)
+  >>= fun reply ->
   let apiverstr =
     try reply.headers#multiple_field "SX-API-Version"
     with Not_found -> ["0"] in
@@ -822,8 +828,7 @@ let get_meta url =
       make_request ~quick:true `GET cluster_nodes url
     | [""] | [] ->
       get_cluster_nodelist url >>= fun (nodes, _) ->
-      get_vol_nodelist url >>= fun (nodes, _) ->
-      let url = Neturl.modify_url ~syntax:http_syntax url ~query:"clusterMeta" in
+      let url = Neturl.modify_url ~encoded:true ~path:[""] ~scheme:"http" ~syntax:http_syntax url ~query:"clusterMeta" in
       make_request ~quick:true `GET nodes ?etag url
     | _ ->
       get_vol_nodelist url >>= fun (nodes, _) ->
@@ -837,10 +842,13 @@ let get_meta url =
     | [`O obj ] ->
       begin match filter_field "fileMeta" obj, filter_field "customVolumeMeta" obj, filter_field "clusterMeta" obj with
       |  [ `F (_, [`O metalist]) ], _, _ | _, [ `F (_, [`O metalist]) ], _ | _, _, [ `F (_, [`O metalist]) ] ->
-      return (List.rev_map (function
-          | `F (k, [`String v]) -> k, transform_string (Hexa.decode()) v
-          | _ -> failwith "bad meta reply format (obj)"
-        ) metalist)
+        return (List.rev_map (function
+            | `F (k, [`String v]) ->
+              let v = transform_string (Hexa.decode()) v in
+              EventLog.debug (fun () -> "cluster meta: " ^ k^"="^v);
+              k, v
+            | _ -> failwith "bad meta reply format (obj)"
+          ) metalist)
       | l1, l2, l3 ->
         warning "missing field for meta in json: %a" pp_json_lst [`O obj];
         failwith (Printf.sprintf "bad meta reply format (field: %d,%d,%d)" (List.length l1) (List.length l2) (List.length l3))
@@ -1288,10 +1296,18 @@ let build_meta = function
   | Some f -> build_meta_raw "fileMeta" (f ())
 
 let set_meta url meta =
-  let url = Neturl.modify_url url ~encoded:true ~query:"o=mod" ~scheme:"http"
-    ~syntax:http_syntax in
+  let url, root = match Neturl.url_path url with
+    | [] | [""] | ["/"] ->
+      EventLog.notice "Updating cluster metadata";
+      EventLog.debug (fun () -> Printf.sprintf "New metadata: %s" (String.concat ", " (List.rev_map (fun (k,v) -> k^"="^v) meta)));
+      Neturl.modify_url ~encoded:true ~path:["";".clusterMeta"] ~scheme:"http" ~syntax:http_syntax url,
+      "clusterMeta"
+    | _ ->
+      Neturl.modify_url url ~encoded:true ~query:"o=mod" ~scheme:"http"
+        ~syntax:http_syntax, "customVolumeMeta"
+  in
   get_cluster_nodelist url >>= fun (nodes, _) ->
-  send_json nodes url (`Object (build_meta_raw "customVolumeMeta" meta)) >>=
+  send_json nodes url (`Object (build_meta_raw root meta)) >>=
   job_get url
 
 let upload_part ?metafn nodelist url source blocksize hashes map size extendSeq token =
@@ -1757,11 +1773,18 @@ let delete ?async url =
         fail e
       | e -> fail e)
 
+let is_online url node =
+  make_request `HEAD [node] (fetch_nodes url) >>= fun _ ->
+  return_unit
+
 let with_lock ~max_wait url f =
   let url = Neturl.modify_url url ~encoded:true ~scheme:"http"
       ~syntax:http_syntax ~path:["";".distlock"] in
   get_cluster_nodelist url >>= fun (nodes, _) ->
+  (* Check whether all nodes are online, otherwise distlock takes a long time to timeout *)
+  List.rev_map (is_online url) nodes |> Lwt.join >>= fun () ->
   let distlock op =
+    EventLog.notice  "%sing cluster for changes" op;
     send_json nodes url (`Object ["op", `String op]) >>= job_get url
   in
   let sleep_time = 0.1 in
@@ -1773,7 +1796,8 @@ let with_lock ~max_wait url f =
           acquire (n-1)
         | e -> Lwt.fail e)
   in
-  acquire (int_of_float (max_wait /. sleep_time)) >>= fun () ->
+  Lwt.catch (fun () -> acquire (int_of_float (max_wait /. sleep_time)))
+    (function Lwt_unix.Timeout -> distlock "unlock" | e -> fail e) >>= fun () ->
   Lwt.finalize (fun () -> f nodes)
     (fun () -> distlock "unlock")
 
@@ -1802,3 +1826,30 @@ let with_settings url ~max_wait f key =
         warning "obj expected: %a" pp_json_lst o;
         failwith "Bad json reply format: clusterSettings reply expected"
   )
+
+let settings_prefix = "libres3-settings-"
+let get_settings url =
+  get_meta url >>=
+  Lwt_list.filter_map_s (fun (k, v) ->
+      let plen = String.length settings_prefix in
+      let n = String.length k in
+      if n >= plen && String.sub k 0 plen = settings_prefix then
+        Lwt.return_some (String.sub k plen (n-plen), v)
+      else
+        Lwt.return_none
+  )
+
+let map_update lst map =
+  List.fold_left (fun accum (k,v) -> StringMap.add k v accum) map lst
+
+let update_settings ~max_wait url updates =
+  with_lock ~max_wait url (fun nodes ->
+      let updates = List.rev_map (fun (k,v) -> settings_prefix^k,v) updates in
+      EventLog.info (fun () -> "retrieving old metadata");
+      get_meta url >>= fun old ->
+      map_update old StringMap.empty |>
+      map_update updates |>
+      StringMap.bindings |>
+      set_meta url >>= fun () ->
+      get_settings url
+    )

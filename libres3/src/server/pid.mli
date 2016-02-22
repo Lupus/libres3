@@ -28,5 +28,6 @@
 (**************************************************************************)
 
 val write_pid: string -> unit
+val sighup_pid : string -> unit
 val kill_pid: string -> unit
 val print_status : string -> unit

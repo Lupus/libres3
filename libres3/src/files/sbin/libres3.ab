@@ -29,6 +29,10 @@ case "\$1" in
         $(sbindir)/libres3_ocsigen --stop
         ;;
 
+    reload)
+        $(sbindir)/libres3_ocsigen --reload
+        ;;
+
     restart)
         \$0 stop >/dev/null || exit 1
         \$0 start || exit 1

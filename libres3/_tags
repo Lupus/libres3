@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: cb38d3fdcaac8bf85994f8c40dbff18d)
+# DO NOT EDIT (digest: 01d2cf8e1bc2686f90e552da1c006a91)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -114,11 +114,13 @@ true: annot, bin_annot
 <src/server/libres3_setup.{native,byte}>: package(lwt.unix)
 <src/server/libres3_setup.{native,byte}>: package(netclient)
 <src/server/libres3_setup.{native,byte}>: package(netstring)
+<src/server/libres3_setup.{native,byte}>: package(re.str)
 <src/server/libres3_setup.{native,byte}>: package(ssl)
 <src/server/libres3_setup.{native,byte}>: package(threads)
 <src/server/libres3_setup.{native,byte}>: package(unix)
 <src/server/libres3_setup.{native,byte}>: use_anycache
 <src/server/libres3_setup.{native,byte}>: use_sxclient
+<src/server/*.ml{,i,y}>: package(re.str)
 # Executable libres3_report
 <src/server/libres3_report.{native,byte}>: package(base64)
 <src/server/libres3_report.{native,byte}>: package(cryptokit)

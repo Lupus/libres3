@@ -2232,13 +2232,32 @@ module Make
     close_out f
   ;;
 
+  let reload_configuration () =
+    EventLog.notice "(Re)loading configuration from cluster metadata";
+    match !Configfile.sx_host with
+    | None -> Lwt.return_unit
+    | Some host ->
+    let url = Neturl.make_url ~encoded:false ~scheme:"sx" ~host ~path:[""] ~user:!Config.key_id
+            SXC.syntax in
+    Lwt_unix.with_timeout 10. (fun () -> SXC.get_settings url) >>= fun settings ->
+    List.iter (fun (k,v) ->
+        try
+          let _,f,_ = List.find (fun (key,_,_) -> key = k) Configfile.meta_entries in
+          EventLog.notice "Configuration from cluster meta: %s=%s" k v;
+          f v
+        with Not_found -> ()
+    ) settings;
+    Lwt.return_unit
+
   type t = unit
   let init () =
     Printexc.record_backtrace true;
-    Sys.set_signal Sys.sigusr2 (Sys.Signal_handle print_info);
+    ignore (Lwt_unix.on_signal Sys.sigusr2 print_info);
+    ignore (Lwt_unix.on_signal Sys.sighup (fun _ -> Lwt.async reload_configuration));
     if !Config.secret_access_key = "" && !Configfile.sx_host <> None then
       fail (Failure "SX secret access key must be set!")
     else begin
+      reload_configuration () >>= fun () ->
       Gc.compact ();
       let path = Filename.concat !Paths.log_dir "access.log" in
       Lwt.catch (fun () -> Accesslog.reopen ~path ())

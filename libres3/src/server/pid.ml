@@ -76,7 +76,7 @@ let kill_pid name =
   begin match with_pidfile_read name (fun pid ->
       Printf.printf "Sending TERM to PID %d ... %!" pid;
       begin try
-          kill ~pid:(-pid) ~signal:15;
+          kill ~pid:(-pid) ~signal:Sys.sigterm;
           Printf.printf "\n%!";
         with Unix_error(e,_,_) ->
           Printf.eprintf "Kill failed: %s!\n%!" (error_message e);
@@ -89,6 +89,20 @@ let kill_pid name =
   | None -> ()
   end;
   try Sys.remove name with Sys_error _ -> ();;
+
+let sighup_pid name =
+  begin match with_pidfile_read name (fun pid ->
+      Printf.printf "Sending SIGHUP to PID %d ... %!" pid;
+      begin try
+          kill ~pid ~signal:Sys.sighup;
+          Printf.printf "\n%!";
+        with Unix_error(e,_,_) ->
+          Printf.eprintf "SIGHUP failed: %s!\n%!" (error_message e);
+      end
+    ) with
+  | Some str -> print_endline str
+  | None -> ()
+  end
 
 let print_status name =
   print_endline "--- LibreS3 STATUS ---";

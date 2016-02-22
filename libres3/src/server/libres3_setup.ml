@@ -27,6 +27,7 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
+open Lwt
 open SXIO
 let print_version () =
   Printf.printf "libres3 setup version %s\n%!" Version.version;
@@ -62,7 +63,31 @@ let rec trim_bol s pos =
 let trim s =
   trim_bol s 0
 
+let update = ref []
+
+let sx_uri = ref None
+let anon_fail uri =
+  let open Neturl in
+  try
+    sx_uri := Some (Neturl.url_of_string {
+        Neturl.null_url_syntax with
+        url_enable_user = Url_part_allowed;
+        url_enable_scheme = Url_part_required;
+        url_enable_host = Url_part_required;
+        url_accepts_8bits = false;
+        url_is_valid = (fun url ->
+            Neturl.url_scheme url = "sx");
+        url_enable_relative = false;
+      } uri)
+  with Neturl.Malformed_URL ->
+    raise (Arg.Bad ("invalid SX URL: " ^ uri))
+
+let configdir = ref None
+let ssl_key_file = ref (Filename.concat Configure.sysconfdir "ssl/private/libres3.key")
+let ssl_cert_file = ref (Filename.concat Configure.sysconfdir "ssl/certs/lbires3.pem")
+
 let spec = [
+  "--update", Arg.String (fun s -> update := s :: !update), "Update configuration in cluster metadata (KEY=VALUE)";
   "--s3-host", Arg.Set_string s3_host,
     " Base hostname to use (equivalent to; s3.amazonaws.com, host_base in .s3cfg)";
   "--s3-http-port", Arg.Set_string s3_http_port,
@@ -75,15 +100,82 @@ let spec = [
   "--default-volume-size", Arg.Set_string default_volume_size,
     " Default volume size"
   ;
+  "--ssl-certificate-file", Arg.Set_string ssl_cert_file,
+  " Path for SSL certificate file";
+  "--ssl-key-file", Arg.Set_string ssl_key_file,
+  " Path for SSL key file";
   "--sxsetup-conf", Arg.Set_string sxsetup_conf, " Path to sxsetup.conf";
   "--batch", Arg.Set batch_mode, " Turn off interactive confirmations and assume safe defaults";
+  "--config-dir", Arg.String (fun s -> configdir := Some s),
+   " Path to SX configuration directory";
+  "--debug", Arg.Unit (fun () -> Lwt_log.Section.set_level EventLog.section Lwt_log.Debug), "enable debug messages";
   "--version", Arg.Unit print_version, " ";
   "-V", Arg.Unit print_version, " Print version";
   "--no-ssl", Arg.Clear ssl, ""
 ]
 
-let anon_fail flag =
-  raise (Arg.Bad ("invalid option: " ^ flag))
+let load_initial_configuration () =
+  match !sx_uri with
+  | None -> Lwt.return_none
+  | Some uri ->
+    let host = Neturl.url_host uri in
+    let user = try Some (Neturl.url_user ~encoded:false uri) with Not_found -> None in
+    Sxload.load ?configdir:!configdir ?user ~host >>= fun sx ->
+    begin match sx.Sxload.port with
+      | None -> ()
+      | Some p ->
+        Config.sx_port := p
+    end;
+    Config.sx_ssl := sx.Sxload.use_ssl;
+    Configfile.sx_host := Some host;
+    Config.secret_access_key := sx.Sxload.token;
+    SXC.last_nodes := List.rev_map Ipaddr.to_string sx.Sxload.nodes;
+    Neturl.make_url SXC.syntax ~scheme:"sx" ~user:sx.Sxload.user
+      ~host:(List.hd !SXC.last_nodes) ?port:sx.Sxload.port ~path:[""] |>
+    Lwt.return_some
+
+let lwt_run f =
+  Lwt_unix.on_signal Sys.sigint (fun _ -> raise Sys.Break) |> ignore;
+  try
+    Lwt_main.run (Lwt.finalize f Lwt_io.flush_all)
+  with
+  | Failure msg ->
+    Printf.eprintf "Error:  %s\n%!" msg;
+    exit 1
+  |  e ->
+    Printf.eprintf "Error: %s\n%!" (Printexc.to_string e);
+    exit 2
+
+let print_configuration settings =
+  Lwt_list.iter_s (fun (k,v) ->
+      if List.find_all (fun (key,_,_) -> key = k) Configfile.meta_entries <> [] then
+        Lwt_io.printlf "%s = %s" k v
+      else Lwt.return_unit
+    ) settings
+
+let update_config base lst =
+  let updates = List.rev_map (fun str ->
+      let key, v =
+        try match Sxload.split_kv str with
+          | Some r -> r
+          | None -> failwith "Key cannot start with #"
+        with Failure msg as e ->
+          output_string stderr msg;
+          raise e
+      in
+      try
+        let _, validator, _ = List.find (fun (k,_,_) -> k = key) Configfile.meta_entries in
+        validator v;
+        key, v
+      with
+      | Failure msg ->
+        failwith (Printf.sprintf "Invalid value for '%s=%s': %s" key v msg)
+      | Not_found ->
+        failwith (Printf.sprintf "Unknown meta configuration key '%s'\n" key)
+    ) lst in
+  SXC.update_settings ~max_wait:10. base updates >>= fun settings ->
+  Lwt_io.printl "New configuration:" >>= fun () ->
+  print_configuration settings
 
 let read_line () =
   if !batch_mode then begin
@@ -113,6 +205,34 @@ let () =
   else
     open_errmsg := true
 (*  List.iter ask_arg spec*)
+
+let () =
+  Printexc.register_printer (function
+      | Http_client.Http_protocol e ->
+        Some ("HTTP(S) error: " ^ (Printexc.to_string e))
+      | SXDefaultIO.Detail (e, l) ->
+        Some (Printf.sprintf "SX error: %s\n%s" (Printexc.to_string e)
+                (String.concat "\n" (List.rev_map (fun (k,v) -> k ^"="^v) l))
+             )
+      | Unix.Unix_error(e,fn,arg) ->
+        Some (Printf.sprintf "%s(%s): %s" fn arg (Unix.error_message e))
+      | _ -> None
+    );
+  if lwt_run (fun () ->
+      load_initial_configuration () >>= function
+      | None -> Lwt.return_false
+      | Some base ->
+        Lwt_unix.with_timeout 10. (fun () -> SXC.get_settings base) >>= fun settings ->
+        Lwt_io.printl "Previous configuration:" >>= fun () ->
+        print_configuration settings >>= fun () ->
+        begin if !update <> [] then
+          update_config base !update
+        else
+          Lwt.return_unit
+        end >>= fun () ->
+        Lwt.return_true
+    ) then exit 0
+
 
 let parse_value v =
   try
@@ -465,8 +585,6 @@ let () =
         else v
       with _ -> true in
     Config.sx_ssl := sx_use_ssl;
-    let ssl_key_file = Filename.concat Configure.sysconfdir "ssl/private/libres3.key"
-    and ssl_cert_file = Filename.concat Configure.sysconfdir "ssl/certs/lbires3.pem" in
     let sx_server_port_msg =
       if sx_use_ssl then "SX server HTTPS port"
       else "SX server HTTP port" in
@@ -488,12 +606,12 @@ let () =
       |> validate_and_add ~key:"s3_host" ~default:(fun () ->
           if !s3_host <> "" then !s3_host
           else load "LIBRES3_HOST" ()) (read_value "S3 (DNS) name")
-      |> generate_ssl_certificate ~ssl_key_file ~ssl_cert_file
+      |> generate_ssl_certificate ~ssl_key_file:!ssl_key_file ~ssl_cert_file:!ssl_cert_file
       |> validate_and_add_opt !ssl ~key:"s3_ssl_privatekey_file" ~default:(fun () ->
-          ssl_key_file)
+          !ssl_key_file)
           (read_value "SSL private key file")
       |> validate_and_add_opt !ssl ~key:"s3_ssl_certificate_file" ~default:(fun () ->
-          ssl_cert_file)
+          !ssl_cert_file)
           (read_value "SSL certificate file")
       |> (if !ssl then
           validate_and_add ~key:"s3_https_port" ~validate:port_validate ~default:(fun () ->
@@ -546,6 +664,17 @@ let () =
     let s3_port = int_of_string (StringMap.find "s3_http_port" generated) in
     update_s3cfg None s3_host s3_port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
     generate_boto None s3_host s3_port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.boto");
+
+    begin match !Configfile.sx_host with
+    | None -> ()
+    | Some host ->
+      let base =
+        Neturl.make_url SXC.syntax ~scheme:"sx" ~user:!Config.key_id
+          ~host ~port:!Config.sx_port ~path:[""] in
+      lwt_run (fun () ->
+          SXC.update_settings ~max_wait:10. base (StringMap.bindings generated) >>= fun settings ->
+          print_configuration settings)
+    end;
     if not !batch_mode then
       ask_start ();
   with

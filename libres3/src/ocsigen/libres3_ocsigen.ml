@@ -209,11 +209,12 @@ let enable_debug () =
   Lwt_log.Section.set_level EventLog.section Lwt_log.Debug
 
 let initialize config pipe =
-  let stop = ref false and status = ref false in
+  let stop = ref false and status = ref false and reload = ref false in
   let extra_spec = [
     "--foreground", Arg.Clear Configfile.daemonize, " Run in foreground mode (default: \
                                                      daemonize)";
     "--stop", Arg.Set stop, " Stop running process (based on PIDfile)";
+    "--reload", Arg.Set reload, " Reload running process configuration (based on PIDfile)";
     "--status", Arg.Set status, " Print running process status (based on PIDfile)";
     "--debug", Arg.Unit enable_debug, " Turn on verbose/debug messages";
   ] in
@@ -222,6 +223,10 @@ let initialize config pipe =
   let conf = Cmdline.load_configuration Configfile.entries in
   if !stop then begin
     Pid.kill_pid !Configfile.pidfile;
+    exit 0
+  end;
+  if !reload then begin
+    Pid.sighup_pid !Configfile.pidfile;
     exit 0
   end;
   if !status then begin

@@ -238,17 +238,9 @@ let show_all_volumes = ref false
 let allow_public_bucket_index = ref false
 
 (* libres3.conf entries *)
-let entries : (string * (string -> unit) * string) list = [
+let conf_entries = [
   "secret_key", expect validate_secret_key Config.secret_access_key,
   " SX secret access key";
-  "s3_host", expect validate_dns_name base_hostname,
-  " Base hostname to use (equivalent of s3.amazonaws.com, host_base in .s3cfg)";
-  "s3_listen_ip", expect_opt parse_ip base_listen_ip,
-  " Bind to specified IP (default: any IPv4/IPv6. To bind to IPv4 only use 0.0.0.0)";
-  "s3_http_port", expect parse_port base_port,
-  " Bind to specified HTTP port";
-  "s3_https_port", expect parse_port base_ssl_port,
-  " Bind to specified HTTPS port";
   "s3_ssl_certificate_file", expect_opt validate_readable ssl_certificate_file,
   " The path to the SSL certificate";
   "s3_ssl_privatekey_file", expect_opt validate_readable ssl_privatekey_file,
@@ -257,20 +249,40 @@ let entries : (string * (string -> unit) * string) list = [
   " Hostname of an SX cluster node";
   "sx_port", expect parse_port Config.sx_port,
   " Port of an SX cluster node";
-  "replica_count", expect parse_positive_int Config.replica_count,
-  " Default volume replica count";
-  "volume_size", expect parse_size Config.volume_size,
-  " Default volume size [K,M,G,T suffixes accepted]";
   "tmpdir", expect_opt validate_directory tmpdir,
   " Temporary directory";
   "logdir", expect (fun s -> s) Paths.log_dir,
   Printf.sprintf " Log directory (default: %s)" !Paths.log_dir;
-  "syslog_facility", expect_opt validate_syslog syslog_facility,
-  " Syslog facility to use (default: log to file only)";
   "pidfile", expect (fun s -> s) pidfile,
   " Specify the file where to write the pid of the server";
   "run-as", parse_user_group_opt user group,
   " user:group to use when dropping privileges";
+  "mimefile", expect validate_readable mimefile,
+  (Printf.sprintf " Path to mime.types file (default: %s)" !mimefile);
+  "keyid", expect (fun s -> s) Config.key_id, "";
+  (* for backwards compatibility *)
+  deprecated ~old:"user" ~use:"run-as" expect_opt validate_username user;
+  deprecated ~old:"group" ~use:"run-as" expect_opt validate_username group;
+  deprecated ~old:"pid_file" ~use:"pidfile" expect (fun s -> s) pidfile;
+  deprecated ~old:"s3_ssl_port" ~use:"s3_https_port" expect parse_port base_ssl_port;
+  deprecated ~old:"s3_port" ~use:"s3_https_port" expect parse_port base_port;
+]
+
+let meta_entries = [
+  "s3_host", expect validate_dns_name base_hostname,
+  " Base hostname to use (equivalent of s3.amazonaws.com, host_base in .s3cfg)";
+  "s3_listen_ip", expect_opt parse_ip base_listen_ip,
+  " Bind to specified IP (default: any IPv4/IPv6. To bind to IPv4 only use 0.0.0.0)";
+  "s3_http_port", expect parse_port base_port,
+  " Bind to specified HTTP port";
+  "s3_https_port", expect parse_port base_ssl_port,
+  " Bind to specified HTTPS port";
+  "replica_count", expect parse_positive_int Config.replica_count,
+  " Default volume replica count";
+  "volume_size", expect parse_size Config.volume_size,
+  " Default volume size [K,M,G,T suffixes accepted]";
+  "syslog_facility", expect_opt validate_syslog syslog_facility,
+  " Syslog facility to use (default: log to file only)";
   "max_parallel", expect parse_positive_int max_connected,
   " Maximum number of connections to handle in parallel";
   "allow_volume_create_any_user", expect parse_bool Config.volume_create_elevate_to_admin,
@@ -279,8 +291,6 @@ let entries : (string * (string -> unit) * string) list = [
   " Allow showing all volumes that you have read/write privileges to, not just the volumes that you own (not strictly S3 compatible)";
   "allow_public_bucket_index", expect parse_bool allow_public_bucket_index,
   " Allow showing a browsable 'directory' index for public buckets (not strictly S3 compatible)";
-  "mimefile", expect validate_readable mimefile,
-  (Printf.sprintf " Path to mime.types file (default: %s)" !mimefile);
   (* advanced configuration *)
   "min_threads", expect_opt parse_positive_int min_threads, "";
   "max_detached_threads", expect_opt parse_positive_int max_threads, "";
@@ -293,14 +303,9 @@ let entries : (string * (string -> unit) * string) list = [
   "netbuffersize", expect parse_positive_int netbuffersize, "";
   "filebuffersize", expect parse_positive_int filebuffersize, "";
   "maxretries", expect parse_positive_int maxretries, "";
-  "keyid", expect (fun s -> s) Config.key_id, "";
   "list_cache_expires", expect parse_positive_float Config.list_cache_expires, "";
   "ver_check_interval", expect parse_positive_float check_interval, "";
   "ver_initial_interval", expect parse_positive_float initial_interval, "";
-  (* for backwards compatibility *)
-  deprecated ~old:"user" ~use:"run-as" expect_opt validate_username user;
-  deprecated ~old:"group" ~use:"run-as" expect_opt validate_username group;
-  deprecated ~old:"pid_file" ~use:"pidfile" expect (fun s -> s) pidfile;
-  deprecated ~old:"s3_ssl_port" ~use:"s3_https_port" expect parse_port base_ssl_port;
-  deprecated ~old:"s3_port" ~use:"s3_htts_port" expect parse_port base_port;
 ]
+
+let entries : (string * (string -> unit) * string) list = conf_entries @ meta_entries
