@@ -438,7 +438,7 @@ let detail_of_reply reply =
 let make_http_request ?quick p url =
   Lwt.catch (fun () -> P.make_http_request ?quick p url)
     (function
-      | Http_client.Http_protocol exn ->
+      | Http_client.Http_protocol _ as exn ->
         EventLog.warning ~exn "HTTP(S) request failed to %s:%d" url.host url.port;
         Lwt.fail exn
       | e -> Lwt.fail e)

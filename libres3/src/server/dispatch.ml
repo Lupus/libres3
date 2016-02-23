@@ -2269,6 +2269,11 @@ module Make
     ) settings;
     Lwt.return_unit
 
+  let rec retry_reload_configuration () =
+    Lwt.catch reload_configuration (fun e ->
+        Lwt.async (fun () -> Lwt_unix.sleep 60. >>= retry_reload_configuration);
+        Lwt.return_unit)
+
   type t = unit
   let init () =
     Printexc.record_backtrace true;
@@ -2277,7 +2282,7 @@ module Make
     if !Config.secret_access_key = "" && !Configfile.sx_host <> None then
       fail (Failure "SX secret access key must be set!")
     else begin
-      reload_configuration () >>= fun () ->
+      retry_reload_configuration () >>= fun () ->
       Gc.compact ();
       let path = Filename.concat !Paths.log_dir "access.log" in
       Lwt.catch (fun () -> Accesslog.reopen ~path ())
