@@ -90,7 +90,7 @@ type t =
   | NoSuchVersion
   | NotImplemented
   | NotSignedUp
-  | NotSuchBucketPolicy
+  | NoSuchBucketPolicy
   | OperationAborted
   | PermanentRedirect
   | PreconditionFailed
@@ -365,8 +365,8 @@ let info = function
     "NotSignedUp",
     "Your account is not signed up for this service",
     `Forbidden
-  | NotSuchBucketPolicy ->
-    "NotSuchBucketPolicy",
+  | NoSuchBucketPolicy ->
+    "NoSuchBucketPolicy",
     "The specified bucket does not have a policy.",
     `Not_found
   | OperationAborted ->

@@ -845,7 +845,7 @@ let get_meta url =
         return (List.rev_map (function
             | `F (k, [`String v]) ->
               let v = transform_string (Hexa.decode()) v in
-              EventLog.debug (fun () -> "cluster meta: " ^ k^"="^v);
+              EventLog.debug (fun () -> "meta: " ^ k^"="^v);
               k, v
             | _ -> failwith "bad meta reply format (obj)"
           ) metalist)
@@ -1293,7 +1293,10 @@ let build_meta_raw field lst =
 
 let build_meta = function
   | None -> []
-  | Some f -> build_meta_raw "fileMeta" (f ())
+  | Some f ->
+    let meta = f () in
+    EventLog.debug (fun () -> "metafn: " ^ (String.concat ", " (List.rev_map (fun (k,v) -> k^"="^v) meta)));
+    build_meta_raw "fileMeta" meta
 
 let set_meta url meta =
   let url, root = match Neturl.url_path url with
@@ -1498,7 +1501,6 @@ let upload_hashes ?metafn hashes dst_nodes dst size =
         ("fileSize", `Float (Int64.to_float size)) ::
         ("fileData", `Array hashes) ::
         (build_meta metafn) in
-      let obj = List.rev_append (build_meta metafn) obj in
       send_json dst_nodes dst (`Object obj) >>= fun reply ->
       check_reply reply >>= fun () ->
       begin AJson.json_parse_tree (P.input_of_async_channel reply.body) >>= function

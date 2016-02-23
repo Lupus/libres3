@@ -234,6 +234,7 @@ module Make
 
   let add_meta_headers other_headers xamz_headers =
     List.fold_left (fun accum (key,value) ->
+        let key = String.lowercase key in
         if is_prefix ~prefix:"x-amz-meta-" key ||
            List.mem key meta_headers then (key, value) :: accum
         else accum
@@ -620,10 +621,13 @@ module Make
     | "REPLACE" ->
       Lwt.catch (fun () ->
           U.get_meta url >>= fun metalst ->
-          return [meta_key, List.assoc meta_key metalst]
+          return [
+            meta_key, List.assoc meta_key metalst;
+            meta_key_size, List.assoc meta_key_size metalst;
+          ]
         ) (fun _ -> return []) >>= fun etag_meta ->
       (* keep libres3-specific metadata *)
-      return (List.rev_append (List.rev_append etag_meta (content_type canon))
+      return (add_meta_headers (List.rev_append etag_meta (content_type canon))
                 (canon.CanonRequest.headers.Headers.ro#fields))
     | d ->
       return_error Error.InvalidRequest ["Invalid-x-amz-metadata-directive", d]
@@ -858,7 +862,7 @@ module Make
       let policy = Policy.json_of_policy (Policy.build_anon_policy bucket) in
       return_json ~req ~canon ~status:`Ok ~reply_headers:[] policy
     else
-      return_error Error.NotSuchBucketPolicy []
+      return_error Error.NoSuchBucketPolicy []
 
   let md5_of_url url =
     U.get_meta url >>= fun lst ->
