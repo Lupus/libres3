@@ -178,6 +178,9 @@ let stringmap_all map =
     ) map [];;
 
 let compare_nameval (name1,_) (name2,_) = String.compare name1 name2
+let overrides = ["response-content-type";"response-content-language";"response-expires";"response-cache-control";
+                   "response-content-disposition";"response-content-encoding"]
+
 let canonicalized_resource c =
   (* TODO: this is an approximation, do we need the real
    * un-decoded URI? *)
@@ -190,7 +193,8 @@ let canonicalized_resource c =
       n = "requestPayment" || n = "torrent" || n = "uploadId" ||
       n = "replication" || n = "tagging" ||
       n = "delete" || n = "uploads" || n = "versionId" || n = "versioning" || n = "versions" ||
-      n = "website") (stringmap_all c.query_params) in
+      n = "website" || List.mem n overrides
+    ) (stringmap_all c.query_params) in
   let sorted_subresources = List.fast_sort compare_nameval filtered_subresources
   in
   let subresources =
