@@ -33,6 +33,7 @@ let print_version () =
   Printf.printf "libres3 setup version %s\n%!" Version.version;
   exit 0
 
+let (|>) x f = f x
 
 let sxsetup_conf = ref ""
 let open_errmsg = ref false
@@ -130,9 +131,8 @@ let load_initial_configuration () =
     Configfile.sx_host := Some host;
     Config.secret_access_key := sx.Sxload.token;
     SXC.last_nodes := List.rev_map Ipaddr.to_string sx.Sxload.nodes;
-    Neturl.make_url SXC.syntax ~scheme:"sx" ~user:sx.Sxload.user
-      ~host:(List.hd !SXC.last_nodes) ?port:sx.Sxload.port ~path:[""] |>
-    Lwt.return_some
+    Lwt.return (Some (Neturl.make_url SXC.syntax ~scheme:"sx" ~user:sx.Sxload.user
+      ~host:(List.hd !SXC.last_nodes) ?port:sx.Sxload.port ~path:[""]))
 
 let lwt_run f =
   Lwt_unix.on_signal Sys.sigint (fun _ -> raise Sys.Break) |> ignore;
@@ -497,7 +497,7 @@ let read_and_validate_admin_key ~key msg f x m =
 
 let (|>) x f = f x
 
-open Lwt.Infix
+open Lwt
 open Cryptokit
 
 let split s =
@@ -537,7 +537,7 @@ let generate_ssl_certificate ~ssl_key_file ~ssl_cert_file m =
       );
     Sys.catch_break true;
     Printf.printf "Locking LibreS3 private settings on SX cluster: %s\n%!" (Neturl.string_of_url url);
-    Lwt_main.run @@ (Lwt.catch (fun () ->
+    Lwt_main.run (Lwt.catch (fun () ->
         SXIO.with_settings ~max_wait:60. (SXIO.of_neturl url) (function
             | "" ->
               let cmd = Printf.sprintf "%s/libres3_certgen '%s'" Configure.sbindir s3_host in

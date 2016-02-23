@@ -38,6 +38,8 @@ open Lwt
 open SXDefaultIO
 open EventLog
 
+let (|>) x f = f x
+
 type cluster_nodelist = {
   mutable nodes: string list;
   uuid: string
@@ -1831,15 +1833,15 @@ let with_settings url ~max_wait f key =
 
 let settings_prefix = "libres3-settings-"
 let get_settings url =
-  get_meta url >>=
-  Lwt_list.filter_map_s (fun (k, v) ->
+  get_meta url >|=
+  List.fold_left (fun accum (k, v) ->
       let plen = String.length settings_prefix in
       let n = String.length k in
       if n >= plen && String.sub k 0 plen = settings_prefix then
-        Lwt.return_some (String.sub k plen (n-plen), v)
+        (String.sub k plen (n-plen), v) :: accum
       else
-        Lwt.return_none
-  )
+        accum
+  ) []
 
 let map_update lst map =
   List.fold_left (fun accum (k,v) -> StringMap.add k v accum) map lst

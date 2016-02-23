@@ -147,7 +147,7 @@ type ('a,'b) t = {
   id: RequestId.t;
   user : string;
   is_virtual_hosted: bool;
-  origin: string option;
+  req_origin: string option;
   access_control_request_method: string option;
 }
 
@@ -338,7 +338,7 @@ let canonicalize_request ~id req_method
     id = id;
     user = "";
     is_virtual_hosted = is_virtual_hosted;
-    origin = origin;
+    req_origin = origin;
     access_control_request_method = access_control_request_method;
   };;
 

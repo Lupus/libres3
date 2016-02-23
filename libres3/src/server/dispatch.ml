@@ -1664,7 +1664,7 @@ module Make
       ) (fun _ -> return_none)
 
   let update_cors_rule_opt ~req ~canon =
-    match canon.CanonRequest.origin, canon.CanonRequest.access_control_request_method with
+    match canon.CanonRequest.req_origin, canon.CanonRequest.access_control_request_method with
     | None, _ | _, None -> return req
     | Some origin, Some meth ->
       let Bucket bucket = canon.CanonRequest.bucket in
@@ -1682,7 +1682,7 @@ module Make
   (* also for individual requests when Origin header is present *)
   let get_cors_preflight ~req ~canon =
     let Bucket bucket = canon.CanonRequest.bucket in
-    match canon.CanonRequest.origin, canon.CanonRequest.access_control_request_method, req.info.CanonRequest.cors with
+    match canon.CanonRequest.req_origin, canon.CanonRequest.access_control_request_method, req.info.CanonRequest.cors with
     | None, _, _ ->
       return_error Error.BadRequest ["LibreS3ErrorMessage", "Origin request header is missing"]
     | _, None, _ ->
