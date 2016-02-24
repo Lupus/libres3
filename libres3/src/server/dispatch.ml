@@ -594,11 +594,48 @@ module Make
         return (buf, 0, amount)
       )
 
-  let filter_sha256 input f =
-    if input.meta.size <= max_input_mem then
+  let filter_sha256 ~chunked input f =
+    if chunked then
+      let ic, oc = Lwt_io.pipe () in
+      let read () =
+        Lwt_io.read_line_opt ic >>= function
+        | None -> return ("", 0, 0)
+        | Some line ->
+          Scanf.sscanf line "%x;chunk-signature=%s" (fun chunk_size signature ->
+              Lwt_io.read ~count:chunk_size ic >>= fun data ->
+              Lwt_io.read_line ic >>= fun line ->
+              if String.length line > 0 then
+                Lwt.fail (Failure "expected newline after chunk")
+              else
+                return (data, 0, String.length data)
+            )
+      in
+      Lwt.finalize (fun () ->
+          let seek ?len pos =
+            if pos <> 0L then
+              Lwt.fail (Failure "position  is not 0 in input")
+            else begin
+              Lwt.async (fun () ->
+                  Lwt.finalize (fun () ->
+                      U.copy (`Source input) ~srcpos:0L (U.of_sink (fun _ ->
+                          return (fun (buf, pos, len) ->
+                              Lwt_io.write_from_exactly oc buf pos len))))
+                    (fun () -> Lwt_io.flush oc >>= fun () -> Lwt_io.close oc));
+              return read
+           end
+          in
+          let source = U.of_source {
+              meta = input.meta;
+              seek = seek
+            } in
+          f source ?sha256:None
+        ) (fun () ->
+          Lwt.catch (fun () -> Lwt_io.close oc) (fun _ -> Lwt.return_unit) >>= fun () ->
+          Lwt.catch (fun () -> Lwt_io.close ic) (fun _ -> Lwt.return_unit))
+    else if input.meta.size <= max_input_mem then
       read_all ~max:(Int64.to_int input.meta.size) ~input >>= fun str ->
       let sha256 = Cryptokit.hash_string (Cryptokit.Hash.sha256 ()) str in
-      f (U.of_string str) ~sha256
+      f (U.of_string str) ?sha256:(Some sha256)
     else
       IO.with_tempfile (fun tmpfd ->
           let sha256 = Cryptokit.Hash.sha256 () in
@@ -611,7 +648,7 @@ module Make
               meta = input.meta;
               seek = fd_seek tmpfd
             } in
-          f source ~sha256:sha256#result
+          f source ?sha256:(Some sha256#result)
         );;
 
   let meta_key = "libres3-etag-md5"
@@ -2018,9 +2055,9 @@ module Make
           U.token_of_user (U.of_neturl url) >>= begin function
             | Some hmac_key ->
               (* TODO: body *)
-              let f ~sha256 ~canon =
+              let f ?sha256 ~canon =
                 let canonical_request, string_to_sign =
-                  CanonRequest.string_to_sign_v4 auth ~sha256 ~canon_req:canon in
+                  CanonRequest.string_to_sign_v4 auth ?sha256 ~canon_req:canon in
                 let expected_signature =
                   CanonRequest.sign_string_v4 ~key:hmac_key credential string_to_sign in
                 if expected_signature <> signature then
@@ -2036,13 +2073,16 @@ module Make
                   dispatch_request ~request
                     ~canon:{ canon with CanonRequest.user = user } expires
               in
+              let chunked =
+                Headers.field_values canon.CanonRequest.headers "x-amz-content-sha256" =
+                ["STREAMING-AWS4-HMAC-SHA256-PAYLOAD"] in
               begin match canon.CanonRequest.req_method with
                 | `PUT body ->
-                  filter_sha256 body (fun (`Source input) ~sha256 ->
-                      f ~sha256 ~canon:{ canon with CanonRequest.req_method = `PUT input })
+                  filter_sha256 ~chunked body (fun (`Source input) ?sha256 ->
+                      f ?sha256 ~canon:{ canon with CanonRequest.req_method = `PUT input })
                 | `POST body ->
-                  filter_sha256 body (fun (`Source input) ~sha256 ->
-                      f ~sha256 ~canon:{ canon with CanonRequest.req_method = `POST input })
+                  filter_sha256 ~chunked body (fun (`Source input) ?sha256 ->
+                      f ?sha256 ~canon:{ canon with CanonRequest.req_method = `POST input })
                 | _ -> f ~sha256:empty_sha256 ~canon
               end
             | None ->

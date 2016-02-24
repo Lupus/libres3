@@ -393,9 +393,12 @@ let starts_with s with_ =
   let n = String.length with_ in
   String.length s >= n && String.sub s 0 n = with_
 
-let must_sign_header header =
+let sha256_must_sign = ["x-amz-content-sha256";"x-amz-decoded-content-length";"content-length"]
+
+let must_sign_header sha256 header =
   header = "host" (*|| header = "content-type" *)||
-  starts_with header "x-amz-"
+  starts_with header "x-amz-" ||
+  (sha256 = None && List.mem header sha256_must_sign)
 
 let trim v = v (* already trimmed? *)
 
@@ -431,7 +434,7 @@ let string_to_sign_v4 auth ?sha256 ~canon_req =
   in
   let signed_headers =
     Headers.StringSet.elements (Headers.StringSet.union auth.signed_headers
-                                  (Headers.filter_names_set must_sign_header canon_req.headers)) in
+                                  (Headers.filter_names_set (must_sign_header sha256) canon_req.headers)) in
   let payloadhash = match auth.payloadhash, sha256 with
     | Some s, _ -> s
     | None, None -> "STREAMING-AWS4-HMAC-SHA256-PAYLOAD"
