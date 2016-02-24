@@ -241,6 +241,18 @@ module Make
       ) other_headers xamz_headers
 
   let quote s = "\"" ^ s ^ "\""
+
+  let rlen = String.length "response-"
+
+  let add_override_headers headers params =
+    List.fold_left (fun accum (header, value) ->
+        if List.mem header CanonRequest.overrides then begin
+          let key = String.sub header rlen (String.length header - rlen) in
+          let accum = List.remove_assoc key accum in
+          (key, value) :: accum
+        end else accum
+    ) headers params
+
   let return_source ~req ~canon ~content_type url ~metalst =
     U.with_url_source url (fun source ->
         let meta = source.meta in
@@ -876,12 +888,17 @@ module Make
       with _ -> Ocsigen_charset_mime.default_mime_assoc () in
     Ocsigen_charset_mime.set_default_mime types default_mime_type
 
-  let get_object ~req ~canon bucket path =
+  let get_object ~req ~canon bucket path params =
     (* TODO: check for .. *)
     (* TODO: hash of hashlist to md5 mapping *)
     Lwt.catch (fun () ->
         let _, url = url_of_volpath ~canon bucket path in
         U.get_meta url >>= fun metalst ->
+        let metalst =
+          if canon.CanonRequest.user <> libres3_all_users then
+            add_override_headers metalst params
+          else metalst
+        in
         let content_type =
           try List.assoc meta_key_content_type metalst
           with Not_found ->
@@ -1863,8 +1880,7 @@ module Make
         multi_delete_objects ~canon ~request bucket ~body
 
       | `GET, Bucket bucket, path, params when not (List.exists known_api params) ->
-        (* TODO: use params! *)
-        get_object ~req:request ~canon bucket path
+        get_object ~req:request ~canon bucket path params
 
       | `GET, Bucket bucket, _, params when List.mem_assoc "acl" params && List.assoc "acl" params = "" ->
         (* TODO: versioning *)
@@ -1873,9 +1889,9 @@ module Make
       | `GET, Bucket bucket, _, (["torrent",""] as params) ->
         return_error Error.NotImplemented params
 
-      | `HEAD, Bucket bucket, path, _ ->
+      | `HEAD, Bucket bucket, path, params ->
         (* TODO: versioning *)
-        get_object ~req:request ~canon bucket path
+        get_object ~req:request ~canon bucket path params
 
       | `POST body, Bucket bucket, path, ([] as params) ->
         return_error Error.NotImplemented params
@@ -2253,6 +2269,11 @@ module Make
     ) settings;
     Lwt.return_unit
 
+  let rec retry_reload_configuration () =
+    Lwt.catch reload_configuration (fun e ->
+        Lwt.async (fun () -> Lwt_unix.sleep 60. >>= retry_reload_configuration);
+        Lwt.return_unit)
+
   type t = unit
   let init () =
     Printexc.record_backtrace true;
@@ -2261,7 +2282,7 @@ module Make
     if !Config.secret_access_key = "" && !Configfile.sx_host <> None then
       fail (Failure "SX secret access key must be set!")
     else begin
-      reload_configuration () >>= fun () ->
+      retry_reload_configuration () >>= fun () ->
       Gc.compact ();
       let path = Filename.concat !Paths.log_dir "access.log" in
       Lwt.catch (fun () -> Accesslog.reopen ~path ())

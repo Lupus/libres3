@@ -104,7 +104,7 @@ let new_pipeline esys cache =
   pipeline#set_connection_cache cache;
   https_setup pipeline;
   pipeline#set_options { pipeline#get_options with
-                         Http_client.connection_timeout = 20.;
+                         Http_client.connection_timeout = 60.;
                          (* we retry at the SXC level *)
                          maximum_message_errors = 0;
                          maximum_connection_failures = 0;
@@ -119,6 +119,7 @@ let http_thread (esys, keep_alive_group, handler_added) =
   (*      Uq_ssl.Debug.enable := true; *)
   (*        Netlog.Debug.enable_all ();*)
   pipeline_normal#set_options { pipeline_normal#get_options with
+                                number_of_parallel_connections = 16;
                                 synchronization = Sync (* disable pipelining, but keep persistence *)
                               };
   Unixqueue.add_handler esys keep_alive_group (fun _ _ event ->
