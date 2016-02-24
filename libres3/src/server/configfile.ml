@@ -232,7 +232,7 @@ let check_interval = ref (float_of_int (24*60*60 + Random.int 3600 - 30*60))
 let initial_interval = ref (float_of_int (Random.int 10800))
 
 (* not the way S3 works, but users need this feature *)
-let show_all_volumes = ref false
+let show_all_volumes = ref true
 
 (* not the way S3 works, but useful feature for public buckets *)
 let allow_public_bucket_index = ref false
