@@ -183,7 +183,7 @@ let read_line () =
     raise End_of_file
   end
   else
-    trim (input_line stdin)
+    lwt_run (fun () -> Lwt_io.read_line Lwt_io.stdin) |> trim
 
 let read_value msg () =
   flush stderr;
