@@ -1008,9 +1008,14 @@ module Make
       [] >>= fun c ->
     let entries = c.data in
     if entries = [] && path <> "" && path <> "/" then
-      return_string ~id:canon.CanonRequest.id ~id2:(CanonRequest.gen_debug ~canon)
-        ~content_type:"text/plain" ?etag_header:c.dir_etag
-        ~req ~status:`Not_found ~reply_headers:[] "Not found"
+      if etag = c.dir_etag && etag <> None then
+        return_string ~id:canon.CanonRequest.id ~id2:(CanonRequest.gen_debug ~canon)
+          ~content_type:"text/html; charset=utf-8" ?etag_header:c.dir_etag
+          ~req ~status:`Not_modified ~reply_headers:[] ""
+      else
+        return_string ~id:canon.CanonRequest.id ~id2:(CanonRequest.gen_debug ~canon)
+          ~content_type:"text/plain" ?etag_header:c.dir_etag
+          ~req ~status:`Not_found ~reply_headers:[] "Not found"
     else
       return_string ~id:canon.CanonRequest.id ~id2:(CanonRequest.gen_debug ~canon)
         ~content_type:"text/html; charset=utf-8"
