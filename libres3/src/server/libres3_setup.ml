@@ -85,7 +85,7 @@ let anon_fail uri =
 
 let configdir = ref None
 let ssl_key_file = ref (Filename.concat Configure.sysconfdir "ssl/private/libres3.key")
-let ssl_cert_file = ref (Filename.concat Configure.sysconfdir "ssl/certs/lbires3.pem")
+let ssl_cert_file = ref (Filename.concat Configure.sysconfdir "ssl/certs/libres3.pem")
 
 let spec = [
   "--update", Arg.String (fun s -> update := s :: !update), "Update configuration in cluster metadata (KEY=VALUE)";
