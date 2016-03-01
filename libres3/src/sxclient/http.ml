@@ -112,6 +112,8 @@ let new_pipeline esys cache =
                        };
   pipeline
 
+let max_connections_per_host = 16
+
 let http_thread (esys, keep_alive_group, handler_added) =
   let cache = create_aggressive_cache () in
   let pipeline_quick, pipeline_normal = new_pipeline esys cache, new_pipeline esys cache in
@@ -119,7 +121,7 @@ let http_thread (esys, keep_alive_group, handler_added) =
   (*      Uq_ssl.Debug.enable := true; *)
   (*        Netlog.Debug.enable_all ();*)
   pipeline_normal#set_options { pipeline_normal#get_options with
-                                number_of_parallel_connections = 16;
+                                number_of_parallel_connections = max_connections_per_host;
                                 synchronization = Sync (* disable pipelining, but keep persistence *)
                               };
   Unixqueue.add_handler esys keep_alive_group (fun _ _ event ->

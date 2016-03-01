@@ -438,13 +438,19 @@ let detail_of_reply reply =
        return ("Unparsable reply" ^ (Printexc.to_string e)));;
 
 let make_http_request ?quick p url =
+  let rec loop n =
   Lwt.catch (fun () -> P.make_http_request ?quick p url)
     (function
+      | Http_client.Http_protocol (Http_client.Timeout _) as exn ->
+        EventLog.warning ~exn "HTTP(S) request timed out to %s:%d" url.host url.port;
+        Lwt.fail exn
+      | Http_client.Http_protocol _ when n > 0 ->
+        loop (n-1)
       | Http_client.Http_protocol _ as exn ->
         EventLog.warning ~exn "HTTP(S) request failed to %s:%d" url.host url.port;
         Lwt.fail exn
-      | e -> Lwt.fail e)
-  >>= fun reply ->
+      | e -> Lwt.fail e) in
+  loop (P.max_connections_per_host) >>= fun reply ->
   let apiverstr =
     try reply.headers#multiple_field "SX-API-Version"
     with Not_found -> ["0"] in
