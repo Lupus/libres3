@@ -603,18 +603,15 @@ let make_request meth ?quick ?req_body ?etag nodes url =
 
 module StringSet = Set.Make(String)
 
-let parse_server server =
-  try
-    Scanf.sscanf server "Skylable/%_s (%s@)" (fun s -> s)
-  with e ->
-    failwith ("Bad servername " ^ server ^ ":" ^ (Printexc.to_string e))
-;;
-
 let parse_sx_cluster server =
   try
-    Scanf.sscanf server "%_s (%s@)" (fun s -> s)
-  with e ->
-    failwith ("Bad servername " ^ server ^ ":" ^ (Printexc.to_string e))
+    Scanf.sscanf server "%d.%d%s (%s@)" (fun major _minor _extra s ->
+        if major < 2 then invalid_arg ("Not an SX 2.0+ cluster");
+        s)
+  with Invalid_argument msg ->
+    failwith (Printf.sprintf "Bad servername %S: %s" server msg)
+  | e ->
+    failwith (Printf.sprintf "Cannot parse SX-Cluster header %S: %s" server (Printexc.to_string e))
 ;;
 
 
@@ -626,20 +623,23 @@ let node_addr s = match Ipaddr.of_string_exn s with
   | Ipaddr.V4 _ -> s
   | Ipaddr.V6 v6 -> Printf.sprintf "[%s]" (Ipaddr.V6.to_string v6)
 
+let uuid_of_headers headers =
+  try parse_sx_cluster (headers#field "SX-Cluster")
+  with Not_found ->
+    failwith ("Not an SX 2.0+ server: " ^ (headers#field "Server"))
+
 let parse_nodelist headers nodes =
-  let nodes = List.rev_map (function
+  List.rev_map (function
       | `String h -> node_addr h
       | _ -> failwith "bad locate nodes format"
-    ) nodes in
-  let uuid =
-    try parse_sx_cluster (headers#field "SX-Cluster")
-    with Not_found -> parse_server (headers#field "Server") in
-  return { nodes; uuid }
+    ) nodes
 
 let parse_nodelist_reply reply =
+  let uuid = uuid_of_headers reply.headers in
   json_parse_tree (P.input_of_async_channel reply.body) >>= (function
       | [`O [`F ("nodeList", [`A nodes])]] ->
-        parse_nodelist reply.headers nodes
+        let nodes = parse_nodelist reply.headers nodes in
+        return { nodes; uuid }
       | lst ->
         warning "bad locate nodes json: %a" pp_json_lst lst;
         failwith "bad locate nodes json");;
@@ -684,6 +684,7 @@ let get_vol_nodelist url =
   match url_path ~encoded:true url with
   | "" :: volume :: _ ->
     let parse reply =
+      let uuid = uuid_of_headers reply.headers in
       json_parse_tree (P.input_of_async_channel reply.body) >>= function
       | [`O json ] as lst ->
         begin match filter_field_one "nodeList" json, filter_field_one "volumeMeta" json with
@@ -694,7 +695,8 @@ let get_vol_nodelist url =
                 ["LibreS3ErrorMessage","Cannot access a volume that uses filters"]
               ))
           else
-            parse_nodelist reply.headers nodes
+            let nodes = parse_nodelist reply.headers nodes in
+            return { nodes; uuid }
         | _ ->
           warning "bad locate nodes json (missing fields): %a" pp_json_lst lst;
           failwith "bad locate nodes json"
@@ -1257,6 +1259,7 @@ let locate_upload url size =
                                      ~encoded:true
                                      ~query:(Printf.sprintf "o=locate&volumeMeta&size=%Ld" size) url)
       >>= fun reply ->
+      let uuid = uuid_of_headers reply.headers in
       AJson.json_parse_tree (P.input_of_async_channel reply.body) >>= function
       | [`O obj ] ->
         let nodes = filter_field_array "nodeList" obj in
@@ -1268,10 +1271,6 @@ let locate_upload url size =
               ["LibreS3ErrorMessage","Cannot access a volume that uses filters"]
             ))
         else let nodes = List.rev_map map_host nodes in
-          let uuid =
-            try parse_sx_cluster (reply.headers#field "SX-Cluster")
-            with Not_found -> parse_server (reply.headers#field "Server")
-          in
           return (uuid, nodes, blocksize)
       | p ->
         warning "bad json locate format: %a" pp_json_lst p;

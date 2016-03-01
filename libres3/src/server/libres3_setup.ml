@@ -664,6 +664,7 @@ let () =
     let s3_port = int_of_string (StringMap.find "s3_http_port" generated) in
     update_s3cfg None s3_host s3_port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.s3cfg");
     generate_boto None s3_host s3_port admin_key (Filename.concat Configure.sysconfdir "libres3/libres3-insecure.sample.boto");
+    flush_all ();
 
     begin match !Configfile.sx_host with
     | None -> ()
