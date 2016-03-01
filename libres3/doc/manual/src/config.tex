@@ -15,6 +15,10 @@ volume for that purpose.
 You can run any number of LibreS3 instances, to provide load-balancing or
 failover.
 
+LibreS3 1.2+ requires at least SX version 2.0 for all the features to work
+correctly. \verb|libres3_setup| will check if the SX cluster is running
+a supported version.
+
 \subsection{DNS zone entry}
 \label{sec:dnszone}
 
@@ -65,12 +69,18 @@ Successfully loaded SX configuration from '/etc/sxserver/sxsetup.conf'
 
 S3 (DNS) name: libres3.example.com
 
+Locking LibreS3 private settings on SX cluster: sx://admin@192.168.1.192:443/
+libres3_setup: main: locking cluster for changes
+
 Generating default SSL certificate and key in /etc/ssl/certs/libres3.pem and /etc/ssl/private/libres3.key
 Generating a 2048 bit RSA private key
-.........................................+++
-.............+++
+.....+++
+..+++
 writing new private key to '/etc/ssl/private/libres3.key'
 -----
+Uploaded generated SSL certificate and key to SX cluster
+libres3_setup: main: unlocking cluster for changes
+Settings completed
 
 S3 HTTPS port: 8443
 
@@ -81,6 +91,16 @@ Default volume size [use K, M, G and T suffixes]: 100G
 Default volume replica count: 1
 
 Generating '/etc/libres3/libres3.conf'
+File '/etc/libres3/libres3.conf' already exists, overwriting
+libres3_setup: main: locking cluster for changes
+libres3_setup: main: Updating cluster metadata
+libres3_setup: main: unlocking cluster for changes
+volume_size = 100G
+s3_https_port = 8443
+s3_http_port = 8008
+s3_host = libres3.example.com
+replica_count = 1
+allow_volume_create_any_user = true
 Updating '/etc/libres3/libres3.sample.s3cfg'
 Generating '/etc/libres3/libres3.sample.boto'
 Updating '/etc/libres3/libres3-insecure.sample.s3cfg'
@@ -111,12 +131,18 @@ Run as group: nogroup
 
 S3 (DNS) name: libres3.example.com
 
+Locking LibreS3 private settings on SX cluster: sx://admin@192.168.1.192:443/
+libres3_setup: main: locking cluster for changes
+
 Generating default SSL certificate and key in /etc/ssl/certs/libres3.pem and /etc/ssl/private/libres3.key
 Generating a 2048 bit RSA private key
-............................................................+++
-............+++
+.....+++
+..+++
 writing new private key to '/etc/ssl/private/libres3.key'
 -----
+Uploaded generated SSL certificate and key to SX cluster
+libres3_setup: main: unlocking cluster for changes
+Settings completed
 
 S3 HTTPS port: 8443
 
@@ -128,6 +154,15 @@ Default volume replica count: 1
 
 Generating '/etc/libres3/libres3.conf'
 File '/etc/libres3/libres3.conf' already exists, overwriting
+libres3_setup: main: locking cluster for changes
+libres3_setup: main: Updating cluster metadata
+libres3_setup: main: unlocking cluster for changes
+volume_size = 100G
+s3_https_port = 8443
+s3_http_port = 8008
+s3_host = libres3.example.com
+replica_count = 1
+allow_volume_create_any_user = true
 Updating '/etc/libres3/libres3.sample.s3cfg'
 Generating '/etc/libres3/libres3.sample.boto'
 Updating '/etc/libres3/libres3-insecure.sample.s3cfg'
@@ -140,6 +175,8 @@ Loading configuration from /etc/libres3/libres3.conf
 Waiting for server to start (5s) ... OK
 \end{lstlisting}
 
+You can use \verb|--batch| and provide all settings on the command line, see
+\verb|libres3_setup --help| for the full list of options.
 
 To start/stop LibreS3\footnote{LibreS3 and \SX will communicate using TLS by
 default. For debugging purposes you can configure \SX with \texttt{sxsetup -{}-no-ssl}}:
@@ -178,14 +215,13 @@ and that you set the public IP address of \SX in \verb|sx_host|.
 \subsection{libres3.conf}
 
 When you run \verb|libres3_setup| it will generate a file
-\path{/etc/libres3/libres3.conf}.
-You can customize this file and restart LibreS3 for the changes to take effect.
+\path{/etc/libres3/libres3.conf} and store settings in SX cluster metadata.
 
 LibreS3 tries to be compatible with the S3 protocol by default, however
 sometimes there are features outside of the S3 protocol that would be useful.
 These can be configured in \verb|libres3.conf| and all have the \verb|allow_| prefix:
 \begin{description}
-\item[allow\_list\_all\_volumes (default=false)] only volumes owned by you are
+\item[allow\_list\_all\_volumes (default=true)] only volumes owned by you are
   listed by default, \seeref{sec:listing-buckets}.
 \item[allow\_public\_bucket\_index (default=false)] by default you can't list a
   bucket or subdirectory from a browser, \seeref{sec:directory-indexing}.
@@ -201,6 +237,57 @@ list\footnote{this list doesn't include settings used for debugging/tuning
 a comment briefly describing its purpose, and settings that are disabled by
 default are commented out.
 
+You can customize \verb|libres3.conf| and restart LibreS3 for the changes to take effect.
+However if you are running multiple LibreS3 nodes a more convenient way to
+update the settings on the entire cluster is:
+\begin{lstlisting}
+# libres3_setup --update key=value sx://admin@sx.example.com
+\end{lstlisting}
+And then run \verb|libres3 reload| on each node.
+This will store the LibreS3 settings in SX cluster metadata, which LibreS3 reads
+on startup or when it receives a SIGHUP signal.
+
+For example to enable public bucket indexing:
+\begin{lstlisting}
+# libres3_setup --update allow_public_bucket_index=true sx://admin@sx.example.com
+Previous configuration:
+volume_size = 100G
+s3_https_port = 8443
+s3_http_port = 8008
+s3_host = libres3.example.com
+replica_count = 1
+allow_volume_create_any_user = true
+allow_public_bucket_index = false
+libres3_setup: main: locking cluster for changes
+libres3_setup: main: Updating cluster metadata
+libres3_setup: main: unlocking cluster for changes
+New configuration:
+volume_size = 100G
+s3_https_port = 8443
+s3_http_port = 8008
+s3_host = libres3.example.com
+replica_count = 1
+allow_volume_create_any_user = true
+allow_public_bucket_index = true
+# libres3 reload
+
+Loading configuration from /etc/libres3/libres3.conf
+Sending SIGHUP to PID 5336 ... 
+\end{lstlisting}
+
+\subsection{SSL certificates}
+
+When you run \verb|libres3_setup| on the first node a self-signed wildcard SSL certificate is
+generated, and uploaded to the SX cluster private settings (accessible only to
+admin users).
+On the next invocation of \verb|libres3_setup| it will download the SSL
+certificate and key from the SX cluster (if available), to ensure that the same
+certificate is used on all LibreS3 nodes.
+
+To reset the SSL certificate and allow generating a new one:
+\begin{lstlisting}
+# sxadm cluster --set-param libres3_private= sx://admin@sx.example.com
+\end{lstlisting}
 
 %%% Local Variables:
 %%% mode: latex

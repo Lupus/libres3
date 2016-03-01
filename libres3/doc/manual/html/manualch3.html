@@ -7,7 +7,7 @@
 <meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
 <!-- html,2,next,fn-in --> 
 <meta name="src" content="manual.tex"> 
-<meta name="date" content="2016-02-19 19:38:00"> 
+<meta name="date" content="2016-03-01 15:16:00"> 
 <link rel="stylesheet" type="text/css" href="manual.css"> 
 </head><body 
 >
@@ -18,9 +18,9 @@ href="manualch2.html#tailmanualch2.html" >prev-tail</a>] [<a
 href="#tailmanualch3.html">tail</a>] [<a 
 href="manual.html#manualch3.html" >up</a>] </p></div>
    <h2 class="chapterHead"><span class="titlemark">Chapter&#x00A0;3</span><br /><a 
- id="x5-110003"></a>Configuration</h2>
+ id="x5-120003"></a>Configuration</h2>
    <h3 class="sectionHead"><span class="titlemark">3.1   </span> <a 
- id="x5-120003.1"></a>Requirements</h3>
+ id="x5-130003.1"></a>Requirements</h3>
 <!--l. 6--><p class="noindent" >LibreS3 by default listens on ports 8008 and 8443, which need to be
 available on a given IP address.
 <!--l. 9--><p class="indent" >   LibreS3 connects to the S<sup class="textsuperscript"><span 
@@ -33,15 +33,19 @@ share data with other LibreS3 instances (e.g.&#x00A0;multipart uploads) it will 
 an S<sup class="textsuperscript"><span 
 class="ec-qbkr-x-x-90">X</span></sup> volume for that purpose. You can run any number of LibreS3
 instances, to provide load-balancing or failover.
-<!--l. 18--><p class="noindent" >
+<!--l. 18--><p class="indent" >   LibreS3 1.2+ requires at least SX version 2.0 for all the features to work
+correctly. <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">libres3_setup</span></span></span> will check if the SX cluster is running a supported
+version.
+<!--l. 22--><p class="noindent" >
    <h4 class="subsectionHead"><a 
- id="x5-130003.1"></a>DNS zone entry</h4>
-<!--l. 21--><p class="noindent" >S3 buckets require a wildcard <span class="obeylines-h"><span class="verb"><span 
+ id="x5-140003.1"></a>DNS zone entry</h4>
+<!--l. 25--><p class="noindent" >S3 buckets require a wildcard <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">A</span></span></span> record pointing to the IP address (1.2.3.4
 below) of the host running LibreS3, for example:
-   <!--l. 24-->
-<div class="lstlisting" id="listing-11"><span class="label"><a 
- id="x5-13001r1"></a></span><span 
+   <!--l. 28-->
+<div class="lstlisting" id="listing-13"><span class="label"><a 
+ id="x5-14001r1"></a></span><span 
 class="ectt-0800x-x-87">*.</span><span 
 class="ectt-0800x-x-87">libres3</span><span 
 class="ectt-0800x-x-87">.</span><span 
@@ -54,7 +58,7 @@ class="ectt-0800x-x-87">A</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">1.2.3.4</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-13002r2"></a></span><span 
+ id="x5-14002r2"></a></span><span 
 class="ectt-0800x-x-87">libres3</span><span 
 class="ectt-0800x-x-87">.</span><span 
 class="ectt-0800x-x-87">example</span><span 
@@ -66,13 +70,13 @@ class="ectt-0800x-x-87">A</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">1.2.3.4</span>
    </div>
-<!--l. 29--><p class="indent" >   If you don&#8217;t have control over the DNS you&#8217;ll have to modify the
+<!--l. 33--><p class="indent" >   If you don&#8217;t have control over the DNS you&#8217;ll have to modify the
 <span class="path"><span 
 class="ectt-1000">/etc/hosts</span></span> file of each client machine and add a line for each bucket you
 want to access:
-   <!--l. 32-->
-<div class="lstlisting" id="listing-12"><span class="label"><a 
- id="x5-13003r1"></a></span><span 
+   <!--l. 36-->
+<div class="lstlisting" id="listing-14"><span class="label"><a 
+ id="x5-14003r1"></a></span><span 
 class="ectt-0800x-x-87">libres3</span><span 
 class="ectt-0800x-x-87">.</span><span 
 class="ectt-0800x-x-87">example</span><span 
@@ -81,7 +85,7 @@ class="ectt-0800x-x-87">com</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">1.2.3.4</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-13004r2"></a></span><span 
+ id="x5-14004r2"></a></span><span 
 class="ectt-0800x-x-87">bucket1</span><span 
 class="ectt-0800x-x-87">.</span><span 
 class="ectt-0800x-x-87">libres3</span><span 
@@ -92,7 +96,7 @@ class="ectt-0800x-x-87">com</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">1.2.3.4</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-13005r3"></a></span><span 
+ id="x5-14005r3"></a></span><span 
 class="ectt-0800x-x-87">bucket2</span><span 
 class="ectt-0800x-x-87">.</span><span 
 class="ectt-0800x-x-87">libres3</span><span 
@@ -103,10 +107,10 @@ class="ectt-0800x-x-87">com</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">1.2.3.4</span>
    </div>
-<!--l. 38--><p class="indent" >   You can also add <span class="obeylines-h"><span class="verb"><span 
-class="ectt-1000">CNAME</span></span></span> for virtual hosting buckets: <!--l. 39-->
-<div class="lstlisting" id="listing-13"><span class="label"><a 
- id="x5-13006r1"></a></span><span 
+<!--l. 42--><p class="indent" >   You can also add <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">CNAME</span></span></span> for virtual hosting buckets: <!--l. 43-->
+<div class="lstlisting" id="listing-15"><span class="label"><a 
+ id="x5-14006r1"></a></span><span 
 class="ectt-0800x-x-87">bucket</span><span 
 class="ectt-0800x-x-87">.</span><span 
 class="ectt-0800x-x-87">example</span><span 
@@ -128,35 +132,35 @@ class="ectt-0800x-x-87">.</span><span
 class="ectt-0800x-x-87">com</span><span 
 class="ectt-0800x-x-87">.</span>
    </div>
-<!--l. 43--><p class="indent" >   You can of course just add directly <span class="obeylines-h"><span class="verb"><span 
+<!--l. 47--><p class="indent" >   You can of course just add directly <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">A</span></span></span> or <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">AAAA</span></span></span> entries that point directly to
 the LibreS3 server, it only matters that clients send the desired bucket
 name in the <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">Host:</span></span></span> header.
-<!--l. 47--><p class="noindent" >
+<!--l. 51--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">3.2   </span> <a 
- id="x5-140003.2"></a>Setting up a LibreS3 node</h3>
-<!--l. 49--><p class="noindent" >Setting up LibreS3 is as simple as running the interactive tool <span class="obeylines-h"><span class="verb"><span 
+ id="x5-150003.2"></a>Setting up a LibreS3 node</h3>
+<!--l. 53--><p class="noindent" >Setting up LibreS3 is as simple as running the interactive tool <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">libres3_setup</span></span></span>.
 If you provide the path to an existing S<sup class="textsuperscript"><span 
 class="ec-qbkr-x-x-90">X</span></sup> cluster configuration file created by
 <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">sxsetup</span></span></span>, most of the settings will be done automatically.
-<!--l. 53--><p class="indent" >   Please make sure the default volume replica count setting is less or
-equal to the number of nodes in the S<sup class="textsuperscript"><span 
-class="ec-qbkr-x-x-90">X</span></sup> cluster.
                                                                  
 
                                                                  
-<!--l. 56--><p class="indent" >   In the examples below we assume that you have an S<sup class="textsuperscript"><span 
+<!--l. 57--><p class="indent" >   Please make sure the default volume replica count setting is less or
+equal to the number of nodes in the S<sup class="textsuperscript"><span 
+class="ec-qbkr-x-x-90">X</span></sup> cluster.
+<!--l. 60--><p class="indent" >   In the examples below we assume that you have an S<sup class="textsuperscript"><span 
 class="ec-qbkr-x-x-90">X</span></sup> cluster already
 up and running and you want to deploy LibreS3 on <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">libres3.example.com</span></span></span>.
-<!--l. 60--><p class="indent" >   Example setup with sxsetup.conf:
-   <!--l. 62-->
-<div class="lstlisting" id="listing-14"><span class="label"><a 
- id="x5-14001r1"></a></span><span 
+<!--l. 64--><p class="indent" >   Example setup with sxsetup.conf:
+   <!--l. 66-->
+<div class="lstlisting" id="listing-16"><span class="label"><a 
+ id="x5-15001r1"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">libres3_setup</span><span 
@@ -175,7 +179,7 @@ class="ectt-0800x-x-87">sxsetup</span><span
 class="ectt-0800x-x-87">.</span><span 
 class="ectt-0800x-x-87">conf</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14002r2"></a></span><span 
+ id="x5-15002r2"></a></span><span 
 class="ectt-0800x-x-87">Successfully</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">loaded</span><span 
@@ -196,9 +200,9 @@ class="ectt-0800x-x-87">.</span><span
 class="ectt-0800x-x-87">conf</span><span 
 class="ectt-0800x-x-87">&#8217;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14003r3"></a></span><span 
+ id="x5-15003r3"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14004r4"></a></span><span 
+ id="x5-15004r4"></a></span><span 
 class="ectt-0800x-x-87">S3</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">(</span><span 
@@ -214,9 +218,47 @@ class="ectt-0800x-x-87">example</span><span
 class="ectt-0800x-x-87">.</span><span 
 class="ectt-0800x-x-87">com</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14005r5"></a></span><span 
+ id="x5-15005r5"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14006r6"></a></span><span 
+ id="x5-15006r6"></a></span><span 
+class="ectt-0800x-x-87">Locking</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">LibreS3</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">private</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">settings</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">on</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">SX</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cluster</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">sx</span><span 
+class="ectt-0800x-x-87">://</span><span 
+class="ectt-0800x-x-87">admin@192</span><span 
+class="ectt-0800x-x-87">.168.1.192:443/</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15007r7"></a></span><span 
+class="ectt-0800x-x-87">libres3_setup</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">main</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">locking</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cluster</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">for</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">changes</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15008r8"></a></span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15009r9"></a></span><span 
 class="ectt-0800x-x-87">Generating</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">default</span><span 
@@ -255,7 +297,7 @@ class="ectt-0800x-x-87">libres3</span><span
 class="ectt-0800x-x-87">.</span><span 
 class="ectt-0800x-x-87">key</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14007r7"></a></span><span 
+ id="x5-15010r10"></a></span><span 
 class="ectt-0800x-x-87">Generating</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">a</span><span 
@@ -270,13 +312,13 @@ class="ectt-0800x-x-87">private</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">key</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14008r8"></a></span><span 
-class="ectt-0800x-x-87">.........................................+++</span><span 
+ id="x5-15011r11"></a></span><span 
+class="ectt-0800x-x-87">.....+++</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14009r9"></a></span><span 
-class="ectt-0800x-x-87">.............+++</span><span 
+ id="x5-15012r12"></a></span><span 
+class="ectt-0800x-x-87">..+++</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14010r10"></a></span><span 
+ id="x5-15013r13"></a></span><span 
 class="ectt-0800x-x-87">writing</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">new</span><span 
@@ -299,12 +341,51 @@ class="ectt-0800x-x-87">.</span><span
 class="ectt-0800x-x-87">key</span><span 
 class="ectt-0800x-x-87">&#8217;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14011r11"></a></span><span 
+ id="x5-15014r14"></a></span><span 
 class="ectt-0800x-x-87">-----</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14012r12"></a></span><span 
+ id="x5-15015r15"></a></span><span 
+class="ectt-0800x-x-87">Uploaded</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">generated</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">SSL</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">certificate</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">and</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">key</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">to</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">SX</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cluster</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14013r13"></a></span><span 
+ id="x5-15016r16"></a></span><span 
+class="ectt-0800x-x-87">libres3_setup</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">main</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">unlocking</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cluster</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">for</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">changes</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15017r17"></a></span><span 
+class="ectt-0800x-x-87">Settings</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">completed</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15018r18"></a></span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15019r19"></a></span><span 
 class="ectt-0800x-x-87">S3</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">HTTPS</span><span 
@@ -314,9 +395,9 @@ class="ectt-0800x-x-87">:</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">8443</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14014r14"></a></span><span 
+ id="x5-15020r20"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14015r15"></a></span><span 
+ id="x5-15021r21"></a></span><span 
 class="ectt-0800x-x-87">S3</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">HTTP</span><span 
@@ -326,9 +407,9 @@ class="ectt-0800x-x-87">:</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">8008</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14016r16"></a></span><span 
+ id="x5-15022r22"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14017r17"></a></span><span 
+ id="x5-15023r23"></a></span><span 
 class="ectt-0800x-x-87">Default</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">volume</span><span 
@@ -356,9 +437,9 @@ class="ectt-0800x-x-87">&#x00A0;</span><span
 class="ectt-0800x-x-87">100</span><span 
 class="ectt-0800x-x-87">G</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14018r18"></a></span><span 
+ id="x5-15024r24"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14019r19"></a></span><span 
+ id="x5-15025r25"></a></span><span 
 class="ectt-0800x-x-87">Default</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">volume</span><span 
@@ -370,9 +451,9 @@ class="ectt-0800x-x-87">:</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">1</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14020r20"></a></span><span 
+ id="x5-15026r26"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14021r21"></a></span><span 
+ id="x5-15027r27"></a></span><span 
 class="ectt-0800x-x-87">Generating</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#8217;/</span><span 
@@ -385,7 +466,117 @@ class="ectt-0800x-x-87">.</span><span
 class="ectt-0800x-x-87">conf</span><span 
 class="ectt-0800x-x-87">&#8217;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14022r22"></a></span><span 
+ id="x5-15028r28"></a></span><span 
+class="ectt-0800x-x-87">File</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">&#8217;/</span><span 
+class="ectt-0800x-x-87">etc</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">conf</span><span 
+class="ectt-0800x-x-87">&#8217;</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">already</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">exists</span><span 
+class="ectt-0800x-x-87">,</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">overwriting</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15029r29"></a></span><span 
+class="ectt-0800x-x-87">libres3_setup</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">main</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">locking</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cluster</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">for</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">changes</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15030r30"></a></span><span 
+class="ectt-0800x-x-87">libres3_setup</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">main</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">Updating</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cluster</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">metadata</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15031r31"></a></span><span 
+class="ectt-0800x-x-87">libres3_setup</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">main</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">unlocking</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cluster</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">for</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">changes</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15032r32"></a></span><span 
+class="ectt-0800x-x-87">volume_size</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">100</span><span 
+class="ectt-0800x-x-87">G</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15033r33"></a></span><span 
+class="ectt-0800x-x-87">s3_https_port</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">8443</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15034r34"></a></span><span 
+class="ectt-0800x-x-87">s3_http_port</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">8008</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15035r35"></a></span><span 
+class="ectt-0800x-x-87">s3_host</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">example</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">com</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15036r36"></a></span><span 
+class="ectt-0800x-x-87">replica_count</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">1</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15037r37"></a></span><span 
+class="ectt-0800x-x-87">allow_volume_create_any_user</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">true</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15038r38"></a></span><span 
 class="ectt-0800x-x-87">Updating</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#8217;/</span><span 
@@ -400,7 +591,7 @@ class="ectt-0800x-x-87">.</span><span
 class="ectt-0800x-x-87">s3cfg</span><span 
 class="ectt-0800x-x-87">&#8217;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14023r23"></a></span><span 
+ id="x5-15039r39"></a></span><span 
 class="ectt-0800x-x-87">Generating</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#8217;/</span><span 
@@ -415,7 +606,7 @@ class="ectt-0800x-x-87">.</span><span
 class="ectt-0800x-x-87">boto</span><span 
 class="ectt-0800x-x-87">&#8217;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14024r24"></a></span><span 
+ id="x5-15040r40"></a></span><span 
 class="ectt-0800x-x-87">Updating</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#8217;/</span><span 
@@ -432,7 +623,7 @@ class="ectt-0800x-x-87">.</span><span
 class="ectt-0800x-x-87">s3cfg</span><span 
 class="ectt-0800x-x-87">&#8217;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14025r25"></a></span><span 
+ id="x5-15041r41"></a></span><span 
 class="ectt-0800x-x-87">Generating</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#8217;/</span><span 
@@ -449,9 +640,9 @@ class="ectt-0800x-x-87">.</span><span
 class="ectt-0800x-x-87">boto</span><span 
 class="ectt-0800x-x-87">&#8217;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14026r26"></a></span><span 
+ id="x5-15042r42"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14027r27"></a></span><span 
+ id="x5-15043r43"></a></span><span 
 class="ectt-0800x-x-87">Do</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">you</span><span 
@@ -475,7 +666,7 @@ class="ectt-0800x-x-87">]</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">Y</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14028r28"></a></span><span 
+ id="x5-15044r44"></a></span><span 
 class="ectt-0800x-x-87">[....]</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">Restarting</span><span 
@@ -497,9 +688,9 @@ class="ectt-0800x-x-87">&#x00A0;</span><span
 class="ectt-0800x-x-87">killed</span><span 
 class="ectt-0800x-x-87">.</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14029r29"></a></span><span 
+ id="x5-15045r45"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14030r30"></a></span><span 
+ id="x5-15046r46"></a></span><span 
 class="ectt-0800x-x-87">Loading</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">configuration</span><span 
@@ -515,7 +706,7 @@ class="ectt-0800x-x-87">libres3</span><span
 class="ectt-0800x-x-87">.</span><span 
 class="ectt-0800x-x-87">conf</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14031r31"></a></span><span 
+ id="x5-15047r47"></a></span><span 
 class="ectt-0800x-x-87">Waiting</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">for</span><span 
@@ -534,18 +725,18 @@ class="ectt-0800x-x-87">...</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">OK</span>
    </div>
-<!--l. 97--><p class="indent" >   Example  without  sxsetup.conf:
+<!--l. 117--><p class="indent" >   Example  without  sxsetup.conf:
 <span class="footnote-mark"><a 
 href="#fn1x3" id="fn1x3-bk"><sup class="textsuperscript">1</sup></a></span><a 
- id="x5-14032f1"></a>
-   <!--l. 100-->
-<div class="lstlisting" id="listing-15"><span class="label"><a 
- id="x5-14033r1"></a></span><span 
+ id="x5-15048f1"></a>
+   <!--l. 120-->
+<div class="lstlisting" id="listing-17"><span class="label"><a 
+ id="x5-15049r1"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">libres3_setup</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14034r2"></a></span><span 
+ id="x5-15050r2"></a></span><span 
 class="ectt-0800x-x-87">Admin</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">key</span><span 
@@ -566,9 +757,9 @@ class="ectt-0800x-x-87">DPiKuNIrrVmD8IUCuw1hQxNqZfJ0hlBUgyckAolodd4C</span><span
 class="ectt-0800x-x-87">/4</span><span 
 class="ectt-0800x-x-87">r4ecY3QAA</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14035r3"></a></span><span 
+ id="x5-15051r3"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14036r4"></a></span><span 
+ id="x5-15052r4"></a></span><span 
 class="ectt-0800x-x-87">SX</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">server</span><span 
@@ -586,9 +777,9 @@ class="ectt-0800x-x-87">example</span><span
 class="ectt-0800x-x-87">.</span><span 
 class="ectt-0800x-x-87">com</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14037r5"></a></span><span 
+ id="x5-15053r5"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14038r6"></a></span><span 
+ id="x5-15054r6"></a></span><span 
 class="ectt-0800x-x-87">SX</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">server</span><span 
@@ -600,9 +791,9 @@ class="ectt-0800x-x-87">:</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">443</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14039r7"></a></span><span 
+ id="x5-15055r7"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14040r8"></a></span><span 
+ id="x5-15056r8"></a></span><span 
 class="ectt-0800x-x-87">Run</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">as</span><span 
@@ -612,9 +803,9 @@ class="ectt-0800x-x-87">:</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">nobody</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14041r9"></a></span><span 
+ id="x5-15057r9"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14042r10"></a></span><span 
+ id="x5-15058r10"></a></span><span 
 class="ectt-0800x-x-87">Run</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">as</span><span 
@@ -624,9 +815,9 @@ class="ectt-0800x-x-87">:</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">nogroup</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14043r11"></a></span><span 
+ id="x5-15059r11"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14044r12"></a></span><span 
+ id="x5-15060r12"></a></span><span 
 class="ectt-0800x-x-87">S3</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">(</span><span 
@@ -642,9 +833,47 @@ class="ectt-0800x-x-87">example</span><span
 class="ectt-0800x-x-87">.</span><span 
 class="ectt-0800x-x-87">com</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14045r13"></a></span><span 
+ id="x5-15061r13"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14046r14"></a></span><span 
+ id="x5-15062r14"></a></span><span 
+class="ectt-0800x-x-87">Locking</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">LibreS3</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">private</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">settings</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">on</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">SX</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cluster</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">sx</span><span 
+class="ectt-0800x-x-87">://</span><span 
+class="ectt-0800x-x-87">admin@192</span><span 
+class="ectt-0800x-x-87">.168.1.192:443/</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15063r15"></a></span><span 
+class="ectt-0800x-x-87">libres3_setup</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">main</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">locking</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cluster</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">for</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">changes</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15064r16"></a></span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15065r17"></a></span><span 
 class="ectt-0800x-x-87">Generating</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">default</span><span 
@@ -683,7 +912,7 @@ class="ectt-0800x-x-87">libres3</span><span
 class="ectt-0800x-x-87">.</span><span 
 class="ectt-0800x-x-87">key</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14047r15"></a></span><span 
+ id="x5-15066r18"></a></span><span 
 class="ectt-0800x-x-87">Generating</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">a</span><span 
@@ -698,13 +927,13 @@ class="ectt-0800x-x-87">private</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">key</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14048r16"></a></span><span 
-class="ectt-0800x-x-87">............................................................+++</span><span 
+ id="x5-15067r19"></a></span><span 
+class="ectt-0800x-x-87">.....+++</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14049r17"></a></span><span 
-class="ectt-0800x-x-87">............+++</span><span 
+ id="x5-15068r20"></a></span><span 
+class="ectt-0800x-x-87">..+++</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14050r18"></a></span><span 
+ id="x5-15069r21"></a></span><span 
 class="ectt-0800x-x-87">writing</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">new</span><span 
@@ -727,12 +956,51 @@ class="ectt-0800x-x-87">.</span><span
 class="ectt-0800x-x-87">key</span><span 
 class="ectt-0800x-x-87">&#8217;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14051r19"></a></span><span 
+ id="x5-15070r22"></a></span><span 
 class="ectt-0800x-x-87">-----</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14052r20"></a></span><span 
+ id="x5-15071r23"></a></span><span 
+class="ectt-0800x-x-87">Uploaded</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">generated</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">SSL</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">certificate</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">and</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">key</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">to</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">SX</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cluster</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14053r21"></a></span><span 
+ id="x5-15072r24"></a></span><span 
+class="ectt-0800x-x-87">libres3_setup</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">main</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">unlocking</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cluster</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">for</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">changes</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15073r25"></a></span><span 
+class="ectt-0800x-x-87">Settings</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">completed</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15074r26"></a></span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15075r27"></a></span><span 
 class="ectt-0800x-x-87">S3</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">HTTPS</span><span 
@@ -742,9 +1010,9 @@ class="ectt-0800x-x-87">:</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">8443</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14054r22"></a></span><span 
+ id="x5-15076r28"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14055r23"></a></span><span 
+ id="x5-15077r29"></a></span><span 
 class="ectt-0800x-x-87">S3</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">HTTP</span><span 
@@ -754,9 +1022,9 @@ class="ectt-0800x-x-87">:</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">8008</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14056r24"></a></span><span 
+ id="x5-15078r30"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14057r25"></a></span><span 
+ id="x5-15079r31"></a></span><span 
 class="ectt-0800x-x-87">Default</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">volume</span><span 
@@ -784,9 +1052,9 @@ class="ectt-0800x-x-87">&#x00A0;</span><span
 class="ectt-0800x-x-87">100</span><span 
 class="ectt-0800x-x-87">G</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14058r26"></a></span><span 
+ id="x5-15080r32"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14059r27"></a></span><span 
+ id="x5-15081r33"></a></span><span 
 class="ectt-0800x-x-87">Default</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">volume</span><span 
@@ -798,9 +1066,9 @@ class="ectt-0800x-x-87">:</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">1</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14060r28"></a></span><span 
+ id="x5-15082r34"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14061r29"></a></span><span 
+ id="x5-15083r35"></a></span><span 
 class="ectt-0800x-x-87">Generating</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#8217;/</span><span 
@@ -813,7 +1081,7 @@ class="ectt-0800x-x-87">.</span><span
 class="ectt-0800x-x-87">conf</span><span 
 class="ectt-0800x-x-87">&#8217;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14062r30"></a></span><span 
+ id="x5-15084r36"></a></span><span 
 class="ectt-0800x-x-87">File</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#8217;/</span><span 
@@ -833,7 +1101,97 @@ class="ectt-0800x-x-87">,</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">overwriting</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14063r31"></a></span><span 
+ id="x5-15085r37"></a></span><span 
+class="ectt-0800x-x-87">libres3_setup</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">main</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">locking</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cluster</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">for</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">changes</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15086r38"></a></span><span 
+class="ectt-0800x-x-87">libres3_setup</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">main</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">Updating</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cluster</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">metadata</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15087r39"></a></span><span 
+class="ectt-0800x-x-87">libres3_setup</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">main</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">unlocking</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cluster</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">for</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">changes</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15088r40"></a></span><span 
+class="ectt-0800x-x-87">volume_size</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">100</span><span 
+class="ectt-0800x-x-87">G</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15089r41"></a></span><span 
+class="ectt-0800x-x-87">s3_https_port</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">8443</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15090r42"></a></span><span 
+class="ectt-0800x-x-87">s3_http_port</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">8008</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15091r43"></a></span><span 
+class="ectt-0800x-x-87">s3_host</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">example</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">com</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15092r44"></a></span><span 
+class="ectt-0800x-x-87">replica_count</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">1</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15093r45"></a></span><span 
+class="ectt-0800x-x-87">allow_volume_create_any_user</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">true</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-15094r46"></a></span><span 
 class="ectt-0800x-x-87">Updating</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#8217;/</span><span 
@@ -848,7 +1206,7 @@ class="ectt-0800x-x-87">.</span><span
 class="ectt-0800x-x-87">s3cfg</span><span 
 class="ectt-0800x-x-87">&#8217;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14064r32"></a></span><span 
+ id="x5-15095r47"></a></span><span 
 class="ectt-0800x-x-87">Generating</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#8217;/</span><span 
@@ -863,7 +1221,7 @@ class="ectt-0800x-x-87">.</span><span
 class="ectt-0800x-x-87">boto</span><span 
 class="ectt-0800x-x-87">&#8217;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14065r33"></a></span><span 
+ id="x5-15096r48"></a></span><span 
 class="ectt-0800x-x-87">Updating</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#8217;/</span><span 
@@ -880,7 +1238,7 @@ class="ectt-0800x-x-87">.</span><span
 class="ectt-0800x-x-87">s3cfg</span><span 
 class="ectt-0800x-x-87">&#8217;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14066r34"></a></span><span 
+ id="x5-15097r49"></a></span><span 
 class="ectt-0800x-x-87">Generating</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#8217;/</span><span 
@@ -897,9 +1255,9 @@ class="ectt-0800x-x-87">.</span><span
 class="ectt-0800x-x-87">boto</span><span 
 class="ectt-0800x-x-87">&#8217;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14067r35"></a></span><span 
+ id="x5-15098r50"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14068r36"></a></span><span 
+ id="x5-15099r51"></a></span><span 
 class="ectt-0800x-x-87">Do</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">you</span><span 
@@ -923,7 +1281,7 @@ class="ectt-0800x-x-87">]</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">Y</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14069r37"></a></span><span 
+ id="x5-15100r52"></a></span><span 
 class="ectt-0800x-x-87">[....]</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">Restarting</span><span 
@@ -945,9 +1303,9 @@ class="ectt-0800x-x-87">&#x00A0;</span><span
 class="ectt-0800x-x-87">killed</span><span 
 class="ectt-0800x-x-87">.</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14070r38"></a></span><span 
+ id="x5-15101r53"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14071r39"></a></span><span 
+ id="x5-15102r54"></a></span><span 
 class="ectt-0800x-x-87">Loading</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">configuration</span><span 
@@ -963,7 +1321,7 @@ class="ectt-0800x-x-87">libres3</span><span
 class="ectt-0800x-x-87">.</span><span 
 class="ectt-0800x-x-87">conf</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14072r40"></a></span><span 
+ id="x5-15103r55"></a></span><span 
 class="ectt-0800x-x-87">Waiting</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">for</span><span 
@@ -982,38 +1340,43 @@ class="ectt-0800x-x-87">...</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">OK</span>
    </div>
-<!--l. 144--><p class="indent" >   To start/stop LibreS3<span class="footnote-mark"><a 
+<!--l. 178--><p class="indent" >   You can use <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">--batch</span></span></span> and provide all settings on the command line, see
+<span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">libres3_setup</span><span 
+class="ectt-1000">&#x00A0;--help</span></span></span> for the full list of options.
+<!--l. 181--><p class="indent" >   To start/stop LibreS3<span class="footnote-mark"><a 
 href="#fn2x3" id="fn2x3-bk"><sup class="textsuperscript">2</sup></a></span><a 
- id="x5-14073f2"></a>:
-   <!--l. 147-->
-<div class="lstlisting" id="listing-16"><span class="label"><a 
- id="x5-14074r1"></a></span><span 
+ id="x5-15104f2"></a>:
+   <!--l. 184-->
+<div class="lstlisting" id="listing-18"><span class="label"><a 
+ id="x5-15105r1"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">libres3</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">start</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14075r2"></a></span><span 
+ id="x5-15106r2"></a></span><span 
 class="ectt-0800x-x-87">Starting</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">LibreS3</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14076r3"></a></span><span 
+ id="x5-15107r3"></a></span><span 
 class="ectt-0800x-x-87">LibreS3</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">started</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">successfully</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14077r4"></a></span><span 
+ id="x5-15108r4"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">libres3</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">status</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14078r5"></a></span><span 
+ id="x5-15109r5"></a></span><span 
 class="ectt-0800x-x-87">---</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">LibreS3</span><span 
@@ -1022,7 +1385,7 @@ class="ectt-0800x-x-87">STATUS</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">---</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14079r6"></a></span><span 
+ id="x5-15110r6"></a></span><span 
 class="ectt-0800x-x-87">LibreS3</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">is</span><span 
@@ -1034,9 +1397,9 @@ class="ectt-0800x-x-87">PID</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">28245)</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14080r7"></a></span><span 
+ id="x5-15111r7"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14081r8"></a></span><span 
+ id="x5-15112r8"></a></span><span 
 class="ectt-0800x-x-87">---</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">LibreS3</span><span 
@@ -1045,7 +1408,7 @@ class="ectt-0800x-x-87">INFO</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">---</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14082r9"></a></span><span 
+ id="x5-15113r9"></a></span><span 
 class="ectt-0800x-x-87">SSL</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">private</span><span 
@@ -1064,7 +1427,7 @@ class="ectt-0800x-x-87">libres3</span><span
 class="ectt-0800x-x-87">.</span><span 
 class="ectt-0800x-x-87">key</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14083r10"></a></span><span 
+ id="x5-15114r10"></a></span><span 
 class="ectt-0800x-x-87">LibreS3</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">logs</span><span 
@@ -1078,14 +1441,14 @@ class="ectt-0800x-x-87">/</span><span
 class="ectt-0800x-x-87">libres3</span><span 
 class="ectt-0800x-x-87">/</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14084r11"></a></span><span 
+ id="x5-15115r11"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">libres3</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">stop</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14085r12"></a></span><span 
+ id="x5-15116r12"></a></span><span 
 class="ectt-0800x-x-87">Loading</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">configuration</span><span 
@@ -1101,7 +1464,7 @@ class="ectt-0800x-x-87">libres3</span><span
 class="ectt-0800x-x-87">.</span><span 
 class="ectt-0800x-x-87">conf</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14086r13"></a></span><span 
+ id="x5-15117r13"></a></span><span 
 class="ectt-0800x-x-87">Sending</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">TERM</span><span 
@@ -1114,7 +1477,7 @@ class="ectt-0800x-x-87">28245</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">...</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x5-14087r14"></a></span><span 
+ id="x5-15118r14"></a></span><span 
 class="ectt-0800x-x-87">Waiting</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">for</span><span 
@@ -1125,51 +1488,50 @@ class="ectt-0800x-x-87">28245</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">...</span>
    </div>
-<!--l. 165--><p class="indent" >   If the server doesn&#8217;t start, please check the log files for details.
-<!--l. 167--><p class="indent" >   That&#8217;s it &#8212; your LibreS3 cloud storage is already up and running! You
+<!--l. 202--><p class="indent" >   If the server doesn&#8217;t start, please check the log files for details.
+<!--l. 204--><p class="indent" >   That&#8217;s it &#8212; your LibreS3 cloud storage is already up and running! You
 can now connect to it with your favorite S3 client.
-<!--l. 170--><p class="noindent" >
+<!--l. 207--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">3.3   </span> <a 
- id="x5-150003.3"></a>Advanced settings</h3>
-<!--l. 172--><p class="noindent" >
+ id="x5-160003.3"></a>Advanced settings</h3>
+<!--l. 209--><p class="noindent" >
    <h4 class="subsectionHead"><a 
- id="x5-160003.3"></a>Internal IP addresses</h4>
-<!--l. 174--><p class="noindent" >If you&#8217;ve configured S<sup class="textsuperscript"><span 
+ id="x5-170003.3"></a>Internal IP addresses</h4>
+<!--l. 211--><p class="noindent" >If you&#8217;ve configured S<sup class="textsuperscript"><span 
 class="ec-qbkr-x-x-90">X</span></sup> with public and internal IP addresses LibreS3 can
 only access S<sup class="textsuperscript"><span 
 class="ec-qbkr-x-x-90">X</span></sup> via its public IP address, so make sure it is reachable from
 LibreS3 and that you set the public IP address of S<sup class="textsuperscript"><span 
 class="ec-qbkr-x-x-90">X</span></sup> in <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">sx_host</span></span></span>.
-<!--l. 178--><p class="noindent" >
+<!--l. 215--><p class="noindent" >
    <h4 class="subsectionHead"><a 
- id="x5-170003.3"></a>libres3.conf</h4>
-<!--l. 180--><p class="noindent" >When you run <span class="obeylines-h"><span class="verb"><span 
+ id="x5-180003.3"></a>libres3.conf</h4>
+<!--l. 217--><p class="noindent" >When you run <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">libres3_setup</span></span></span> it will generate a file <span class="path"><span 
-class="ectt-1000">/etc/libres3/libres3.conf</span></span>.
-You can customize this file and restart LibreS3 for the changes to take
-effect.
-<!--l. 184--><p class="indent" >   LibreS3 tries to be compatible with the S3 protocol by default, however
+class="ectt-1000">/etc/libres3/libres3.conf</span></span>
+and store settings in SX cluster metadata.
+<!--l. 220--><p class="indent" >   LibreS3 tries to be compatible with the S3 protocol by default, however
 sometimes there are features outside of the S3 protocol that would be
 useful. These can be configured in <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">libres3.conf</span></span></span> and all have the <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">allow_</span></span></span>
 prefix:
-     <dl class="description"><dt class="description">
-<span 
-class="ec-qbkb-">allow_list_all_volumes (default=false)</span> </dt><dd 
-class="description">only  volumes  owned  by  you
-     are listed by default, see&#x00A0;<a 
-href="manualch5.html#x7-330005.4">5.4<!--tex4ht:ref: sec:listing-buckets --></a>.
                                                                  
 
                                                                  
+     <dl class="description"><dt class="description">
+<span 
+class="ec-qbkb-">allow_list_all_volumes (default=true)</span> </dt><dd 
+class="description">only volumes owned by you are
+     listed by default, see&#x00A0;<a 
+href="manualch5.html#x7-380005.4">5.4<!--tex4ht:ref: sec:listing-buckets --></a>.
      </dd><dt class="description">
 <span 
 class="ec-qbkb-">allow_public_bucket_index (default=false)</span> </dt><dd 
 class="description">by default you can&#8217;t list a
      bucket or subdirectory from a browser, see&#x00A0;<a 
-href="manualch6.html#x8-420006.6">6.6<!--tex4ht:ref: sec:directory-indexing --></a>.
+href="manualch6.html#x8-470006.6">6.6<!--tex4ht:ref: sec:directory-indexing --></a>.
      </dd><dt class="description">
 <span 
 class="ec-qbkb-">allow_volume_create_any_user (default=true)</span> </dt><dd 
@@ -1179,18 +1541,308 @@ class="description">by
 class="ec-qbkr-x-x-90">X</span></sup>  only admin users can perform such an action,
      and you can configure LibreS3 to provide that behaviour, however
      some S3 applications may not behave correctly anymore.</dd></dl>
-<!--l. 198--><p class="indent" >   There are more settings that tune various aspects of LibreS3, an up-to-date
+<!--l. 234--><p class="indent" >   There are more settings that tune various aspects of LibreS3, an up-to-date
 list<span class="footnote-mark"><a 
 href="#fn3x3" id="fn3x3-bk"><sup class="textsuperscript">3</sup></a></span><a 
- id="x5-17001f3"></a>
+ id="x5-18001f3"></a>
 can always be found in the generated <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">libres3.conf</span></span></span>: each configuration
 option has a comment briefly describing its purpose, and settings that are
 disabled by default are commented out.
+<!--l. 240--><p class="indent" >   You can customize <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">libres3.conf</span></span></span> and restart LibreS3 for the changes to
+take effect. However if you are running multiple LibreS3 nodes a
+more convenient way to update the settings on the entire cluster is:
+<!--l. 243-->
+<div class="lstlisting" id="listing-19"><span class="label"><a 
+ id="x5-18002r1"></a></span><span 
+class="ectt-0800x-x-87">#</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">libres3_setup</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">--</span><span 
+class="ectt-0800x-x-87">update</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">key</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">value</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">sx</span><span 
+class="ectt-0800x-x-87">://</span><span 
+class="ectt-0800x-x-87">admin@sx</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">example</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">com</span>
+   </div>
+<!--l. 246--><p class="indent" >   And then run <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">libres3</span><span 
+class="ectt-1000">&#x00A0;reload</span></span></span> on each node. This will store the LibreS3
+settings in SX cluster metadata, which LibreS3 reads on startup or when it
+receives a SIGHUP signal.
+<!--l. 250--><p class="indent" >   For example to enable public bucket indexing: <!--l. 251-->
+<div class="lstlisting" id="listing-20"><span class="label"><a 
+ id="x5-18003r1"></a></span><span 
+class="ectt-0800x-x-87">#</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">libres3_setup</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">--</span><span 
+class="ectt-0800x-x-87">update</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">allow_public_bucket_index</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">true</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">sx</span><span 
+class="ectt-0800x-x-87">://</span><span 
+class="ectt-0800x-x-87">admin@sx</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">example</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">com</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18004r2"></a></span><span 
+class="ectt-0800x-x-87">Previous</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">configuration</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18005r3"></a></span><span 
+class="ectt-0800x-x-87">volume_size</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">100</span><span 
+class="ectt-0800x-x-87">G</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18006r4"></a></span><span 
+class="ectt-0800x-x-87">s3_https_port</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">8443</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18007r5"></a></span><span 
+class="ectt-0800x-x-87">s3_http_port</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">8008</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18008r6"></a></span><span 
+class="ectt-0800x-x-87">s3_host</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">example</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">com</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18009r7"></a></span><span 
+class="ectt-0800x-x-87">replica_count</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">1</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18010r8"></a></span><span 
+class="ectt-0800x-x-87">allow_volume_create_any_user</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">true</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18011r9"></a></span><span 
+class="ectt-0800x-x-87">allow_public_bucket_index</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">false</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18012r10"></a></span><span 
+class="ectt-0800x-x-87">libres3_setup</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">main</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">locking</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cluster</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">for</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">changes</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18013r11"></a></span><span 
+class="ectt-0800x-x-87">libres3_setup</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">main</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">Updating</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cluster</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">metadata</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18014r12"></a></span><span 
+class="ectt-0800x-x-87">libres3_setup</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">main</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">unlocking</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cluster</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">for</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">changes</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18015r13"></a></span><span 
+class="ectt-0800x-x-87">New</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">configuration</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18016r14"></a></span><span 
+class="ectt-0800x-x-87">volume_size</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">100</span><span 
+class="ectt-0800x-x-87">G</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18017r15"></a></span><span 
+class="ectt-0800x-x-87">s3_https_port</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">8443</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18018r16"></a></span><span 
+class="ectt-0800x-x-87">s3_http_port</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">8008</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18019r17"></a></span><span 
+class="ectt-0800x-x-87">s3_host</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">example</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">com</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18020r18"></a></span><span 
+class="ectt-0800x-x-87">replica_count</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">1</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18021r19"></a></span><span 
+class="ectt-0800x-x-87">allow_volume_create_any_user</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">true</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18022r20"></a></span><span 
+class="ectt-0800x-x-87">allow_public_bucket_index</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">true</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18023r21"></a></span><span 
+class="ectt-0800x-x-87">#</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">reload</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18024r22"></a></span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18025r23"></a></span><span 
+class="ectt-0800x-x-87">Loading</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">configuration</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">from</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">etc</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">conf</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x5-18026r24"></a></span><span 
+class="ectt-0800x-x-87">Sending</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">SIGHUP</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">to</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">PID</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">5336</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">...</span>
+   </div>
+<!--l. 278--><p class="noindent" >
+   <h4 class="subsectionHead"><a 
+ id="x5-190003.3"></a>SSL certificates</h4>
+<!--l. 280--><p class="noindent" >When you run <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">libres3_setup</span></span></span> on the first node a self-signed wildcard SSL
+certificate is generated, and uploaded to the SX cluster private settings
+(accessible only to admin users). On the next invocation of <span class="obeylines-h"><span class="verb"><span 
+class="ectt-1000">libres3_setup</span></span></span> it
+will download the SSL certificate and key from the SX cluster (if
+available), to ensure that the same certificate is used on all LibreS3
+nodes.
+<!--l. 287--><p class="indent" >   To reset the SSL certificate and allow generating a new one: <!--l. 288-->
+<div class="lstlisting" id="listing-21"><span class="label"><a 
+ id="x5-19001r1"></a></span><span 
+class="ectt-0800x-x-87">#</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">sxadm</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">cluster</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">--</span><span 
+class="ectt-0800x-x-87">set</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">param</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">libres3_private</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">sx</span><span 
+class="ectt-0800x-x-87">://</span><span 
+class="ectt-0800x-x-87">admin@sx</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">example</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">com</span>
+   </div>
                                                                  
 
                                                                  
-   <div class="footnotes"><!--l. 98--><p class="indent" >     <span class="footnote-mark"><a 
+   <div class="footnotes"><!--l. 118--><p class="indent" >    <span class="footnote-mark"><a 
 href="#fn1x3-bk" id="fn1x3"><sup class="textsuperscript">1</sup></a></span><span 
 class="ec-qbkr-x-x-80">you can use </span><span 
 class="ectt-0800">sxadm node --info /var/lib/sxserver/storage/ </span><span 
@@ -1199,7 +1851,7 @@ class="ec-qbkr-x-x-90">X</span></sup> <span
 class="ec-qbkr-x-x-80">node to find</span>
 <span 
 class="ec-qbkr-x-x-80">out the required information</span>
-<!--l. 145--><p class="indent" >      <span class="footnote-mark"><a 
+<!--l. 182--><p class="indent" >      <span class="footnote-mark"><a 
 href="#fn2x3-bk" id="fn2x3"><sup class="textsuperscript">2</sup></a></span><span 
 class="ec-qbkr-x-x-80">LibreS3 and S</span><sup class="textsuperscript"><span 
 class="ec-qbkr-x-x-90">X</span></sup> <span 
@@ -1209,7 +1861,7 @@ class="ec-qbkr-x-x-80">can configure S</span><sup class="textsuperscript"><span
 class="ec-qbkr-x-x-90">X</span></sup> <span 
 class="ec-qbkr-x-x-80">with </span><span 
 class="ectt-0800">sxsetup --no-ssl</span>
-<!--l. 200--><p class="indent" >    <span class="footnote-mark"><a 
+<!--l. 236--><p class="indent" >    <span class="footnote-mark"><a 
 href="#fn3x3-bk" id="fn3x3"><sup class="textsuperscript">3</sup></a></span><span 
 class="ec-qbkr-x-x-80">this list doesn&#8217;t include settings used for debugging/tuning low-level aspects</span>    </div>
 <!--l. 2--><div class="crosslinks"><p class="noindent">[<a 

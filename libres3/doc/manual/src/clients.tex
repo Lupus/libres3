@@ -176,9 +176,114 @@ Add an account configured like this:
 \item [HTTPS port] 8443 (\verb|s3_https_port| from \path{libres3.conf})
 \end{description}
 
-\section{Other clients}
-For information on other clients please refer to our wiki:
-\url{http://wiki.skylable.com/wiki/LibreS3_Clients}
+\section{SDKs}
+
+The recommended way to pass the credentials to the AWS SDKs is to
+store them in the file \verb|~/.aws/credentials| :
+\begin{lstlisting}
+[default]
+aws_access_key_id=<your-sx-username>
+aws_secret_access_key=<your-sx-key>
+\end{lstlisting}
+
+\subsection{PHP}
+
+After you install the SDK (with \verb|composer require aws/aws-sdk-php|) you
+need to set the endpoint and SSL certificate location to point to LibreS3:
+\begin{lstlisting}
+require 'vendor/autoload.php';
+use Aws\S3\S3Client;
+
+$endpoint='libres3.example.com';
+
+$s3Client = new Aws\S3\S3Client([
+    'version' => 'latest',
+    'region'  => 'us-east-1',
+//    'debug' => true,
+   'endpoint' => "https://$endpoint:8443",
+   'http' => ['verify' => '/etc/ssl/certs/libres3.pem']
+]);
+\end{lstlisting}
+
+\subsection{Java}
+
+Import LibreS3's certificate into Java's store (replace with actual) as root:
+\begin{lstlisting}
+# export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+# keytool -storepass changeit -import -alias libres3 -keystore $JAVA_HOME/jre/lib/security/cacerts -file /etc/ssl/certs/libres3.pem
+\end{lstlisting}
+
+You can use a \verb|build.gradle| file like this:
+\begin{lstlisting}
+group 'com.example'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "io.spring.gradle:dependency-management-plugin:0.5.4.RELEASE"
+    }
+
+}
+
+apply plugin: "io.spring.dependency-management"
+apply plugin: 'java'
+
+sourceCompatibility = 1.5
+
+repositories {
+    mavenCentral()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'com.amazonaws:aws-java-sdk-bom:1.10.49'
+    }
+}
+
+dependencies {
+    compile 'com.amazonaws:aws-java-sdk-s3', 'log4j:log4j:1.2.17'
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+jar {
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    manifest {
+        attributes 'Main-Class': 'com.example.Main'
+    }
+}
+\end{lstlisting}
+
+Then you have to set the endpoint on the S3 client object:
+\begin{lstlisting}
+  AWSCredentials credentials = null;
+  try {
+    credentials = new ProfileCredentialsProvider().getCredentials();
+  } catch (Exception e) {
+    // ...
+  }
+
+  System.setProperty(SDKGlobalConfiguration.ENFORCE_S3_SIGV4_SYSTEM_PROPERTY, "true");
+  AmazonS3 s3 = new AmazonS3Client(credentials);
+  s3.setEndpoint("https://libres3.example.com:8443/");
+\end{lstlisting}
+
+\subsection{Boto3}
+
+To connect to the HTTP endpoint (plain text -- for testing purposes only!):
+\begin{lstlisting}
+endpoint = "http://libres3.example.com:8008"
+self.session = botocore.session.get_session()
+self.region = 'us-east-1'
+self.client = self.session.create_client('s3',
+                                         region_name=self.region,
+                                         endpoint_url=endpoint)
+self.client.meta.events.unregister('before-sign.s3', fix_s3_host)
+\end{lstlisting}
+
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "manual"

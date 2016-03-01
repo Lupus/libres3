@@ -7,7 +7,7 @@
 <meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
 <!-- html,2,next,fn-in --> 
 <meta name="src" content="manual.tex"> 
-<meta name="date" content="2016-02-19 19:38:00"> 
+<meta name="date" content="2016-03-01 15:16:00"> 
 <link rel="stylesheet" type="text/css" href="manual.css"> 
 </head><body 
 >
@@ -18,15 +18,15 @@ href="manualch5.html#tailmanualch5.html" >prev-tail</a>] [<a
 href="#tailmanualch6.html">tail</a>] [<a 
 href="manual.html#manualch6.html" >up</a>] </p></div>
    <h2 class="chapterHead"><span class="titlemark">Chapter&#x00A0;6</span><br /><a 
- id="x8-360006"></a>Public access to objects</h2>
+ id="x8-410006"></a>Public access to objects</h2>
    <h3 class="sectionHead"><span class="titlemark">6.1   </span> <a 
- id="x8-370006.1"></a>Signed URLs</h3>
+ id="x8-420006.1"></a>Signed URLs</h3>
 <!--l. 5--><p class="noindent" >To create a signed URL valid for 24 hours for retrieving the object <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">x</span></span></span> from the
 bucket <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">vol1</span></span></span>: <!--l. 6-->
-<div class="lstlisting" id="listing-29"><span class="label"><a 
- id="x8-37001r1"></a></span><span 
+<div class="lstlisting" id="listing-40"><span class="label"><a 
+ id="x8-42001r1"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">s3cmd</span><span 
@@ -83,7 +83,7 @@ class="ectt-0800x-x-87">:/</span><span
 class="ectt-0800x-x-87">https</span><span 
 class="ectt-0800x-x-87">:/&#8217;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-37002r2"></a></span><span 
+ id="x8-42002r2"></a></span><span 
 class="ectt-0800x-x-87">https</span><span 
 class="ectt-0800x-x-87">://</span><span 
 class="ectt-0800x-x-87">vol1</span><span 
@@ -115,8 +115,8 @@ download the file without additional authorization. After 24 hours the URL
 expires and can&#8217;t be used anymore.
 <!--l. 13--><p class="indent" >   There is also a python script as a sample for writing your applications
 that would generate signed URLs: <!--l. 15-->
-<div class="lstlisting" id="listing-30"><span class="label"><a 
- id="x8-37003r1"></a></span><span 
+<div class="lstlisting" id="listing-41"><span class="label"><a 
+ id="x8-42003r1"></a></span><span 
 class="ectt-0800x-x-87">$</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">git</span><span 
@@ -133,7 +133,7 @@ class="ectt-0800x-x-87">com</span><span
 class="ectt-0800x-x-87">/</span><span 
 class="ectt-0800x-x-87">experimental</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-37004r2"></a></span><span 
+ id="x8-42004r2"></a></span><span 
 class="ectt-0800x-x-87">$</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">cd</span><span 
@@ -142,7 +142,7 @@ class="ectt-0800x-x-87">experimental</span><span
 class="ectt-0800x-x-87">/</span><span 
 class="ectt-0800x-x-87">s3genlink</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-37005r3"></a></span><span 
+ id="x8-42005r3"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">BOTO_CONFIG</span><span 
@@ -168,14 +168,14 @@ class="ectt-0800x-x-87">x</span>
    </div>
 <!--l. 21--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">6.2   </span> <a 
- id="x8-380006.2"></a>Public read-only access to objects</h3>
+ id="x8-430006.2"></a>Public read-only access to objects</h3>
 <!--l. 23--><p class="noindent" >Signing URLs can be inconvenient if you want to make all objects in a
 bucket publicly accessible. In this case you can enable public access to all
 objects in a bucket by setting a bucket policy (replace <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">volpublic</span></span></span> with the
 name of your bucket): <!--l. 27-->
-<div class="lstlisting" id="listing-31"><span class="label"><a 
- id="x8-38001r1"></a></span><span 
+<div class="lstlisting" id="listing-42"><span class="label"><a 
+ id="x8-43001r1"></a></span><span 
 class="ectt-0800x-x-87">$</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">cat</span><span 
@@ -188,12 +188,12 @@ class="ectt-0800x-x-87">&#x00A0;</span><span
 class="ectt-0800x-x-87">&#x003C;&#x003C;</span><span 
 class="ectt-0800x-x-87">EOF</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38002r2"></a></span><span 
+ id="x8-43002r2"></a></span><span 
 class="ectt-0800x-x-87">{"</span><span 
 class="ectt-0800x-x-87">Version</span><span 
 class="ectt-0800x-x-87">":"2012-10-17",</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38003r3"></a></span><span 
+ id="x8-43003r3"></a></span><span 
 class="ectt-0800x-x-87">"</span><span 
 class="ectt-0800x-x-87">Statement</span><span 
 class="ectt-0800x-x-87">"</span><span 
@@ -208,7 +208,7 @@ class="ectt-0800x-x-87">":"</span><span
 class="ectt-0800x-x-87">AddPerm</span><span 
 class="ectt-0800x-x-87">",</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38004r4"></a></span><span 
+ id="x8-43004r4"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
@@ -226,7 +226,7 @@ class="ectt-0800x-x-87">":</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">"*",</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38005r5"></a></span><span 
+ id="x8-43005r5"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
@@ -240,7 +240,7 @@ class="ectt-0800x-x-87">:</span><span
 class="ectt-0800x-x-87">GetObject</span><span 
 class="ectt-0800x-x-87">"],</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38006r6"></a></span><span 
+ id="x8-43006r6"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
@@ -256,10 +256,10 @@ class="ectt-0800x-x-87">:::</span><span
 class="ectt-0800x-x-87">volpublic</span><span 
 class="ectt-0800x-x-87">/*"]}]}</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38007r7"></a></span><span 
+ id="x8-43007r7"></a></span><span 
 class="ectt-0800x-x-87">EOF</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38008r8"></a></span><span 
+ id="x8-43008r8"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">s3cmd</span><span 
@@ -288,7 +288,7 @@ class="ectt-0800x-x-87">s3</span><span
 class="ectt-0800x-x-87">://</span><span 
 class="ectt-0800x-x-87">volpublic</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38009r9"></a></span><span 
+ id="x8-43009r9"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">s3cmd</span><span 
@@ -313,10 +313,10 @@ class="ectt-0800x-x-87">s3</span><span
 class="ectt-0800x-x-87">://</span><span 
 class="ectt-0800x-x-87">volpublic</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38010r10"></a></span><span 
+ id="x8-43010r10"></a></span><span 
 class="ectt-0800x-x-87">[...]</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38011r11"></a></span><span 
+ id="x8-43011r11"></a></span><span 
 class="ectt-0800x-x-87">$</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">wget</span><span 
@@ -331,7 +331,7 @@ class="ectt-0800x-x-87">com</span><span
 class="ectt-0800x-x-87">:8008/</span><span 
 class="ectt-0800x-x-87">x</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38012r12"></a></span><span 
+ id="x8-43012r12"></a></span><span 
 class="ectt-0800x-x-87">$</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">wget</span><span 
@@ -348,8 +348,8 @@ class="ectt-0800x-x-87">x</span>
    </div>
 <!--l. 42--><p class="indent" >   To disable public access just delete the policy:
    <!--l. 44-->
-<div class="lstlisting" id="listing-32"><span class="label"><a 
- id="x8-38013r1"></a></span><span 
+<div class="lstlisting" id="listing-43"><span class="label"><a 
+ id="x8-43013r1"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">s3cmd</span><span 
@@ -377,8 +377,8 @@ class="ectt-0800x-x-87">volpublic</span>
 <!--l. 48--><p class="indent" >   Note that public/anonymous users can only download individual objects
 &#8212; they are not allowed to list the bucket&#8217;s contents.
 <!--l. 51--><p class="indent" >   There are some scripts to help managing public buckets: <!--l. 52-->
-<div class="lstlisting" id="listing-33"><span class="label"><a 
- id="x8-38014r1"></a></span><span 
+<div class="lstlisting" id="listing-44"><span class="label"><a 
+ id="x8-43014r1"></a></span><span 
 class="ectt-0800x-x-87">$</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">git</span><span 
@@ -395,7 +395,7 @@ class="ectt-0800x-x-87">com</span><span
 class="ectt-0800x-x-87">/</span><span 
 class="ectt-0800x-x-87">experimental</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38015r2"></a></span><span 
+ id="x8-43015r2"></a></span><span 
 class="ectt-0800x-x-87">$</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">cd</span><span 
@@ -404,7 +404,7 @@ class="ectt-0800x-x-87">experimental</span><span
 class="ectt-0800x-x-87">/</span><span 
 class="ectt-0800x-x-87">s3publicvol</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38016r3"></a></span><span 
+ id="x8-43016r3"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">BOTO_CONFIG</span><span 
@@ -428,7 +428,7 @@ class="ectt-0800x-x-87">volpublic</span><span
 class="ectt-0800x-x-87">/</span><span 
 class="ectt-0800x-x-87">x</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38017r4"></a></span><span 
+ id="x8-43017r4"></a></span><span 
 class="ectt-0800x-x-87">Using</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">access</span><span 
@@ -440,7 +440,7 @@ class="ectt-0800x-x-87">:</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">admin</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38018r5"></a></span><span 
+ id="x8-43018r5"></a></span><span 
 class="ectt-0800x-x-87">Turning</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">on</span><span 
@@ -455,7 +455,7 @@ class="ectt-0800x-x-87">bucket</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">volpublic</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38019r6"></a></span><span 
+ id="x8-43019r6"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">BOTO_CONFIG</span><span 
@@ -479,7 +479,7 @@ class="ectt-0800x-x-87">volpublic</span><span
 class="ectt-0800x-x-87">/</span><span 
 class="ectt-0800x-x-87">x</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38020r7"></a></span><span 
+ id="x8-43020r7"></a></span><span 
 class="ectt-0800x-x-87">Using</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">access</span><span 
@@ -491,7 +491,7 @@ class="ectt-0800x-x-87">:</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">admin</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38021r8"></a></span><span 
+ id="x8-43021r8"></a></span><span 
 class="ectt-0800x-x-87">Bucket</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">volpublic</span><span 
@@ -505,10 +505,10 @@ class="ectt-0800x-x-87">&#x00A0;</span><span
 class="ectt-0800x-x-87">policy</span><span 
 class="ectt-0800x-x-87">:</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38022r9"></a></span><span 
+ id="x8-43022r9"></a></span><span 
 class="ectt-0800x-x-87">{</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38023r10"></a></span><span 
+ id="x8-43023r10"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">"</span><span 
 class="ectt-0800x-x-87">Version</span><span 
@@ -516,7 +516,7 @@ class="ectt-0800x-x-87">":</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">"2012-10-17",</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38024r11"></a></span><span 
+ id="x8-43024r11"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">"</span><span 
 class="ectt-0800x-x-87">Statement</span><span 
@@ -524,13 +524,13 @@ class="ectt-0800x-x-87">":</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">[</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38025r12"></a></span><span 
+ id="x8-43025r12"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">{</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38026r13"></a></span><span 
+ id="x8-43026r13"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
@@ -543,7 +543,7 @@ class="ectt-0800x-x-87">"</span><span
 class="ectt-0800x-x-87">Allow</span><span 
 class="ectt-0800x-x-87">",</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38027r14"></a></span><span 
+ id="x8-43027r14"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
@@ -554,7 +554,7 @@ class="ectt-0800x-x-87">":</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">"*",</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38028r15"></a></span><span 
+ id="x8-43028r15"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
@@ -569,7 +569,7 @@ class="ectt-0800x-x-87">:</span><span
 class="ectt-0800x-x-87">GetObject</span><span 
 class="ectt-0800x-x-87">",</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38029r16"></a></span><span 
+ id="x8-43029r16"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
@@ -588,20 +588,20 @@ class="ectt-0800x-x-87">:::</span><span
 class="ectt-0800x-x-87">volpublic</span><span 
 class="ectt-0800x-x-87">/*"</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38030r17"></a></span><span 
+ id="x8-43030r17"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">}</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38031r18"></a></span><span 
+ id="x8-43031r18"></a></span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">]</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38032r19"></a></span><span 
+ id="x8-43032r19"></a></span><span 
 class="ectt-0800x-x-87">}</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38033r20"></a></span><span 
+ id="x8-43033r20"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">BOTO_CONFIG</span><span 
@@ -625,7 +625,7 @@ class="ectt-0800x-x-87">volpublic</span><span
 class="ectt-0800x-x-87">/</span><span 
 class="ectt-0800x-x-87">x</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38034r21"></a></span><span 
+ id="x8-43034r21"></a></span><span 
 class="ectt-0800x-x-87">Using</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">access</span><span 
@@ -637,7 +637,7 @@ class="ectt-0800x-x-87">:</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">admin</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38035r22"></a></span><span 
+ id="x8-43035r22"></a></span><span 
 class="ectt-0800x-x-87">Turning</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">off</span><span 
@@ -652,7 +652,7 @@ class="ectt-0800x-x-87">bucket</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">volpublic</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38036r23"></a></span><span 
+ id="x8-43036r23"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">BOTO_CONFIG</span><span 
@@ -676,7 +676,7 @@ class="ectt-0800x-x-87">volpublic</span><span
 class="ectt-0800x-x-87">/</span><span 
 class="ectt-0800x-x-87">x</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38037r24"></a></span><span 
+ id="x8-43037r24"></a></span><span 
 class="ectt-0800x-x-87">Using</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">access</span><span 
@@ -688,7 +688,7 @@ class="ectt-0800x-x-87">:</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">admin</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x8-38038r25"></a></span><span 
+ id="x8-43038r25"></a></span><span 
 class="ectt-0800x-x-87">Bucket</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">volpublic</span><span 
@@ -704,7 +704,7 @@ not supported.
                                                                  
 <!--l. 83--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">6.3   </span> <a 
- id="x8-390006.3"></a>Setting Content-Type, Cache-Control and other headers</h3>
+ id="x8-440006.3"></a>Setting Content-Type, Cache-Control and other headers</h3>
 <!--l. 85--><p class="noindent" >When uploading an object the following headers can be set:
 <!--l. 87--><p class="indent" >   <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">Cache-Control</span></span></span>, <span class="obeylines-h"><span class="verb"><span 
@@ -726,8 +726,8 @@ class="ec-qbkr-x-x-90">X</span></sup> the <span class="obeylines-h"><span class=
 class="ectt-1000">Content-Type</span></span></span> is
 guessed automatically based on file extension.
 <!--l. 100--><p class="indent" >   You can modify the headers of already uploaded files: <!--l. 101-->
-<div class="lstlisting" id="listing-34"><span class="label"><a 
- id="x8-39001r1"></a></span><span 
+<div class="lstlisting" id="listing-45"><span class="label"><a 
+ id="x8-44001r1"></a></span><span 
 class="ectt-0800x-x-87">s3cmd</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">modify</span><span 
@@ -756,8 +756,8 @@ class="ectt-0800x-x-87">object</span>
    </div>
 <!--l. 105--><p class="indent" >   If you want to set a header for all currently existing objects in a bucket:
 <!--l. 106-->
-<div class="lstlisting" id="listing-35"><span class="label"><a 
- id="x8-39002r1"></a></span><span 
+<div class="lstlisting" id="listing-46"><span class="label"><a 
+ id="x8-44002r1"></a></span><span 
 class="ectt-0800x-x-87">s3cmd</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">modify</span><span 
@@ -787,9 +787,9 @@ class="ectt-0800x-x-87">recursive</span>
    </div>
 <!--l. 110--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">6.4   </span> <a 
- id="x8-400006.4"></a>Virtual hosting for public buckets</h3>
+ id="x8-450006.4"></a>Virtual hosting for public buckets</h3>
 <!--l. 113--><p class="noindent" >Using a FQDN as bucket name (see&#x00A0;<a 
-href="manualch5.html#x7-300005.1">5.1<!--tex4ht:ref: sec:virtualhosting --></a>) can be useful if you want to host a
+href="manualch5.html#x7-350005.1">5.1<!--tex4ht:ref: sec:virtualhosting --></a>) can be useful if you want to host a
 website through HTTP. All public bucket features are supported with virtual
 hosted buckets.
 <!--l. 116--><p class="indent" >   Note that when using TLS LibreS3 will still serve its self-signed wildcard
@@ -798,11 +798,11 @@ class="ectt-1000">*.libres3.example.com</span></span></span> even with virtual h
 this is not suitable for serving a website over TLS.
 <!--l. 118--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">6.5   </span> <a 
- id="x8-410006.5"></a>Streaming videos</h3>
+ id="x8-460006.5"></a>Streaming videos</h3>
 <!--l. 121--><p class="noindent" >Using  LibreS3&#8217;s  range  request
 support<span class="footnote-mark"><a 
 href="#fn1x6" id="fn1x6-bk"><sup class="textsuperscript">1</sup></a></span><a 
- id="x8-41001f1"></a>,
+ id="x8-46001f1"></a>,
 a web browser or media player can play videos directly from a LibreS3
 public bucket, and the clients can efficiently seek to a particular position in
 the video!
@@ -813,7 +813,7 @@ streaming can begin, so this won&#8217;t work for live video streams.
                                                                  
 <!--l. 128--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">6.6   </span> <a 
- id="x8-420006.6"></a>Directory indexing</h3>
+ id="x8-470006.6"></a>Directory indexing</h3>
 <!--l. 130--><p class="noindent" >A public bucket only allows accessing files directly by name, if you try to
 access the root of the bucket or a &#8220;directory&#8221; then you get an error message
 in XML.
@@ -824,14 +824,14 @@ for public buckets in LibreS3 by adding the following to <span class="obeylines-
 class="ectt-1000">libres3.conf</span></span></span> and
 restarting LibreS3 (please make sure all LibreS3 instances get updated):
 <!--l. 138-->
-<div class="lstlisting" id="listing-36"><span class="label"><a 
- id="x8-42001r1"></a></span><span 
+<div class="lstlisting" id="listing-47"><span class="label"><a 
+ id="x8-47001r1"></a></span><span 
 class="ectt-0800x-x-87">allow_public_bucket_index</span><span 
 class="ectt-0800x-x-87">=</span><span 
 class="ectt-0800x-x-87">true</span>
    </div>
 <!--l. 142--><p class="indent" >   As long as you access the buckets using virtual hosted style (see&#x00A0;<a 
-href="#x8-400006.4">6.4<!--tex4ht:ref: sec:pubvirtualhosting --></a>)
+href="#x8-450006.4">6.4<!--tex4ht:ref: sec:pubvirtualhosting --></a>)
 you will be able to navigate the directory listing of the bucket directly from
 your web browser by just opening the root of the bucket:
                                                                  
@@ -843,7 +843,7 @@ http://volpublic.libres3.example.com:8008/
 <!--l. 147--><p class="nopar" >
 <!--l. 149--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">6.7   </span> <a 
- id="x8-430006.7"></a>Query parameters</h3>
+ id="x8-480006.7"></a>Query parameters</h3>
 <!--l. 151--><p class="noindent" >LibreS3 ignores any query parameters in GET that are not part of a known
 S3 API (<span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">acl</span></span></span>,<span class="obeylines-h"><span class="verb"><span 
@@ -857,7 +857,7 @@ href="https://developers.google.com/web/fundamentals/performance/optimizing-cont
 name</a>).
 <!--l. 160--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">6.8   </span> <a 
- id="x8-440006.8"></a>Using caching proxy or web accelerator</h3>
+ id="x8-490006.8"></a>Using caching proxy or web accelerator</h3>
 <!--l. 162--><p class="noindent" >LibreS3 sends an <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">ETag</span></span></span> header for each file based on the coresponding S<sup class="textsuperscript"><span 
 class="ec-qbkr-x-x-90">X</span></sup>
@@ -871,7 +871,7 @@ results you should also set <a
 href="https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/http-caching#defining-optimal-cache-control-policy" >Cache-Control headers</a> with a <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">max-age</span></span></span>,
 see&#x00A0;<a 
-href="#x8-390006.3">6.3<!--tex4ht:ref: sec:setting-headers --></a>.
+href="#x8-440006.3">6.3<!--tex4ht:ref: sec:setting-headers --></a>.
                                                                  
 
                                                                  
@@ -879,7 +879,7 @@ href="#x8-390006.3">6.3<!--tex4ht:ref: sec:setting-headers --></a>.
 href="#fn1x6-bk" id="fn1x6"><sup class="textsuperscript">1</sup></a></span><span 
 class="ec-qbkr-x-x-80">see</span><span 
 class="ec-qbkr-x-x-80">&#x00A0;</span><a 
-href="manualch5.html#x7-310005.2"><span 
+href="manualch5.html#x7-360005.2"><span 
 class="ec-qbkr-x-x-80">5.2</span><!--tex4ht:ref: sec:streaming --></a>                                                                                                             </div>
 <!--l. 2--><div class="crosslinks"><p class="noindent">[<a 
 href="manualch7.html" >next</a>] [<a 

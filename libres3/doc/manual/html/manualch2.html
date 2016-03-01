@@ -7,7 +7,7 @@
 <meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
 <!-- html,2,next,fn-in --> 
 <meta name="src" content="manual.tex"> 
-<meta name="date" content="2016-02-19 19:38:00"> 
+<meta name="date" content="2016-03-01 15:16:00"> 
 <link rel="stylesheet" type="text/css" href="manual.css"> 
 </head><body 
 >
@@ -25,15 +25,54 @@ href="http://www.skylable.com/download" class="url" ><span
 class="ectt-1000">http://www.skylable.com/download</span></a> if your
 platform is supported.
    <h3 class="sectionHead"><span class="titlemark">2.1   </span> <a 
- id="x4-50002.1"></a>Binary packages</h3>
-<!--l. 10--><p class="noindent" >
-   <h4 class="subsectionHead"><a 
- id="x4-60002.1"></a>Debian Wheezy and Jessie</h4>
-<!--l. 11--><p class="noindent" >Add the following entry to <span class="path"><span 
-class="ectt-1000">/etc/apt/sources.list.d/skylable.list</span></span>:
-<!--l. 12-->
+ id="x4-50002.1"></a>Docker</h3>
+<!--l. 10--><p class="noindent" >Stable releases of LibreS3 are available as tags on the Docker hub, e.g.:
+<!--l. 11-->
 <div class="lstlisting" id="listing-1"><span class="label"><a 
- id="x4-6001r1"></a></span><span 
+ id="x4-5001r1"></a></span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">docker</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">pull</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">skylable</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">release</span><span 
+class="ectt-0800x-x-87">-1.2</span>
+   </div>
+<!--l. 15--><p class="indent" >   Latest master is always available as: <!--l. 16-->
+<div class="lstlisting" id="listing-2"><span class="label"><a 
+ id="x4-5002r1"></a></span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">docker</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">pull</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">skylable</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">libres3</span><span 
+class="ectt-0800x-x-87">:</span><span 
+class="ectt-0800x-x-87">latest</span>
+   </div>
+<!--l. 20--><p class="indent" >   Follow the instructions on the Docker hub for configuring and running
+this container: <a 
+href="http://hub.docker.com/r/skylable/libres3" class="url" ><span 
+class="ectt-1000">http://hub.docker.com/r/skylable/libres3</span></a>
+<!--l. 23--><p class="noindent" >
+   <h3 class="sectionHead"><span class="titlemark">2.2   </span> <a 
+ id="x4-60002.2"></a>Binary packages</h3>
+<!--l. 25--><p class="noindent" >
+   <h4 class="subsectionHead"><a 
+ id="x4-70002.2"></a>Debian Wheezy and Jessie</h4>
+<!--l. 26--><p class="noindent" >Add the following entry to <span class="path"><span 
+class="ectt-1000">/etc/apt/sources.list.d/skylable.list</span></span>:
+<!--l. 27-->
+<div class="lstlisting" id="listing-3"><span class="label"><a 
+ id="x4-7001r1"></a></span><span 
 class="ectt-0800x-x-87">deb</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">http</span><span 
@@ -50,9 +89,9 @@ class="ectt-0800x-x-87">wheezy</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">main</span>
    </div>
-<!--l. 15--><p class="indent" >   then run the following commands: <!--l. 16-->
-<div class="lstlisting" id="listing-2"><span class="label"><a 
- id="x4-6002r1"></a></span><span 
+<!--l. 30--><p class="indent" >   then run the following commands: <!--l. 31-->
+<div class="lstlisting" id="listing-4"><span class="label"><a 
+ id="x4-7002r1"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">curl</span><span 
@@ -91,7 +130,7 @@ class="ectt-0800x-x-87">add</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">-</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x4-6003r2"></a></span><span 
+ id="x4-7003r2"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">apt</span><span 
@@ -102,69 +141,12 @@ class="ectt-0800x-x-87">install</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">libres3</span>
    </div>
-<!--l. 21--><p class="noindent" >
+<!--l. 36--><p class="noindent" >
    <h4 class="subsectionHead"><a 
- id="x4-70002.1"></a>CentOS 6/7</h4>
-<!--l. 22--><p class="noindent" >Create the file <span class="path"><span 
+ id="x4-80002.2"></a>CentOS 6/7</h4>
+<!--l. 37--><p class="noindent" >Create the file <span class="path"><span 
 class="ectt-1000">/etc/yum.repos.d/skylable-sx.repo</span></span> with this content:
-<!--l. 23-->
-<div class="lstlisting" id="listing-3"><span class="label"><a 
- id="x4-7001r1"></a></span><span 
-class="ectt-0800x-x-87">[</span><span 
-class="ectt-0800x-x-87">skylable</span><span 
-class="ectt-0800x-x-87">-</span><span 
-class="ectt-0800x-x-87">sx</span><span 
-class="ectt-0800x-x-87">]</span><span 
-class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x4-7002r2"></a></span><span 
-class="ectt-0800x-x-87">name</span><span 
-class="ectt-0800x-x-87">=</span><span 
-class="ectt-0800x-x-87">Skylable</span><span 
-class="ectt-0800x-x-87">&#x00A0;</span><span 
-class="ectt-0800x-x-87">SX</span><span 
-class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x4-7003r3"></a></span><span 
-class="ectt-0800x-x-87">baseurl</span><span 
-class="ectt-0800x-x-87">=</span><span 
-class="ectt-0800x-x-87">http</span><span 
-class="ectt-0800x-x-87">://</span><span 
-class="ectt-0800x-x-87">cdn</span><span 
-class="ectt-0800x-x-87">.</span><span 
-class="ectt-0800x-x-87">skylable</span><span 
-class="ectt-0800x-x-87">.</span><span 
-class="ectt-0800x-x-87">com</span><span 
-class="ectt-0800x-x-87">/</span><span 
-class="ectt-0800x-x-87">centos</span><span 
-class="ectt-0800x-x-87">/</span><span 
-class="ectt-0800x-x-87">$releasever</span><span 
-class="ectt-0800x-x-87">/</span><span 
-class="ectt-0800x-x-87">$basearch</span><span 
-class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x4-7004r4"></a></span><span 
-class="ectt-0800x-x-87">enabled</span><span 
-class="ectt-0800x-x-87">=1</span><span 
-class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x4-7005r5"></a></span><span 
-class="ectt-0800x-x-87">gpgcheck</span><span 
-class="ectt-0800x-x-87">=0</span>
-   </div>
-<!--l. 30--><p class="indent" >   then execute: <!--l. 31-->
-<div class="lstlisting" id="listing-4"><span class="label"><a 
- id="x4-7006r1"></a></span><span 
-class="ectt-0800x-x-87">#</span><span 
-class="ectt-0800x-x-87">&#x00A0;</span><span 
-class="ectt-0800x-x-87">yum</span><span 
-class="ectt-0800x-x-87">&#x00A0;</span><span 
-class="ectt-0800x-x-87">install</span><span 
-class="ectt-0800x-x-87">&#x00A0;</span><span 
-class="ectt-0800x-x-87">libres3</span>
-   </div>
-<!--l. 35--><p class="noindent" >
-   <h4 class="subsectionHead"><a 
- id="x4-80002.1"></a>Fedora 21+</h4>
-<!--l. 36--><p class="noindent" >Create the file <span class="path"><span 
-class="ectt-1000">/etc/yum.repos.d/skylable-sx.repo</span></span> with this content:
-<!--l. 37-->
+<!--l. 38-->
 <div class="lstlisting" id="listing-5"><span class="label"><a 
  id="x4-8001r1"></a></span><span 
 class="ectt-0800x-x-87">[</span><span 
@@ -191,7 +173,7 @@ class="ectt-0800x-x-87">skylable</span><span
 class="ectt-0800x-x-87">.</span><span 
 class="ectt-0800x-x-87">com</span><span 
 class="ectt-0800x-x-87">/</span><span 
-class="ectt-0800x-x-87">fedora</span><span 
+class="ectt-0800x-x-87">centos</span><span 
 class="ectt-0800x-x-87">/</span><span 
 class="ectt-0800x-x-87">$releasever</span><span 
 class="ectt-0800x-x-87">/</span><span 
@@ -204,8 +186,11 @@ class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a
  id="x4-8005r5"></a></span><span 
 class="ectt-0800x-x-87">gpgcheck</span><span 
 class="ectt-0800x-x-87">=0</span>
+                                                                 
+
+                                                                 
    </div>
-<!--l. 44--><p class="indent" >   then execute: <!--l. 45-->
+<!--l. 45--><p class="indent" >   then execute: <!--l. 46-->
 <div class="lstlisting" id="listing-6"><span class="label"><a 
  id="x4-8006r1"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
@@ -215,14 +200,68 @@ class="ectt-0800x-x-87">&#x00A0;</span><span
 class="ectt-0800x-x-87">install</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">libres3</span>
-                                                                 
-
-                                                                 
    </div>
-<!--l. 49--><p class="noindent" >
-   <h3 class="sectionHead"><span class="titlemark">2.2   </span> <a 
- id="x4-90002.2"></a>Source code</h3>
-<!--l. 51--><p class="noindent" >On most Unix platforms you can compile LibreS3 from source. You will need
+<!--l. 50--><p class="noindent" >
+   <h4 class="subsectionHead"><a 
+ id="x4-90002.2"></a>Fedora 21+</h4>
+<!--l. 51--><p class="noindent" >Create the file <span class="path"><span 
+class="ectt-1000">/etc/yum.repos.d/skylable-sx.repo</span></span> with this content:
+<!--l. 52-->
+<div class="lstlisting" id="listing-7"><span class="label"><a 
+ id="x4-9001r1"></a></span><span 
+class="ectt-0800x-x-87">[</span><span 
+class="ectt-0800x-x-87">skylable</span><span 
+class="ectt-0800x-x-87">-</span><span 
+class="ectt-0800x-x-87">sx</span><span 
+class="ectt-0800x-x-87">]</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x4-9002r2"></a></span><span 
+class="ectt-0800x-x-87">name</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">Skylable</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">SX</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x4-9003r3"></a></span><span 
+class="ectt-0800x-x-87">baseurl</span><span 
+class="ectt-0800x-x-87">=</span><span 
+class="ectt-0800x-x-87">http</span><span 
+class="ectt-0800x-x-87">://</span><span 
+class="ectt-0800x-x-87">cdn</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">skylable</span><span 
+class="ectt-0800x-x-87">.</span><span 
+class="ectt-0800x-x-87">com</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">fedora</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">$releasever</span><span 
+class="ectt-0800x-x-87">/</span><span 
+class="ectt-0800x-x-87">$basearch</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x4-9004r4"></a></span><span 
+class="ectt-0800x-x-87">enabled</span><span 
+class="ectt-0800x-x-87">=1</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
+ id="x4-9005r5"></a></span><span 
+class="ectt-0800x-x-87">gpgcheck</span><span 
+class="ectt-0800x-x-87">=0</span>
+   </div>
+<!--l. 59--><p class="indent" >   then execute: <!--l. 60-->
+<div class="lstlisting" id="listing-8"><span class="label"><a 
+ id="x4-9006r1"></a></span><span 
+class="ectt-0800x-x-87">#</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">yum</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">install</span><span 
+class="ectt-0800x-x-87">&#x00A0;</span><span 
+class="ectt-0800x-x-87">libres3</span>
+   </div>
+<!--l. 64--><p class="noindent" >
+   <h3 class="sectionHead"><span class="titlemark">2.3   </span> <a 
+ id="x4-100002.3"></a>Source code</h3>
+<!--l. 66--><p class="noindent" >On most Unix platforms you can compile LibreS3 from source. You will need
 the following packages to be installed together with their development
 versions:
      <ul class="itemize1">
@@ -239,10 +278,13 @@ versions:
      <li class="itemize">Zlib
      </li>
      <li class="itemize">pkg-config</li></ul>
-<!--l. 63--><p class="noindent" >For example, on Debian run:
-   <!--l. 65-->
-<div class="lstlisting" id="listing-7"><span class="label"><a 
- id="x4-9001r1"></a></span><span 
+<!--l. 78--><p class="noindent" >For example, on Debian run:
+   <!--l. 80-->
+                                                                 
+
+                                                                 
+<div class="lstlisting" id="listing-9"><span class="label"><a 
+ id="x4-10001r1"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">apt</span><span 
@@ -274,7 +316,7 @@ class="ectt-0800x-x-87">-</span><span
 class="ectt-0800x-x-87">dev</span><span 
 class="ectt-0800x-x-87">\</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x4-9002r2"></a></span><span 
+ id="x4-10002r2"></a></span><span 
 class="ectt-0800x-x-87">pkg</span><span 
 class="ectt-0800x-x-87">-</span><span 
 class="ectt-0800x-x-87">config</span><span 
@@ -283,10 +325,10 @@ class="ectt-0800x-x-87">make</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">m4</span>
    </div>
-<!--l. 70--><p class="indent" >   On Fedora run:
-   <!--l. 72-->
-<div class="lstlisting" id="listing-8"><span class="label"><a 
- id="x4-9003r1"></a></span><span 
+<!--l. 85--><p class="indent" >   On Fedora run:
+   <!--l. 87-->
+<div class="lstlisting" id="listing-10"><span class="label"><a 
+ id="x4-10003r1"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">yum</span><span 
@@ -321,7 +363,7 @@ class="ectt-0800x-x-87">-</span><span
 class="ectt-0800x-x-87">devel</span><span 
 class="ectt-0800x-x-87">\</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x4-9004r2"></a></span><span 
+ id="x4-10004r2"></a></span><span 
 class="ectt-0800x-x-87">pcre</span><span 
 class="ectt-0800x-x-87">-</span><span 
 class="ectt-0800x-x-87">devel</span><span 
@@ -340,15 +382,15 @@ class="ectt-0800x-x-87">ncurses</span><span
 class="ectt-0800x-x-87">-</span><span 
 class="ectt-0800x-x-87">devel</span>
    </div>
-<!--l. 78--><p class="noindent" >
+<!--l. 93--><p class="noindent" >
    <h4 class="subsectionHead"><a 
- id="x4-100002.2"></a>Compilation</h4>
-<!--l. 80--><p class="noindent" >Follow the standard installation procedure to install LibreS3 into the
+ id="x4-110002.3"></a>Compilation</h4>
+<!--l. 95--><p class="noindent" >Follow the standard installation procedure to install LibreS3 into the
 default location (<span class="path"><span 
 class="ectt-1000">/usr/local</span></span>):
-   <!--l. 83-->
-<div class="lstlisting" id="listing-9"><span class="label"><a 
- id="x4-10001r1"></a></span><span 
+   <!--l. 98-->
+<div class="lstlisting" id="listing-11"><span class="label"><a 
+ id="x4-11001r1"></a></span><span 
 class="ectt-0800x-x-87">$</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">./</span><span 
@@ -364,22 +406,19 @@ class="ectt-0800x-x-87">make</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">check</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x4-10002r2"></a></span><span 
+ id="x4-11002r2"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">make</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">install</span>
-                                                                 
-
-                                                                 
    </div>
-<!--l. 87--><p class="indent" >   The rest of the manual assumes that LibreS3 was installed from a
+<!--l. 102--><p class="indent" >   The rest of the manual assumes that LibreS3 was installed from a
 binary package, so some paths may be different.
-<!--l. 90--><p class="indent" >   Note: On OpenSolaris/OmniOS you need some additional flags:
-<!--l. 91-->
-<div class="lstlisting" id="listing-10"><span class="label"><a 
- id="x4-10003r1"></a></span><span 
+<!--l. 105--><p class="indent" >   Note: On OpenSolaris/OmniOS you need some additional flags:
+<!--l. 106-->
+<div class="lstlisting" id="listing-12"><span class="label"><a 
+ id="x4-11003r1"></a></span><span 
 class="ectt-0800x-x-87">$</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">CPPFLAGS</span><span 
@@ -407,7 +446,7 @@ class="ectt-0800x-x-87">make</span><span
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">check</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x4-10004r2"></a></span><span 
+ id="x4-11004r2"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">make</span><span 

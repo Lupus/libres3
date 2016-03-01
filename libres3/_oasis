@@ -2,7 +2,7 @@ OASISFormat: 0.4
 OCamlVersion: >= 3.12.1
 FindlibVersion: >= 1.2.8
 Name:        libres3
-Version:     1.1
+Version:     1.2
 Synopsis:    Amazon S3 compatible server
 Authors:     edwin@skylable.com
 Maintainers: Skylable Dev Team <dev-team@skylable.com>

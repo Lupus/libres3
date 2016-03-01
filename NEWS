@@ -1,3 +1,18 @@
+1.2
+---
+
+Changes since the last release include:
+ * New features:
+   + CORS support
+   + Easily update settings on multiple LibreS3 nodes by using SX cluster meta
+   + Store SSL private key in restricted SX cluster settings
+   + SX 2.0+ is required to fully support all features
+ * Bug fixes:
+   + Improved compatibility with S3 clients and SDKs that use SigV4
+   + Range requests when used with APT or Boto3
+   + Custom headers in Object PUT and signed URLs
+   + Various bugfixes to improve compatibility with S3 APIs
+
 1.1
 ---
 

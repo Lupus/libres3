@@ -7,7 +7,7 @@
 <meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
 <!-- html,2,next,fn-in --> 
 <meta name="src" content="manual.tex"> 
-<meta name="date" content="2016-02-19 19:38:00"> 
+<meta name="date" content="2016-03-01 15:16:00"> 
 <link rel="stylesheet" type="text/css" href="manual.css"> 
 </head><body 
 >
@@ -18,9 +18,9 @@ href="manualch4.html#tailmanualch4.html" >prev-tail</a>] [<a
 href="#tailmanualch5.html">tail</a>] [<a 
 href="manual.html#manualch5.html" >up</a>] </p></div>
    <h2 class="chapterHead"><span class="titlemark">Chapter&#x00A0;5</span><br /><a 
- id="x7-290005"></a>Highlighted features</h2>
+ id="x7-340005"></a>Highlighted features</h2>
    <h3 class="sectionHead"><span class="titlemark">5.1   </span> <a 
- id="x7-300005.1"></a>Virtual hosting</h3>
+ id="x7-350005.1"></a>Virtual hosting</h3>
 <!--l. 6--><p class="noindent" >Buckets in LibreS3 can be accessed in three ways:
      <dl class="description"><dt class="description">
 <span 
@@ -36,7 +36,7 @@ class="description"><span class="obeylines-h"><span class="verb"><span
 class="ectt-1000">bucket.libres3.example.com/object</span></span></span>
      <!--l. 13--><p class="noindent" >Requires that bucket names are DNS compatible and a DNS/hosts
      entry for each bucket or a wildcard DNS record (see&#x00A0;<a 
-href="manualch3.html#x5-130003.1">3.1<!--tex4ht:ref: sec:dnszone --></a>)
+href="manualch3.html#x5-140003.1">3.1<!--tex4ht:ref: sec:dnszone --></a>)
      </dd><dt class="description">
 <span 
 class="ec-qbkb-">virtual-hosted FQDN</span> </dt><dd 
@@ -49,7 +49,7 @@ class="ectt-1000">Host:</span><span
 class="ectt-1000">&#x00A0;bucket.example.net</span></span></span> header, which
      usually requires a <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">CNAME</span></span></span> DNS entry, see&#x00A0;<a 
-href="manualch3.html#x5-130003.1">3.1<!--tex4ht:ref: sec:dnszone --></a>. Requires that bucket
+href="manualch3.html#x5-140003.1">3.1<!--tex4ht:ref: sec:dnszone --></a>. Requires that bucket
      names are DNS compatible, and that you use your FQDN as the
      bucket name, for example:
      <!--l. 24--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
@@ -57,10 +57,10 @@ class="ectt-1000">s3cmd</span><span
 class="ectt-1000">&#x00A0;mb</span><span 
 class="ectt-1000">&#x00A0;s3://bucket.example.net</span></span></span></dd></dl>
 <!--l. 27--><p class="indent" >   The latter can be useful for public buckets, see&#x00A0;<a 
-href="manualch6.html#x8-400006.4">6.4<!--tex4ht:ref: sec:pubvirtualhosting --></a>.
+href="manualch6.html#x8-450006.4">6.4<!--tex4ht:ref: sec:pubvirtualhosting --></a>.
 <!--l. 29--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">5.2   </span> <a 
- id="x7-310005.2"></a>Streaming and range-requests</h3>
+ id="x7-360005.2"></a>Streaming and range-requests</h3>
 <!--l. 32--><p class="noindent" >LibreS3 supports streaming files from S<sup class="textsuperscript"><span 
 class="ec-qbkr-x-x-90">X</span></sup> by downloading blocks as they are
 needed (streaming a large file begins as soon as the first batch of blocks is
@@ -74,16 +74,16 @@ class="ectt-1000">&#x00A0;--continue</span></span></span>) and public
 requests (<span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">wget</span><span 
 class="ectt-1000">&#x00A0;--continue</span></span></span>), see&#x00A0;<a 
-href="manualch6.html#x8-410006.5">6.5<!--tex4ht:ref: sec:streaming-videos --></a>.
+href="manualch6.html#x8-460006.5">6.5<!--tex4ht:ref: sec:streaming-videos --></a>.
 <!--l. 42--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">5.3   </span> <a 
- id="x7-320005.3"></a>Access logs</h3>
+ id="x7-370005.3"></a>Access logs</h3>
 <!--l. 44--><p class="noindent" >Since version <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">1.1</span></span></span> LibreS3 uses the Apache/NCSA Combined Log Format for
 its <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">access.log</span></span></span> file, for example: <!--l. 46-->
-<div class="lstlisting" id="listing-26"><span class="label"><a 
- id="x7-32001r1"></a></span><span 
+<div class="lstlisting" id="listing-37"><span class="label"><a 
+ id="x7-37001r1"></a></span><span 
 class="ectt-0800x-x-87">196.168.1.2</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">-</span><span 
@@ -125,7 +125,7 @@ class="ectt-0800x-x-87">/3.16.0-4-</span><span
 class="ectt-0800x-x-87">amd64</span><span 
 class="ectt-0800x-x-87">"</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x7-32002r2"></a></span><span 
+ id="x7-37002r2"></a></span><span 
 class="ectt-0800x-x-87">192.168.1.2</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">-</span><span 
@@ -252,7 +252,7 @@ class="ectt-1000">s3cmd</span></span></span> doesn&#8217;t)</dd></dl>
 is sent to the client.
 <!--l. 79--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">5.4   </span> <a 
- id="x7-330005.4"></a>Listing buckets</h3>
+ id="x7-380005.4"></a>Listing buckets</h3>
 <!--l. 82--><p class="noindent" ><span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">s3cmd</span><span 
 class="ectt-1000">&#x00A0;ls</span><span 
@@ -266,15 +266,15 @@ with s3cmd or other clients, you can enable listing of all accessible
 buckets by adding the following to <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">libres3.conf</span></span></span> and restarting LibreS3:
 <!--l. 87-->
-<div class="lstlisting" id="listing-27"><span class="label"><a 
- id="x7-33001r1"></a></span><span 
+<div class="lstlisting" id="listing-38"><span class="label"><a 
+ id="x7-38001r1"></a></span><span 
 class="ectt-0800x-x-87">allow_list_all_volumes</span><span 
 class="ectt-0800x-x-87">=</span><span 
 class="ectt-0800x-x-87">true</span>
    </div>
 <!--l. 91--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">5.5   </span> <a 
- id="x7-340005.5"></a>IPv6 support</h3>
+ id="x7-390005.5"></a>IPv6 support</h3>
 <!--l. 93--><p class="noindent" >LibreS3 supports IPv6 communication with S<sup class="textsuperscript"><span 
 class="ec-qbkr-x-x-90">X</span></sup> version <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">1.2</span></span></span> or newer (note
@@ -285,7 +285,7 @@ depending on how your DNS wildcard record is set up, and whether your S3
 client and OS support IPv6.
 <!--l. 98--><p class="noindent" >
    <h3 class="sectionHead"><span class="titlemark">5.6   </span> <a 
- id="x7-350005.6"></a>Quota support</h3>
+ id="x7-400005.6"></a>Quota support</h3>
 <!--l. 100--><p class="noindent" >Each volume in S<sup class="textsuperscript"><span 
 class="ec-qbkr-x-x-90">X</span></sup> has a maximum size (its quota). There is no equivalent
 concept in S3, thus you need to specify the default volume size (and replica
@@ -320,8 +320,8 @@ class="ectt-1000">s3cmd</span><span
 class="ectt-1000">&#x00A0;abortmp</span></span></span> on each upload ID in turn to actually delete
 it:
    <!--l. 124-->
-<div class="lstlisting" id="listing-28"><span class="label"><a 
- id="x7-35001r1"></a></span><span 
+<div class="lstlisting" id="listing-39"><span class="label"><a 
+ id="x7-40001r1"></a></span><span 
 class="ectt-0800x-x-87">$</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">s3cmd</span><span 
@@ -335,7 +335,7 @@ class="ectt-0800x-x-87">s3</span><span
 class="ectt-0800x-x-87">://</span><span 
 class="ectt-0800x-x-87">bucket</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><br /><span class="label"><a 
- id="x7-35002r2"></a></span><span 
+ id="x7-40002r2"></a></span><span 
 class="ectt-0800x-x-87">$</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
 class="ectt-0800x-x-87">s3cmd</span><span 

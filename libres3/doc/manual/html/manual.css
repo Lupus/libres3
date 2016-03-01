@@ -181,3 +181,8 @@ hr { display: none; }
 .crosslinks a, .next a { line-height:3; padding: 7px 15px; border: 2px solid #006BAE; margin-right:5px; border-radius: 10px; transition: all 0.2s ease-in-out; text-decoration: none; }
 .crosslinks a:hover, .next a:hover { background: #006BAE; color:#fff; transition: all 0.2s ease-in-out;  text-decoration: none; }
 .next {display:none;}
+.graphics { width:400px; height:auto; }
+
+.crosslinks a {text-decoration:none;}
+.crosslinks a:first-child { margin-right: -220px!important; }
+.crosslinks a:nth-child(2n) { margin-right: 180px!important; }

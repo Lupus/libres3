@@ -57,7 +57,7 @@ it with the example configuration template:
 ~~~~
 
 For additional examples on how to access LibreS3 with other 3rd-party
-S3 clients refer to our wiki: https://wiki.skylable.com/wiki/LibreS3_Clients
+S3 clients refer to our documentation: http://www.skylable.com/manuals/libres3/manual.html
 
 You can edit `/opt/libres3/etc/libres3/libres3.conf` to change LibreS3's
 configuration, and inspect the log files at `/opt/libres3/var/log/libres3/`.
