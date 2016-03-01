@@ -43,6 +43,7 @@
 #include <caml/mlvalues.h>
 #include <caml/signals.h>
 #include <caml/unixsupport.h>
+#include <caml/bigarray.h>
 
 #include <openssl/ssl.h>
 #include <openssl/pem.h>
@@ -247,6 +248,23 @@ CAMLprim value ocaml_ssl_get_error_string(value unit)
  * Context-related functions *
  *****************************/
 
+static int protocol_flags[] = {
+    SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3,
+    SSL_OP_NO_SSLv3,
+    SSL_OP_NO_TLSv1,
+#ifdef HAVE_TLS11
+    SSL_OP_NO_TLSv1_1
+#else
+    0 /* not supported, nothing to disable */
+#endif
+    ,
+#ifdef HAVE_TLS12
+    SSL_OP_NO_TLSv1_2
+#else
+    0 /* not supported ,nothing to disable */
+#endif
+};
+
 static const SSL_METHOD *get_method(int protocol, int type)
 {
   const SSL_METHOD *method = NULL;
@@ -271,6 +289,7 @@ static const SSL_METHOD *get_method(int protocol, int type)
       }
       break;
 
+#ifndef OPENSSL_NO_SSL3
     case 1:
       switch (type)
       {
@@ -287,6 +306,7 @@ static const SSL_METHOD *get_method(int protocol, int type)
           break;
       }
       break;
+#endif
 
     case 2:
       switch (type)
@@ -426,6 +446,17 @@ CAMLprim value ocaml_ssl_get_client_verify_callback_ptr(value unit)
   return (value)client_verify_callback;
 }
 
+static int client_verify_callback_verbose = 1;
+
+CAMLprim value ocaml_ssl_set_client_verify_callback_verbose(value verbose)
+{
+  CAMLparam1(verbose);
+
+  client_verify_callback_verbose = Bool_val(verbose);
+
+  CAMLreturn(Val_unit);
+}
+
 CAMLprim value ocaml_ssl_ctx_set_verify(value context, value vmode, value vcallback)
 {
   CAMLparam3(context, vmode, vcallback);
@@ -540,6 +571,15 @@ CAMLprim value ocaml_ssl_ctx_set_default_passwd_cb(value context, value cb)
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value ocaml_ssl_ctx_honor_cipher_order(value context)
+{
+ CAMLparam1(context);
+ SSL_CTX *ctx = Ctx_val(context);
+
+ SSL_CTX_set_options(ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+ CAMLreturn(Val_unit);
+}
+
 /****************************
  * Cipher-related functions *
  ****************************/
@@ -559,6 +599,18 @@ CAMLprim value ocaml_ssl_ctx_set_cipher_list(value context, value ciphers_string
     caml_leave_blocking_section();
     caml_raise_constant(*caml_named_value("ssl_exn_cipher_error"));
   }
+  caml_leave_blocking_section();
+
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_ssl_disable_protocols(value context, value protocol_list)
+{
+  CAMLparam2(context, protocol_list);
+  SSL_CTX *ctx = Ctx_val(context);
+  int flags = caml_convert_flag_list(protocol_list, protocol_flags);
+  caml_enter_blocking_section();
+  SSL_CTX_set_options(ctx, flags);
   caml_leave_blocking_section();
 
   CAMLreturn(Val_unit);
@@ -952,6 +1004,56 @@ CAMLprim value ocaml_ssl_write(value socket, value buffer, value start, value le
   CAMLreturn(Val_int(ret));
 }
 
+CAMLprim value ocaml_ssl_write_bigarray(value socket, value buffer, value start, value length)
+{
+  CAMLparam2(socket, buffer);
+  int ret, err;
+  SSL *ssl = SSL_val(socket);
+  struct caml_ba_array *ba = Caml_ba_array_val(buffer);
+  char *buf = ((char *)ba->data) + Int_val(start);
+
+  if(Int_val(start) < 0) caml_invalid_argument("Ssl.write_bigarray: negative offset");
+  if(Int_val(length) < 0) caml_invalid_argument("Ssl.write_bigarray: negative length");
+
+  if (Int_val(start) + Int_val(length) > ba->dim[0])
+    caml_invalid_argument("Ssl.write_bigarray: buffer too short.");
+
+  caml_enter_blocking_section();
+  ERR_clear_error();
+  ret = SSL_write(ssl, buf, Int_val(length));
+  err = SSL_get_error(ssl, ret);
+  caml_leave_blocking_section();
+
+  if (err != SSL_ERROR_NONE)
+    caml_raise_with_arg(*caml_named_value("ssl_exn_write_error"), Val_int(err));
+
+  CAMLreturn(Val_int(ret));
+}
+
+CAMLprim value ocaml_ssl_write_bigarray_blocking(value socket, value buffer, value start, value length)
+{
+  CAMLparam2(socket, buffer);
+  int ret, err;
+  SSL *ssl = SSL_val(socket);
+  struct caml_ba_array *ba = Caml_ba_array_val(buffer);
+  char *buf = ((char *)ba->data) + Int_val(start);
+
+  if(Int_val(start) < 0) caml_invalid_argument("Ssl.write_bigarray_blocking: negative offset");
+  if(Int_val(length) < 0) caml_invalid_argument("Ssl.write_bigarray_blocking: negative length");
+
+  if (Int_val(start) + Int_val(length) > ba->dim[0])
+    caml_invalid_argument("Ssl.write_bigarray: buffer too short.");
+
+  ERR_clear_error();
+  ret = SSL_write(ssl, buf, Int_val(length));
+  err = SSL_get_error(ssl, ret);
+
+  if (err != SSL_ERROR_NONE)
+    caml_raise_with_arg(*caml_named_value("ssl_exn_write_error"), Val_int(err));
+
+  CAMLreturn(Val_int(ret));
+}
+
 CAMLprim value ocaml_ssl_read(value socket, value buffer, value start, value length)
 {
   CAMLparam2(socket, buffer);
@@ -970,6 +1072,56 @@ CAMLprim value ocaml_ssl_read(value socket, value buffer, value start, value len
   caml_leave_blocking_section();
   memmove(((char*)String_val(buffer)) + Int_val(start), buf, buflen);
   free(buf);
+
+  if (err != SSL_ERROR_NONE)
+    caml_raise_with_arg(*caml_named_value("ssl_exn_read_error"), Val_int(err));
+
+  CAMLreturn(Val_int(ret));
+}
+
+CAMLprim value ocaml_ssl_read_into_bigarray(value socket, value buffer, value start, value length)
+{
+  CAMLparam2(socket, buffer);
+  int ret, err;
+  struct caml_ba_array *ba = Caml_ba_array_val(buffer);
+  char *buf = ((char *)ba->data) + Int_val(start);
+  SSL *ssl = SSL_val(socket);
+
+  if(Int_val(start) < 0) caml_invalid_argument("Ssl.read_into_bigarray: negative offset");
+  if(Int_val(length) < 0) caml_invalid_argument("Ssl.read_into_bigarray: negative length");
+
+  if (Int_val(start) + Int_val(length) > ba->dim[0])
+    caml_invalid_argument("Ssl.read_into_bigarray: buffer too short.");
+
+  caml_enter_blocking_section();
+  ERR_clear_error();
+  ret = SSL_read(ssl, buf, Int_val(length));
+  err = SSL_get_error(ssl, ret);
+  caml_leave_blocking_section();
+
+  if (err != SSL_ERROR_NONE)
+    caml_raise_with_arg(*caml_named_value("ssl_exn_read_error"), Val_int(err));
+
+  CAMLreturn(Val_int(ret));
+}
+
+CAMLprim value ocaml_ssl_read_into_bigarray_blocking(value socket, value buffer, value start, value length)
+{
+  CAMLparam2(socket, buffer);
+  int ret, err;
+  struct caml_ba_array *ba = Caml_ba_array_val(buffer);
+  char *buf = ((char *)ba->data) + Int_val(start);
+  SSL *ssl = SSL_val(socket);
+
+  if(Int_val(start) < 0) caml_invalid_argument("Ssl.read_into_bigarray: negative offset");
+  if(Int_val(length) < 0) caml_invalid_argument("Ssl.read_into_bigarray: negative length");
+
+  if (Int_val(start) + Int_val(length) > ba->dim[0])
+    caml_invalid_argument("Ssl.read_into_bigarray: buffer too short.");
+
+  ERR_clear_error();
+  ret = SSL_read(ssl, buf, Int_val(length));
+  err = SSL_get_error(ssl, ret);
 
   if (err != SSL_ERROR_NONE)
     caml_raise_with_arg(*caml_named_value("ssl_exn_read_error"), Val_int(err));
@@ -1104,7 +1256,7 @@ static int client_verify_callback(int ok, X509_STORE_CTX *ctx)
   /* If the user wants us to be chatty about things then this
    * is a good time to wizz the certificate chain past quickly :-)
    */
-  if (1)
+  if (client_verify_callback_verbose)
   {
     fprintf(stderr, "Certificate[%d] subject=%s\n", depth, subject);
     fprintf(stderr, "Certificate[%d] issuer =%s\n", depth, issuer);
@@ -1123,8 +1275,11 @@ static int client_verify_callback(int ok, X509_STORE_CTX *ctx)
        * connection if the server does not have a
        * real certificate!
        */
-      fprintf(stderr,"SSL: rejecting connection - server has a self-signed certificate\n");
-      fflush(stderr);
+      if (client_verify_callback_verbose)
+      {
+        fprintf(stderr,"SSL: rejecting connection - server has a self-signed certificate\n");
+        fflush(stderr);
+      }
 
       /* Sometimes it is really handy to be able to debug things
        * and still get a connection!
@@ -1144,16 +1299,19 @@ static int client_verify_callback(int ok, X509_STORE_CTX *ctx)
   {
     if (1)
     {
-      fprintf(stderr, "SSL: rejecting connection - error=%d\n", error);
-      if (error == VERIFY_ERR_UNABLE_TO_GET_ISSUER)
+      if (client_verify_callback_verbose)
       {
-        fprintf(stderr, "unknown issuer: %s\n", issuer);
+        fprintf(stderr, "SSL: rejecting connection - error=%d\n", error);
+        if (error == VERIFY_ERR_UNABLE_TO_GET_ISSUER)
+        {
+          fprintf(stderr, "unknown issuer: %s\n", issuer);
+        }
+        else
+        {
+          ERR_print_errors_fp(stderr);
+        }
+        fflush(stderr);
       }
-      else
-      {
-        ERR_print_errors_fp(stderr);
-      }
-      fflush(stderr);
       ok = 0;
       goto return_time;
     }
@@ -1163,7 +1321,7 @@ static int client_verify_callback(int ok, X509_STORE_CTX *ctx)
        * so that we know which issuer is unknown no matter
        * what the callers options are ...
        */
-      if (error == VERIFY_ERR_UNABLE_TO_GET_ISSUER)
+      if (error == VERIFY_ERR_UNABLE_TO_GET_ISSUER && client_verify_callback_verbose)
       {
         fprintf(stderr, "SSL: unknown issuer: %s\n", issuer);
         fflush(stderr);

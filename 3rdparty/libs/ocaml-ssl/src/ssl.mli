@@ -60,6 +60,8 @@ type ssl_error =
   (** The operation did not complete; the same TLS/SSL I/O function should be
       called again later. *)
 
+type bigarray = (char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+
 (** The SSL method could not be initalized. *)
 exception Method_error
 
@@ -202,11 +204,12 @@ val get_error_string : unit -> string
 
 (** Protocol used by SSL. *)
 type protocol =
-  | SSLv23 (** SSL v3 protocol but can rollback to v2 *)
-  | SSLv3 (** SSL v3 protocol *)
-  | TLSv1 (** TLS v1 protocol *)
-  | TLSv1_1 (** TLS v1.1 protocol *)
-  | TLSv1_2 (** TLS v1.2 protocol *)
+  | SSLv23 (** accept all possible protocols (SSLv2 if supported by openssl,
+               SSLv3, TLSv1, TLSv1.1 and TLSv1.2) *)
+  | SSLv3 (** only SSL v3 protocol *)
+  | TLSv1 (** only TLS v1 protocol *)
+  | TLSv1_1 (** only TLS v1.1 protocol *)
+  | TLSv1_2 (** only TLS v1.2 protocol *)
 
 (** An SSL abstract socket. *)
 type socket
@@ -262,6 +265,9 @@ type verify_callback
 (** Client's verification callback. Warning: this might change in the future. *)
 val client_verify_callback : verify_callback
 
+(** Set verbosity of {! client_verify_callback } *)
+val set_client_verify_callback_verbose : bool -> unit
+
 (** Set the verify mode and callback, see SSL_CTX_set_verify(3).
   * Warning: this might change in the future. *)
 val set_verify : context -> verify_mode list -> verify_callback option -> unit
@@ -276,8 +282,21 @@ val set_verify_depth : context -> int -> unit
   * are a core part of the SSL/TLS protocol.*)
 type cipher
 
+(** Disable all protocols from the list.
+  * Note that [SSLv23] disables both SSLv2 and SSLv3 (as opposed to all the
+  * protocols).
+  * *)
+val disable_protocols : context -> protocol list -> unit
+
 (** Set the list of available ciphers for a context. See man ciphers(1) for the format of the string. *)
 val set_cipher_list : context -> string -> unit
+
+(** When choosing a cipher, use the server's preferences instead of the client
+  * preferences. When not set, the SSL server will always follow the clients
+  * preferences. When set, the SSLv3/TLSv1 server will choose following its
+  * own preferences. Because of the different protocol, for SSLv2 the server
+  * will send its list of preferences to the client and the client chooses.*)
+val honor_cipher_order : context -> unit
 
 (** Init DH parameters from file *)
 val init_dh_from_file : context -> string -> unit
@@ -374,10 +393,34 @@ val verify : socket -> unit
 val file_descr_of_socket : socket -> Unix.file_descr
 
 (** [read sock buf off len] receives data from a connected SSL socket. *)
-val read : socket -> string -> int -> int -> int
+val read : socket -> Bytes.t -> int -> int -> int
+
+(** [write sock buf off len] sends data over a connected SSL socket. *)
+val write : socket -> Bytes.t -> int -> int -> int
+
+(** [read_into_bigarray sock ba off len] receives data from a connected SSL socket.
+    This function releases the runtime while the read takes place. *)
+val read_into_bigarray : socket -> bigarray -> int -> int -> int
+
+(** [read_into_bigarray_blocking sock ba off len] receives data from a
+    connected SSL socket.
+    This function DOES NOT release the runtime while the read takes place: it
+    must be used with nonblocking sockets. *)
+val read_into_bigarray_blocking : socket -> bigarray -> int -> int -> int
 
 (** [write sock buf off len] sends data over a connected SSL socket. *)
 val write : socket -> string -> int -> int -> int
+
+(** [write_bigarray sock ba off len] sends data over a connected SSL socket.
+    This function releases the runtime while the read takes place.
+  *)
+val write_bigarray : socket -> bigarray -> int -> int -> int
+
+(** [write_bigarray sock ba off len] sends data over a connected SSL socket.
+    This function DOES NOT release the runtime while the read takes place: it
+    must be used with nonblocking sockets.
+  *)
+val write_bigarray_blocking : socket -> bigarray -> int -> int -> int
 
 
 (** {3 High-level communication functions} *)
