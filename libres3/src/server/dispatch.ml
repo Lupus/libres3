@@ -2315,9 +2315,12 @@ module Make
     Lwt.return_unit
 
   let rec retry_reload_configuration () =
-    Lwt.catch reload_configuration (fun e ->
-        Lwt.async (fun () -> Lwt_unix.sleep 60. >>= retry_reload_configuration);
-        Lwt.return_unit)
+    Lwt.catch reload_configuration (function
+        | Detail (Unix.Unix_error(Unix.EACCES, _, _), _) as e ->
+          Lwt.fail e
+        | e ->
+          Lwt.async (fun () -> Lwt_unix.sleep 60. >>= retry_reload_configuration);
+          Lwt.return_unit)
 
   type t = unit
   let init () =
