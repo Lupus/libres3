@@ -482,7 +482,7 @@ let did_expire_v4 date expires =
 let split_semicolon = Netstring_str.regexp_string ";"
 
 let set_of_header_list s =
-  List.fold_left (fun accum h -> Headers.StringSet.add h accum)
+  List.fold_left (fun accum h -> Headers.StringSet.add (String.lowercase h) accum)
     Headers.StringSet.empty (Netstring_str.split split_semicolon s)
 
 let split_slash = Netstring_str.regexp_string "/"
