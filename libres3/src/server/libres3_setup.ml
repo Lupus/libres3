@@ -149,7 +149,7 @@ let lwt_run f =
 let print_configuration settings =
   Lwt_list.iter_s (fun (k,v) ->
       if List.find_all (fun (key,_,_) -> key = k) Configfile.meta_entries <> [] then
-        Lwt_io.printlf "%s = %s" k v
+        Lwt_io.printlf "\t%s = %s" k v
       else Lwt.return_unit
     ) settings
 
@@ -174,7 +174,7 @@ let update_config base lst =
         failwith (Printf.sprintf "Unknown meta configuration key '%s'\n" key)
     ) lst in
   SXC.update_settings ~max_wait:10. base updates >>= fun settings ->
-  Lwt_io.printl "New configuration:" >>= fun () ->
+  Lwt_io.printl "\nNew configuration:" >>= fun () ->
   print_configuration settings
 
 let read_line () =
@@ -225,6 +225,7 @@ let () =
         Lwt_unix.with_timeout 10. (fun () -> SXC.get_settings base) >>= fun settings ->
         Lwt_io.printl "Previous configuration:" >>= fun () ->
         print_configuration settings >>= fun () ->
+        Lwt_io.printl "" >>= fun () ->
         begin if !update <> [] then
           update_config base !update
         else
