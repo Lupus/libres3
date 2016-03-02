@@ -251,28 +251,24 @@ For example to enable public bucket indexing:
 \begin{lstlisting}
 # libres3_setup --update allow_public_bucket_index=true sx://admin@sx.example.com
 Previous configuration:
-volume_size = 100G
-s3_https_port = 8443
-s3_http_port = 8008
-s3_host = libres3.example.com
-replica_count = 1
-allow_volume_create_any_user = true
-allow_public_bucket_index = false
+	volume_size = 10G
+	s3_http_port = 8008
+	s3_host = libres3.example.com
+	replica_count = 2
+	allow_volume_create_any_user = true
+	allow_public_bucket_index = false
+
 libres3_setup: main: locking cluster for changes
 libres3_setup: main: Updating cluster metadata
 libres3_setup: main: unlocking cluster for changes
-New configuration:
-volume_size = 100G
-s3_https_port = 8443
-s3_http_port = 8008
-s3_host = libres3.example.com
-replica_count = 1
-allow_volume_create_any_user = true
-allow_public_bucket_index = true
-# libres3 reload
 
-Loading configuration from /etc/libres3/libres3.conf
-Sending SIGHUP to PID 5336 ... 
+New configuration:
+	volume_size = 10G
+	s3_http_port = 8008
+	s3_host = libres3.example.com
+	replica_count = 2
+	allow_volume_create_any_user = true
+	allow_public_bucket_index = true
 \end{lstlisting}
 
 \subsection{SSL certificates}
