@@ -48,3 +48,5 @@ let list_cache_expires = ref 30. (* 30s *)
 let apiver_min = 0
 let apiver_max = 2
 let maxkeys = 1000
+
+let max_connections_per_host = ref 32

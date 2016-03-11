@@ -285,6 +285,8 @@ let meta_entries = [
   " Syslog facility to use (default: log to file only)";
   "max_parallel", expect parse_positive_int max_connected,
   " Maximum number of connections to handle in parallel";
+  "max_pool_target", expect parse_positive_int Config.max_connections_per_host,
+  " Maximum size of connection pool per remote IP";
   "allow_volume_create_any_user", expect parse_bool Config.volume_create_elevate_to_admin,
   " Allow creating volumes as any user (elevate to admin privileges)";
   "allow_list_all_volumes", expect parse_bool show_all_volumes,

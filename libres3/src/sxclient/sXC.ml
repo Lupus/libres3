@@ -451,7 +451,7 @@ let make_http_request ?quick p url =
         EventLog.warning ~exn "HTTP(S) request failed to %s:%d" url.host url.port;
         Lwt.fail exn
       | e -> Lwt.fail e) in
-  loop (P.max_connections_per_host) >>= fun reply ->
+  loop (!Config.max_connections_per_host) >>= fun reply ->
   let apiverstr =
     try reply.headers#multiple_field "SX-API-Version"
     with Not_found -> ["0"] in
