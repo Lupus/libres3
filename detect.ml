@@ -822,7 +822,7 @@ let pkg_ssl =
 ;;
 
 (* libev *)
-let install_libev = { os_pkg_names = ["libev-dev";"libev"] };;
+let install_libev = { os_pkg_names = ["libev-dev";"libev-devel"] };;
 let pkg_libev =
   clib_dependency "libev"
       ~header:"ev.h" ~lib:["ev"] ~fn:"(void)ev_default_loop(0)" install_libev
