@@ -176,10 +176,10 @@ let handle_error f () =
 
 let handle_signal s msg =
   ignore (
-    Sys.signal s (Sys.Signal_handle (fun _ ->
+    Lwt_unix.on_signal s (fun _ ->
         ignore (write UnixLabels.stdout ~buf:msg ~pos:0 ~len:(String.length msg));
         exit 3;
-      ))
+      )
   );;
 
 let pinged = ref false
@@ -294,14 +294,14 @@ let run_server commandpipe =
     Unix.dup2 dev_null Unix.stderr;
     Unix.close dev_null
   end;
-  Lwt_main.at_exit Lwt_unix.wait_for_jobs;
+  Lwt_main.at_exit (fun () -> Lwt_unix.with_timeout 5. Lwt_unix.wait_for_jobs);
+  handle_signal Sys.sigint "Exiting due to user interrupt";
+  handle_signal Sys.sigterm "Exiting due to TERM signal";
   Ocsigen_server.start_server ();
   exit 0
 
 let run () =
   Configfile.max_connected := 350;
-  handle_signal Sys.sigint "Exiting due to user interrupt";
-  handle_signal Sys.sigterm "Exiting due to TERM signal";
   ignore (Sys.signal Sys.sighup Sys.Signal_ignore);
 
   Arg.current := 0;

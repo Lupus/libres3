@@ -445,6 +445,7 @@ let make_http_request ?quick p url =
         EventLog.warning ~exn "HTTP(S) request timed out to %s:%d" url.host url.port;
         Lwt.fail exn
       | Http_client.Http_protocol _ when n > 0 ->
+        Lwt_unix.yield () >>= fun () ->
         loop (n-1)
       | Http_client.Http_protocol _ as exn ->
         EventLog.warning ~exn "HTTP(S) request failed to %s:%d" url.host url.port;
@@ -476,6 +477,7 @@ let rec make_request_token ?quick ~token meth ?(req_body="") ?etag url =
   else if reply.code = 429 then
     (* TODO: next in list, better interval formula *)
     delay 20. >>= fun () ->
+    Lwt_unix.yield () >>= fun () ->
     make_request_token ~token meth ~req_body ?etag url
   else
     let url = Neturl.modify_url ~scheme:"http" url in
@@ -1195,6 +1197,7 @@ let check_reply reply =
 ;;
 
 let rec job_poll origurl url expected_id interval max_interval =
+  Lwt_unix.yield () >>= fun () ->
   delay interval >>= fun () ->
   make_request `GET [Neturl.url_host url] url >>= fun reply ->
   AJson.json_parse_tree (P.input_of_async_channel reply.body) >>= function
