@@ -2160,6 +2160,18 @@ module Make
                 ~id:canon.CanonRequest.id ~path ~headers:[]
                 Error.RemoteServiceUnavailable [
                 "SXTimeout",e]
+            | Lwt_unix.Timeout ->
+              return_error_xml
+                ~req:request
+                ~id2:(CanonRequest.gen_debug ~canon)
+                ~id:canon.CanonRequest.id ~path ~headers:[]
+                Error.RemoteServiceTimeout ["SXTimeout",""]
+            | Detail (Unix.Unix_error(Unix.EBUSY,_,_) as ex, detail) ->
+              return_error_xml
+                ~req:request
+                ~id2:(CanonRequest.gen_debug ~canon)
+                ~id:canon.CanonRequest.id ~path ~headers:[]
+                Error.SlowDown (("SXTimeout",Printexc.to_string ex) :: detail)
             | Http_client.Http_protocol e ->
               return_error_xml
                 ~req:request

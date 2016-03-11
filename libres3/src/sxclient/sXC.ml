@@ -468,18 +468,24 @@ let make_http_request ?quick p url =
     fail (Http_client.Http_protocol(Failure msg))
 
 let usercache = Caching.cache 128
-let rec make_request_token ?quick ~token meth ?(req_body="") ?etag url =
+let rec make_request_token ?(interval=100.) ?quick ~token meth ?(req_body="") ?etag url =
   (* TODO: check that scheme is sx! *)
   let p = pipeline () in
   make_http_request ?quick p (request_of_url ~token meth ~req_body ?etag url) >>= fun reply ->
   if reply.status = `Ok || reply.status = `Partial_content || reply.status = `Not_modified then
     return reply
-  else if reply.code = 429 then
-    (* TODO: next in list, better interval formula *)
-    delay 20. >>= fun () ->
-    Lwt_unix.yield () >>= fun () ->
-    make_request_token ~token meth ~req_body ?etag url
-  else
+  else if reply.code = 429 then begin
+    (* TODO: next in list *)
+    EventLog.debug (fun () -> Printf.sprintf "interval: %f" interval);
+    if interval >= 3200. then
+      fail (XIO.Detail(
+          Unix.Unix_error(Unix.EBUSY,string_of_method meth,string_of_url url),
+          ["LibreS3ErrorMessage", "Too many jobs active"]))
+    else
+      delay interval >>= fun () ->
+      Lwt_unix.yield () >>= fun () ->
+      make_request_token ~interval:(2. *. interval) ~token meth ~req_body ?etag url
+  end else
     let url = Neturl.modify_url ~scheme:"http" url in
     detail_of_reply reply >>= fun detail ->
     let code = match reply.status with
