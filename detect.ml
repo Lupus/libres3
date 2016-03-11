@@ -821,6 +821,12 @@ let pkg_ssl =
     ~version:(fun v -> v >=? "0.4.4")
 ;;
 
+(* libev *)
+let install_libev = { os_pkg_names = ["libev-dev";"libev"] };;
+let pkg_libev =
+  clib_dependency "libev"
+      ~header:"ev.h" ~lib:["ev"] ~fn:"(void)ev_default_loop(0)" install_libev
+;;
 (* OCamlnet *)
 
 let pkg_ocamlnet =
@@ -886,16 +892,22 @@ let pkg_react = ocaml_dependency "react" (Build (fun _ ->
 (* Lwt *)
 let pkg_lwt = ocaml_dependency "lwt" ~findlibnames:["lwt";"lwt.unix";"lwt.ssl"]
   (Build (fun _ ->
-    let flags = flags [{
-      dep = pkg_ssl;
-      enabled = "--enable-ssl";
-      disabled = "--disable-ssl";
-    }] ["--disable-libev";"--enable-react"] in
+        let flags = flags [{
+            dep = pkg_ssl;
+            enabled = "--enable-ssl";
+            disabled = "--disable-ssl";
+          };
+           {
+            dep = pkg_libev;
+            enabled = "--enable-libev";
+            disabled = "--disable-libev";
+           }
+          ] ["--enable-libev";"--enable-react"] in
     build_oasis "3rdparty/libs/lwt" ~flags ~findlibnames:["lwt"]
   ))
   ~version:(fun v -> (v >=? "2.4.3"))
   ~deps:[pkg_react; camlp4_dep; dep_ocamlbuild]
-  ~deps_opt:[pkg_ssl]
+  ~deps_opt:[pkg_ssl;pkg_libev]
 ;;
 
 (* Tyxml *)
@@ -953,7 +965,7 @@ let pkg_dns = ocaml_dependency "dns" (Build (fun _ ->
   ~version:(fun v -> v >=? "0.10.0")
 
 (* Main dependencies of libres3 *)
-let deps_default = [ pkg_ocamlnet; pkg_jsonm; pkg_xmlm; pkg_cryptokit; pkg_ounit; pkg_ssl ];;
+let deps_default = [ pkg_ocamlnet; pkg_jsonm; pkg_xmlm; pkg_cryptokit; pkg_ounit; pkg_ssl; pkg_libev ];;
 let deps = pkg_dns :: pkg_re :: pkg_ocsigenserver :: deps_default
 
 let builds, installs = rules deps;;
