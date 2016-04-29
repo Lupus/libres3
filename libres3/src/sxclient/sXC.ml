@@ -1858,7 +1858,10 @@ let get_settings url =
   ) []
 
 let map_update lst map =
-  List.fold_left (fun accum (k,v) -> StringMap.add k v accum) map lst
+  List.fold_left (fun accum (k,v) ->
+      if v = "" then StringMap.remove k accum
+      else StringMap.add k v accum
+  ) map lst
 
 let update_settings ~max_wait url updates =
   with_lock ~max_wait url (fun nodes ->
