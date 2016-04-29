@@ -229,7 +229,7 @@ let () =
         Lwt_io.printl "Previous configuration:" >>= fun () ->
         print_configuration settings >>= fun () ->
         Lwt_io.printl "" >>= fun () ->
-        begin if !update <> [] then
+        begin if !update <> [] || remove <> [] then
           update_config base !update remove
         else
           Lwt.return_unit
