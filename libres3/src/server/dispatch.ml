@@ -2322,7 +2322,9 @@ module Make
           let _,f,_ = List.find (fun (key,_,_) -> key = k) Configfile.meta_entries in
           EventLog.notice "Configuration from cluster meta: %s=%s" k v;
           f v
-        with Not_found -> ()
+        with
+        | Not_found -> ()
+        | e -> EventLog.notice "Skipping invalid value %S for key %s: %s" k v (Printexc.to_string e)
     ) settings;
     Lwt.return_unit
 

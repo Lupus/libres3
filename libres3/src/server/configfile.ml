@@ -62,6 +62,8 @@ let parse_size s =
           | _ -> failwith ("Unknown suffix in " ^ s) in
         size)
   with _ ->
+  try Int64.to_float (Int64.of_string s)
+  with _ ->
     failwith ("expected size with suffix: " ^ s)
 
 let validate_filename path =
