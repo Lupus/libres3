@@ -1212,7 +1212,9 @@ module Make
               "ExpectedETag",etag;
             ]
           ) >>= fun (size, digest) ->
-        let actual_etag = quote digest in
+        let actual_etag =
+          if String.length etag > 0 && etag.[0]='"' then quote digest else digest
+        in
         if actual_etag <> etag then
           return_error Error.InvalidPart [
             "UploadID", uploadId;
