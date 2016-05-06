@@ -603,10 +603,11 @@ module Make
         | None -> return ("", 0, 0)
         | Some line ->
           Scanf.sscanf line "%x;chunk-signature=%s" (fun chunk_size signature ->
-              Lwt_io.read ~count:chunk_size ic >>= fun data ->
+              let data = Bytes.create chunk_size in
+              Lwt_io.read_into_exactly ic data 0 chunk_size >>= fun () ->
               Lwt_io.read_line ic >>= fun line ->
               if String.length line > 0 then
-                Lwt.fail (Failure "expected newline after chunk")
+                Lwt.fail (Failure (Printf.sprintf "expected newline after chunk (%d read, %d trailing)" (String.length data) (String.length line)))
               else
                 return (data, 0, String.length data)
             )
