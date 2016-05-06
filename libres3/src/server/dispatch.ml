@@ -595,7 +595,8 @@ module Make
       )
 
   let filter_sha256 ~chunked input f =
-    if chunked then
+    match chunked with
+    | Some decoded_content_length ->
       let ic, oc = Lwt_io.pipe () in
       let read () =
         Lwt_io.read_line_opt ic >>= function
@@ -625,14 +626,15 @@ module Make
            end
           in
           let source = U.of_source {
-              meta = input.meta;
+              meta =  { input.meta with size = decoded_content_length } ;
               seek = seek
             } in
           f source ?sha256:None
         ) (fun () ->
           Lwt.catch (fun () -> Lwt_io.close oc) (fun _ -> Lwt.return_unit) >>= fun () ->
           Lwt.catch (fun () -> Lwt_io.close ic) (fun _ -> Lwt.return_unit))
-    else if input.meta.size <= max_input_mem then
+    | None ->
+    if input.meta.size <= max_input_mem then
       read_all ~max:(Int64.to_int input.meta.size) ~input >>= fun str ->
       let sha256 = Cryptokit.hash_string (Cryptokit.Hash.sha256 ()) str in
       f (U.of_string str) ?sha256:(Some sha256)
@@ -2079,8 +2081,12 @@ module Make
                     ~canon:{ canon with CanonRequest.user = user } expires
               in
               let chunked =
-                Headers.field_values canon.CanonRequest.headers "x-amz-content-sha256" =
-                ["STREAMING-AWS4-HMAC-SHA256-PAYLOAD"] in
+                if Headers.field_values canon.CanonRequest.headers "x-amz-content-sha256" =
+                   ["STREAMING-AWS4-HMAC-SHA256-PAYLOAD"] then
+                  Some (Int64.of_string (Headers.field_single_value canon.CanonRequest.headers "x-amz-decoded-content-length" ""))
+                else
+                  None
+              in
               begin match canon.CanonRequest.req_method with
                 | `PUT body ->
                   filter_sha256 ~chunked body (fun (`Source input) ?sha256 ->
