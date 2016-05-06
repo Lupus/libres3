@@ -1753,7 +1753,8 @@ module Make
     | _, _, (true, None) ->
       return_error Error.AccessForbidden ["LibreS3ErrorMessage", "CORS Origin or method not allowed"]
     | Some origin, Some acr_method, (true, Some rule) ->
-      let allowed, rejected = List.partition (fun h -> List.mem h rule.CanonRequest.allowed_header)
+      let wildcard = List.mem "*" rule.CanonRequest.allowed_header in
+      let allowed, rejected = List.partition (fun h -> List.mem h rule.CanonRequest.allowed_header || wildcard)
                    (Headers.field_values canon.CanonRequest.headers "Access-Control-Request-Headers")
       in
       if rejected <> [] then
