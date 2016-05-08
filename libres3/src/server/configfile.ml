@@ -239,6 +239,8 @@ let show_all_volumes = ref true
 (* not the way S3 works, but useful feature for public buckets *)
 let allow_public_bucket_index = ref false
 
+let headers_timeout = ref 60
+
 (* libres3.conf entries *)
 let conf_entries = [
   "secret_key", expect validate_secret_key Config.secret_access_key,
@@ -295,6 +297,7 @@ let meta_entries = [
   " Allow showing all volumes that you have read/write privileges to, not just the volumes that you own (not strictly S3 compatible)";
   "allow_public_bucket_index", expect parse_bool allow_public_bucket_index,
   " Allow showing a browsable 'directory' index for public buckets (not strictly S3 compatible)";
+  "headers_timeout", expect parse_positive_int headers_timeout, " timeout for sending reply headers (except for PUT/POST)";
   (* advanced configuration *)
   "min_threads", expect_opt parse_positive_int min_threads, "";
   "max_detached_threads", expect_opt parse_positive_int max_threads, "";

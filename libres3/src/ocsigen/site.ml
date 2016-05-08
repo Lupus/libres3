@@ -104,7 +104,7 @@ module Server = struct
       EventLog.debug (fun () -> Printf.sprintf "sending reply code %d" (Nethttp.int_of_http_status h.Dispatch.status));
       (* send headers and body xml header only once *)
       s.woken <- true;
-      Lwt.wakeup s.headers_wake ();
+      (try Lwt.wakeup s.headers_wake () with _ -> ());
       s.had_body_header <- body_header <> None;
       match body_header with
       | Some b -> send_data s (b, 0, String.length b) >>= fun () ->
@@ -231,7 +231,7 @@ let process_request dispatcher ri () =
     ) (Ocsigen_request_info.http_frame ri).frame_header.headers [] in
   let stream = stream_of_request ri in
   let body_stream, body_stream_push = Lwt_stream.create_bounded 16 in
-  let w, u = Lwt.wait () in
+  let w, u = Lwt.task () in
   let server = {
     Server.headers = None; stream_error = false; had_body_header = false;
     auth_user = None; body_sent = 0L; info = None;
@@ -259,7 +259,10 @@ let process_request dispatcher ri () =
     } in
   Ocsigen_senders.Stream_content.result_of_content
     (stream_of_reply wait_eof server) >>= fun res ->
-  server.Server.headers_wait >|= fun () ->
+  let tmo = match req_method with
+    | `POST _ | `PUT _ -> fst (Lwt.task ())
+    | _ -> Lwt_unix.sleep (float !Configfile.headers_timeout) in
+  Lwt.pick [ server.Server.headers_wait; wait_eof; Ocsigen_request_info.connection_closed ri; tmo ] >|= fun () ->
   match server.Server.headers with
   | None ->
     EventLog.debug (fun () -> "no content-length");

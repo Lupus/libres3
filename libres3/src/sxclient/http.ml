@@ -60,7 +60,7 @@ let result f =
   with e -> Lwt.make_error e
 
 let wait () =
-  let waiter, wakener = Lwt.wait () in
+  let waiter, wakener = Lwt.task () in
   let result = ref bad_result in
   let notif_id = Lwt_unix.make_notification ~once:true (fun () ->
       Lwt.wakeup_result wakener !result) in
@@ -167,6 +167,8 @@ let start_pipeline () =
   esys, keep_alive_group, thread
 ;;
 
+let canceled () = raise Lwt.Canceled
+
 let http_call (esys,_,_) (category, call, host) =
   let waiter, wakener = wait () in
   let rec handle_reply = fun retries call ->
@@ -174,7 +176,9 @@ let http_call (esys,_,_) (category, call, host) =
             String.concat "\n> " (List.rev_map (fun (k,v) -> k ^ ": " ^ v)
                                     (call#request_header `Effective)#fields));*)
     (* this runs in http_thread *)
-    match call#status with
+    if Lwt.state waiter = Lwt.Fail Lwt.Canceled then
+      wakener (result canceled)
+    else match call#status with
     | `Http_protocol_error (Http_client.Bad_message _ | Http_client.No_reply as exn) when retries < 4 ->
       (*      EventLog.debug ~exn (fun () -> "retrying after lost connection");*)
       (* each of the cached connections may return an error once *)

@@ -2233,10 +2233,17 @@ module Make
                 Error.ServiceUnavailable [
                 "OutOfSpace",fn
               ]
-            | Ocsigen_stream.Interrupted (Ocsigen_http_com.Lost_connection _)
-            | Lwt.Canceled ->
+            | Ocsigen_stream.Interrupted (Ocsigen_http_com.Lost_connection _) ->
+              EventLog.debug (fun () -> "lost connection");
               (* do not send anything back to client, it has already disconnected *)
-              fail Ocsigen_http_com.Aborted
+              fail Lwt.Canceled
+            | Lwt.Canceled ->
+              EventLog.debug (fun () -> "canceled");
+              return_error_xml
+                ~req:request
+                ~id2:(CanonRequest.gen_debug ~canon)
+                ~id:canon.CanonRequest.id ~path ~headers:[]
+                Error.ServiceUnavailable ["request canceled",""]
             | (Failure msg | Invalid_argument msg) as e ->
               return_error_xml
                 ~req:request
@@ -2248,6 +2255,7 @@ module Make
                   ["Backtrace", Printexc.get_backtrace ()]
                 else
                   [] in
+              EventLog.debug ~exn:e (fun () -> "exception");
               let str = Printexc.to_string e in
               return_error_xml
                 ~req:request
@@ -2256,8 +2264,8 @@ module Make
                 Error.InternalError (("Exception", str) :: bt)
           )
       ) (function
-        | Ocsigen_http_com.Aborted ->
-          fail Ocsigen_http_com.Aborted
+        | Ocsigen_http_com.Aborted | Lwt.Canceled ->
+          fail Lwt.Canceled
         | e ->
           let bt = if Printexc.backtrace_status () then
               ["Backtrace", Printexc.get_backtrace ()]
