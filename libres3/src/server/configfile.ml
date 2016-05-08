@@ -240,6 +240,7 @@ let show_all_volumes = ref true
 let allow_public_bucket_index = ref false
 
 let headers_timeout = ref 60
+let multipart_async_part = ref false
 
 (* libres3.conf entries *)
 let conf_entries = [
@@ -298,6 +299,7 @@ let meta_entries = [
   "allow_public_bucket_index", expect parse_bool allow_public_bucket_index,
   " Allow showing a browsable 'directory' index for public buckets (not strictly S3 compatible)";
   "headers_timeout", expect parse_positive_int headers_timeout, " timeout for sending reply headers (except for PUT/POST)";
+  "multipart_async_part", expect parse_bool multipart_async_part," Use async flush for parts of multipart upload";
   (* advanced configuration *)
   "min_threads", expect_opt parse_positive_int min_threads, "";
   "max_detached_threads", expect_opt parse_positive_int max_threads, "";

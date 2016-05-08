@@ -1257,11 +1257,11 @@ let job_get ?(async=false) url reply =
       fail (Failure "Bad json reply format: object expected")
 ;;
 
-let flush_token url token =
+let flush_token ?async url token =
   let url = Neturl.modify_url url
       ~path:["";".upload";token] ~encoded:false in
   make_request `PUT [Neturl.url_host url] url >>=
-  job_get url
+  job_get ?async url
 
 let locate_upload url size =
   match url_path ~encoded:true url with
@@ -1364,7 +1364,7 @@ let upload_part ?metafn nodelist url source blocksize hashes map size extendSeq 
  * when uploading the partial blocks.
  * partial blocks = stuff under auto-bs threshold
 *)
-let rec upload_chunks ?metafn buf tmpfd nodes url size uuid stream blocksize pos token =
+let rec upload_chunks ?metafn ?async buf tmpfd nodes url size uuid stream blocksize pos token =
   let endpos = min (Int64.add pos (Int64.of_int multipart_threshold)) size in
   let end_threshold = Int64.sub size last_threshold in
   let endpos =
@@ -1378,7 +1378,7 @@ let rec upload_chunks ?metafn buf tmpfd nodes url size uuid stream blocksize pos
   match token with
   | Some token when pos = endpos ->
     (* all multiparts uploaded, flush token *)
-    flush_token url token
+    flush_token ?async url token
   | _ ->
     (* still have parts to upload *)
     compute_hashes_loop uuid tmpfd stream buf blocksize [] StringMap.empty pos endpos
@@ -1402,10 +1402,10 @@ let rec upload_chunks ?metafn buf tmpfd nodes url size uuid stream blocksize pos
       upload_part ?metafn:metafn_final nodes url (pos, tmpfd) blocksize hashes map size extendseq token >>= fun (host, token) ->
       let url = Neturl.modify_url ~host url in
       IO.lseek tmpfd 0L >>= fun _ ->
-      upload_chunks ?metafn buf tmpfd [host] url size uuid stream blocksize endpos (Some token)
+      upload_chunks ?metafn ?async buf tmpfd [host] url size uuid stream blocksize endpos (Some token)
 ;;
 
-let put ?quotaok ?metafn src srcpos url =
+let put ?quotaok ?metafn ?async src srcpos url =
   let host = url_host url in
   let size = Int64.sub (src.XIO.meta.XIO.size)  srcpos in
   if size < 0L then
@@ -1427,7 +1427,7 @@ let put ?quotaok ?metafn src srcpos url =
               Neturl.modify_url ~host url, Some token
             | None -> return (url, None)
           end >>= fun (url, token) ->
-          upload_chunks ?metafn buf tmpfd nodes url size uuid stream blocksize srcpos token)
+          upload_chunks ?metafn ?async buf tmpfd nodes url size uuid stream blocksize srcpos token)
     | _ ->
       fail (Failure "can only put a file (not a volume or the root)")
 
@@ -1769,7 +1769,7 @@ let is_owner_of_vol nodes volume_url =
     warning "bad acl list format: %a" pp_json_lst p;
     fail (Failure "bad acl list format2")
 
-let delete ?async url =
+let delete ?async ?(recursive=false) url =
   Lwt.catch (fun () ->
       get_vol_nodelist url >>= fun (nodes, _) ->
       begin match url_path url ~encoded:true with
@@ -1785,6 +1785,8 @@ let delete ?async url =
           else
             (* not owner or escalation not permitted: use current user *)
             return url
+        | "" :: volume :: path when recursive ->
+          return (path_to_filter url false volume path)
         | _ -> return url
       end >>= fun url ->
       make_request `DELETE nodes url >>=

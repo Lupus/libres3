@@ -727,14 +727,14 @@ module Make
                        content_type canon in
     add_meta_headers libres3_keys xamz_headers
 
-  let put_object ~canon ~request src bucket path =
+  let put_object ~canon ~request ?(async=false) src bucket path =
     let md5 = Cryptokit.Hash.md5 () in
     let source = hash_source2 md5 src in
     Lwt.catch
       (fun () ->
          let _, url = url_of_volpath ~canon bucket path in
          let digestref = ref "" in
-         U.copy ~metafn:(put_metafn ~canon md5 digestref src.meta.size) source ~srcpos:0L url >>= fun () ->
+         U.copy ~async ~metafn:(put_metafn ~canon md5 digestref src.meta.size) source ~srcpos:0L url >>= fun () ->
          return_empty ~canon ~req:request ~status:`Ok
            ~reply_headers:["ETag",quote !digestref]
       )
@@ -1173,7 +1173,7 @@ module Make
     let part = Printf.sprintf "%05d" n in
     mpart_get_path ~canon bucket path ~uploadId ~part >>= fun (mpart_bucket, mpart_path) ->
     (* TODO: we don't have to calculate MD5 here *)
-    put_object ~canon ~request body mpart_bucket mpart_path
+    put_object ~async:!Configfile.multipart_async_part ~canon ~request body mpart_bucket mpart_path
 
   let build_url bucket path =
     (* TODO: use same scheme as the requests, i.e https on https *)
@@ -1315,7 +1315,7 @@ module Make
     let base, url = url_of_volpath ~canon mpart_bucket mpart_path in
     U.fold_list ~base url ~entry:(fun parts entry ->
         (* TODO: ignore parts that raise errors *)
-        let partNumber = int_of_string (Filename.basename entry.name) in
+        let partNumber = try int_of_string (Filename.basename entry.name) with Failure _ -> 0 in
         if partNumber > 0 then
           let _, url = url_of_volpath ~canon mpart_bucket entry.name in
           Lwt.catch (fun () -> md5_of_url url) (function _ ->
@@ -1344,15 +1344,12 @@ module Make
           Xml.tag "Bucket" [Xml.d bucket]
         ])))
 
-  let mput_delete_common ~canon ~request ~uploadId bucket path =
-    list_parts ~canon ~uploadId bucket path
-    >>= fun (mpart_bucket, names) ->
-    Lwt_list.rev_map_p (fun name ->
-        U.delete ~async:true (snd (url_of_volpath ~canon mpart_bucket name))
-      ) names
+  let mput_delete_common ~async ~canon ~request ~uploadId bucket path =
+    mpart_get_path ~canon bucket path ~uploadId ~part:"" >>= fun (mpart_bucket, mpart_path) ->
+    U.delete ~async ~recursive:true (snd (url_of_volpath ~canon mpart_bucket mpart_path))
 
   let mput_delete ~canon ~request ~uploadId bucket path =
-    mput_delete_common ~canon ~request ~uploadId bucket path >>= fun _ ->
+    mput_delete_common ~async:false ~canon ~request ~uploadId bucket path >>= fun _ ->
     return_empty ~req:request ~canon ~status:`No_content ~reply_headers:[];;
 
   let rec periodic_send sender got_result msg =
@@ -1464,6 +1461,15 @@ module Make
   let mput_complete ~canon ~request ~uploadId ~body bucket path =
     mpart_get_path ~canon bucket path ~uploadId ~part:"0" >>= fun (mpart_bucket, mpart_path) ->
     Lwt.catch (fun () ->
+        (if !Configfile.multipart_async_part then
+          (* wait for previous multipart uploads to flush,
+             assumes that there is one node running these jobs (multipart bucket is always replica1)
+             flushing multipart files cannot be rescheduled (replica is 1, early flush should either succeed or fail)
+             jobmgr executes the flush jobs from the same user in the order it receives them
+          *)
+          U.copy ~srcpos:0L (of_string "") (snd (url_of_volpath ~canon mpart_bucket (mpart_path^"complete")))
+        else
+          Lwt.return_unit) >>= fun () ->
         U.get_meta (snd (url_of_volpath ~canon mpart_bucket mpart_path))
         >>= fun metalst ->
         check_parts ~canon bucket path ~uploadId body >>= fun (min_partsize, filesize, urls) ->
@@ -1475,15 +1481,14 @@ module Make
                                      meta_key_content_type, content_type] metalst in
         let quotaok_wait, quotaok_wake = Lwt.task () in
         let result =
-          Lwt.finalize (fun () ->
-              Lwt.catch (fun () ->
-                  U.copy ~quotaok:(fun () -> Lwt.wakeup quotaok_wake ()) ~metafn:(fun () -> meta) (`Urls (urls, filesize)) ~srcpos:0L url)
-                (fun exn ->
-                   Lwt.wakeup_exn quotaok_wake exn;
-                   fail exn
-                )
-            ) (fun () ->
-              mput_delete_common ~canon ~request ~uploadId bucket path >>= fun _ -> return_unit)
+          (Lwt.catch (fun () ->
+              U.copy ~quotaok:(fun () -> Lwt.wakeup quotaok_wake ()) ~metafn:(fun () -> meta) (`Urls (urls, filesize)) ~srcpos:0L url)
+            (fun exn ->
+               EventLog.notice ~exn "multipart complete failed on %s" mpart_path;
+               Lwt.wakeup_exn quotaok_wake exn;
+               fail exn
+            )) >>= fun () ->
+          mput_delete_common ~async:true ~canon ~request ~uploadId bucket path >>= fun _ -> return_unit
         in
         quotaok_wait >>= fun () ->
           send_long_running ~canon ~req:request key (fun url ->

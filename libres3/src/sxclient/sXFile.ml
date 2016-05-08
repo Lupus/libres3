@@ -83,7 +83,7 @@ let close_source _ = return ()
 let copy_same ?metafn ?filesize _ _ =
   return false (* no optimized copy, fallback to generic *)
 
-let delete ?async url =
+let delete ?async ?(recursive=false) url =
   match file url with
   | vol, ("" | "/") ->
     find vol !volumes >>= fun volume ->
@@ -94,8 +94,17 @@ let delete ?async url =
       fail (Unix.Unix_error(Unix.ENOTEMPTY, "delete", vol))
   | vol, path ->
     find vol !volumes >>= fun volume ->
-    find path volume >>= fun _ ->
-    volumes := StringMap.add vol (StringMap.remove path volume) !volumes;
+    (if recursive then return ()
+    else find path volume >>= fun _ -> return ()) >>= fun () ->
+    let volume =
+      if recursive then begin
+        StringMap.filter (fun p _ ->
+            String.length p < String.length path ||
+            String.sub p 0 (String.length path) <> path
+          ) volume
+      end
+      else StringMap.remove path volume in
+    volumes := StringMap.add vol volume !volumes;
     return ()
 
 let exists url =
@@ -181,7 +190,7 @@ let set_meta url meta =
 
 let etag_cnt = ref 0
 
-let put ?quotaok ?metafn src srcpos dsturl =
+let put ?quotaok ?metafn ?async src srcpos dsturl =
   let vol, path = file dsturl in
   find vol !volumes >>= fun volume ->
   incr etag_cnt;
