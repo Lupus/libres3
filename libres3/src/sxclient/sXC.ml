@@ -1371,7 +1371,7 @@ let rec upload_chunks ?metafn ?async buf tmpfd nodes url size uuid stream blocks
     (* upload the very last chunk of the file separately:
      * first time: pos < end_threshold -> end_threshold
      * second time: pos = end_threshold -> endpos *)
-    if end_threshold > 0L && pos < end_threshold then end_threshold
+    if end_threshold > 0L && pos < end_threshold && end_threshold < endpos then end_threshold
     else endpos in
   let bs64 = Int64.of_int blocksize in
   let extendseq = Int64.div (Int64.add pos (Int64.sub bs64 1L)) bs64 in
@@ -1381,6 +1381,7 @@ let rec upload_chunks ?metafn ?async buf tmpfd nodes url size uuid stream blocks
     flush_token ?async url token
   | _ ->
     (* still have parts to upload *)
+    EventLog.debug (fun () -> Printf.sprintf "pos: %Ld, endpos: %Ld, size: %Ld" pos endpos size);
     compute_hashes_loop uuid tmpfd stream buf blocksize [] StringMap.empty pos endpos
     >>= fun (hashes_rev, map, _) ->
     let hashes = List.rev_map (fun h -> `String h) hashes_rev in
