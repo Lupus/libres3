@@ -1431,6 +1431,27 @@ let put ?quotaok ?metafn src srcpos url =
     | _ ->
       fail (Failure "can only put a file (not a volume or the root)")
 
+let path_to_filter url no_recurse ?limit ?marker volume path =
+  let recursive =
+    match no_recurse, limit with
+    | true, _ -> ""
+    | false, Some limit ->
+      (* +1 for removing first item, +1 to check for truncation *)
+      Printf.sprintf "recursive&limit=%d" (limit+2)
+    | false, None -> "recursive" in
+  let query = match path with
+    | [] | [""] -> recursive
+    | _ ->
+      Printf.sprintf "%s&filter=%s" recursive
+        ((join_path path) ^ "*") in
+  let query = match marker with
+    | Some m ->
+      Printf.sprintf "%s&after=%s" query (Netencoding.Url.encode ~plus:false m)
+    | None -> query in
+  Neturl.modify_url url
+    ~encoded:true ~scheme:"http" ~syntax:http_syntax
+    ~path:["";volume] ~query
+
 let fold_list url ?etag ?marker ?limit ?(no_recurse=false) f recurse accum =
   let etag = match etag with
     | None -> None
@@ -1439,25 +1460,7 @@ let fold_list url ?etag ?marker ?limit ?(no_recurse=false) f recurse accum =
   match fullpath with
   | "" :: volume :: path ->
     let base = Neturl.modify_url url ~encoded:true ~path:["";volume] in
-    let recursive =
-      match no_recurse, limit with
-      | true, _ -> ""
-      | false, Some limit ->
-        (* +1 for removing first item, +1 to check for truncation *)
-        Printf.sprintf "recursive&limit=%d" (limit+2)
-      | false, None -> "recursive" in
-    let query = match path with
-      | [] | [""] -> recursive
-      | _ ->
-        Printf.sprintf "%s&filter=%s" recursive
-          ((join_path path) ^ "*") in
-    let query = match marker with
-      | Some m ->
-        Printf.sprintf "%s&after=%s" query (Netencoding.Url.encode ~plus:false m)
-      | None -> query in
-    let url = Neturl.modify_url url
-        ~encoded:true ~scheme:"http" ~syntax:http_syntax
-        ~path:["";volume] ~query in
+    let url = path_to_filter url no_recurse ?limit ?marker volume path in
     listit ?etag url >>= fun lst ->
     foldl base volume f lst.data accum >|= fun accum ->
     { lst with data = accum }
