@@ -70,6 +70,7 @@ let wait () =
     )
 
 open Http_client
+exception Reset of bool
 exception Periodic of string
 exception HTTP_Job_Callback of bool * int * http_call * (int -> http_call -> unit)
 (* This is not an exception in the usual sense, but simply a tagged
@@ -134,6 +135,12 @@ let http_thread (esys, keep_alive_group, handler_added) =
            to avoid the cost of (SSL) handshakes *)
         pipeline_quick#add (new head host);
         pipeline_normal#add (new head host);
+      | Unixqueue.Extra (Reset is_quick) ->
+        EventLog.notice "Reseting pipeline (quick: %b)" is_quick;
+        if is_quick then
+          pipeline_quick#reset ()
+        else
+          pipeline_normal#reset ()
       | _ ->
         raise Equeue.Reject  (* The event is not for us *)
     );
@@ -169,6 +176,22 @@ let start_pipeline () =
 
 let canceled () = raise Lwt.Canceled
 
+let throttle_tbl = Hashtbl.create 17
+
+let throttle id f =
+  let id = 1 in
+  let n = !Config.max_connections_per_host + 1 in
+  let n = 1 in
+  let pool =
+    try Hashtbl.find throttle_tbl id
+    with Not_found ->
+      let pool = Lwt_pool.create n Lwt.return in
+      Hashtbl.add throttle_tbl id pool;
+      pool
+  in
+  Lwt_unix.with_timeout (float !Config.max_pool_wait)
+      (fun () -> Lwt_pool.use pool f)
+
 let http_call (esys,_,_) (category, call, host) =
   let waiter, wakener = wait () in
   let rec handle_reply = fun retries call ->
@@ -199,13 +222,22 @@ let http_call (esys,_,_) (category, call, host) =
       } in
       wakener (result (fun () -> reply ))
   in
-  EventLog.with_label (Printf.sprintf
-                         "%s %s" (call#get_req_method ()) call#request_uri)
-    (fun () ->
-       (* the callback is needed when it fails to connect *)
-       Unixqueue.add_event esys
-         (Unixqueue.Extra (HTTP_Job_Callback (category, 0, call, handle_reply)));
-       waiter);;
+  Lwt.catch (fun () ->
+      throttle (host,category) (fun () ->
+          EventLog.with_label (Printf.sprintf
+                                 "%s %s" (call#get_req_method ()) call#request_uri)
+            (fun () ->
+               (* the callback is needed when it fails to connect *)
+               Unixqueue.add_event esys
+                 (Unixqueue.Extra (HTTP_Job_Callback (category, 0, call, handle_reply)));
+               waiter)))
+    (function
+      | Lwt_unix.Timeout as e ->
+        Unixqueue.add_event esys (Unixqueue.Extra (Reset category));
+        Lwt.fail e
+      | e -> Lwt.fail e
+    )
+
 
 let call_of_request ?(quick=false) req =
   let call = match req.meth with

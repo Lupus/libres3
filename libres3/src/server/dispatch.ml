@@ -2310,7 +2310,7 @@ module Make
   open Gc
 
   let print_info _ =
-    Gc.full_major ();
+    Gc.compact ();
     let s = Gc.stat () in
     let log = Filename.concat !Paths.log_dir "warnings.log" in
     let f = open_out_gen [Open_append] 0o600 log in
