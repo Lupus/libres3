@@ -205,9 +205,6 @@ let () =
     open_errmsg := true
 (*  List.iter ask_arg spec*)
 
-let is_meta_entry key =
-  List.find_all (fun (k,_,_) -> k = key) Configfile.meta_entries <> []
-
 let () =
   Printexc.register_printer (function
       | Http_client.Http_protocol e ->
@@ -225,7 +222,7 @@ let () =
       | None -> Lwt.return_false
       | Some base ->
         Lwt_unix.with_timeout 10. (fun () -> SXC.get_settings base) >>= fun settings ->
-        let remove = List.find_all (fun (key,_) -> not (is_meta_entry key)) settings in
+        let remove = Configfile.remove_settings settings in
         Lwt_io.printl "Previous configuration:" >>= fun () ->
         print_configuration settings >>= fun () ->
         Lwt_io.printl "" >>= fun () ->
@@ -677,7 +674,7 @@ let () =
         Neturl.make_url SXC.syntax ~scheme:"sx" ~user:!Config.key_id
           ~host ~port:!Config.sx_port ~path:[""] in
       lwt_run (fun () ->
-          let generated = StringMap.filter (fun k _ -> is_meta_entry k) generated in
+          let generated = StringMap.filter (fun k _ -> Configfile.is_meta_entry k) generated in
           SXC.update_settings ~max_wait:10. base (StringMap.bindings generated) >>= fun settings ->
           print_configuration settings)
     end;

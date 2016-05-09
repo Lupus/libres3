@@ -2343,6 +2343,7 @@ module Make
     let url = Neturl.make_url ~encoded:false ~scheme:"sx" ~host ~path:[""] ~user:!Config.key_id
             SXC.syntax in
     Lwt_unix.with_timeout 10. (fun () -> SXC.get_settings url) >>= fun settings ->
+    let remove = Configfile.remove_settings settings in
     List.iter (fun (k,v) ->
         try
           let _,f,_ = List.find (fun (key,_,_) -> key = k) Configfile.meta_entries in
@@ -2352,7 +2353,13 @@ module Make
         | Not_found -> ()
         | e -> EventLog.notice "Skipping invalid value %S for key %s: %s" k v (Printexc.to_string e)
     ) settings;
-    Lwt.return_unit
+    if remove <> [] then begin
+      EventLog.notice "Removing extra cluster meta";
+      let updates = List.rev_append (List.rev_map (fun (k,_) -> (k,"")) remove) settings in
+      SXC.update_settings ~max_wait:10. url updates >>= fun _ -> Lwt.return_unit
+    end
+    else
+      Lwt.return_unit
 
   let rec retry_reload_configuration () =
     Lwt.catch reload_configuration (function

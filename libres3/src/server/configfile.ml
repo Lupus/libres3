@@ -319,3 +319,9 @@ let meta_entries = [
 ]
 
 let entries : (string * (string -> unit) * string) list = conf_entries @ meta_entries
+
+let is_meta_entry key =
+  List.find_all (fun (k,_,_) -> k = key) meta_entries <> []
+
+let remove_settings settings =
+    List.find_all (fun (key,_) -> not (is_meta_entry key)) settings
