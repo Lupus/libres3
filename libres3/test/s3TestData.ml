@@ -392,7 +392,7 @@ let suite real = [
       req_headers = [];
       req_body = "";
     };
-    expected = expect_error Error.NoSuchBucket "/foo"
+    expected = expect_error (if !Configfile.base_hostname = "" then Error.NoSuchBucket else Error.AccessDenied) "/foo"
   };
   Direct {
     name = "test auth";
