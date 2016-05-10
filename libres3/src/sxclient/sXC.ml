@@ -601,8 +601,10 @@ let rec make_request_loop meth ?quick ?req_body ?etag nodes url errors = match n
               "SXErrorMessage",Printf.sprintf "Cannot retrieve token for user %S"
                 user
             ]))
-      ) (fun e ->
-        make_request_loop meth ?quick ?req_body ?etag rest url (e :: errors)
+      ) (function
+        | Lwt.Canceled as e -> Lwt.fail e
+        | e ->
+          make_request_loop meth ?quick ?req_body ?etag rest url (e :: errors)
       )
   | [] ->
     choose_error errors
@@ -610,7 +612,9 @@ let rec make_request_loop meth ?quick ?req_body ?etag nodes url errors = match n
 let make_request meth ?quick ?req_body ?etag nodes url =
   Lwt.catch (fun () ->
       make_request_loop meth ?quick ?req_body ?etag nodes url []
-    ) (fun _ ->
+    ) (function
+      | Lwt.Canceled as e -> Lwt.fail e
+      | e ->
       delay 20. >>= fun () ->
       make_request_loop meth ?quick ?req_body ?etag nodes url []
     )
@@ -811,23 +815,27 @@ let download_full_mem url blocksize hashes =
           (hashes, make_request `GET (nodelist nodes) u) :: accum
         ) accum split
     ) grouped [] in
-  (* build map of replys *)
-  List.fold_left (fun accum (hashes, request) ->
-      accum >>= fun map ->
-      (request >>= fun reply ->
-       return (process_batch_reply hashes reply.body blocksize map))
-    ) (return StringMap.empty) batches >>= fun hashmap ->
-  let batch = String.make (blocksize * (List.length hashes)) 'X' in
-  let _ = List.fold_left (fun pos hf ->
-      match hf with
-      | `F (hash, _ ) ->
-        let str, strpos = StringMap.find hash hashmap in
-        String.blit str strpos batch pos blocksize;
-        pos + blocksize
-      | _ -> failwith "bad json hash format"
-    ) 0 hashes in
-  return batch
-;;
+  Lwt.finalize (fun () ->
+      (* build map of replys *)
+      List.fold_left (fun accum (hashes, request) ->
+          accum >>= fun map ->
+          (request >>= fun reply ->
+           return (process_batch_reply hashes reply.body blocksize map))
+        ) (return StringMap.empty) batches >>= fun hashmap ->
+      let batch = String.make (blocksize * (List.length hashes)) 'X' in
+      let _ = List.fold_left (fun pos hf ->
+          match hf with
+          | `F (hash, _ ) ->
+            let str, strpos = StringMap.find hash hashmap in
+            String.blit str strpos batch pos blocksize;
+            pos + blocksize
+          | _ -> failwith "bad json hash format"
+        ) 0 hashes in
+      return batch
+    ) (fun () ->
+      List.iter (fun (_,t) -> Lwt.cancel t) batches;
+      Lwt.return_unit
+    )
 
 let meta_cache = Caching.cache 1024
 
