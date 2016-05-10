@@ -2252,7 +2252,7 @@ module Make
                 ~req:request
                 ~id2:(CanonRequest.gen_debug ~canon)
                 ~id:canon.CanonRequest.id ~path ~headers:[]
-                Error.ServiceUnavailable ["request canceled",""]
+                Error.ServiceUnavailable ["requestcanceled",""]
             | (Failure msg | Invalid_argument msg) as e ->
               return_error_xml
                 ~req:request

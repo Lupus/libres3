@@ -179,9 +179,7 @@ let canceled () = raise Lwt.Canceled
 let throttle_tbl = Hashtbl.create 17
 
 let throttle id f =
-  let id = 1 in
   let n = !Config.max_connections_per_host + 1 in
-  let n = 1 in
   let pool =
     try Hashtbl.find throttle_tbl id
     with Not_found ->
