@@ -1352,6 +1352,8 @@ let upload_part ?metafn nodelist url source blocksize hashes map size extendSeq 
       | None ->
         "fileSize", `Float (Int64.to_float size);
     ] (build_meta metafn) in
+  let rec loop nodelist n =
+  Lwt.catch (fun () ->
   send_json nodelist url (`Object obj) >>= fun reply ->
   check_reply reply >>= fun () ->
   AJson.json_parse_tree (P.input_of_async_channel reply.body) >>= function
@@ -1371,6 +1373,14 @@ let upload_part ?metafn nodelist url source blocksize hashes map size extendSeq 
   | p ->
     warning "bad json reply format: %a" pp_json_lst p;
     fail (Failure "Bad json reply format")
+      ) (function
+        | Failure _ | SXProto _ when n < 3 ->
+          warning "retrying after failed upload";
+          delay 100. >>= (fun () -> loop (rot nodelist) (n+1))
+        | e -> Lwt.fail e
+      )
+  in
+  loop nodelist 0
 ;;
 
 (* !! partial blocks can only be sent in the final upload request,
