@@ -230,7 +230,7 @@ let process_request dispatcher ri () =
       List.rev_append (List.map (fun v -> namestr, v) values) accum
     ) (Ocsigen_request_info.http_frame ri).frame_header.headers [] in
   let stream = stream_of_request ri in
-  let body_stream, body_stream_push = Lwt_stream.create_bounded 16 in
+  let body_stream, body_stream_push = Lwt_stream.create_bounded 2 in
   let w, u = Lwt.task () in
   let server = {
     Server.headers = None; stream_error = false; had_body_header = false;

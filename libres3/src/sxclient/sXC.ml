@@ -254,6 +254,7 @@ module P = Http
  * the multipart part-size too *)
 let chunk_size = 4 * 1024 * 1024
 let download_max_blocks = 30 (* TODO: keep in sync with include/default.h *)
+let download_threshold = 8192 * 1024
 let multipart_threshold = 132 * 1024 * 1024 (* 132 MB, should be multiple of
                                                chunk_size *)
 let last_threshold = Int64.of_int chunk_size
@@ -954,21 +955,26 @@ let download_hashes (push, url, blocksize, remaining, skip) hashes_rev =
 let seek s ?len pos =
   let hashes, start = seek_hashes (Int64.of_int s.blocksize) pos s.hashes 0L in
   let nodes = max 1 (List.length !last_nodes) in
-  let split_map = split_at_threshold s.blocksize
-      (s.blocksize * nodes * download_max_blocks) hashes [] [] 0 in
+  let threshold = min (s.blocksize * nodes * download_max_blocks) download_threshold in
+  let split_map = split_at_threshold s.blocksize threshold hashes [] [] 0 in
   let skip = Int64.to_int (Int64.sub pos start) in
   let remaining = match len with
     | None -> Int64.sub s.filesize start
     | Some len -> Int64.add (Int64.of_int skip) len in
-  let download, download_push = Lwt_stream.create_bounded 4 in
-  Lwt.ignore_result (Lwt.try_bind (fun () ->
+  let download, download_push = Lwt_stream.create_bounded 2 in
+  let t = Lwt.try_bind (fun () ->
       Lwt_list.fold_left_s download_hashes (download_push, s.url, s.blocksize, remaining, skip) split_map)
       (fun _ -> download_push#close; return_unit)
-      (fun exn -> download_push#push (fail exn) >>= fun () -> download_push#close; return_unit));
+      (fun exn -> download_push#push (fail exn) >>= fun () -> download_push#close; return_unit) in
   return (s, fun () ->
-      Lwt_stream.get download >>= function
-      | None -> return ("", 0, 0)
-      | Some r -> r
+      Lwt.catch (fun () ->
+          Lwt_stream.get download >>= function
+          | None -> return ("", 0, 0)
+          | Some r -> r
+        ) (function
+          | Lwt.Canceled as e -> Lwt.cancel t; Lwt.fail e
+          | e -> Lwt.fail e
+        )
     )
 
 let remove_leading_slash name =
