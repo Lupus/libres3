@@ -264,13 +264,87 @@ let call_of_request ?(quick=false) req =
   call#set_request_body (new Netmime.memory_mime_body req.req_body);
   quick, call, req.host;;
 
+let limit = Lwt_pool.create !Config.max_connections_per_host Lwt.return
+
 let make_http_request state ?quick req =
-  http_call state (call_of_request ?quick req)
+  if !Config.use_other_client then
+    let open Ocsigen_http_frame in
+    let open Http_header in
+    let open Lwt in
+    Lwt_pool.use limit (fun () ->
+    let headers =
+      List.fold_left (fun accum (k,v) -> Http_headers.add (Http_headers.name k) v accum)
+        Http_headers.empty req.req_headers
+    in
+    let content, content_length = match req.meth with
+      | `PUT | `POST ->
+        Some (Ocsigen_stream.of_string req.req_body),
+        Some (Int64.of_int (String.length req.req_body))
+      | _ -> None, None in
+    let http_method = match req.meth with
+      | `GET -> GET
+      | `HEAD -> HEAD
+      | `POST -> POST
+      | `PUT -> PUT
+      | `DELETE -> DELETE
+      | `OPTIONS -> OPTIONS
+      | `TRACE -> TRACE
+    in
+    Ocsigen_lib.Ip_address.get_inet_addr req.host >>= fun inet_addr ->
+    EventLog.with_label req.relative_url (fun () ->
+        Lwt_unix.with_timeout (float !Config.max_pool_wait) (fun () ->
+            Ocsigen_http_client.raw_request
+              ~headers
+              ~https:!Config.sx_ssl
+              ~port:req.port
+              ~content
+              ?content_length
+              ~http_method
+              ~host:req.host
+              ~inet_addr
+              ~uri:req.relative_url () ()) >>= fun frame ->
+        let headers =
+          Http_headers.fold (fun k values accum ->
+              List.fold_left (fun accum v -> (Http_headers.name_to_string k, v) :: accum) accum values
+            ) frame.frame_header.headers []
+        in
+        let code =
+          match frame.frame_header.mode with
+          | Answer n -> n
+          | _ -> 500
+        in
+        (match frame.Ocsigen_http_frame.frame_content with
+        | None -> Lwt.return ""
+        | Some stream ->
+          let body = Buffer.create 4096 in
+          let rec loop stream =
+            Ocsigen_stream.next stream >>= function
+            | Ocsigen_stream.Finished _ -> Lwt.return (Buffer.contents body)
+            | Ocsigen_stream.Cont (s, next) ->
+              Buffer.add_string body s;
+              loop next
+          in
+          Lwt.finalize (fun () ->
+              Lwt_unix.with_timeout (float !Config.max_pool_wait) (fun () ->
+                  loop (Ocsigen_stream.get stream))
+            )
+            (fun () -> Ocsigen_stream.finalize stream `Success)) >|= fun body ->
+        {
+          headers = (new Netmime.basic_mime_header headers :> Netmime.mime_header_ro);
+          code = code;
+          status = Nethttp.http_status_of_int code;
+          req_host = req.host;
+          body
+        }))
+  else
+    http_call state (call_of_request ?quick req)
 ;;
 
 let periodic (esys,_,_) host =
-  EventLog.debug (fun () -> Printf.sprintf "sending periodic keep-alive request to %s" host);
-  Unixqueue.add_event esys (Unixqueue.Extra (Periodic host))
+  if not !Config.use_other_client then begin
+    EventLog.debug (fun () -> Printf.sprintf "sending periodic keep-alive request to %s" host);
+    Unixqueue.add_event esys (Unixqueue.Extra (Periodic host))
+  end
 
 let return_http_error status =
   raise (HttpCode status)

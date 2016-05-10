@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 01d2cf8e1bc2686f90e552da1c006a91)
+# DO NOT EDIT (digest: 395a6cf3abbda5048719c647a5e10783)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -29,6 +29,7 @@ true: annot, bin_annot
 <src/sxclient/*.ml{,i,y}>: package(lwt.unix)
 <src/sxclient/*.ml{,i,y}>: package(netclient)
 <src/sxclient/*.ml{,i,y}>: package(netstring)
+<src/sxclient/*.ml{,i,y}>: package(ocsigenserver)
 <src/sxclient/*.ml{,i,y}>: package(ssl)
 <src/sxclient/*.ml{,i,y}>: package(threads)
 <src/sxclient/*.ml{,i,y}>: use_anycache
@@ -40,6 +41,7 @@ true: annot, bin_annot
 <test/sxuls.{native,byte}>: package(lwt.unix)
 <test/sxuls.{native,byte}>: package(netclient)
 <test/sxuls.{native,byte}>: package(netstring)
+<test/sxuls.{native,byte}>: package(ocsigenserver)
 <test/sxuls.{native,byte}>: package(ssl)
 <test/sxuls.{native,byte}>: package(threads)
 <test/sxuls.{native,byte}>: use_anycache
@@ -52,6 +54,7 @@ true: annot, bin_annot
 <test/sxucp.{native,byte}>: package(lwt.unix)
 <test/sxucp.{native,byte}>: package(netclient)
 <test/sxucp.{native,byte}>: package(netstring)
+<test/sxucp.{native,byte}>: package(ocsigenserver)
 <test/sxucp.{native,byte}>: package(ssl)
 <test/sxucp.{native,byte}>: package(threads)
 <test/sxucp.{native,byte}>: use_anycache
@@ -60,7 +63,6 @@ true: annot, bin_annot
 "src/server/server.cmxs": use_server
 <src/server/*.ml{,i,y}>: package(netsys)
 <src/server/*.ml{,i,y}>: package(ocplib-endian)
-<src/server/*.ml{,i,y}>: package(ocsigenserver)
 <src/server/*.ml{,i,y}>: package(str)
 <src/server/*.ml{,i,y}>: package(xmlm)
 # Library libres3_site
@@ -114,6 +116,7 @@ true: annot, bin_annot
 <src/server/libres3_setup.{native,byte}>: package(lwt.unix)
 <src/server/libres3_setup.{native,byte}>: package(netclient)
 <src/server/libres3_setup.{native,byte}>: package(netstring)
+<src/server/libres3_setup.{native,byte}>: package(ocsigenserver)
 <src/server/libres3_setup.{native,byte}>: package(re.str)
 <src/server/libres3_setup.{native,byte}>: package(ssl)
 <src/server/libres3_setup.{native,byte}>: package(threads)
@@ -130,6 +133,7 @@ true: annot, bin_annot
 <src/server/libres3_report.{native,byte}>: package(lwt.unix)
 <src/server/libres3_report.{native,byte}>: package(netclient)
 <src/server/libres3_report.{native,byte}>: package(netstring)
+<src/server/libres3_report.{native,byte}>: package(ocsigenserver)
 <src/server/libres3_report.{native,byte}>: package(re.posix)
 <src/server/libres3_report.{native,byte}>: package(ssl)
 <src/server/libres3_report.{native,byte}>: package(threads)
@@ -144,6 +148,7 @@ true: annot, bin_annot
 <src/server/*.ml{,i,y}>: package(lwt.unix)
 <src/server/*.ml{,i,y}>: package(netclient)
 <src/server/*.ml{,i,y}>: package(netstring)
+<src/server/*.ml{,i,y}>: package(ocsigenserver)
 <src/server/*.ml{,i,y}>: package(re.posix)
 <src/server/*.ml{,i,y}>: package(ssl)
 <src/server/*.ml{,i,y}>: package(threads)

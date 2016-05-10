@@ -301,6 +301,7 @@ let meta_entries = [
   "headers_timeout", expect parse_positive_int headers_timeout, " timeout for sending reply headers (except for PUT/POST)";
   "multipart_async_part", expect parse_bool multipart_async_part," Use async flush for parts of multipart upload";
   "max_pool_wait", expect parse_positive_int Config.max_pool_wait, " maximum time to wait for a connection to SX to become available";
+  "use_other_client", expect parse_bool Config.use_other_client, " use other http client";
   (* advanced configuration *)
   "min_threads", expect_opt parse_positive_int min_threads, "";
   "max_detached_threads", expect_opt parse_positive_int max_threads, "";

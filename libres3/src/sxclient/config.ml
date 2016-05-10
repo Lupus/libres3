@@ -51,3 +51,4 @@ let maxkeys = 1000
 
 let max_connections_per_host = ref 24
 let max_pool_wait = ref 300
+let use_other_client = ref false
