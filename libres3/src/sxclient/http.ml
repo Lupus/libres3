@@ -268,6 +268,14 @@ let limit = Lwt_pool.create !Config.max_connections_per_host Lwt.return
 
 let make_http_request state ?quick req =
   if !Config.use_other_client then
+    let build_reply headers code body =
+      {
+        headers = headers;
+        code = code;
+        status = Nethttp.http_status_of_int code;
+        req_host = req.host;
+        body = body
+      } in
     let open Ocsigen_http_frame in
     let open Http_header in
     let open Lwt in
@@ -329,13 +337,8 @@ let make_http_request state ?quick req =
                   loop (Ocsigen_stream.get stream))
             )
             (fun () -> Ocsigen_stream.finalize stream `Success)) >|= fun body ->
-        {
-          headers = (new Netmime.basic_mime_header headers :> Netmime.mime_header_ro);
-          code = code;
-          status = Nethttp.http_status_of_int code;
-          req_host = req.host;
-          body
-        }))
+        build_reply (new Netmime.basic_mime_header headers :> Netmime.mime_header_ro) code body
+        ))
   else
     http_call state (call_of_request ?quick req)
 ;;
