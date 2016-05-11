@@ -1850,7 +1850,7 @@ let with_lock ~max_wait url f =
     (fun () -> distlock "unlock")
 
 (* lock the cluster, modify settings, unlock the cluster *)
-let with_settings url ~max_wait f key =
+let with_private_settings url ~max_wait f key =
   with_lock ~max_wait url (fun nodes ->
       let url = Neturl.modify_url url ~encoded:true ~scheme:"http"
           ~syntax:http_syntax ~path:["";".clusterSettings"]

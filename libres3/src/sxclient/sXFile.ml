@@ -230,7 +230,7 @@ let set_acl (url:Neturl.url) (acls : IO.acl list) =
 
 let libres3_private = ref ""
 
-let with_settings url ~max_wait f key =
+let with_private_settings url ~max_wait f key =
   if key = "libres3_private" then begin
     f !libres3_private >>= function
     | Some r -> libres3_private := r; return ()

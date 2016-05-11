@@ -28,7 +28,6 @@
 (**************************************************************************)
 
 open Lwt
-open SXIO
 let print_version () =
   Printf.printf "libres3 setup version %s\n%!" Version.version;
   exit 0
@@ -44,6 +43,7 @@ let ssl = ref true
 let s3_http_port = ref ""
 let s3_https_port = ref ""
 let batch_mode = ref false
+let regenerate_ssl = ref false
 
 let is_space c = c = ' ' || (c >= '\t' && c <= '\r') 
 
@@ -105,6 +105,8 @@ let spec = [
   " Path for SSL certificate file";
   "--ssl-key-file", Arg.Set_string ssl_key_file,
   " Path for SSL key file";
+  "--regenerate-ssl", Arg.Set regenerate_ssl,
+  " Regenerate SSL certificate (e.g. after renaming s3_host)";
   "--sxsetup-conf", Arg.Set_string sxsetup_conf, " Path to sxsetup.conf";
   "--batch", Arg.Set batch_mode, " Turn off interactive confirmations and assume safe defaults";
   "--config-dir", Arg.String (fun s -> configdir := Some s),
@@ -498,7 +500,6 @@ let read_and_validate_admin_key ~key msg f x m =
 
 let (|>) x f = f x
 
-open Lwt
 open Cryptokit
 
 let split s =
@@ -539,8 +540,8 @@ let generate_ssl_certificate ~ssl_key_file ~ssl_cert_file m =
     Sys.catch_break true;
     Printf.printf "Locking LibreS3 private settings on SX cluster: %s\n%!" (Neturl.string_of_url url);
     Lwt_main.run (Lwt.catch (fun () ->
-        SXIO.with_settings ~max_wait:60. (SXIO.of_neturl url) (function
-            | "" ->
+        SXIO.with_private_settings ~max_wait:60. (SXIO.of_neturl url) (function
+            | old when !regenerate_ssl || old = "" ->
               let cmd = Printf.sprintf "%s/libres3_certgen '%s'" Configure.sbindir s3_host in
               (* TODO: Lwt *)
               if Sys.command cmd <> 0 then
@@ -553,8 +554,8 @@ let generate_ssl_certificate ~ssl_key_file ~ssl_cert_file m =
             | old ->
               let old = transform_string (Hexa.decode()) old in
               let cert, key = split old in
-              save_to ssl_cert_file cert >>= fun () ->
-              save_to ssl_key_file key >>= fun () ->
+              save_to ~file:ssl_cert_file cert >>= fun () ->
+              save_to ~file:ssl_key_file key >>= fun () ->
               Printf.printf "Downloaded SSL certificate and key from the cluster to %s and %s\n%!" ssl_key_file ssl_cert_file;
               Lwt.return_none
           ) "libres3_private"

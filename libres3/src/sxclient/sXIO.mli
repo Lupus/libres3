@@ -49,7 +49,7 @@ val invalidate_token_of_user : [< `Url of url ] -> unit
 (* operations *)
 val get_meta: [< `Url of url] -> (string*string) list Lwt.t
 val set_meta: [< `Url of url] -> (string*string) list -> unit Lwt.t
-val with_settings : [< `Url of url] -> max_wait:float -> (string -> string option Lwt.t) -> string -> unit Lwt.t
+val with_private_settings : [< `Url of url] -> max_wait:float -> (string -> string option Lwt.t) -> string -> unit Lwt.t
 val copy: ?quotaok:(unit->unit) -> ?metafn:metafn -> ?async:bool ->
   [< `Source of source | `Url of url | `Urls of url list * int64] -> srcpos:int64 ->
   [< `Sink of sink | `Url of url] -> unit Lwt.t
@@ -100,7 +100,7 @@ module type SchemeOps = sig
 
   val get_meta: Neturl.url -> (string*string) list Lwt.t
   val set_meta: Neturl.url -> (string*string) list -> unit Lwt.t
-  val with_settings : Neturl.url -> max_wait:float -> (string -> string option Lwt.t) -> string -> unit Lwt.t
+  val with_private_settings : Neturl.url -> max_wait:float -> (string -> string option Lwt.t) -> string -> unit Lwt.t
   val put: ?quotaok:(unit->unit) -> ?metafn:metafn -> ?async:bool -> source -> int64 -> Neturl.url -> unit Lwt.t
   val delete: ?async:bool -> ?recursive:bool -> Neturl.url -> unit Lwt.t
   val create: ?metafn:metafn -> ?replica:int -> Neturl.url -> unit Lwt.t
