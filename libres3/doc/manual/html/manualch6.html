@@ -3,11 +3,11 @@
 <html > 
 <head><title>6 Public access to objects</title> 
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"> 
-<meta name="generator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
-<meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
+<meta name="generator" content="TeX4ht (http://www.tug.org/tex4ht/)"> 
+<meta name="originator" content="TeX4ht (http://www.tug.org/tex4ht/)"> 
 <!-- html,2,next,fn-in --> 
 <meta name="src" content="manual.tex"> 
-<meta name="date" content="2016-03-02 12:33:00"> 
+<meta name="date" content="2016-05-11 17:25:00"> 
 <link rel="stylesheet" type="text/css" href="manual.css"> 
 </head><body 
 >
@@ -25,7 +25,7 @@ href="manual.html#manualch6.html" >up</a>] </p></div>
 class="ectt-1000">x</span></span></span> from the
 bucket <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">vol1</span></span></span>: <!--l. 6-->
-<div class="lstlisting" id="listing-40"><span class="label"><a 
+<div class="lstlisting" id="listing-41"><span class="label"><a 
  id="x8-42001r1"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
@@ -115,7 +115,7 @@ download the file without additional authorization. After 24 hours the URL
 expires and can&#8217;t be used anymore.
 <!--l. 13--><p class="indent" >   There is also a python script as a sample for writing your applications
 that would generate signed URLs: <!--l. 15-->
-<div class="lstlisting" id="listing-41"><span class="label"><a 
+<div class="lstlisting" id="listing-42"><span class="label"><a 
  id="x8-42003r1"></a></span><span 
 class="ectt-0800x-x-87">$</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
@@ -174,7 +174,7 @@ bucket publicly accessible. In this case you can enable public access to all
 objects in a bucket by setting a bucket policy (replace <span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">volpublic</span></span></span> with the
 name of your bucket): <!--l. 27-->
-<div class="lstlisting" id="listing-42"><span class="label"><a 
+<div class="lstlisting" id="listing-43"><span class="label"><a 
  id="x8-43001r1"></a></span><span 
 class="ectt-0800x-x-87">$</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
@@ -348,7 +348,7 @@ class="ectt-0800x-x-87">x</span>
    </div>
 <!--l. 42--><p class="indent" >   To disable public access just delete the policy:
    <!--l. 44-->
-<div class="lstlisting" id="listing-43"><span class="label"><a 
+<div class="lstlisting" id="listing-44"><span class="label"><a 
  id="x8-43013r1"></a></span><span 
 class="ectt-0800x-x-87">#</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
@@ -377,7 +377,7 @@ class="ectt-0800x-x-87">volpublic</span>
 <!--l. 48--><p class="indent" >   Note that public/anonymous users can only download individual objects
 &#8212; they are not allowed to list the bucket&#8217;s contents.
 <!--l. 51--><p class="indent" >   There are some scripts to help managing public buckets: <!--l. 52-->
-<div class="lstlisting" id="listing-44"><span class="label"><a 
+<div class="lstlisting" id="listing-45"><span class="label"><a 
  id="x8-43014r1"></a></span><span 
 class="ectt-0800x-x-87">$</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
@@ -726,7 +726,7 @@ class="ec-qbkr-x-x-90">X</span></sup> the <span class="obeylines-h"><span class=
 class="ectt-1000">Content-Type</span></span></span> is
 guessed automatically based on file extension.
 <!--l. 100--><p class="indent" >   You can modify the headers of already uploaded files: <!--l. 101-->
-<div class="lstlisting" id="listing-45"><span class="label"><a 
+<div class="lstlisting" id="listing-46"><span class="label"><a 
  id="x8-44001r1"></a></span><span 
 class="ectt-0800x-x-87">s3cmd</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
@@ -756,7 +756,7 @@ class="ectt-0800x-x-87">object</span>
    </div>
 <!--l. 105--><p class="indent" >   If you want to set a header for all currently existing objects in a bucket:
 <!--l. 106-->
-<div class="lstlisting" id="listing-46"><span class="label"><a 
+<div class="lstlisting" id="listing-47"><span class="label"><a 
  id="x8-44002r1"></a></span><span 
 class="ectt-0800x-x-87">s3cmd</span><span 
 class="ectt-0800x-x-87">&#x00A0;</span><span 
@@ -824,7 +824,7 @@ for public buckets in LibreS3 by adding the following to <span class="obeylines-
 class="ectt-1000">libres3.conf</span></span></span> and
 restarting LibreS3 (please make sure all LibreS3 instances get updated):
 <!--l. 138-->
-<div class="lstlisting" id="listing-47"><span class="label"><a 
+<div class="lstlisting" id="listing-48"><span class="label"><a 
  id="x8-47001r1"></a></span><span 
 class="ectt-0800x-x-87">allow_public_bucket_index</span><span 
 class="ectt-0800x-x-87">=</span><span 
@@ -847,7 +847,7 @@ http://volpublic.libres3.example.com:8008/
 <!--l. 151--><p class="noindent" >LibreS3 ignores any query parameters in GET that are not part of a known
 S3 API (<span class="obeylines-h"><span class="verb"><span 
 class="ectt-1000">acl</span></span></span>,<span class="obeylines-h"><span class="verb"><span 
-class="ectt-1000">cors</span></span></span>,&hellip;).
+class="ectt-1000">cors</span></span></span>,&#x2026;).
 <!--l. 154--><p class="indent" >   Some websites use a query parameter in the URL of images/scripts
 accessed from an HTML file to make sure that the new/up-to-date version
 is used instead of an old cached version. LibreS3 supports that, however it
