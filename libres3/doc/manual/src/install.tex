@@ -9,7 +9,7 @@ is supported.
 
 Stable releases of LibreS3 are available as tags on the Docker hub, e.g.:
 \begin{lstlisting}
-   docker pull skylable/libres3:release-1.2
+   docker pull skylable/libres3:release-1.3
 \end{lstlisting}
 
 Latest master is always available as:
@@ -74,19 +74,20 @@ development versions:
     \item GNU Make and m4
     \item Zlib
     \item pkg-config
+    \item libev
 \end{itemize}
 For example, on Debian run:
 
 \begin{lstlisting}
 # apt-get install ocaml-native-compilers camlp4-extra libssl-dev libpcre3-dev zlib1g-dev\
- pkg-config make m4
+ pkg-config make m4 libev-dev
 \end{lstlisting}
 
 On Fedora run:
 
 \begin{lstlisting}
 # yum install ocaml /usr/bin/camlp4of /usr/bin/camlp4rf /usr/bin/camlp4 openssl-devel\
- pcre-devel zlib-devel pkgconfig make m4 ncurses-devel
+ pcre-devel zlib-devel pkgconfig make m4 ncurses-devel libev-devel
 \end{lstlisting}
 
 

@@ -175,8 +175,8 @@ Loading configuration from /etc/libres3/libres3.conf
 Waiting for server to start (5s) ... OK
 \end{lstlisting}
 
-You can use \verb|--batch| and provide all settings on the command line, see
-\verb|libres3_setup --help| for the full list of options.
+You can use \verb|--batch| and provide all settings on the command line,
+for the full list of options see \verb|libres3_setup --help|
 
 To start/stop LibreS3\footnote{LibreS3 and \SX will communicate using TLS by
 default. For debugging purposes you can configure \SX with \texttt{sxsetup -{}-no-ssl}}:
@@ -246,6 +246,7 @@ update the settings on the entire cluster is:
 And then run \verb|libres3 reload| on each node.
 This will store the LibreS3 settings in SX cluster metadata, which LibreS3 reads
 on startup or when it receives a SIGHUP signal.
+The settings from the cluster override the settings from libres3.conf.
 
 For example to enable public bucket indexing:
 \begin{lstlisting}

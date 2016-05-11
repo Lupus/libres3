@@ -77,6 +77,9 @@ For example a certificate for \verb|*.s3.example.com| is:
 \item NOT valid for \verb|a.b.s3.example.com| 
 \end{itemize}
 
+For \verb|s3cmd| version \verb|1.6.1| you'll have to use \verb|--no-check-hostname| if you
+use an HTTPS port different from 8443.
+
 \section{Python-boto}
 \label{sec:python-boto}
 
@@ -184,6 +187,15 @@ store them in the file \verb|~/.aws/credentials| :
 [default]
 aws_access_key_id=<your-sx-username>
 aws_secret_access_key=<your-sx-key>
+\end{lstlisting}
+
+Some examples on how to use LibreS3 with SDKs can be found in this git
+repository:
+\begin{lstlisting}
+$ git clone http://git.skylable.com/experimental && cd experimental
+$ git checkout ci
+$ cd testsuite
+$ ls aws-php-sdk s3testjava
 \end{lstlisting}
 
 \subsection{PHP}
