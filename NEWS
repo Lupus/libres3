@@ -3,13 +3,13 @@
 
 Changes since the last release include:
  * Bugfixes:
-   + fix handling of cluster metadata, do not upload unneeded fields from libres3.conf
-   + fix compatibility with streaming and multipart uploads in the Java SDK
    + allow wildcard in CORS header rule
- * Improvements:
-   + handle more clients under load (timeouts/interrupt execution on disconnect, S3 clients will see more 503 errors)
-   + improve download/upload speed for large files (use smaller chunks)
+   + fix compatibility with streaming and multipart uploads in the Java SDK
+   + only store necessary items in cluster metadata
    + require libev as build dependency
+ * Improvements:
+   + handle more clients when libres3 is under high load
+   + improve transfer speeds for large files
 
 1.2
 ---
