@@ -1237,6 +1237,9 @@ let rec job_poll origurl url expected_id interval max_interval =
         job_poll origurl url expected_id interval max_interval
       | "OK" ->
         return ()
+      | "ERROR" when msg="Newer copies of this file already exist" ->
+        EventLog.debug (fun () -> "ignoring EEXIST");
+        return ()
       | "ERROR" ->
         let e = match msg with
           | "Volume already exists" | "File exists" ->
