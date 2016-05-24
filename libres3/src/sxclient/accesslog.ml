@@ -72,7 +72,7 @@ let log = ref (None, Lwt_io.null)
 let reopen ?path () =
   match path, !log with
   | Some path, (_, old) | None, (Some path, old) ->
-    Lwt_io.open_file ~mode:Lwt_io.output path >>= fun fd ->
+    Lwt_io.open_file ~flags:[Unix.O_WRONLY; Unix.O_CREAT; Unix.O_APPEND] ~mode:Lwt_io.output path >>= fun fd ->
     log := Some path, fd;
     Lwt_io.close old
   | _ -> return_unit
