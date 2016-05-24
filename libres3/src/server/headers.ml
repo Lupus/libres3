@@ -45,7 +45,6 @@ let build overrides l =
   List.iter (fun (source,target) ->
       try
         header#update_field target (header#field source);
-        orig#update_field target "";
       with Not_found -> ()
     ) overrides;
   {
@@ -59,6 +58,7 @@ let filter_names_set f h = StringSet.filter f h.names
 let filter_names f h = StringSet.elements (filter_names_set f h)
 
 let field_values h name = h.ro#multiple_field name
+let orig_field_values h name = h.orig#multiple_field name
 
 let field_single_value h name default =
   match field_values h name with

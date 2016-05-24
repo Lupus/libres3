@@ -328,7 +328,9 @@ let canonicalize_request ~id req_method
     content_md5 = Headers.field_single_value headers "Content-MD5" "";
     content_type = Headers.field_single_value headers "Content-Type" "";
     date = Headers.get_date headers;
-    date_header = Headers.orig_field_value headers "Date";
+    date_header =
+      if Headers.has_header headers "x-amz-date" then ""
+      else Headers.orig_field_value headers "Date";
     expires = get_query_param_opt query_params "Expires";
     orig_uri = undecoded_url;
     host = host;
@@ -406,7 +408,7 @@ let canonical_headers canon_req signed_headers =
   let headers = canon_req.headers in
   String.concat "\n" (List.rev (List.rev_map (fun header ->
       let v = String.concat ","
-          (List.sort String.compare (Headers.field_values headers header)) in
+          (List.sort String.compare (Headers.orig_field_values headers header)) in
       header ^ ":" ^ (trim v)
     ) signed_headers))
 
