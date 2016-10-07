@@ -1,0 +1,43 @@
+opam-version: "1.2"
+maintainer: "dev-team@skylable.com"
+authors: ["Török Edwin <edwin@skylable.com>"]
+license: "GPL-2.0 with OpenSSL exception"
+homepage: "http://www.skylable.com/products/features"
+bug-reports: "https://bugzilla.skylable.com/"
+dev-repo: "https://git.skylable.com/libres3.git"
+tags: []
+available: [ ocaml-version >= "4.03.0"]
+depends: [
+  "ocamlbuild" {build}
+  "ocamlfind" {build}
+  "topkg" {build}
+  "alcotest" { test & >= "0.6.0" }
+  "qtest" { test & >= "2.2" & < "3.0" }
+  "astring" { >= "0.8.3" }
+  "base-threads"
+  "base-unix"
+  "base64" { >= "2.0.0" & < "3.0" }
+  "conf-libev"
+  "calendar" { >= "2.03.2" & < "3.0" }
+  "cmdliner" { >= "0.9.8" }
+  "cohttp" { >= "0.21.0" }
+  "conduit" { >= "0.13.0" }
+  "cryptokit" { >= "1.10" & < "2.0" }
+  "fmt" { >= "0.8.0" }
+  "hex" { >= "1.0.0" & < "2.0" }
+  "ipaddr" { >= "2.7.0" & < "3.0" }
+  "jsonm" { >= "0.9.1" }
+  "logs" { >= "0.6.2" }
+  "lwt" {>= "2.5.2" }
+  "lwt_named_threads" { >= "0.1" }
+  "ocplib-json-typed" { >= "0.4" }
+  "rresult" {>= "0.5.0" }
+  "ssl" {>= "0.5.2" }
+  "tyre" {>= "0.1.1" }
+  "uuidm" { >= "0.9.6" }
+  "xmlm" { >= "1.2.0" & < "2.0" }
+]
+build: [ "ocaml" "pkg/pkg.ml" "build" "--pinned" pinned "--tests" "false"]
+build-test: [
+  ["ocaml" "pkg/pkg.ml" "build" "--pinned" pinned "--tests" "true"]
+  ["ocaml" "pkg/pkg.ml" "test"]]

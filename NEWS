@@ -1,0 +1,110 @@
+2.0 (libres3-next)
+---
+ * TBD
+
+1.3
+---
+
+Changes since the last release include:
+ * Bugfixes:
+   + allow wildcard in CORS header rule
+   + fix compatibility with streaming and multipart uploads in the Java SDK
+   + only store necessary items in cluster metadata
+   + require libev as build dependency
+ * Improvements:
+   + handle more clients when libres3 is under high load
+   + improve transfer speeds for large files
+
+1.2
+---
+
+Changes since the last release include:
+ * New features:
+   + CORS support
+   + Easily update settings on multiple LibreS3 nodes by using SX cluster meta
+   + Store SSL private key in restricted SX cluster settings
+   + SX 2.0+ is required to fully support all features
+ * Bug fixes:
+   + Improved compatibility with S3 clients and SDKs that use SigV4
+   + Range requests when used with APT or Boto3
+   + Custom headers in Object PUT and signed URLs
+   + Various bugfixes to improve compatibility with S3 APIs
+
+1.1
+---
+
+Changes since the last release include:
+ * New features:
+   + public bucket indexing (allow_public_bucket_index, bb #1340)
+   + allow to list all volumes (allow_list_all_volumes, bb #1114)
+   + IPv6 support (requires SX version 1.2 or newer, bb #1332)
+   + support for Cache-Control/Expires/... headers
+   + access.log now uses Apache/NCSA Combined Log Format
+   + support user token changing
+ * Improvements:
+   + reduce S3 download latency: improve persistent connection to SX
+   + tweak SSL ciphers: disable RC4 by default
+   + improved quota exceeded errors
+   + ignore unknown parameters in GET
+   + max-keys for recursive bucket listing (bb #1333)
+   + improve ETag handling (bb #1318)
+   + document supported features and caveats (bb #1243)
+ * Bug fixes:
+   + fix Content-Range for Chromium and APT
+   + fix auto-generated python-boto config for Python 2.7.9 and self-signed certificates
+
+1.0
+---
+
+This is the first stable release of Skylable LibreS3. The changes
+from 0.9 include:
+
+  * support for publicly readable buckets:
+    + bucket policy for public/anonymous access to objects
+    + easily host a public website or files
+    + range requests: stream and seek videos directly from LibreS3!
+    + Content-Type support
+    + more efficient ETag and 304 (Not Modified) handling
+  * better integration with s3cmd, including:
+    + --encrypt and metadata support
+    + --ca-certs support
+    + more efficient mv/cp and ls
+    + AWS Signature Version 4 support
+
+0.9 (Final Beta)
+----------------
+
+Changes in this release include:
+ * support multipart upload with python-boto
+ * support deleting volumes for non-admin users too
+ * support batch deletes
+ * improve error message when accessing volume with filters
+ * improve load-balancing of SX nodes
+ * improve error handling on startup
+ * check SX protocol version and report own version
+ * other bug fixes and improvements
+
+0.3 (Third Beta)
+----------------
+
+Changes in this release include:
+ * support SX running on a custom port
+ * separate libres3_report tool
+ * improved libres3_setup and libres3.conf
+ * generate .boto sample configuration
+ * script to generate pre-signed URL
+
+0.2 (Second Beta)
+-----------------
+
+Changes in this release include:
+ * Fix daemonization at startup, and exit code on shutdown
+ * Portability/packaging fixes for FreeBSD/Debian/CentOS
+ * Fix pre-signed URL expiration handling
+ * Reduce resource usage (number of threads)
+ * Other bugfixes and improvements
+
+0.1 (First Beta)
+----------------
+
+Initial public release of LibreS3.

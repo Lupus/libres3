@@ -1,0 +1,5 @@
+PKG bytes astring base64 calendar cohttp conduit cryptokit hex ipaddr jsonm logs lwt lwt_named_threads ocplib-json-typed ssl tyre uuidm xmlm cmdliner fmt.cli logs.cli alcotest qcheck rresult
+FLG -safe-string -w A-44 -warn-error S -warn-error U
+S src/*
+S test
+B _build/**
