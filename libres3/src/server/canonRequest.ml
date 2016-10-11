@@ -115,6 +115,8 @@ let string_of_method = function
   | `OPTIONS -> "OPTIONS"
   | _ -> "N/A";;
 
+let empty = let `Source s = SXIO.of_string "" in s
+
 let cors_rule_of_origin ~origin ~meth rules =
   let match_cors_rule ((allowed_origin, allowed_method), rule) =
     let origin_ok = List.exists (match_hostname ~origin) allowed_origin in
@@ -348,12 +350,17 @@ let canonicalize_request ~id req_method
     access_control_request_method = access_control_request_method;
   };;
 
+(* override method in CORS preflight request for signed URLs to work *)
+let sign_method canon_req = match canon_req.access_control_request_method with
+  | None -> string_of_method canon_req.req_method
+  | Some str -> str
+
 let string_to_sign canon_req =
   let b = Buffer.create Configfile.small_buffer_size in
   let add s =
     Buffer.add_string b s;
     Buffer.add_char b '\n' in 
-  add (string_of_method canon_req.req_method);
+  add (sign_method canon_req);
   add canon_req.content_md5;
   add canon_req.content_type;
   if Headers.has_header canon_req.headers "authorization" then
@@ -444,7 +451,7 @@ let string_to_sign_v4 auth ?sha256 ~canon_req =
   let params = StringMap.remove "X-Amz-Signature" canon_req.query_params_multi
   in
   let canonical_request = String.concat "\n" [
-      string_of_method canon_req.req_method;
+      sign_method canon_req;
       uri_encode ~encode_slash:false absolute_uri;
       uri_encode_params (StringMap.bindings params);
       canonical_headers canon_req signed_headers;
