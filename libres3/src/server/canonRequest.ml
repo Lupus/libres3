@@ -571,6 +571,7 @@ let gen_debug2 info =
 let actual_query_params r =
   List.fast_sort compare_nameval (
     List.filter (fun (name,_) ->
-        not (name = "AWSAccessKeyId" || name = "Signature" || name = "Expires")
+        not (name = "AWSAccessKeyId" || name = "Signature" || name = "Expires" ||
+             starts_with name "X-Amz-")
       ) (stringmap_all r.query_params)
   );;
