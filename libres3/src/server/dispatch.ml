@@ -1834,9 +1834,7 @@ module Make
         canon.CanonRequest.path, CanonRequest.actual_query_params canon
       with
       | `OPTIONS, _, _, _ ->
-        (* get_cors_preflight would've handled it *)
-        return_error Error.BadRequest ["LibreS3ErrorMessage", "Origin request header is missing"]
-
+        get_cors_preflight ~req:request ~canon
       | _, Bucket bucket, _, _ when is_mpart_bucket bucket ->
         return_error Error.AccessDenied
           ["Bucket", bucket; "LibreS3ErrorMessage","This bucketname is reserved for internal use"]
