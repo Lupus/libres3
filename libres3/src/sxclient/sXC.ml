@@ -724,7 +724,10 @@ let get_vol_nodelist url =
         warning "bad locate nodes json: %a" pp_json_lst lst;
         failwith "bad locate nodes json"
     in
+    fetch volume >>= parse >>= fun l ->
+    (* cannot cache globally: volume delete/create can move location
     Caching.make_global_cached_request nodelist_cache volume ~fetch ~parse >>= fun l ->
+    *)
     let nodes = l.nodes in
     l.nodes <- rot nodes;
     return (nodes, l.uuid)
