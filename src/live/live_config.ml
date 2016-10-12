@@ -20,3 +20,29 @@
  * live reload (SIGUSR1)
  * cache remote configuration locally
  * *)
+
+open Boundedio
+open Sx_config
+
+let () =
+  Printexc.register_printer (function
+    | Unix.Unix_error (err, fn, arg) ->
+        Some (Printf.sprintf "%s(%S): %s" fn arg (Unix.error_message err))
+    | _ -> None
+    )
+
+let of_result = function
+| Error (`Msg e) -> fail (Invalid_argument e)
+| Ok v -> return v
+
+let dotdot = function
+| "." | ".." -> false
+| _ -> true
+
+let load_sx ?dir uri =
+  (Location.of_uri ?dir uri |> of_result) >>= fun loc ->
+  let open! Location in
+  Lwt_io.with_file ~mode:Lwt_io.input loc.config Lwt_io.read >>= fun config ->
+  Lwt_io.with_file ~mode:Lwt_io.input loc.auth Lwt_io.read >>= fun auth ->
+  Lwt_unix.files_of_directory loc.nodes |> Lwt_stream.filter dotdot |> Lwt_stream.to_list >>= fun nodes ->
+  of_config ~config ~auth ~nodes |> of_result

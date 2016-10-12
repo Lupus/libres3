@@ -18,4 +18,4 @@
 
 open Sx_services
 
-val filter : (unit, SX.token) SX.filter
+val filter : (unit, Sx_config.Token.t) SX.filter

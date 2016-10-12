@@ -42,7 +42,7 @@ let run () = ()
 let app =
   let doc = "Configure libres3" in
   Term.(const run $ init ()),
-  Term.info "libres3_setup" ~version:"a8817bd" ~doc
+  Term.info "libres3_setup" ~version:"%%VERSION%%" ~doc
 
 let () =
   match Term.eval app with

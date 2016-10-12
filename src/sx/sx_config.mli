@@ -32,12 +32,31 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
-open Services
-open Cohttp
-
-module SX : sig
-  type 'a req = 'a * Request.t * Body.t
-  type resp = Http.resp
-  type 'a t = ('a req, resp) Generic.t
-  type ('a, 'b) filter = 'a t -> 'b t
+open Rresult
+module Token : sig
+  type t
+  val of_string : string -> (t, R.msg) result
+  val binary : t -> string
 end
+
+type t = {
+  token : Token.t;
+  uuid: Uuidm.t option;
+  hostname : string option;
+  port: int option;
+  ssl: bool;
+  nodes : Ipaddr.t list;
+}
+
+module Location : sig
+  type path = string
+  type t = {
+    config: path;
+    auth: path;
+    nodes: path
+  }
+
+  val of_uri : ?dir:path -> Uri.t -> (t, R.msg) result
+end
+
+val of_config : config:string -> auth:string -> nodes:string list -> (t, R.msg) result

@@ -29,4 +29,5 @@ let () =
     bin "src/cli/libres3_setup";
     test "test/test";
     test "test/run_qtest";
+    test "test/ls"
   ]
