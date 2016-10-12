@@ -25,3 +25,44 @@
   *  - number of connections established to a target
   *  - fairness for queues
   * *)
+
+type 'a t = 'a Lwt.t
+
+let return = Lwt.return
+let (>>=) = Lwt.bind
+
+let return_unit = Lwt.return_unit
+let return_some = Lwt.return_some
+let return_none = Lwt.return_none
+
+let (>>>) v f = match Lwt.state v with
+| Lwt.Return v -> f (Ok v)
+| Lwt.Fail e -> f (Error e)
+| Lwt.Sleep -> Lwt.try_bind (fun () -> v) (fun v -> f (Ok v)) (fun e -> f (Error e))
+
+let yield = Lwt_main.yield
+
+let fail = Lwt.fail
+let raise = `Use_fail_instead
+let run = Lwt_main.run
+
+let try_with f = try f () with exn -> Lwt.fail exn
+
+let always_unit _ = Lwt.return_unit
+let ignore t = t >>= always_unit
+
+(*$inject
+  let map_int f = Q.(map ~rev:run f int)
+  let yield_return x = yield () >>= fun () -> return x
+  let io = Q.(choose [
+    map_int return; map_int yield_return;
+    map_int (fun x -> yield_return x >>= yield_return)])
+  let fn = Q.(fun1 int io)
+  let eq a b = (run a) = (run b)
+*)
+
+(*$Q
+ Q.(pair int fn) (fun (a,f) -> eq (return a >>= f) (f a))
+ Q.int (fun a -> let m = return a in (eq (m >>= return) m))
+ Q.(pair int (pair fn fn)) (fun (v,(f,g)) -> let m1 = return v and m2 = return v in eq ((m1 >>= f) >>= g) (m2 >>= (fun x -> f x >>= g)))
+*)

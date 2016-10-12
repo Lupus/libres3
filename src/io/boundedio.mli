@@ -16,3 +16,24 @@
 (*  PERFORMANCE OF THIS SOFTWARE.                                         *)
 (**************************************************************************)
 
+type +'a t = 'a Lwt.t
+
+val return : 'a -> 'a t
+
+val return_unit : unit t
+val return_some : 'a -> 'a option t
+val return_none : 'a option t
+
+val (>>=) : 'a t -> ('a -> 'b t) -> 'b t
+
+val (>>>) : 'a t -> (('a, exn) result -> 'b t) -> 'b t
+
+val ignore : _ t -> unit t
+val fail : exn -> _ t
+val try_with : (unit -> 'a t) -> 'a t
+
+val raise : [> `Use_fail_instead]
+
+val yield : unit -> unit t
+
+val run : 'a t -> 'a

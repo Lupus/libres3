@@ -21,6 +21,8 @@
     - timeout waiting for HTTP reply
     - timeout waiting for initial connection
     - the above when there is more than 1 server that we can retry on (check that we don't get blocked on same failing one all the time)
-    - cancelability along the entire request path (i.e. our client cancels request -> we abort processing, and if possible remove
-   already queued items for remote services)
+    - cancelability along the entire request path (i.e. our client cancels
+    request -> we abort processing, and if possible remove already queued items
+    for remote services)
+    - cancelability for body too
 *)

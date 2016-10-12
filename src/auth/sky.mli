@@ -16,3 +16,6 @@
 (*  PERFORMANCE OF THIS SOFTWARE.                                         *)
 (**************************************************************************)
 
+open Sx_services
+
+val filter : (unit, SX.token) SX.filter

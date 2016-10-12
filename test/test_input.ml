@@ -23,4 +23,5 @@
     - integers at boundaries
     - items/strings at/near length limit
     - qcheck-based randomized testing
+    - long lists - check against stack overflow with small stack size (or large lists)
 *)

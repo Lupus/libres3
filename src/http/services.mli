@@ -16,9 +16,16 @@
 (*  PERFORMANCE OF THIS SOFTWARE.                                         *)
 (**************************************************************************)
 
-type t
-open Cohttp
-val of_unix_timestamp : float -> t
-val to_unix_timestamp : t -> float
-val add_header : Header.t -> t -> Header.t
-val of_header : Header.t -> t option
+module Generic : sig
+  type ('a, 'b) t = 'a -> 'b Boundedio.t
+  type ('a, 'b, 'c, 'd) filter = ('a, 'b) t -> ('c, 'd) t
+  type ('a, 'b) simple_filter = ('a, 'b) t -> ('a, 'b) t
+end
+
+module Http : sig
+  type body = Cohttp_lwt_body.t
+  type req = Cohttp.Request.t * body
+  type resp = Cohttp.Response.t * body
+  type t = (req, resp) Generic.t
+  type filter = (req, resp) Generic.simple_filter
+end

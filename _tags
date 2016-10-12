@@ -3,7 +3,14 @@
 true : bin_annot, safe_string, strict_sequence, package(bytes), warn_A, warn(-44), warn_error_S, warn_error_U, thread
 
 <src/*>: include
-<src/server/*>: package(astring base64 calendar cohttp conduit cryptokit hex ipaddr jsonm logs lwt lwt_named_threads ocplib-json-typed rresult ssl tyre uuidm xmlm)
+<src/auth/*>: package(cohttp, cryptokit)
+<src/http/services.*>: package(cohttp.lwt)
+<src/http/*>: package(cohttp)
+<src/http/http_date.*>: package(calendar)
+<src/sx/sx_services.*>: package(cohttp.lwt)
+<src/io/*>: package(lwt)
+<src/io/jsonio.*>: package(jsonm ocplib-json-typed lwt ezjsonm fmt)
+<src/server/*>: package(astring base64 calendar cohttp conduit cryptokit hex ipaddr logs lwt lwt_named_threads ocplib-json-typed rresult ssl tyre uuidm xmlm)
 <src/cli/*>: package(cmdliner fmt.cli logs.cli logs.fmt fmt.tty)
-<test/test.*> : package(alcotest qcheck)
-<test/run_qtest.*>: package(qcheck), warn_error_Y, warn(-33-58)
+<test/test.*> : package(alcotest qcheck lwt lwt.unix)
+<test/run_qtest.*>: package(qcheck lwt.unix uutf jsonm fmt cohttp.lwt calendar cryptokit), warn_error_Y, warn(-33-58)

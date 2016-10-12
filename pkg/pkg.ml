@@ -19,7 +19,8 @@ let () =
   let lint_deps_excluding = Some ["qtest";"qcheck"] in
   let opams = [opam_file ~install:false ~lint_deps_excluding "opam"] in
   (* TODO: build_cmd: use -j and non-classic display *)
-  let build = build ~pre:build_tests () in
+  let cmd c os files = OS.Cmd.run Cmd.(Pkg.build_cmd c os % "-j" % "0" %% of_list files) in
+  let build = build ~pre:build_tests ~cmd () in
   describe "libres3" ~opams ~build
     ~metas:[] ~licenses:[std_file "COPYING"]
     ~change_logs:[std_file "NEWS"] @@ fun _ ->

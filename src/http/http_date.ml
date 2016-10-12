@@ -16,3 +16,28 @@
 (*  PERFORMANCE OF THIS SOFTWARE.                                         *)
 (**************************************************************************)
 
+open CalendarLib
+open Cohttp
+type t = Calendar.t
+
+let imf_fixdate = "%a, %d %b %Y %H:%M:%S GMT"
+let rfc850 = "%A, %d-%b-%y %H:%M:%S GMT"
+let asctime = "%c"
+
+let of_string s =
+  try Printer.Calendar.from_fstring imf_fixdate  s
+  with Invalid_argument _ ->
+  try Printer.Calendar.from_fstring rfc850 s
+  with Invalid_argument _ -> Printer.Calendar.from_fstring asctime s
+
+let to_string d =
+  Printer.Calendar.sprint imf_fixdate d
+
+let of_unix_timestamp f = Calendar.from_unixfloat f
+let to_unix_timestamp d = Calendar.to_unixfloat d
+
+let add_header h v = Header.add h "Date" (to_string v)
+
+let of_header h = match Header.get h "Date" with
+| Some v -> Some (of_string v)
+| None -> None
