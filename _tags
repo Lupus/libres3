@@ -1,6 +1,6 @@
 ".git": -traverse
 ".git": not_hygienic
-true : bin_annot, safe_string, strict_sequence, package(bytes), warn_A, warn(-44), warn_error_S, warn_error_U, thread
+true : bin_annot, safe_string, strict_sequence, package(bytes logs), warn_A, warn(-44), warn_error_S, warn_error_U, thread
 
 <src/*>: include
 <src/auth/*>: package(cohttp cryptokit logs)
@@ -11,9 +11,9 @@ true : bin_annot, safe_string, strict_sequence, package(bytes), warn_A, warn(-44
 <src/sx/sx_services.*>: package(cohttp.lwt)
 <src/sx/sx_config.*>: package(uuidm astring rresult base64 ipaddr re uri)
 <src/io/*>: package(lwt)
-<src/io/jsonio.*>: package(jsonm ocplib-json-typed lwt ezjsonm fmt)
+<src/io/jsonio.*>: package(jsonm lwt ezjsonm fmt)
 <src/server/*>: package(astring base64 calendar cohttp conduit cryptokit hex ipaddr logs lwt lwt_named_threads ocplib-json-typed rresult ssl tyre uuidm xmlm)
 <src/cli/*>: package(cmdliner fmt.cli logs.cli logs.fmt fmt.tty)
 <test/test.*> : package(alcotest qcheck lwt lwt.unix)
 <test/{ls,run_qtest}.*>: package(qcheck lwt.unix uutf jsonm fmt cohttp.lwt calendar cryptokit base64 ipaddr re uri rresult astring uuidm logs), warn_error_Y, warn(-33-58)
-<test/ls.*>: package(cmdliner logs logs.cli fmt.cli fmt.tty logs.fmt)
+<test/ls.*>: package(cmdliner logs logs.cli fmt.cli fmt.tty logs.fmt ocplib-json-typed)

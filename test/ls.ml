@@ -52,10 +52,27 @@ let main uri recurse =
   Sky.filter sx_service (sx.token,req,Body.empty) >>= fun (resp, body) ->
   Logs.debug (fun m -> m "Response: %a" Response.pp_hum resp);
   body |> Cohttp_lwt_body.to_stream |> Jsonio.of_strings |>
-          Jsonio.to_strings ~minify:false |> Lwt_stream.to_list >>= fun lst ->
-  let s = String.concat "" lst in
-  Logs.debug (fun m -> m "Transformed: %s" s);
-  return ()
+  Jsonio.expect_object >>= fun stream ->
+  Jsonio.fields stream |>
+  Lwt_stream.iter_s (fun (n, s) ->
+      match n with
+      | "fileList" ->
+          Jsonio.expect_object s >>= fun stream ->
+          stream |> Jsonio.fields |> 
+          Lwt_stream.iter_s (fun (n, s) ->
+            Jsonio.to_json s >>= fun json ->
+            Jsonio.of_json (`O [n, json]) |>
+            Jsonio.expect_object >>= fun stream ->
+            stream |> Jsonio.to_string >>= fun str ->
+            Logs.debug (fun m -> m "stream element %s: %s" n str);
+            return ()
+          )
+      | _ ->
+          Logs.debug (fun m -> m "draining %s" n);
+          Jsonio.(s |> observe ~prefix:"drain" |> drain)  >>= fun () ->
+          Logs.debug (fun m -> m "drained");
+          return ()
+    )
 
 let run uri recurse () =
   try Lwt_main.run (main uri recurse)

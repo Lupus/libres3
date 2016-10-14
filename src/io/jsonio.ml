@@ -31,28 +31,33 @@ module Error = struct
   | Expected (expected, actual) ->
       Fmt.pf ppf "Expected %s but got %a" expected Jsonm.pp_lexeme actual
 
-  exception Json of range * t
+  exception Json of range option * t
 
   let () =
     Printexc.register_printer (function
       | Json (range, err) ->
-          Some (Fmt.strf "JSON error at %a: %a" pp_range range pp err)
+          (* TODO: prefix *)
+          Some (Fmt.strf "JSON error at %a: %a"
+                  (Fmt.option pp_range) range pp err)
       | _ -> None
       )
 
-  let fail_json d e = Json(Jsonm.decoded_range d, e) |> fail
+  let fail_json d e =
+    let range = match d with
+    | Some d -> Some (Jsonm.decoded_range d)
+    | None -> None in
+    Json(range, e) |> fail
 end
 
-type parsed = Jsonm.decoder
-type generated = unit
-type +'a t = 'a * Jsonm.lexeme Lwt_stream.t
+type json_primitive = [`String of string | `Bool of bool | `Float of float | `Null]
+type json = [json_primitive | `O of (string * json) list | `A of json list]
+type lexeme = Jsonm.lexeme
 
-type json_value = [`String of string | `Bool of bool | `Float of float | `Null]
-type json = Json_repr.ezjsonm
+type +'a t = Jsonm.decoder option * Jsonm.lexeme Lwt_stream.t
 
 let rec lexeme stream d = match Jsonm.decode d with
 | `Lexeme l -> Lwt.return_some l
-| `Error e -> Error.(fail_json d (Syntax e))
+| `Error e -> Error.(fail_json (Some d) (Syntax e))
 | `End -> Lwt.return_none
 | `Await -> Lwt_stream.get stream >>= function
   | None ->
@@ -64,31 +69,64 @@ let rec lexeme stream d = match Jsonm.decode d with
 
 let of_strings ?encoding stream =
   let d = Jsonm.decoder ?encoding `Manual in
-  d, Lwt_stream.from (fun () -> lexeme stream d)
+  Some d, Lwt_stream.from (fun () -> lexeme stream d)
 
-let expect_object (d,signals) =
-  let fields () = Lwt_stream.next signals >>= function
+let of_string ?encoding str =
+  of_strings ?encoding (Lwt_stream.of_list [str])
+
+let substream (d, signals) =
+  let depth = ref 0 in
+  let process = fun v ->
+    begin match v with
+    | Some (`Os | `As) -> incr depth
+    | Some (`Oe | `Ae) -> decr depth
+    | Some #Jsonm.lexeme | None -> ()
+    end;
+    if !depth = 0 then decr depth;
+    return v
+  in
+  let next () =
+    if !depth < 0 then return_none
+    else Lwt_stream.get signals >>= process
+  in
+  d, Lwt_stream.from next
+
+let expect msg f (d,signals) = Lwt_stream.peek signals >>= function
+  | Some l ->
+    if f l then substream (d,signals) |> return
+    else Error.(Expected(msg, l) |> fail_json d)
+  | None -> assert false
+
+let is_array_start = function `As -> true | #Jsonm.lexeme -> false
+let is_object_start = function `Os -> true | #Jsonm.lexeme -> false
+
+let expect_array = expect "array" is_array_start
+let expect_object = expect "object" is_object_start
+let expect_primitive (d,signals) = Lwt_stream.next signals >>= function
+  | #json_primitive as p -> return p
+  | #Jsonm.lexeme as l ->
+      Error.(Expected("primitive", l) |> fail_json d)
+
+let fields (d, signals) =
+  let rec next () = Lwt_stream.next signals >>= function
+    | `Os -> next ()
     | `Oe -> return_none
-    | `Name n -> return_some (n, (d,signals))
+    | `Name n -> return_some (n, substream (d,signals))
     | #Jsonm.lexeme -> assert false
   in
-  Lwt_stream.next signals >>= function
-  | `Os -> Lwt_stream.from fields |> return
-  | #Jsonm.lexeme as l -> Error.(fail_json d (Expected("object", l)))
+  Lwt_stream.from next
 
-let expect_array (d,signals) =
-  let elements () = Lwt_stream.next signals >>= function
-    | `Ae -> return_none
-    | #Jsonm.lexeme as l -> return_some l
+let elements (d,signals) =
+  let next () = Lwt_stream.is_empty signals >>= function
+    | true -> return_none
+    | false -> return_some (substream (d,signals))
   in
-  Lwt_stream.next signals >>= function
-  | `As -> return (d, Lwt_stream.from elements)
-  | #Jsonm.lexeme as l -> Error.(fail_json d (Expected("array", l)))
+  Lwt_stream.from next
 
 let rec next signals =
   Lwt_stream.next signals >>= value signals
 and value signals = function
-| #json_value as v -> return v
+| #json_primitive as v -> return v
 | `As -> arr signals []
 | `Os -> obj signals []
 | `Ae | `Oe | `Name _ -> assert false
@@ -101,7 +139,7 @@ and obj signals lst = Lwt_stream.next signals >>= function
       return (`O (List.rev lst))
   | `Name n -> next signals >>= fun v ->
       obj signals ((n, v) :: lst)
-  | #json_value | `As | `Os | `Ae -> assert false
+  | #json_primitive | `As | `Os | `Ae -> assert false
 
 let to_json (_, signals) = next signals
 
@@ -111,12 +149,22 @@ let expect_eof (d,signals) =
   | Some l -> Error.(fail_json d (Expected("EOF", l)))
 
 let always _ = true
-let drain (_,signals) = Lwt_stream.junk_while always signals
+let drain (_, signals) = Lwt_stream.junk_while always signals
+
+let observe ~prefix (d,stream) =
+  let observe_lexeme l =
+    Logs.debug (fun m -> m "%s: %a" prefix Jsonm.pp_lexeme l);
+    l
+  in
+  d, if Logs.level () = Some Logs.Debug then begin
+    Lwt_stream.map observe_lexeme stream
+  end
+  else stream
 
 let of_json json =
   let stream, push = Lwt_stream.create () in
   let rec value = function
-  | #json_value as v -> push (Some v)
+  | #json_primitive as v -> push (Some v)
   | `A lst ->
       push (Some `As);
       List.iter value lst;
@@ -131,7 +179,7 @@ let of_json json =
   in
   value json;
   push None;
-  (), stream
+  None, stream
 
 let to_strings ?minify (_,signals) =
   (* we could use `Manual, but it doesn't support -safe-string,
@@ -155,6 +203,13 @@ let to_strings ?minify (_,signals) =
   let rec get () =
     Lwt_stream.get signals >>= function
     | None -> encode `End flush
-    | Some l -> encode (`Lexeme l) get
+    | Some l ->
+        encode (`Lexeme l) get
   in
   Lwt_stream.from get
+
+let to_string ?minify stream =
+  let b = Buffer.create (Lwt_io.default_buffer_size ()) in
+  to_strings ?minify stream |>
+  Lwt_stream.iter (Buffer.add_string b) >>= fun () ->
+  return (Buffer.contents b)
