@@ -16,12 +16,30 @@
 (*  PERFORMANCE OF THIS SOFTWARE.                                         *)
 (**************************************************************************)
 
-(* Tests that we accept valid inputs.
-   Obviously we cannot test all possible inputs, but we can test:
-    - all possible ASCII chars
-    - UTF-8 chars of different length
-    - integers at boundaries
-    - items/strings at/near length limit
-    - qcheck-based randomized testing (to be re-evaluated)
-    - long lists - check against stack overflow with small stack size (or large lists)
-*)
+type 'a encoding = 'a Json_encoding.encoding
+
+module Int53 : sig
+  type t = private int64
+  val max_int : t
+  val min_int : t
+  val of_int64_exn : int64 -> t
+  val to_int64 : t -> int64
+  val of_float_exn : float -> t
+  val to_float : t -> float
+  val to_string : t -> string
+  val of_string_exn : string -> t
+  val pp : t Fmt.t
+  val encoding : t encoding
+end
+
+val http_date : Http_date.t encoding
+
+(* accepts additional fields for non-strict parsing *)
+val obj_opt : 'a encoding -> 'a encoding
+
+type ('a, 'b) streaming
+val obj_streaming : 'a encoding -> string -> 'b encoding -> ('a, 'b) streaming
+
+open Jsonio
+val decode : ('a, 'b) streaming -> lexeme t -> ('a * (string * 'b) Lwt_stream.t) Boundedio.t
+val encode : ('a, 'b) streaming -> ('a * (string * 'b) Lwt_stream.t) -> [> `Os] t

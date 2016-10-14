@@ -22,6 +22,7 @@ type json_primitive = [`String of string | `Float of float | `Bool of bool |
                        `Null]
 type json = [json_primitive | `O of (string * json) list | `A of json list]
 type lexeme = Jsonm.lexeme
+type field_stream = (string * lexeme t) Lwt_stream.t
 
 (* Errors *)
 module Error : sig
@@ -32,16 +33,26 @@ module Error : sig
 end
 
 (* parse JSON from string *)
-val of_string : ?encoding:[< Jsonm.encoding] -> string -> lexeme t
+val of_string : ?encoding:[< Jsonm.encoding] -> string -> [> `Os | `As] t
 
 (* parse JSON from stream *)
-val of_strings : ?encoding:[< Jsonm.encoding] -> string Lwt_stream.t -> lexeme t
+val of_strings : ?encoding:[< Jsonm.encoding] -> string Lwt_stream.t -> [> `Os | `As] t
 
 (* extract an object substream,
    you have to consume the stream before using [t] again *)
 val expect_object: lexeme t -> [> `Os] t Boundedio.t
 
-val fields : [< `Os] t -> (string * lexeme t) Lwt_stream.t
+val fields : [< `Os] t -> field_stream
+
+val build_object : (string * [< lexeme] t) Lwt_stream.t -> [> `Os] t
+
+(* [extract_fields fields streamingfield stream]
+   Builds a JSON tree from [fields], and returns the value stream for
+   [streamingfield].
+   An optimized implementation is used if [streamingfield] is last.
+*)
+val extract_fields : string list -> string -> field_stream ->
+  (json * lexeme t option) Boundedio.t
 
 (* extract an array substream,
    you have to consume the stream before using [t] again *)
@@ -70,3 +81,5 @@ val of_json : json -> lexeme t
 val to_strings : ?minify:bool -> [< `Os | `As] t -> string Lwt_stream.t
 
 val to_string : ?minify:bool -> [< `Os | `As] t -> string Boundedio.t
+
+val append : 'a t -> 'a t -> 'a t

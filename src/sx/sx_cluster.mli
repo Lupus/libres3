@@ -32,3 +32,32 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
+open Jsonenc
+
+module Meta : sig
+  type binary
+  type t = (string * binary) list
+  val encoding : t encoding
+  val pp : t Fmt.t
+end
+
+module Locate : sig
+  type t = {
+    node_list : Ipaddr.t list;
+    block_size : int option;
+    volume_meta : Meta.t option;
+    custom_volume_meta : Meta.t option;
+    files_size : Int53.t;
+    files_count: Int53.t;
+    size_bytes : Int53.t;
+    used_size : Int53.t;
+    replica_count : int;
+    max_revisions : int;
+    privs: string;
+    owner: string;
+    global_id: string option;
+  }
+  val encoding : t encoding
+  val pp : t Fmt.t
+  val example: string
+end

@@ -41,3 +41,5 @@ let add_header h v = Header.add h "Date" (to_string v)
 let of_header h = match Header.get h "Date" with
 | Some v -> Some (of_string v)
 | None -> None
+
+let pp ppf v = Printer.Calendar.fprint "%FT%TZ" ppf v

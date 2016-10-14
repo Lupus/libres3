@@ -19,6 +19,7 @@
 open Live_config
 open Boundedio
 open Cohttp
+open Jsonenc
 
 let none = Ipaddr.V4 Ipaddr.V4.unspecified
 
@@ -44,35 +45,34 @@ let main uri recurse =
   let host = List.hd nodes |> Ipaddr.to_string in
   let uri' = Uri.make ~scheme:"https" ~host () in
   let uri' = Uri.with_path uri' (Uri.path uri) in
-  let query = if recurse then ["recursive",[]] else [] in
-  let uri' = Uri.with_query uri' query in
+
+  let uri' = Uri.with_query uri' (["o", ["locate"]]) in
   let req = { (Request.make_for_client `GET uri') with
               resource = Uri.to_string uri' } in
   Logs.debug (fun m -> m "request: %a" Request.pp_hum req);
   Sky.filter sx_service (sx.token,req,Body.empty) >>= fun (resp, body) ->
   Logs.debug (fun m -> m "Response: %a" Response.pp_hum resp);
   body |> Cohttp_lwt_body.to_stream |> Jsonio.of_strings |>
-  Jsonio.expect_object >>= fun stream ->
-  Jsonio.fields stream |>
-  Lwt_stream.iter_s (fun (n, s) ->
-      match n with
-      | "fileList" ->
-          Jsonio.expect_object s >>= fun stream ->
-          stream |> Jsonio.fields |> 
-          Lwt_stream.iter_s (fun (n, s) ->
-            Jsonio.to_json s >>= fun json ->
-            Jsonio.of_json (`O [n, json]) |>
-            Jsonio.expect_object >>= fun stream ->
-            stream |> Jsonio.to_string >>= fun str ->
-            Logs.debug (fun m -> m "stream element %s: %s" n str);
-            return ()
-          )
-      | _ ->
-          Logs.debug (fun m -> m "draining %s" n);
-          Jsonio.(s |> observe ~prefix:"drain" |> drain)  >>= fun () ->
-          Logs.debug (fun m -> m "drained");
-          return ()
-    )
+  Jsonio.to_json >>= fun json ->
+  let locate = Json_encoding.destruct Sx_cluster.Locate.encoding json in
+
+  let host = List.hd locate.Sx_cluster.Locate.node_list |> Ipaddr.to_string in
+  let uri' = Uri.make ~scheme:"https" ~host () in
+  let uri' = Uri.with_path uri' (Uri.path uri) in
+
+  let uri' = Uri.with_query uri' (["o", ["locate"]]) in
+  let query = if recurse then ["recursive",[]] else [] in
+  let uri' = Uri.with_query uri' (("o",["list"]) :: ("filter",["qt/src/src/src/src/src/src/src/qt-everywhere-opensource-src-5.7.0/qtwebengine/src/3rdparty/chromium/ui/"]) :: query) in
+  let req = { (Request.make_for_client `GET uri') with
+              resource = Uri.to_string uri' } in
+  Logs.debug (fun m -> m "request: %a" Request.pp_hum req);
+  Sky.filter sx_service (sx.token,req,Body.empty) >>= fun (resp, body) ->
+  Logs.debug (fun m -> m "Response: %a" Response.pp_hum resp);
+  body |> Cohttp_lwt_body.to_stream |> Jsonio.of_strings |>
+  Jsonio.expect_object >>= fun s ->
+  Jsonio.to_string s >>= fun str ->
+  print_endline str;
+  return_unit
 
 let run uri recurse () =
   try Lwt_main.run (main uri recurse)

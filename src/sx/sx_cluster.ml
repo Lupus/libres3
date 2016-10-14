@@ -32,3 +32,71 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
+open Json_encoding
+open Jsonenc
+
+module Meta = struct
+  type binary = string (* TODO *)
+  let binary = Fmt.string
+
+  type t = (string * binary) list
+
+  let encoding = assoc string
+
+  let pp = Fmt.(pair string binary |> list)
+end
+
+module Locate = struct
+  type t = {
+    node_list : Ipaddr.t list;
+    block_size : int option;
+    volume_meta : Meta.t option;
+    custom_volume_meta : Meta.t option;
+    files_size : Int53.t;
+    files_count: Int53.t;
+    size_bytes : Int53.t;
+    used_size : Int53.t;
+    replica_count : int;
+    max_revisions : int;
+    privs: string;
+    owner: string;
+    global_id: string option;
+  }
+
+  let ipaddr = conv Ipaddr.to_string Ipaddr.of_string_exn string
+
+  let to_obj t = (
+    (t.node_list, t.block_size, t.volume_meta, t.custom_volume_meta,
+     t.files_size, t.files_count, t.size_bytes, t.used_size, t.replica_count,
+     t.max_revisions),
+    (t.privs, t.owner, t.global_id))
+
+  let of_obj ((node_list,block_size,volume_meta,custom_volume_meta,
+               files_size, files_count, size_bytes, used_size, replica_count,
+               max_revisions),(privs,owner,global_id)) =
+    {node_list;block_size;volume_meta;custom_volume_meta;
+     files_size;files_count;size_bytes;used_size;replica_count;
+     max_revisions;privs;owner;global_id}
+
+  let encoding = merge_objs
+      (obj10
+         (req "nodeList" (list ipaddr))
+         (opt "blockSize" int)
+         (opt "volumeMeta" Meta.encoding)
+         (opt "customVolumeMeta" Meta.encoding)
+         (req "filesSize" Int53.encoding)
+         (req "filesCount" Int53.encoding)
+         (req "sizeBytes" Int53.encoding)
+         (req "usedSize" Int53.encoding)
+         (req "replicaCount" int)
+         (req "maxRevisions" int))
+      (obj3
+         (req "privs" string)
+         (req "owner" string)
+         (opt "globalID" string)) |>
+                 obj_opt |>
+                 conv to_obj of_obj
+
+  let pp _ = failwith "TODO"
+  let example = "{\"nodeList\":[\"127.0.0.2\",\"127.0.0.4\",\"127.0.0.1\"],\"blockSize\":16384,\"owner\":\"user\",\"replicaCount\":2,\"maxRevisions\":6,\"privs\":\"rw\",\"usedSize\":142685712,\"sizeBytes\":63542,\"filesSize\":61012,\"filesCount\":89,\"volumeMeta\":{\"two\":\"2222\",\"three\":\"333333\",\"one\":\"01\"}}"
+end

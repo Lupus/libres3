@@ -22,7 +22,9 @@ depends: [
   "cmdliner" { >= "0.9.8" }
   "cohttp" { >= "0.21.0" }
   "conduit" { >= "0.13.0" }
+  "core_bench" { test & >= "113.33.00" & < "114.00.00" }
   "cryptokit" { >= "1.10" & < "2.0" }
+  "ezjsonm" { test & >= "0.4.3"}
   "fmt" { >= "0.8.0" }
   "hex" { >= "1.0.0" & < "2.0" }
   "ipaddr" { >= "2.7.0" & < "3.0" }
@@ -39,6 +41,9 @@ depends: [
 ]
 build: [ "ocaml" "pkg/pkg.ml" "build" "--pinned" pinned "--tests" "false"]
 build-test: [
-  ["ocaml" "pkg/pkg.ml" "build" "--pinned" pinned "--tests" "true"]
+  ["ocaml" "pkg/pkg.ml" "build"
+           "--pinned" pinned
+           "--with-core_bench" core_bench:installed
+           "--tests" "true"]
   ["ocaml" "pkg/pkg.ml" "test"]]
 available: [ocaml-native]

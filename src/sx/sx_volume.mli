@@ -32,3 +32,25 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
+open Jsonenc
+
+type header = {
+  volume_size: Int53.t;
+}
+
+type attributes = {
+  file_size : Int53.t;
+  block_size: int;
+  created_at : Http_date.t;
+  file_revision: string;
+}
+
+type t = File of attributes | Directory
+
+val pp : t Fmt.t
+
+val all_encoding : (Int53.t * (string * t) list) Jsonenc.encoding
+
+val streaming : (header, t) Jsonenc.streaming
+
+val example : string

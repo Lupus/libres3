@@ -19,10 +19,12 @@
 (* based on ezjonsm and jsonfilter *)
 
 open Boundedio
+open Astring
 
 module Error = struct
+  (* end, start *)
   type range = (int * int) * (int * int)
-  let pp_range ppf ((l1,c1),(l2,c2)) =
+  let pp_range ppf ((l2,c2),(l1,c1)) =
     Fmt.pf ppf "%d:%d-%d:%d" l1 c1 l2 c2
 
   type t = Syntax of Jsonm.error | Expected of string * Jsonm.lexeme
@@ -55,6 +57,8 @@ type lexeme = Jsonm.lexeme
 
 type +'a t = Jsonm.decoder option * Jsonm.lexeme Lwt_stream.t
 
+type field_stream = (string * lexeme t) Lwt_stream.t 
+
 let rec lexeme stream d = match Jsonm.decode d with
 | `Lexeme l -> Lwt.return_some l
 | `Error e -> Error.(fail_json (Some d) (Syntax e))
@@ -72,7 +76,8 @@ let of_strings ?encoding stream =
   Some d, Lwt_stream.from (fun () -> lexeme stream d)
 
 let of_string ?encoding str =
-  of_strings ?encoding (Lwt_stream.of_list [str])
+  let l = match str with "" -> [] | str -> [str] in
+  of_strings ?encoding (Lwt_stream.of_list l)
 
 let substream (d, signals) =
   let depth = ref 0 in
@@ -116,6 +121,18 @@ let fields (d, signals) =
   in
   Lwt_stream.from next
 
+let build_field (n, (_,s)) =
+  Lwt_stream.append (Lwt_stream.of_list [`Name n]) s
+
+let build_object (stream:field_stream) =
+  None,
+  Lwt_stream.of_list [
+    (Lwt_stream.of_list [`Os]);
+    (Lwt_stream.map build_field stream |> Lwt_stream.concat);
+    Lwt_stream.of_list [`Oe]
+  ] |> Lwt_stream.concat
+
+
 let elements (d,signals) =
   let next () = Lwt_stream.is_empty signals >>= function
     | true -> return_none
@@ -149,7 +166,8 @@ let expect_eof (d,signals) =
   | Some l -> Error.(fail_json d (Expected("EOF", l)))
 
 let always _ = true
-let drain (_, signals) = Lwt_stream.junk_while always signals
+let drain_stream signals = Lwt_stream.junk_while always signals
+let drain (_, signals) = drain_stream signals
 
 let observe ~prefix (d,stream) =
   let observe_lexeme l =
@@ -213,3 +231,37 @@ let to_string ?minify stream =
   to_strings ?minify stream |>
   Lwt_stream.iter (Buffer.add_string b) >>= fun () ->
   return (Buffer.contents b)
+
+let extract_fields fields streamingfield =
+  let want = String.Set.of_list fields in
+  let needed = String.Set.cardinal want in
+  if String.Set.mem streamingfield want then
+    invalid_arg (Fmt.strf
+                   "Streaming field %s cannot be part of tree fields %a"
+                   streamingfield (String.Set.pp Fmt.string) want);
+  let rec next stream lst = Lwt_stream.get stream >>= function
+    | Some (n, v) when String.equal n streamingfield ->
+        let (_, signals) = v in
+        Lwt_stream.on_termination signals (fun () ->
+            Lwt.async (fun () -> drain_stream stream));
+        if List.length lst = needed then
+          return (`O lst, Some v)
+        else
+        let tmp = Lwt_stream.clone signals in
+        drain v >>= fun () ->
+        next stream lst >>= fun ((json:json), _) ->
+        let (x:lexeme t) = (None, tmp) in
+        return (json, Some x)
+    | Some (n, v) when String.Set.mem n want ->
+        to_json v >>= fun json ->
+        next stream ((n,json) :: lst)
+    | Some (_n, v) ->
+        drain v >>= fun () ->
+        next stream lst
+    | None ->
+        return (`O lst, None)
+  in
+  fun stream ->
+  next stream []
+
+let append (d,s1) (_,s2) = (d, Lwt_stream.append s1 s2)
