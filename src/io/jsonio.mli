@@ -44,6 +44,7 @@ val expect_object: lexeme t -> [> `Os] t Boundedio.t
 
 val fields : [< `Os] t -> field_stream
 
+val build_array : [< lexeme] t Lwt_stream.t -> [> `As] t
 val build_object : (string * [< lexeme] t) Lwt_stream.t -> [> `Os] t
 
 (* [extract_fields fields streamingfield stream]
@@ -66,7 +67,7 @@ val expect_primitive: lexeme t -> [> json_primitive] Boundedio.t
 (* expect EOF *)
 val expect_eof : lexeme t -> unit Boundedio.t
 
-val observe : prefix:string -> [< lexeme] t -> [> lexeme] t
+val observe : prefix:string -> 'a t -> 'a t
 
 (* consume the (sub)stream *)
 val drain : 'a t -> unit Boundedio.t

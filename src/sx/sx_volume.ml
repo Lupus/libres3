@@ -372,6 +372,8 @@ module ListFiles = struct
 
   let header = header_obj |> conv of_header to_header
 
+  type element = string * t
+  
   let streaming = obj_streaming header "fileList" encoding
 
   let all_encoding = merge_objs header_obj (obj1 (req "fileList" (assoc encoding))) |> obj_opt

@@ -54,7 +54,8 @@ module Json = struct
   module type S = sig
     type header
     type t
-    val streaming : (header,t) Jsonenc.streaming
+    type element
+    val streaming : (header, element) Jsonenc.streaming
     val example : string
     val pp : t Fmt.t
   end
@@ -63,8 +64,8 @@ module Json = struct
     (* TODO: also test inserting unknown field *)
     (* TODO: order of fields in object doesn't matter, allow for that *)
     lwt_run (
-      Jsonio.of_string M.example |>
-      Jsonenc.decode M.streaming >>= fun r ->
+      let s = Jsonio.of_string M.example in
+      Jsonenc.decode M.streaming s >>= fun r ->
       r |> Jsonenc.encode M.streaming |> Jsonio.to_string >>= fun str ->
       check string "roundtrip" M.example str;
       return_unit
@@ -106,6 +107,8 @@ module Json = struct
       "get volume acl", `Quick, test_simple_example (module Sx_volume.Acl.Get);
       "update volume acl", `Quick, test_simple_example (module Sx_volume.Acl.Update);
       "list files", `Quick, test_example (module Sx_volume.ListFiles);
+      "get file", `Quick, test_example (module Sx_file.Get);
+      "get file meta", `Quick, test_simple_example (module Sx_file.Meta);
     ]
 
 end

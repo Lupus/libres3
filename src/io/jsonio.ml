@@ -132,11 +132,26 @@ let build_object (stream:field_stream) =
     Lwt_stream.of_list [`Oe]
   ] |> Lwt_stream.concat
 
+let get_element (_,signals) = signals
+
+let build_array (stream : lexeme t Lwt_stream.t) =
+  None,
+  Lwt_stream.of_list [
+    (Lwt_stream.of_list [`As]);
+    Lwt_stream.map get_element stream |> Lwt_stream.concat;
+    Lwt_stream.of_list [`Ae]
+  ] |> Lwt_stream.concat
 
 let elements (d,signals) =
-  let next () = Lwt_stream.is_empty signals >>= function
-    | true -> return_none
-    | false -> return_some (substream (d,signals))
+  let seen_first = ref false in
+  let rec next () = Lwt_stream.peek signals >>= function
+    | Some `As when !seen_first = false ->
+        Lwt_stream.junk signals >>= fun () ->
+        seen_first := true;
+        next ()
+    | Some `Ae -> return_none
+    | Some #Jsonm.lexeme -> return_some (substream (d,signals))
+    | None -> assert false
   in
   Lwt_stream.from next
 

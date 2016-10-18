@@ -163,11 +163,13 @@ module ListFiles : sig
 
   type t = File of attributes | Directory
 
+  type element = string * t
+
   val pp : t Fmt.t
 
   val all_encoding : (Int53.t * (string * t) list) Jsonenc.encoding
 
-  val streaming : (header, t) Jsonenc.streaming
+  val streaming : (header, element) Jsonenc.streaming
 
   val get : ?filter:string -> ?recursive:bool -> ?limit:int -> ?after:string -> T.t
     -> Uri.t

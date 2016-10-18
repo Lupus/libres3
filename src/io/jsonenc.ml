@@ -116,52 +116,87 @@ let obj_opt (type a) : a encoding -> a encoding = fun t ->
 | _ -> invalid_arg "Object schema expected"
 
 open Jsonio
-type ('a,'b) streaming = {
-  decode_header : json -> 'a;
-  decode_field: string * lexeme Jsonio.t -> (string * 'b) Boundedio.t;
-  extract: field_stream -> (json * lexeme t option) Boundedio.t;
-  encode_header : 'a -> json;
-  encode_field : string * 'b -> string * lexeme Jsonio.t;
-  streamingfield: string;
+
+type 'a outer =
+  {
+    decode_header : json -> 'a;
+    encode_header : 'a -> json;
+    extract: field_stream -> (json * lexeme t option) Boundedio.t;
+    streamingfield: string;
+  }
+
+type 'a obj_field = {
+  decode_field : string * lexeme Jsonio.t -> 'a Boundedio.t;
+  encode_field : 'a -> string * lexeme Jsonio.t;
 }
 
+type 'a arr_element = {
+  decode_element : lexeme Jsonio.t -> 'a Boundedio.t;
+  encode_element : 'a -> lexeme Jsonio.t;
+}
+
+type 'a inner =
+  | Obj of 'a obj_field
+  | Arr of 'a arr_element
+
+type ('a,'b) streaming = 'a outer * 'b inner
+
 open Boundedio
-let obj_streaming encoding streamingfield streamencoding =
+let streaming encoding streamingfield =
   match (encoding |> schema |> root).kind with
   | Object obj_spec ->
       let known_fields = List.rev_map (fun (field,_,_,_) -> field) obj_spec.properties in
       let decode_header json =
         Json_encoding.destruct encoding json in
-      let decode_field (n, s) =
-        Jsonio.to_json s >>= fun json ->
-        return (n, Json_encoding.destruct streamencoding json) in
       let encode_header v = Json_encoding.construct encoding v in
-      let encode_field (n, v) =
-        n, Json_encoding.construct streamencoding v |> Jsonio.of_json in
       let extract = extract_fields known_fields streamingfield in
-      {
-        decode_header; decode_field; encode_header; encode_field; extract;
-        streamingfield;
-      }
-  | _ -> invalid_arg "Object schema expected" 
+      { decode_header; encode_header; extract; streamingfield}
+  | _ -> invalid_arg "Object schema expected"
+
+let obj_streaming enc field streamenc =
+  let decode_field (n, s) =
+    Jsonio.to_json s >>= fun json ->
+    return (n, Json_encoding.destruct streamenc json) in
+  let encode_field (n, v) =
+    n, Json_encoding.construct streamenc v |> Jsonio.of_json in
+  streaming enc field,
+  Obj { decode_field; encode_field }
+
+let arr_streaming enc field streamenc =
+  let decode_element s =
+    Jsonio.to_json s >>= fun json ->
+    return (Json_encoding.destruct streamenc json) in
+  let encode_element v =
+    Json_encoding.construct streamenc v |> Jsonio.of_json in
+  streaming enc field,
+  Arr { decode_element; encode_element; }
 
 open Lwt
-let decode d stream =
+let decode (d,i) stream =
   expect_object stream >>= fun obj_stream ->
   obj_stream |> fields |> d.extract >>= fun (json, v) ->
   match v with
   | None -> fail (Failure "TODOX")
-  | Some s -> expect_object s >>= fun obj_stream ->
-      return (
-        d.decode_header json,
-        Lwt_stream.map_s d.decode_field (fields obj_stream)
-      )
+  | Some s ->
+      let h = d.decode_header json in
+      match i with
+      | Obj os ->
+          expect_object s >>= fun stream ->
+           return (h,
+                   Lwt_stream.map_s os.decode_field (fields stream))
+      | Arr es ->
+          expect_array s >>= fun stream ->
+          return (h,
+                  Lwt_stream.map_s es.decode_element (elements stream))
 
-let encode e (header, body) : [> `Os] Jsonio.t =
+let encode (e,i) (header, body) : [> `Os] Jsonio.t =
   match e.encode_header header with
   | `O fields ->
       let fields = List.rev_map (fun (n,v) -> n, Jsonio.of_json v) fields in
-      let last = Lwt_stream.map e.encode_field body |> Jsonio.build_object in
+      let last = match i with
+      | Obj os -> Lwt_stream.map os.encode_field body |> Jsonio.build_object
+      | Arr es -> Lwt_stream.map es.encode_element body |> Jsonio.build_array
+      in
       (e.streamingfield, last) :: fields |> List.rev |>
       Lwt_stream.of_list |> Jsonio.build_object
   | #json -> assert false

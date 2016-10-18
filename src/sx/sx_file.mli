@@ -32,3 +32,29 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
+open Jsonenc
+open Sx_types
+
+module Revision : Convertible with type t = private string
+
+module Get : sig
+  type header = {
+    file_size : Int53.t;
+    block_size: int;
+    created_at: Http_date.t;
+    file_revision: Revision.t;
+  }
+  type t = Sx_block.t * Ipaddr.t list
+  type element = t
+
+  val all_encoding : ((Int53.t * int * Http_date.t * Revision.t) * t list) Jsonenc.encoding
+  val streaming : (header, element) Jsonenc.streaming
+  val get : Sx_volume.T.t -> string -> Uri.t
+  val example : string
+  val pp : t Fmt.t
+end
+
+module Meta : sig
+  type t = { file_meta: Meta.t }
+  include JsonQuery with type t := t
+end

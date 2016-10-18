@@ -43,8 +43,9 @@ val singleton : ('a -> string) -> (string -> 'a) -> 'b encoding -> ('a * 'b) enc
 val obj_opt : 'a encoding -> 'a encoding
 
 type ('a, 'b) streaming
-val obj_streaming : 'a encoding -> string -> 'b encoding -> ('a, 'b) streaming
+val obj_streaming : 'a encoding -> string -> 'b encoding -> ('a, string * 'b) streaming
+val arr_streaming : 'a encoding -> string -> 'b encoding -> ('a, 'b) streaming
 
 open Jsonio
-val decode : ('a, 'b) streaming -> lexeme t -> ('a * (string * 'b) Lwt_stream.t) Boundedio.t
-val encode : ('a, 'b) streaming -> ('a * (string * 'b) Lwt_stream.t) -> [> `Os] t
+val decode : ('a, 'b) streaming -> lexeme t -> ('a * 'b Lwt_stream.t) Boundedio.t
+val encode: ('a, 'b) streaming -> ('a * 'b Lwt_stream.t) -> [> `Os] t

@@ -32,3 +32,12 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
+type t = Hex.t
+
+let of_string hex =
+  if String.length hex <> 40 then
+    invalid_arg "Bad block hash length";
+  `Hex hex
+let to_string (`Hex hex) = hex
+
+let pp = Fmt.(using to_string string)
