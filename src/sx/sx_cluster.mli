@@ -45,11 +45,6 @@ module Meta: sig
   module Set : JobQuery with type t = t
 end
 
-module User : sig
-  type t = User of string
-  include Convertible with type t := t
-end
-
 module Users : sig
   module Key : sig
     type t = Key of Hex.t

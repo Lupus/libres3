@@ -51,8 +51,8 @@ module Attr = struct
     used_size : Int53.t;
     replica_count: int;
     max_revisions: int;
-    privs: Sx_acl.Privs.t;
-    owner: Sx_cluster.User.t;
+    privs: Sx_acl.RW.t;
+    owner: User.t;
     files_size: Int53.t;
     files_count: Int53.t;
     volume_meta: Meta.t option;
@@ -74,8 +74,8 @@ module Attr = struct
       (req "usedSize" Int53.encoding)
       (req "replicaCount" int)
       (req "maxRevisions" int)
-      (req "privs" Sx_acl.Privs.encoding)
-      (req "owner" Sx_cluster.User.encoding)
+      (req "privs" Sx_acl.RW.encoding)
+      (req "owner" User.encoding)
       (req "filesSize" Int53.encoding)
       (req "filesCount" Int53.encoding)
       (opt "volumeMeta" Meta.encoding)
@@ -87,13 +87,19 @@ end
 
 module T = struct
   type t = Volume of string
-  let v s = Volume s
+  let v s =
+    if String.contains s '/' then
+      invalid_arg "Volume cannot contain /";
+    Volume s
   let of_v (Volume v) = v
   let encoding = conv of_v v string
   let pp = Fmt.(using of_v string)
+
+  let uri (Volume v) =
+    Uri.make ~path:("/" ^ v) ()
 end
 
-module List = struct
+module ListVolumes = struct
   type t = (T.t * Attr.t) list
 
   let to_volume lst =
@@ -162,11 +168,157 @@ module Locate = struct
 
   let pp _ = failwith "TODO"
 
-  let get = Uri.make ~query:["o",["locate"]] () (* TODO *)
-
   let target = Cluster
 
   let example = "{\"nodeList\":[\"127.0.0.2\",\"127.0.0.4\",\"127.0.0.1\"],\"blockSize\":16384,\"owner\":\"user\",\"replicaCount\":2,\"maxRevisions\":6,\"privs\":\"rw\",\"usedSize\":142685712,\"sizeBytes\":63542,\"filesSize\":61012,\"filesCount\":89,\"volumeMeta\":{\"two\":\"2222\",\"three\":\"333333\",\"one\":\"01\"}}"
+
+  let get ?(volume_meta=false) ?(custom_volume_meta=false) ?size volume =
+    ["o",["locate"]] |>
+    query_opt_bool volume_meta "volumeMeta" |>
+    query_opt_bool custom_volume_meta "customVolumeMeta" |>
+    query_opt size (fun siz -> ["size",[Int53.to_string siz]]) |>
+    Uri.with_query (T.uri volume)
+end
+
+module Create = struct
+  type t = {
+    volume_size : Int53.t;
+    owner: User.t;
+    replica_count: int;
+    max_revisions: int;
+    volume_meta: Meta.t option;
+  }
+
+  let of_v t = t.volume_size, t.owner, t.replica_count, t.max_revisions,
+               t.volume_meta
+
+  let v (volume_size, owner, replica_count, max_revisions, volume_meta) =
+    { volume_size; owner; replica_count; max_revisions; volume_meta }
+
+  let encoding = obj5
+      (req "volumeSize" Int53.encoding)
+      (req "owner" User.encoding)
+      (req "replicaCount" int)
+      (dft "maxRevisions" int 1)
+      (opt "volumeMeta" Meta.encoding) |> conv of_v v
+
+  let put = T.uri
+
+  let target = Cluster
+
+  let pp _ = failwith "TODO"
+
+  let target = Cluster
+
+  let pp _ = failwith "TODO"
+
+  let example = "{\"volumeSize\":107374182400,\"owner\":\"testuser\",\"replicaCount\":1,\"volumeMeta\":{\"VolumeDescription\":\"736861726564206f666669636520646f63756d656e7473\",\"ApplicationID\":\"ff03\"}}"
+end
+
+module Modify = struct
+  type t = {
+    size: Int53.t option;
+    owner: User.t option;
+    max_revisions: int option;
+    custom_volume_meta: Meta.t option;
+    name : T.t option
+  }
+
+  let v t = t.size, t.owner, t.max_revisions, t.custom_volume_meta, t.name
+
+  let of_v (size,owner,max_revisions,custom_volume_meta,name) =
+    {size;owner;max_revisions;custom_volume_meta;name}
+
+  let encoding = obj5
+      (opt "size" Int53.encoding)
+      (opt "owner" User.encoding)
+      (opt "maxRevisions" int)
+      (opt "customVolumeMeta" Meta.encoding)
+      (opt "name" T.encoding) |> conv v of_v
+
+  let target = Cluster
+
+  let pp _ = failwith "TODO"
+  
+  let put volume =
+    Uri.with_query' (T.uri volume) ["o","mod"]
+
+  let example = "{\"size\":21474836480,\"maxRevisions\":4}"
+end
+
+module ModifyReplica = struct
+  type t = {
+    next_replica: int
+  }
+
+  let v next_replica = {next_replica}
+  let of_v {next_replica} = next_replica
+
+  let encoding = obj1 (req "next_replica" int) |> conv of_v v
+
+  let example = "{\"next_replica\":3}"
+  let pp = Fmt.(using of_v int)
+
+  let target = Cluster
+
+  let put vol =
+    Uri.with_query' (T.uri vol) ["o", "replica"]
+end
+
+module Delete = struct
+  let delete vol = T.uri vol
+  let target = Cluster
+end
+
+module Acl = struct
+  module Get = struct
+    type t = (User.t * Sx_acl.t) list
+
+    let of_user lst =
+      List.rev_map (fun (u,v) -> User.of_v u, v) lst
+
+    let to_user lst =
+      List.rev_map (fun (u,v) -> User.v u, v) lst
+
+    let encoding = assoc Sx_acl.encoding |> conv of_user to_user
+
+    let target = Cluster
+
+    let get vol =
+      Uri.with_query (T.uri vol) ["o",["acl"]; "manager",[]]
+
+    let pp = Fmt.(pair User.pp Sx_acl.pp |> list)
+
+    let example = "{\"testuser\":[\"read\",\"write\",\"manager\",\"owner\"],\"admin\":[\"read\",\"write\",\"manager\"]}"
+  end
+  module Update = struct
+    type t = {
+      grant_read : User.t list;
+      grant_write: User.t list;
+      revoke_read : User.t list;
+      revoke_write: User.t list;
+    }
+
+    let of_v v = v.grant_read,v.grant_write,v.revoke_read,v.revoke_write
+    let v (grant_read,grant_write,revoke_read,revoke_write) =
+      {grant_read;grant_write;revoke_read;revoke_write}
+
+    let users = list User.encoding
+
+    let encoding = obj4
+        (dft "grant-read" users [])
+        (dft "grant-write" users [])
+        (dft "revoke-read" users [])
+        (dft "revoke-write" users []) |> conv of_v v
+
+    let pp _ = failwith "TODO"
+    let target = Cluster
+
+    let example = "{\"grant-read\":[\"readonly\",\"readwrite\"],\"grant-write\":[\"writer\",\"readwrite\"],\"revoke-read\":[\"writer\"]}"
+
+    let put vol =
+      Uri.with_query' (T.uri vol) ["o","acl"]
+  end
 end
 
 module ListFiles = struct
@@ -224,13 +376,12 @@ module ListFiles = struct
 
   let all_encoding = merge_objs header_obj (obj1 (req "fileList" (assoc encoding))) |> obj_opt
 
-  let get ?filter ?(recursive=false)  ?limit ?after ~volume =
-    let query =
-      ["o", ["list"]] |>
-      query_opt filter (fun f -> ["filter",[f]]) |>
-      query_opt_bool recursive "recursive" |>
-      query_opt limit (fun limit -> ["limit",[string_of_int limit]]) |>
-      query_opt after (fun start -> ["after",[start]]) in
-    Uri.make ~path:("/" ^ volume) ~query ()
+  let get ?filter ?(recursive=false)  ?limit ?after volume =
+    ["o", ["list"]] |>
+    query_opt filter (fun f -> ["filter",[f]]) |>
+    query_opt_bool recursive "recursive" |>
+    query_opt limit (fun limit -> ["limit",[string_of_int limit]]) |>
+    query_opt after (fun start -> ["after",[start]]) |>
+    Uri.with_query (T.uri volume)
 
 end

@@ -46,8 +46,8 @@ module Attr : sig
     used_size : Int53.t;
     replica_count: int;
     max_revisions: int;
-    privs: Sx_acl.Privs.t;
-    owner: Sx_cluster.User.t;
+    privs: Sx_acl.RW.t;
+    owner: User.t;
     files_size: Int53.t;
     files_count: Int53.t;
     volume_meta: Meta.t option;
@@ -60,9 +60,11 @@ end
 module T : sig
   type t = Volume of string
   include Convertible with type t := t
+  val uri : t -> Uri.t
+  val v : string -> t
 end
 
-module List : sig
+module ListVolumes : sig
   type t = (T.t * Attr.t) list
   include JsonQuery with type t := t
 end
@@ -83,7 +85,68 @@ module Locate : sig
     owner: string;
     global_id: string option;
   }
-  include JsonGetQuery with type t := t
+ include JsonQuery with type t := t
+ val get : ?volume_meta:bool -> ?custom_volume_meta:bool -> ?size:Int53.t -> T.t
+   -> Uri.t
+end
+
+module Create : sig
+  type t = {
+    volume_size : Int53.t;
+    owner: User.t;
+    replica_count: int;
+    max_revisions: int;
+    volume_meta: Meta.t option;
+  }
+  include JobQuery with type t := t
+  val put : T.t -> Uri.t
+end
+
+module Modify : sig
+  type t = {
+    size: Int53.t option;
+    owner: User.t option;
+    max_revisions: int option;
+    custom_volume_meta: Meta.t option;
+    name : T.t option
+  }
+
+  include JobQuery with type t := t
+  
+  val put : T.t -> Uri.t
+end
+
+module ModifyReplica : sig
+  type t = {
+    next_replica: int;
+  }
+
+  include JobQuery with type t := t
+  
+  val put : T.t -> Uri.t
+end
+
+module Delete : sig
+  val delete : T.t  -> Uri.t
+  val target : target
+end
+
+module Acl : sig
+  module Get : sig
+    type t = (User.t * Sx_acl.t) list
+    include JsonQuery with type t := t
+    val get : T.t -> Uri.t
+  end
+  module Update : sig
+    type t = {
+      grant_read : User.t list;
+      grant_write: User.t list;
+      revoke_read : User.t list;
+      revoke_write: User.t list;
+    }
+    include JobQuery with type t := t
+    val put : T.t -> Uri.t
+  end
 end
 
 module ListFiles : sig
@@ -106,8 +169,8 @@ module ListFiles : sig
 
   val streaming : (header, t) Jsonenc.streaming
 
-  val get : ?filter:string -> ?recursive:bool -> ?limit:int -> ?after:string ->
-    volume:string -> Uri.t
+  val get : ?filter:string -> ?recursive:bool -> ?limit:int -> ?after:string -> T.t
+    -> Uri.t
 
   val example : string
 end

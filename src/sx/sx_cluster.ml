@@ -91,21 +91,6 @@ module Meta = struct
   end
 end
 
-module User = struct
-  type t = User of string
-  let v u =
-    if String.contains u '/' then
-      invalid_arg "Username cannot contain /";
-    User u
-  let of_v (User u) = u
-  let encoding = conv of_v v string
-  let pp = Fmt.(using of_v string)
-
-  let uri u =
-    let path = "/.users/" ^ (of_v u) in
-    Uri.make ~path ()
-end
-
 module Users = struct
   module Key = struct
     type t = Key of Hex.t

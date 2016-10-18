@@ -61,6 +61,7 @@ module Json = struct
 
   let test_example (module M:S) () =
     (* TODO: also test inserting unknown field *)
+    (* TODO: order of fields in object doesn't matter, allow for that *)
     lwt_run (
       Jsonio.of_string M.example |>
       Jsonenc.decode M.streaming >>= fun r ->
@@ -71,6 +72,7 @@ module Json = struct
 
   let test_simple_example (module M:JsonQuery) () =
     (* TODO: also test inserting unknown field *)
+    (* TODO: order of fields in object doesn't matter, allow for that *)
     lwt_run (
       Jsonio.of_string M.example |>
       Jsonio.to_json >>= fun json ->
@@ -88,6 +90,8 @@ module Json = struct
       all, `Quick, roundtrip all;
       "{\"a\":}", `Quick, test_parse_error "{\"a\":}" (1,4);
       "of_json", `Quick, test_of_json all_json;
+      "job", `Quick, test_simple_example (module Job);
+      "job poll", `Quick, test_simple_example (module Job.Poll);
       "nodelist", `Quick, test_simple_example (module Sx_cluster.ListNodes);
       "get cluster meta", `Quick, test_simple_example (module Sx_cluster.Meta.Get);
       "get cluster meta", `Quick, test_simple_example (module Sx_cluster.Meta.Set);
@@ -95,8 +99,13 @@ module Json = struct
       "create user", `Quick, test_simple_example (module Sx_cluster.Users.Create);
       "self", `Quick, test_simple_example (module Sx_cluster.Users.Self);
       "modify user", `Quick, test_simple_example (module Sx_cluster.Users.Modify);
-      "volume list", `Quick, test_simple_example (module Sx_volume.List);
-      "volume", `Quick, test_example (module Sx_volume.ListFiles);
+      "volume list", `Quick, test_simple_example (module Sx_volume.ListVolumes);
+      "volume create", `Quick, test_simple_example (module Sx_volume.Create);
+      "volume modify", `Quick, test_simple_example (module Sx_volume.Modify);
+      "volume modify replica", `Quick, test_simple_example (module Sx_volume.ModifyReplica);
+      "get volume acl", `Quick, test_simple_example (module Sx_volume.Acl.Get);
+      "update volume acl", `Quick, test_simple_example (module Sx_volume.Acl.Update);
+      "list files", `Quick, test_example (module Sx_volume.ListFiles);
     ]
 
 end

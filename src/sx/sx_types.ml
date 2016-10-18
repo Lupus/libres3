@@ -35,7 +35,7 @@
 open Json_encoding
 open Jsonenc
 
-type target = Cluster | Volume
+type target = Cluster | Volume | SingleHost
 
 module type Convertible = sig
   type t
@@ -79,6 +79,88 @@ module Meta = struct
     Fmt.pf ppf "%a" Fmt.lines (Hex.hexdump_s h)
       
   let pp = Fmt.(pair string pp_hex |> list)
+end
+
+module Job = struct
+  module RequestId = struct
+    type t = string
+    let encoding = string
+    let pp = Fmt.string
+  end
+  module Poll = struct
+    type status = [`Pending | `Ok | `Error of string]
+    type t = {
+      request_id: RequestId.t;
+      request_status: status;
+    }
+    let v (request_id, request_status, request_message) =
+      match request_status with
+      | (`Ok | `Pending) as v -> {request_id;request_status=v}
+      | `Error -> {request_id;request_status=`Error request_message}
+
+    let of_v t = match t.request_status with
+    | (`Ok | `Pending) as v -> t.request_id,v,""
+    | `Error msg -> t.request_id,`Error,msg
+
+    let encoding = obj3
+        (req "requestId" RequestId.encoding)
+        (req "requestStatus" (string_enum [
+             "PENDING", `Pending;
+             "OK", `Ok;
+             "ERROR", `Error
+           ]))
+        (req "requestMessage" string) |> obj_opt |> conv of_v v
+
+    let example = "{\"requestId\":\"opaqueXYZ\",\"requestStatus\":\"ERROR\",\"requestMessage\":\"Job X failed\"}"                    
+    let get id = Uri.make ~path:("/.results/" ^ id) ()
+
+    let pp_status ppf = function
+    | `Ok -> Fmt.pf ppf "OK"
+    | `Pending -> Fmt.pf ppf "PENDING"
+    | `Error msg -> Fmt.pf ppf "@[ERROR %s@]" msg
+
+    let pp ppf t =
+      Fmt.pf ppf "@[requestId: %a@, status: %a@]"
+        RequestId.pp t.request_id pp_status t.request_status
+
+    let target = SingleHost
+  end
+
+  type t = {
+    request_id: RequestId.t;
+    min_poll_interval: float;
+    max_poll_interval: float;
+  }
+
+  let of_v t = t.request_id,t.min_poll_interval,t.max_poll_interval
+  let v (request_id,min_poll_interval,max_poll_interval) = {
+    request_id;min_poll_interval;max_poll_interval
+  }
+
+  let encoding = obj3 (req "requestId" RequestId.encoding)
+      (req "minPollInterval" float)
+      (req "maxPollInterval" float) |> obj_opt |> conv of_v v
+
+  let pp _ = failwith "TODO"
+
+  let target = SingleHost
+
+  let example = "{\"requestId\":\"4\",\"minPollInterval\":100,\"maxPollInterval\":6000}"
+end
+
+module User = struct
+  type t = User of string
+  let v u =
+    if String.contains u '/' then
+      invalid_arg "Username cannot contain /";
+    User u
+  let of_v (User u) = u
+  let encoding = conv of_v v string
+  let pp = Fmt.(using of_v string)
+
+  let uri u =
+    let path = "/.users/" ^ (of_v u) in
+    Uri.make ~path ()
 end
 
 type query = (string * string list) list

@@ -12,7 +12,6 @@ depends: [
   "ocamlfind" {build}
   "topkg" {build}
   "alcotest" { test & >= "0.6.0" }
-  "qtest" { test & >= "2.2" & < "3.0" }
   "astring" { >= "0.8.3" }
   "base-threads"
   "base-unix"

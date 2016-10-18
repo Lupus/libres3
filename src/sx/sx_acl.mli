@@ -34,7 +34,20 @@
 
 open Sx_types
 
-module Privs : sig
+module Priv : sig
+  type t = [`Read | `Write | `Manager | `Owner]
+  include Convertible with type t := t
+  val compare : t -> t -> int
+end
+
+module RW : sig
   type t = { read: bool; write: bool }
   include Convertible with type t := t   
 end
+
+include module type of Set.Make(Priv)
+
+include Convertible with type t := t
+
+val of_rw : RW.t -> t
+val to_rw : t -> RW.t

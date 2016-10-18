@@ -33,7 +33,21 @@
 (**************************************************************************)
 
 open Json_encoding
-module Privs = struct
+
+module Priv = struct
+  type t = [`Read | `Write | `Owner | `Manager]
+  let encoding = string_enum [
+      "read", `Read;
+      "write", `Write;
+      "owner", `Owner;
+      "manager", `Manager;
+    ]
+  let compare (a:t) (b:t) = Pervasives.compare a b
+
+  let pp _ = failwith "TODO"
+end
+
+module RW = struct
   type t = { read: bool; write: bool }
   let of_string_exn p : t =
     if String.length p <> 2 then
@@ -51,3 +65,21 @@ module Privs = struct
 
   let pp = Fmt.(using to_string string)
 end
+
+include Set.Make(Priv)
+
+let of_rw (rw:RW.t) =
+  let open! RW in
+  let set = empty in
+  let set = if rw.read then add `Read set else set in
+  if rw.write then add `Write set else set
+
+let to_rw set =
+  {
+    RW.read = mem `Read set;
+    RW.write = mem `Write set;
+  }
+
+let encoding = list Priv.encoding |> conv elements of_list
+
+let pp _ = failwith "TODO"

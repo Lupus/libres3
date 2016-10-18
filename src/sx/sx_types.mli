@@ -34,7 +34,7 @@
 
 open Jsonenc
 
-type target = Cluster | Volume
+type target = Cluster | Volume | SingleHost
 
 module type Convertible = sig
   type t
@@ -71,6 +71,33 @@ module Meta : sig
   type t = (string * Hex.t) list
   val encoding : t encoding
   val pp : t Fmt.t
+end
+
+module User : sig
+  type t = private User of string
+  val v : string -> t
+  val of_v : t -> string
+  val uri : t -> Uri.t
+  include Convertible with type t := t
+end
+
+module Job : sig
+  module RequestId : Convertible with type t = private string
+  module Poll : sig
+    type status = [`Ok|`Pending|`Error of string]
+    type t = {
+      request_id: RequestId.t;
+      request_status: status;
+    }
+    include JsonQuery with type t := t
+    val get : RequestId.t -> Uri.t
+  end
+  type t = {
+    request_id: RequestId.t;
+    min_poll_interval: float;
+    max_poll_interval: float;
+  }
+  include JsonQuery with type t := t
 end
 
 type query = (string * string list) list
