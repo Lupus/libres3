@@ -32,3 +32,9 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
+open Sx_types
+
+module Privs : sig
+  type t = { read: bool; write: bool }
+  include Convertible with type t := t   
+end

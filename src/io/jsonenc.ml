@@ -73,6 +73,8 @@ let http_date =
     let to_unix d = floor (Http_date.to_unix_timestamp d) in
     conv to_unix Http_date.of_unix_timestamp ~schema float
 
+let ipaddr = conv Ipaddr.to_string Ipaddr.of_string_exn string
+
 let () =
   Printexc.register_printer (function
     | Json_encoding.Cannot_destruct _ as e ->
@@ -83,6 +85,16 @@ let () =
 let assoc_any = assoc any_ezjson_value
 
 open Json_schema
+let singleton key_to_string key_of_string value_encoding =
+  let to_assoc (k,v) = [key_to_string k, v] in
+  let of_assoc = function
+  | [k, v] -> (key_of_string k, v)
+  | [] -> unexpected "empty object" "singleton object"
+  | _ -> unexpected "additional fields" "singleton object"
+  in
+  assoc value_encoding |>
+  conv to_assoc of_assoc
+
 let obj_opt (type a) : a encoding -> a encoding = fun t ->
   if strict then t
   else

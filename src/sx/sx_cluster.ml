@@ -34,69 +34,212 @@
 
 open Json_encoding
 open Jsonenc
+open Sx_types
 
-module Meta = struct
-  type binary = string (* TODO *)
-  let binary = Fmt.string
-
-  type t = (string * binary) list
-
-  let encoding = assoc string
-
-  let pp = Fmt.(pair string binary |> list)
-end
-
-module Locate = struct
+module ListNodes = struct
+  (* Cluster node list should be of different type than volume locate nodelist,
+     so do not just alias to ipaddr.t list *)
   type t = {
-    node_list : Ipaddr.t list;
-    block_size : int option;
-    volume_meta : Meta.t option;
-    custom_volume_meta : Meta.t option;
-    files_size : Int53.t;
-    files_count: Int53.t;
-    size_bytes : Int53.t;
-    used_size : Int53.t;
-    replica_count : int;
-    max_revisions : int;
-    privs: string;
-    owner: string;
-    global_id: string option;
+    node_list: Ipaddr.t list;
   }
 
-  let ipaddr = conv Ipaddr.to_string Ipaddr.of_string_exn string
+  let v node_list = {node_list}
+  let of_v {node_list} = node_list
 
-  let to_obj t = (
-    (t.node_list, t.block_size, t.volume_meta, t.custom_volume_meta,
-     t.files_size, t.files_count, t.size_bytes, t.used_size, t.replica_count,
-     t.max_revisions),
-    (t.privs, t.owner, t.global_id))
+  let encoding =
+    list ipaddr |> req "nodeList" |> obj1 |> obj_opt |>
+    conv of_v v
 
-  let of_obj ((node_list,block_size,volume_meta,custom_volume_meta,
-               files_size, files_count, size_bytes, used_size, replica_count,
-               max_revisions),(privs,owner,global_id)) =
-    {node_list;block_size;volume_meta;custom_volume_meta;
-     files_size;files_count;size_bytes;used_size;replica_count;
-     max_revisions;privs;owner;global_id}
+  let get = Uri.make ~query:["nodeList", []] ()
 
-  let encoding = merge_objs
-      (obj10
-         (req "nodeList" (list ipaddr))
-         (opt "blockSize" int)
-         (opt "volumeMeta" Meta.encoding)
-         (opt "customVolumeMeta" Meta.encoding)
-         (req "filesSize" Int53.encoding)
-         (req "filesCount" Int53.encoding)
-         (req "sizeBytes" Int53.encoding)
-         (req "usedSize" Int53.encoding)
-         (req "replicaCount" int)
-         (req "maxRevisions" int))
-      (obj3
-         (req "privs" string)
-         (req "owner" string)
-         (opt "globalID" string)) |>
-                 obj_opt |>
-                 conv to_obj of_obj
+  let target = Cluster
 
-  let pp _ = failwith "TODO"
-  let example = "{\"nodeList\":[\"127.0.0.2\",\"127.0.0.4\",\"127.0.0.1\"],\"blockSize\":16384,\"owner\":\"user\",\"replicaCount\":2,\"maxRevisions\":6,\"privs\":\"rw\",\"usedSize\":142685712,\"sizeBytes\":63542,\"filesSize\":61012,\"filesCount\":89,\"volumeMeta\":{\"two\":\"2222\",\"three\":\"333333\",\"one\":\"01\"}}"
+  let example = "{\"nodeList\":[\"127.0.0.2\",\"127.0.0.1\",\"127.0.0.4\",\"127.0.0.3\"]}"
+
+  let pp = Fmt.(list Ipaddr.pp_hum |> using of_v)
+end
+
+module Meta = struct
+  (* Cluster Meta should be of different type than Volume meta *)
+  module T = struct
+    type t = {
+      cluster_meta: Meta.t
+    }
+
+    let v cluster_meta = {cluster_meta}
+    let of_v {cluster_meta} = cluster_meta
+
+    let encoding = req "clusterMeta" Meta.encoding |> obj1 |> obj_opt |>
+                  conv of_v v
+
+    let target = Cluster
+
+    let example = "{\"clusterMeta\":{\"key1\":\"aabbcc\"}}"
+
+    let pp = Fmt.using of_v Meta.pp
+  end
+  include T
+
+  module Get = struct
+    include T
+    let get = Uri.make ~query:["clusterMeta", []] ()
+  end
+
+  module Set = struct
+    include T
+    let put = Uri.make ~path:"/.clusterMeta" ()
+  end
+end
+
+module User = struct
+  type t = User of string
+  let v u =
+    if String.contains u '/' then
+      invalid_arg "Username cannot contain /";
+    User u
+  let of_v (User u) = u
+  let encoding = conv of_v v string
+  let pp = Fmt.(using of_v string)
+
+  let uri u =
+    let path = "/.users/" ^ (of_v u) in
+    Uri.make ~path ()
+end
+
+module Users = struct
+  module Key = struct
+    type t = Key of Hex.t
+    let v k = Key k
+    let of_v (Key k) = k
+    let encoding = conv of_v v hex_encoding
+    let pp ppf (Key h) =
+      (* TODO: base64 instead? *)
+      Fmt.string ppf (Hex.hexdump_s h)
+  end
+  type attr = {
+    admin: bool;
+    user_quota: Int53.t option;
+    user_quota_used: Int53.t option;
+    user_desc : string option;
+  }
+  let v (admin,user_quota,user_quota_used,user_desc) =
+    {admin;user_quota;user_quota_used;user_desc}
+  let of_v {admin;user_quota;user_quota_used;user_desc} =
+    admin,user_quota,user_quota_used,user_desc
+
+  let attr_encoding = obj4 (req "admin" bool)
+      (opt "userQuota" Int53.encoding) (opt "userQuotaUsed" Int53.encoding)
+      (opt "userDesc" string) |> obj_opt |> conv of_v v
+
+  let pp_attr ppf a =
+    Fmt.pf ppf "@[admin: %b; quota: %a; quotaUsed: %a; desc: %a@]"
+      a.admin (Fmt.option Int53.pp) a.user_quota
+      (Fmt.option Int53.pp) a.user_quota_used Fmt.(option string) a.user_desc
+
+  module T = struct
+    type t = (User.t * attr) list
+  end
+  include T
+  module List = struct
+    include T
+
+    let from_user lst =
+      List.rev_map (fun (k,v) -> User.of_v k,v) lst
+
+    let to_user lst =
+      List.rev_map (fun (k,v) -> User.v k,v) lst
+
+    let encoding = assoc attr_encoding |> conv from_user to_user
+    let pp = Fmt.(pair User.pp pp_attr |> list)
+
+    let target = Cluster
+    let example = "{\"admin\":{\"admin\":true},\"testuser\":{\"admin\":false}}"
+
+    let get ?(desc=false) ?(quota=false) ?clones =
+      let query =
+        query_opt_bool desc "desc" [] |>
+        query_opt_bool quota "quota" |>
+        query_opt clones (fun name -> ["clones",[name]]) in
+      Uri.make ~path:"/.users" ~query
+  end
+  module Create = struct
+    type t = {
+      user_name: User.t;
+      user_key: Key.t;
+      attr: attr;
+      existing_name: User.t option;
+    }
+
+    let of_v {user_name;user_key;attr;existing_name} =
+      user_name,attr.admin,user_key,attr.user_quota,attr.user_desc,existing_name
+
+    let v (user_name,admin,user_key,user_quota,user_desc,existing_name) =
+      { user_name; user_key; attr = {
+            admin;user_quota;user_desc;user_quota_used=None
+          }; existing_name }
+
+    let of_is_admin = function
+    | true -> "admin"
+    | false -> "normal"
+
+    let to_is_admin_exn = function
+    | "admin" -> true
+    | "normal" -> false
+    | s -> invalid_arg ("Uknown user type " ^ s)
+
+    let user_type_encoding =
+      conv of_is_admin to_is_admin_exn string
+
+    let encoding = obj6 (req "userName" User.encoding)
+        (req "userType" user_type_encoding)
+        (req "userKey" Key.encoding)
+        (opt "userQuota" Int53.encoding)
+        (opt "userDesc" string)
+        (opt "existingName" User.encoding) |> obj_opt |> conv of_v v
+
+    let pp _ = failwith "TODO"
+    let example = "{\"userName\":\"newuser\",\"userType\":\"normal\",\"userKey\":\"990f5e344bc83b70de5abed144be7052748c994c\",\"userDesc\":\"some guy\"}"
+
+    let target = Cluster
+    let put = Uri.make ~path:"/.users" ()
+  end
+
+  module Self = struct
+    type t = User.t * attr
+    let encoding = singleton User.of_v User.v attr_encoding
+    let pp = Fmt.pair User.pp pp_attr
+    let example = "{\"testuser\":{\"admin\":false,\"userQuota\":0,\"userQuotaUsed\":0,\"userDesc\":\"Test user description\"}}"
+    let get = Uri.make ~query:["self",[]] ()
+    let target = Cluster
+  end
+
+  module Modify = struct
+    type t = {
+      user_key: Key.t;
+      quota: Int53.t option;
+      desc: string option;
+    }
+
+    let of_v {user_key;quota;desc} = user_key,quota,desc
+    let v (user_key,quota,desc) = {user_key;quota;desc}
+
+    let encoding = obj3 (req "userKey" Key.encoding)
+        (opt "quota" Int53.encoding)
+        (opt "desc" string) |> obj_opt |> conv of_v v
+
+    let example = "{\"userKey\":\"2507e0c3edcfd4280800db97023b57093c4eac4b\",\"quota\":1073741824}"
+
+    let put = User.uri
+
+    let target = Cluster
+
+    let pp _ = failwith "TODO"
+  end
+
+  module Remove = struct
+    let target = Cluster
+    let delete ?(all_clones=false) u =
+      let all = if all_clones then ["all",[]] else [] in
+      Uri.with_query (User.uri u) all
+  end
 end

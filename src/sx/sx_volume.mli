@@ -33,24 +33,81 @@
 (**************************************************************************)
 
 open Jsonenc
+open Sx_types
 
-type header = {
-  volume_size: Int53.t;
-}
+module Meta : sig
+  type t = VolumeMeta of Sx_types.Meta.t
+  include Convertible with type t := t
+end
 
-type attributes = {
-  file_size : Int53.t;
-  block_size: int;
-  created_at : Http_date.t;
-  file_revision: string;
-}
+module Attr : sig
+  type t = {
+    size_bytes: Int53.t;
+    used_size : Int53.t;
+    replica_count: int;
+    max_revisions: int;
+    privs: Sx_acl.Privs.t;
+    owner: Sx_cluster.User.t;
+    files_size: Int53.t;
+    files_count: Int53.t;
+    volume_meta: Meta.t option;
+    custom_volume_meta: Meta.t option;
+    global_id: string option;
+  }
+  include Convertible with type t := t
+end
 
-type t = File of attributes | Directory
+module T : sig
+  type t = Volume of string
+  include Convertible with type t := t
+end
 
-val pp : t Fmt.t
+module List : sig
+  type t = (T.t * Attr.t) list
+  include JsonQuery with type t := t
+end
 
-val all_encoding : (Int53.t * (string * t) list) Jsonenc.encoding
+module Locate : sig
+ type t = {
+    node_list : Ipaddr.t list;
+    block_size : int option;
+    volume_meta : Meta.t option;
+    custom_volume_meta : Meta.t option;
+    files_size : Int53.t;
+    files_count: Int53.t;
+    size_bytes : Int53.t;
+    used_size : Int53.t;
+    replica_count : int;
+    max_revisions : int;
+    privs: string;
+    owner: string;
+    global_id: string option;
+  }
+  include JsonGetQuery with type t := t
+end
 
-val streaming : (header, t) Jsonenc.streaming
+module ListFiles : sig
+  type header = {
+    volume_size: Int53.t;
+  }
 
-val example : string
+  type attributes = {
+    file_size : Int53.t;
+    block_size: int;
+    created_at : Http_date.t;
+    file_revision: string;
+  }
+
+  type t = File of attributes | Directory
+
+  val pp : t Fmt.t
+
+  val all_encoding : (Int53.t * (string * t) list) Jsonenc.encoding
+
+  val streaming : (header, t) Jsonenc.streaming
+
+  val get : ?filter:string -> ?recursive:bool -> ?limit:int -> ?after:string ->
+    volume:string -> Uri.t
+
+  val example : string
+end

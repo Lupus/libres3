@@ -34,6 +34,11 @@ end
 
 val http_date : Http_date.t encoding
 
+val ipaddr : Ipaddr.t encoding
+
+(* an object with a single key *)
+val singleton : ('a -> string) -> (string -> 'a) -> 'b encoding -> ('a * 'b) encoding
+
 (* accepts additional fields for non-strict parsing *)
 val obj_opt : 'a encoding -> 'a encoding
 

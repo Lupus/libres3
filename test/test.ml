@@ -19,6 +19,8 @@
 open Alcotest
 open Boundedio
 
+open Sx_types
+
 let lwt_run = Lwt_main.run
 
 module Json = struct
@@ -56,11 +58,25 @@ module Json = struct
     val example : string
     val pp : t Fmt.t
   end
+
   let test_example (module M:S) () =
+    (* TODO: also test inserting unknown field *)
     lwt_run (
       Jsonio.of_string M.example |>
       Jsonenc.decode M.streaming >>= fun r ->
       r |> Jsonenc.encode M.streaming |> Jsonio.to_string >>= fun str ->
+      check string "roundtrip" M.example str;
+      return_unit
+    )
+
+  let test_simple_example (module M:JsonQuery) () =
+    (* TODO: also test inserting unknown field *)
+    lwt_run (
+      Jsonio.of_string M.example |>
+      Jsonio.to_json >>= fun json ->
+      let r = Json_encoding.destruct M.encoding json in
+      r |> Json_encoding.construct M.encoding |> Jsonio.of_json |>
+      expect_object >>= Jsonio.to_string >>= fun str ->
       check string "roundtrip" M.example str;
       return_unit
     )
@@ -72,7 +88,15 @@ module Json = struct
       all, `Quick, roundtrip all;
       "{\"a\":}", `Quick, test_parse_error "{\"a\":}" (1,4);
       "of_json", `Quick, test_of_json all_json;
-      "volume", `Quick, test_example (module Sx_volume)
+      "nodelist", `Quick, test_simple_example (module Sx_cluster.ListNodes);
+      "get cluster meta", `Quick, test_simple_example (module Sx_cluster.Meta.Get);
+      "get cluster meta", `Quick, test_simple_example (module Sx_cluster.Meta.Set);
+      "user list", `Quick, test_simple_example (module Sx_cluster.Users.List);
+      "create user", `Quick, test_simple_example (module Sx_cluster.Users.Create);
+      "self", `Quick, test_simple_example (module Sx_cluster.Users.Self);
+      "modify user", `Quick, test_simple_example (module Sx_cluster.Users.Modify);
+      "volume list", `Quick, test_simple_example (module Sx_volume.List);
+      "volume", `Quick, test_example (module Sx_volume.ListFiles);
     ]
 
 end

@@ -33,31 +33,52 @@
 (**************************************************************************)
 
 open Jsonenc
-
-module Meta : sig
-  type binary
-  type t = (string * binary) list
-  val encoding : t encoding
-  val pp : t Fmt.t
+open Sx_types
+module ListNodes : sig
+  type t = { node_list:Ipaddr.t list }
+  include JsonGetQuery with type t := t
 end
 
-module Locate : sig
-  type t = {
-    node_list : Ipaddr.t list;
-    block_size : int option;
-    volume_meta : Meta.t option;
-    custom_volume_meta : Meta.t option;
-    files_size : Int53.t;
-    files_count: Int53.t;
-    size_bytes : Int53.t;
-    used_size : Int53.t;
-    replica_count : int;
-    max_revisions : int;
-    privs: string;
-    owner: string;
-    global_id: string option;
+module Meta: sig
+  type t = { cluster_meta: Sx_types.Meta.t }
+  module Get : JsonGetQuery with type t = t
+  module Set : JobQuery with type t = t
+end
+
+module User : sig
+  type t = User of string
+  include Convertible with type t := t
+end
+
+module Users : sig
+  module Key : sig
+    type t = Key of Hex.t
+    include Convertible with type t := t
+  end
+  type attr = {
+    admin: bool;
+    user_quota: Int53.t option;
+    user_quota_used: Int53.t option;
+    user_desc : string option;
   }
-  val encoding : t encoding
-  val pp : t Fmt.t
-  val example: string
+  type t = (User.t * attr) list
+  module List : JsonQuery with type t = t
+  module Create : sig
+    type t = {
+      user_name: User.t;
+      user_key: Key.t;
+      attr: attr;
+      existing_name: User.t option;
+    }
+    include JobQuery with type t := t
+  end
+  module Self : JsonQuery with type t = User.t * attr
+  module Modify : sig
+    type t
+    include JobQuery with type t := t
+  end
+  module Remove : sig
+    val target : target
+    val delete : ?all_clones:bool -> User.t -> Uri.t
+  end
 end

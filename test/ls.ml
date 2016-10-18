@@ -54,13 +54,13 @@ let main uri recurse =
   Logs.debug (fun m -> m "Response: %a" Response.pp_hum resp);
   body |> Cohttp_lwt_body.to_stream |> Jsonio.of_strings |>
   Jsonio.to_json >>= fun json ->
-  let locate = Json_encoding.destruct Sx_cluster.Locate.encoding json in
+  let locate = Json_encoding.destruct Sx_volume.Locate.encoding json in
 
-  let host = List.hd locate.Sx_cluster.Locate.node_list |> Ipaddr.to_string in
+  let host = List.hd locate.Sx_volume.Locate.node_list |> Ipaddr.to_string in
   let uri' = Uri.make ~scheme:"https" ~host () in
   let uri' = Uri.with_path uri' (Uri.path uri) in
 
-  let uri' = Uri.with_query uri' (["o", ["locate"]]) in
+  let uri' = Uri.resolve "" uri' Sx_volume.Locate.get in
   let query = if recurse then ["recursive",[]] else [] in
   let uri' = Uri.with_query uri' (("o",["list"]) :: ("filter",["qt/src/src/src/src/src/src/src/qt-everywhere-opensource-src-5.7.0/qtwebengine/src/3rdparty/chromium/ui/"]) :: query) in
   let req = { (Request.make_for_client `GET uri') with

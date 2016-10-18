@@ -18,8 +18,9 @@
 
 open Core.Std
 open Core_bench.Std
+open Boundedio
 
-let lwt_run_ign v = ignore (Lwt_main.run v)
+let lwt_run_ign v = Pervasives.ignore (Lwt_main.run v)
 
 let always _ = true
 let discard stream = Lwt_stream.junk_while always stream
@@ -29,10 +30,28 @@ let raw_uncompress s =
 
 let decode json =
   Ezjsonm.from_string json |>
-  Json_encoding.destruct Sx_volume.all_encoding
+  Json_encoding.destruct Sx_volume.ListFiles.all_encoding
 
-let always _ = true
-let drain_stream stream = Lwt_stream.junk_while always stream
+let body_stream_of str =
+  let a, b = Lwt_unix.(socketpair PF_UNIX SOCK_STREAM 0) in
+  let wr = Lwt_io.of_fd ~mode:Lwt_io.Output a in
+  let rd = Lwt_io.of_fd ~mode:Lwt_io.Input b in
+  Lwt.async (fun () ->
+      Lwt_io.write wr str >>= fun () ->
+      Lwt_io.close wr);
+  let read () =
+    Lwt_io.read ~count:16384 rd >>= function
+    | "" -> Lwt_io.close rd >>= fun () -> return_none
+    | s -> return_some s
+  in
+  Lwt_stream.from read |>
+  Cohttp_lwt_body.of_stream
+
+let body_sink_of stream =
+  let send str =
+    Lwt_io.write Lwt_io.null str
+  in
+  Lwt_stream.iter_s send stream
 
 let () =
   let json = In_channel.read_all "test/input.json.zlib" |> raw_uncompress in
@@ -41,24 +60,31 @@ let () =
   Lwt_io.set_default_buffer_size 65536;
   Gc.compact ();
   Command.run (Bench.make_command [
-      Bench.Test.create ~name:"ezjsonm parse + json decode" (fun () ->
-          ignore (decode json)
+      Bench.Test.create ~name:"body tostring + ezjsonm parse + json decode" (fun () ->
+          lwt_run_ign (body_stream_of json |>
+                       Cohttp_lwt_body.to_string >>= fun body ->
+                       let _ = decode body in
+                       return_unit)
         );
       Bench.Test.create ~name:"jsonio parse + stream map" (fun () ->
-          let open Boundedio in
-          lwt_run_ign (Jsonio.of_string json |>
-                       Jsonenc.decode Sx_volume.streaming >>= fun (_json, map) ->
+          lwt_run_ign (body_stream_of json |>
+                       Cohttp_lwt_body.to_stream |>
+                       Jsonio.of_strings |>
+                       Jsonenc.decode Sx_volume.ListFiles.streaming >>= fun (_json, map) ->
                        Lwt_stream.iter (fun (_,_) -> ()) map)
         );
       Bench.Test.create ~name:"json encode + ezjsonm tostring" (fun () ->
-          match Json_encoding.construct Sx_volume.all_encoding decoded with
-          | `O _ as v -> ignore (Ezjsonm.to_string v)
+          match Json_encoding.construct Sx_volume.ListFiles.all_encoding decoded with
+          | `O _ as v ->
+              v |> Ezjsonm.to_string |> Cohttp_lwt_body.of_string |>
+              Cohttp_lwt_body.to_stream |>
+              body_sink_of
           | _ -> assert false
         );
-      Bench.Test.create ~name:"json stream encode + jsonio drain" (fun () ->
+      Bench.Test.create ~name:"json stream encode + jsonio" (fun () ->
           lwt_run_ign (let s = Lwt_stream.of_list values in
-                       ({Sx_volume.volume_size=header},s) |>
-                       Jsonenc.encode Sx_volume.streaming |>
+                       ({Sx_volume.ListFiles.volume_size=header},s) |>
+                       Jsonenc.encode Sx_volume.ListFiles.streaming |>
                        Jsonio.to_strings |>
-                       drain_stream))
+                       body_sink_of))
     ])

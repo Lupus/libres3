@@ -33,21 +33,60 @@
 (**************************************************************************)
 
 open Json_encoding
-module Privs = struct
-  type t = { read: bool; write: bool }
-  let of_string_exn p : t =
-    if String.length p <> 2 then
-      invalid_arg ("Invalid privs: " ^ p);
-    {
-      read = (p.[0] = 'r');
-      write = (p.[1] = 'w');
-    }
+open Jsonenc
 
-  let to_string {read;write} =
-    (if read then "r" else "-") ^
-    (if write then "w" else "-")
+type target = Cluster | Volume
 
-  let encoding = conv to_string of_string_exn string
-
-  let pp = Fmt.(using to_string string)
+module type Convertible = sig
+  type t
+  val encoding : t encoding
+  val pp : t Fmt.t
 end
+
+module type JsonQuery = sig
+  include Convertible
+  val target : target
+  val example : string
+end
+
+module type JsonGetQuery = sig
+  include JsonQuery
+  val get : Uri.t
+end
+
+module type JobQuery = JsonQuery
+
+module type JobPutQuery = sig
+  include JobQuery
+  val put : Uri.t
+end
+
+module type JobDeleteQuery = sig
+  val target : target
+  val delete : Uri.t
+end
+
+let hex_to_json (`Hex h) = h
+let hex_of_json j = `Hex j
+let hex_encoding = conv hex_to_json hex_of_json string
+
+module Meta = struct
+  type t = (string * Hex.t) list
+
+  let encoding = assoc hex_encoding
+
+  let pp_hex ppf h =
+    Fmt.pf ppf "%a" Fmt.lines (Hex.hexdump_s h)
+      
+  let pp = Fmt.(pair string pp_hex |> list)
+end
+
+type query = (string * string list) list
+let query_opt opt f lst = match opt with
+| None -> lst
+| Some v -> List.rev_append (f v) lst
+
+let query_opt_bool v param q =
+  if v then
+    (param,[]) :: q
+  else q
