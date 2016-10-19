@@ -59,6 +59,16 @@ type +'a t = Jsonm.decoder option * Jsonm.lexeme Lwt_stream.t
 
 type field_stream = (string * lexeme t) Lwt_stream.t 
 
+let observe ~prefix (d,stream) =
+  let observe_lexeme l =
+    Logs.debug (fun m -> m "%s: %a" prefix Jsonm.pp_lexeme l);
+    l
+  in
+  d, if Logs.level () = Some Logs.Debug then begin
+    Lwt_stream.map observe_lexeme stream
+  end
+  else stream
+
 let rec lexeme stream d = match Jsonm.decode d with
 | `Lexeme l -> Lwt.return_some l
 | `Error e -> Error.(fail_json (Some d) (Syntax e))
@@ -112,11 +122,15 @@ let expect_primitive (d,signals) = Lwt_stream.next signals >>= function
   | #Jsonm.lexeme as l ->
       Error.(Expected("primitive", l) |> fail_json d)
 
+let fid = ref 0
 let fields (d, signals) =
+  incr fid;
+  let prefix = Printf.sprintf "fields#%d" !fid in
   let rec next () = Lwt_stream.next signals >>= function
     | `Os -> next ()
     | `Oe -> return_none
-    | `Name n -> return_some (n, substream (d,signals))
+    | `Name n ->
+        return_some (n, substream (d,signals))
     | #Jsonm.lexeme -> assert false
   in
   Lwt_stream.from next
@@ -184,16 +198,6 @@ let always _ = true
 let drain_stream signals = Lwt_stream.junk_while always signals
 let drain (_, signals) = drain_stream signals
 
-let observe ~prefix (d,stream) =
-  let observe_lexeme l =
-    Logs.debug (fun m -> m "%s: %a" prefix Jsonm.pp_lexeme l);
-    l
-  in
-  d, if Logs.level () = Some Logs.Debug then begin
-    Lwt_stream.map observe_lexeme stream
-  end
-  else stream
-
 let of_json json =
   let stream, push = Lwt_stream.create () in
   let rec value = function
@@ -256,21 +260,21 @@ let extract_fields fields streamingfield =
                    streamingfield (String.Set.pp Fmt.string) want);
   let rec next stream lst = Lwt_stream.get stream >>= function
     | Some (n, v) when String.equal n streamingfield ->
-        let (_, signals) = v in
-        Lwt_stream.on_termination signals (fun () ->
-            Lwt.async (fun () -> drain_stream stream));
-        if List.length lst = needed then
+        let (d, signals) = v in
+        if List.length lst = needed then begin
+          Lwt_stream.on_termination signals (fun () ->
+              Lwt.async (fun () -> drain_stream stream));
           return (`O lst, Some v)
-        else
+        end else 
         let tmp = Lwt_stream.clone signals in
         drain v >>= fun () ->
-        next stream lst >>= fun ((json:json), _) ->
-        let (x:lexeme t) = (None, tmp) in
+        next stream lst >>= fun (json, _) ->
+        let (x:lexeme t) = (d, tmp) in
         return (json, Some x)
     | Some (n, v) when String.Set.mem n want ->
         to_json v >>= fun json ->
         next stream ((n,json) :: lst)
-    | Some (_n, v) ->
+    | Some (n, v) ->
         drain v >>= fun () ->
         next stream lst
     | None ->
@@ -280,3 +284,16 @@ let extract_fields fields streamingfield =
   next stream []
 
 let append (d,s1) (_,s2) = (d, Lwt_stream.append s1 s2)
+
+let rec equal a b = match a, b with
+| `O l1, `O l2 ->
+    (* order doesn't matter *)
+    let m1 = String.Map.of_list l1 in
+    let m2 = String.Map.of_list l2 in
+    String.Map.equal equal m1 m2
+| `O _, #json | #json, `O _ -> false
+| `A l1, `A l2 ->
+    (* order matters *)
+    List.for_all2 equal l1 l2
+| `A _, #json | #json, `A _ -> false
+| #json_primitive, #json_primitive -> a = b

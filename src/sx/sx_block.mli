@@ -32,8 +32,25 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
-type t = private Hex.t
+open Sx_types
+type t = private string
+
+val of_hex : Hex.t -> t
+val to_hex : t -> Hex.t
+val encoding : t Json_encoding.encoding
 
 val of_string : string -> t
 val to_string : t -> string
 val pp : t Fmt.t
+
+val unsafe_of_assoc : (string * 'a) list -> (t * 'a) list
+val unsafe_to_assoc : (t * 'a) list -> (string * 'a) list
+
+open Jsonenc
+val unsafe_of_streaming : ('a, (string * 'b)) streaming -> ('a, (t * 'b)) streaming
+val unsafe_to_streaming : ('a, (t * 'b)) streaming -> ('a, (string * 'b)) streaming
+
+module Get : sig
+  val get : blocksize:int -> t -> t list -> Uri.t
+  val target : target
+end

@@ -20,6 +20,6 @@ let () =
     sbin "src/server/libres3";
     bin "src/cli/libres3_setup";
     test "test/test";
-    test "test/ls";
-    test ~cond:bench "test/json_bench";
+    test ~run:false "test/ls";
+    test ~cond:bench ~run:false "test/json_bench";
   ]

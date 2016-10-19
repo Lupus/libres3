@@ -34,7 +34,7 @@
 
 open Jsonenc
 
-type target = Cluster | Volume | SingleHost
+type target = Cluster | Volume | Block | SingleHost
 
 module type Convertible = sig
   type t
@@ -98,6 +98,12 @@ module Job : sig
     max_poll_interval: float;
   }
   include JsonQuery with type t := t
+end
+
+module UploadToken : sig
+  include Convertible
+  val block_uri : blocksize:int -> t -> Uri.t
+  val file_uri : t -> Uri.t
 end
 
 type query = (string * string list) list

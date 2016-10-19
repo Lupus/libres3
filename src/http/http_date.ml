@@ -34,7 +34,7 @@ let to_string d =
   Printer.Calendar.sprint imf_fixdate d
 
 let of_unix_timestamp f = Calendar.from_unixfloat f
-let to_unix_timestamp d = Calendar.to_unixfloat d
+let to_unix_timestamp d = floor (Calendar.to_unixfloat d +. 0.5)
 
 let add_header h v = Header.add h "Date" (to_string v)
 

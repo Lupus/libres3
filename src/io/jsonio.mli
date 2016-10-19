@@ -84,3 +84,5 @@ val to_strings : ?minify:bool -> [< `Os | `As] t -> string Lwt_stream.t
 val to_string : ?minify:bool -> [< `Os | `As] t -> string Boundedio.t
 
 val append : 'a t -> 'a t -> 'a t
+
+val equal : json -> json -> bool

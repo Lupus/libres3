@@ -20,11 +20,38 @@ open Alcotest
 open Boundedio
 
 open Sx_types
+open Astring
 
 let lwt_run = Lwt_main.run
 
 module Json = struct
   open Jsonio
+
+  let json_check = (module struct
+    type t = string
+    let equal a b =
+      Jsonio.equal (Ezjsonm.from_string a) (Ezjsonm.from_string b)
+
+    let rec canon = function
+    | `O lst -> `O (canon_obj lst)
+    | `A lst -> `A (canon_arr lst)
+    | #json_primitive as v -> v
+
+    and canon_obj lst =
+      String.Map.(lst |> of_list |> map canon |> bindings)
+
+    and canon_arr lst =
+      (List.rev_map canon lst |> List.rev)
+
+    let canon_lst = function
+    | `O lst -> `O (canon_obj lst)
+    | `A lst -> `A (canon_arr lst)
+
+    let pp ppf s =
+      s |> Ezjsonm.from_string |> canon_lst |> Ezjsonm.to_string ~minify:false |>
+      Fmt.string ppf
+
+  end : TESTABLE with type t = string)
 
   let test_parse_error str (l,c) () =
     lwt_run (of_string str |> to_json >>> function
@@ -42,7 +69,7 @@ module Json = struct
     Logs.debug (fun m -> m "%s" s1);
     check string "roundtrip" s1 s2
 
-  let all = "{\"field1\":[37,1.4,-5.7,true,false,null,\"else\u2713\",{\"kettő\":{}}]}"
+  let all = "{\"field1\":[37,1.4,-5.7,true,false,null,\"else\\u2713\",{\"kettő\":{}}]}"
   let all_json = Jsonio.(of_string all |> to_json |> lwt_run)
 
   let test_of_json json () =
@@ -50,7 +77,6 @@ module Json = struct
     (* TODO: json dump *)
     assert (json = actual)
 
-  open Jsonenc
   module type S = sig
     type header
     type t
@@ -67,7 +93,7 @@ module Json = struct
       let s = Jsonio.of_string M.example in
       Jsonenc.decode M.streaming s >>= fun r ->
       r |> Jsonenc.encode M.streaming |> Jsonio.to_string >>= fun str ->
-      check string "roundtrip" M.example str;
+      check json_check "roundtrip" M.example str;
       return_unit
     )
 
@@ -80,7 +106,7 @@ module Json = struct
       let r = Json_encoding.destruct M.encoding json in
       r |> Json_encoding.construct M.encoding |> Jsonio.of_json |>
       expect_object >>= Jsonio.to_string >>= fun str ->
-      check string "roundtrip" M.example str;
+      check json_check "roundtrip" M.example str;
       return_unit
     )
 
@@ -109,6 +135,9 @@ module Json = struct
       "list files", `Quick, test_example (module Sx_volume.ListFiles);
       "get file", `Quick, test_example (module Sx_file.Get);
       "get file meta", `Quick, test_simple_example (module Sx_file.Meta);
+      "initialize file put", `Quick, test_example (module Sx_file.Initialize.Request);
+      "initialize file reply", `Quick, test_example (module Sx_file.Initialize.Reply);
+      "initialize add chunk", `Quick, test_simple_example (module Sx_file.Initialize.AddChunk);
     ]
 
 end

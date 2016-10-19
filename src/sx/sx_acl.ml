@@ -80,6 +80,7 @@ let to_rw set =
     RW.write = mem `Write set;
   }
 
-let encoding = list Priv.encoding |> conv elements of_list
+let rev_elements s = elements s |> List.rev
+let encoding = list Priv.encoding |> conv rev_elements of_list
 
 let pp _ = failwith "TODO"

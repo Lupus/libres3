@@ -32,12 +32,39 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
-type t = Hex.t
+open Sx_types
 
-let of_string hex =
+type t = string
+
+let of_string hex = 
   if String.length hex <> 40 then
     invalid_arg "Bad block hash length";
-  `Hex hex
-let to_string (`Hex hex) = hex
+  hex
+let to_string hex = hex
+
+let encoding = Json_encoding.string (* TODO: validate length *)
+
+let of_hex (`Hex h) = of_string h
+let to_hex h = (`Hex h)
 
 let pp = Fmt.(using to_string string)
+
+let unsafe_of_assoc x = x
+let unsafe_to_assoc x = x
+
+let unsafe_of_streaming x = x
+let unsafe_to_streaming x = x
+
+module Get = struct
+  let get ~blocksize hd tl =
+    let lst = "/.data" :: string_of_int blocksize :: hd :: tl in
+    Uri.make ~path:(String.concat "/" lst) ()
+  let target = Block
+end
+
+module Create = struct
+  let put ~blocksize token =
+    let path = String.concat "/" ["/.data"; string_of_int blocksize; token] in
+    Uri.make ~path ()
+  let target = Block
+end

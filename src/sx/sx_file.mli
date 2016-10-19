@@ -58,3 +58,45 @@ module Meta : sig
   type t = { file_meta: Meta.t }
   include JsonQuery with type t := t
 end
+
+module Initialize : sig
+  module Request : sig
+    type header = Int53.t * Meta.t
+    type t = Sx_block.t
+    type element = t
+    val all_encoding : (header * t list) Jsonenc.encoding
+    val streaming : (header, element) Jsonenc.streaming
+    val put : Sx_volume.T.t -> string -> Uri.t
+    val example : string
+    val pp : t Fmt.t
+  end
+  module Reply : sig
+    type header = UploadToken.t
+    type t = Ipaddr.t list
+    type element = Sx_block.t * t
+    val all_encoding : (header * element list) Jsonenc.encoding
+    val streaming : (header, element) Jsonenc.streaming
+    val example : string
+    val pp : t Fmt.t
+  end
+
+  module AddChunk : sig
+    type t = {
+      extend_seq: Int53.t;
+      file_data: Sx_block.t list;
+      file_meta: (string * Hex.t option) list;
+    }
+    include JsonQuery with type t := t
+    val put : UploadToken.t -> Uri.t
+  end
+end
+
+module Flush : sig
+  val put : UploadToken.t -> Uri.t
+  val target : target
+end
+
+module Delete : sig
+  val delete : Sx_volume.T.t -> string -> Uri.t
+  val target : target
+end

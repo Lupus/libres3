@@ -35,7 +35,7 @@
 open Json_encoding
 open Jsonenc
 
-type target = Cluster | Volume | SingleHost
+type target = Cluster | Volume | Block | SingleHost
 
 module type Convertible = sig
   type t
@@ -161,6 +161,19 @@ module User = struct
   let uri u =
     let path = "/.users/" ^ (of_v u) in
     Uri.make ~path ()
+end
+
+module UploadToken = struct
+  type t = string
+  let encoding = string
+  let pp = Fmt.string
+
+  let block_uri ~blocksize token =
+    let path = String.concat "/" ["/.data"; string_of_int blocksize; token] in
+    Uri.make ~path ()
+
+  let file_uri token =
+    Uri.make ~path:("/.upload/" ^ token) ()
 end
 
 type query = (string * string list) list

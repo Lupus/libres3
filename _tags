@@ -18,6 +18,6 @@ true : bin_annot, safe_string, strict_sequence, package(bytes logs), warn_A, war
 <src/io/jsonio.*>: package(jsonm lwt ezjsonm fmt astring)
 <src/server/*>: package(astring base64 calendar cohttp conduit cryptokit hex ipaddr logs lwt lwt_named_threads ocplib-json-typed rresult ssl tyre uuidm xmlm)
 <src/cli/*>: package(cmdliner fmt.cli logs.cli logs.fmt fmt.tty)
-<test/test.*>: package(alcotest lwt.unix uutf jsonm logs.fmt ocplib-json-typed calendar cohttp ipaddr hex)
+<test/test.*>: package(alcotest lwt.unix uutf jsonm logs.fmt ocplib-json-typed calendar cohttp ipaddr hex ezjsonm)
 <test/ls.*>: package(cmdliner logs logs.cli fmt.cli fmt.tty logs.fmt ocplib-json-typed cohttp.lwt jsonm astring calendar uuidm rresult cryptokit hex)
 <test/*bench.*>: package(core core_bench ezjsonm lwt.unix uutf jsonm fmt astring cryptokit ocplib-json-typed cohttp calendar cohttp.lwt hex)

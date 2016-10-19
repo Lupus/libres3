@@ -70,7 +70,7 @@ end
 
 let http_date =
     let schema = Json_schema.(Number |> element |> create) in
-    let to_unix d = floor (Http_date.to_unix_timestamp d) in
+    let to_unix d = Http_date.to_unix_timestamp d in
     conv to_unix Http_date.of_unix_timestamp ~schema float
 
 let ipaddr = conv Ipaddr.to_string Ipaddr.of_string_exn string
@@ -165,6 +165,7 @@ let obj_streaming enc field streamenc =
 let arr_streaming enc field streamenc =
   let decode_element s =
     Jsonio.to_json s >>= fun json ->
+    (* TODO: error handling, report parent fields and pos *)
     return (Json_encoding.destruct streamenc json) in
   let encode_element v =
     Json_encoding.construct streamenc v |> Jsonio.of_json in
