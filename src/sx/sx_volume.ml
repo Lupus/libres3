@@ -53,11 +53,12 @@ module Attr = struct
     max_revisions: int;
     privs: Sx_acl.RW.t;
     owner: User.t;
-    files_size: Int53.t;
-    files_count: Int53.t;
+    files_size: Int53.t; (* 2.1 *)
+    files_count: Int53.t; (* 2.1 *)
     volume_meta: Meta.t option;
     custom_volume_meta: Meta.t option;
-    global_id: string option;
+    global_id: string option; (* 2.1 *)
+    (* undocumented: effectiveReplicaCount *)
   }
 
   let of_v t = (t.size_bytes,t.used_size,t.replica_count,t.max_revisions,
@@ -69,7 +70,7 @@ module Attr = struct
     {size_bytes;used_size;replica_count;max_revisions;privs;owner;files_size;
     files_count;volume_meta;custom_volume_meta;global_id}
 
-  let encoding = merge_objs (obj10
+  let obj = merge_objs (obj10
       (req "sizeBytes" Int53.encoding)
       (req "usedSize" Int53.encoding)
       (req "replicaCount" int)
@@ -80,7 +81,9 @@ module Attr = struct
       (req "filesCount" Int53.encoding)
       (opt "volumeMeta" Meta.encoding)
       (opt "customVolumeMeta" Meta.encoding))
-      (opt "globalID" string |> obj1) |> obj_opt |> conv of_v v
+      (opt "globalID" string |> obj1)
+
+  let encoding = obj |> obj_opt |> conv of_v v
 
   let pp _ = failwith "TODO"
 end
@@ -118,53 +121,38 @@ end
 
 
 module Locate = struct
-   type t = {
-    node_list : Ipaddr.t list;
-    block_size : int option;
-    volume_meta : Meta.t option;
-    custom_volume_meta : Meta.t option;
-    files_size : Int53.t;
-    files_count: Int53.t;
-    size_bytes : Int53.t;
-    used_size : Int53.t;
-    replica_count : int;
-    max_revisions : int;
-    privs: string;
-    owner: string;
-    global_id: string option;
-   }
- 
-  let of_v t = (
-    (t.node_list, t.block_size, t.volume_meta, t.custom_volume_meta,
-     t.files_size, t.files_count, t.size_bytes, t.used_size, t.replica_count,
-     t.max_revisions),
-    (t.privs, t.owner, t.global_id))
+  type volnodes = Ipaddr.t list
+  type size_info = {
+    growable_size : Int53.t; (* 2.2 *)
+    block_size : int;
+  }
 
-  let v ((node_list,block_size,volume_meta,custom_volume_meta,
-               files_size, files_count, size_bytes, used_size, replica_count,
-               max_revisions),(privs,owner,global_id)) =
-    {node_list;block_size;volume_meta;custom_volume_meta;
-     files_size;files_count;size_bytes;used_size;replica_count;
-     max_revisions;privs;owner;global_id}
+  let volnodes_obj = obj1 (req "nodeList" (list ipaddr))
 
-  let encoding = merge_objs
-      (obj10
-         (req "nodeList" (list ipaddr))
-         (opt "blockSize" int)
-         (opt "volumeMeta" Meta.encoding)
-         (opt "customVolumeMeta" Meta.encoding)
-         (req "filesSize" Int53.encoding)
-         (req "filesCount" Int53.encoding)
-         (req "sizeBytes" Int53.encoding)
-         (req "usedSize" Int53.encoding)
-         (req "replicaCount" int)
-         (req "maxRevisions" int))
-      (obj3
-         (req "privs" string)
-         (req "owner" string)
-         (opt "globalID" string)) |>
-                 obj_opt |>
-                 conv of_v v
+  let size_info_obj = obj2
+      (opt "growableSize" Int53.encoding)
+      (opt "blockSize" int)
+
+  let of_v = function
+  | Some t -> Some t.growable_size, Some t.block_size
+  | None -> None, None
+
+  let v = function
+  | Some growable_size, Some block_size -> Some {growable_size;block_size}
+  | None, None -> None
+  | None, Some _ -> invalid_arg "Missing field growableSize"
+  | Some _, None -> invalid_arg "Missing field blockSize"
+
+  let size_info_encoding = size_info_obj |> conv of_v v
+
+  type t = volnodes * (size_info option * Attr.t)
+  (* undocumented: effectiveReplicaCount, growableSize *)
+
+  let attr_encoding = Attr.obj |> conv Attr.of_v Attr.v
+
+  let encoding : t encoding =
+    merge_objs volnodes_obj
+      (merge_objs size_info_encoding attr_encoding) |> obj_opt
 
   let pp _ = failwith "TODO"
 

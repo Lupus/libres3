@@ -70,24 +70,15 @@ module ListVolumes : sig
 end
 
 module Locate : sig
- type t = {
-    node_list : Ipaddr.t list;
-    block_size : int option;
-    volume_meta : Meta.t option;
-    custom_volume_meta : Meta.t option;
-    files_size : Int53.t;
-    files_count: Int53.t;
-    size_bytes : Int53.t;
-    used_size : Int53.t;
-    replica_count : int;
-    max_revisions : int;
-    privs: string;
-    owner: string;
-    global_id: string option;
+  type volnodes = Ipaddr.t list
+  type size_info = {
+    growable_size : Int53.t;
+    block_size: int;
   }
- include JsonQuery with type t := t
- val get : ?volume_meta:bool -> ?custom_volume_meta:bool -> ?size:Int53.t -> T.t
-   -> Uri.t
+  type t = volnodes * (size_info option * Attr.t)
+  include JsonQuery with type t := t
+  val get : ?volume_meta:bool -> ?custom_volume_meta:bool -> ?size:Int53.t -> T.t
+    -> Uri.t
 end
 
 module Create : sig

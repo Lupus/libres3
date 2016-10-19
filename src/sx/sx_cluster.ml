@@ -228,3 +228,15 @@ module Users = struct
       Uri.with_query (User.uri u) all
   end
 end
+
+(* Undocumented:
+   /?clusterStatus, /?nodeMaps, /?raftStatus
+   /.clusterSettings
+   /.status
+   /.gc
+   /.distlock
+   /.nodes
+   /.mode
+   /.jlock
+   nodeList,clusterMeta and volumeList can be combined
+ *)

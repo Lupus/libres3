@@ -83,6 +83,7 @@ module Initialize : sig
   module AddChunk : sig
     type t = {
       extend_seq: Int53.t;
+      file_size: Int53.t option;
       file_data: Sx_block.t list;
       file_meta: (string * Hex.t option) list;
     }

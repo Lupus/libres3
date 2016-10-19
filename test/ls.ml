@@ -61,9 +61,9 @@ let main uri recurse =
   Logs.debug (fun m -> m "Response: %a" Response.pp_hum resp);
   body |> Cohttp_lwt_body.to_stream |> Jsonio.of_strings |>
   Jsonio.to_json >>= fun json ->
-  let locate = Json_encoding.destruct Sx_volume.Locate.encoding json in
+  let volnodes,_ = Json_encoding.destruct Sx_volume.Locate.encoding json in
 
-  let host = List.hd locate.Sx_volume.Locate.node_list |> Ipaddr.to_string in
+  let host = List.hd volnodes |> Ipaddr.to_string in
   let base_uri = Uri.make ~scheme:"https" ~host () in
 
   let uri' = Sx_volume.ListFiles.get ~filter ~recursive:recurse vol in

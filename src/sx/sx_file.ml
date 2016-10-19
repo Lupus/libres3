@@ -148,17 +148,19 @@ module Initialize = struct
   module AddChunk = struct
     type t = {
       extend_seq: Int53.t;
+      file_size : Int53.t option; (* 2.2, see Sx_volume.Locate.growableSize *)
       file_data: Sx_block.t list;
       file_meta: (string * Hex.t option) list;
     }
 
     let meta_encoding = assoc (option hex_encoding)
 
-    let of_v t = t.extend_seq, t.file_data, t.file_meta
-    let v (extend_seq, file_data, file_meta) =
-      { extend_seq; file_data; file_meta }
+    let of_v t = t.extend_seq, t.file_size, t.file_data, t.file_meta
+    let v (extend_seq, file_size, file_data, file_meta) =
+      { extend_seq; file_size; file_data; file_meta }
 
-    let encoding = obj3 (req "extendSeq" Int53.encoding)
+    let encoding = obj4 (req "extendSeq" Int53.encoding)
+        (opt "fileSize" Int53.encoding)
         (req "fileData" (list Sx_block.encoding))
         (dft "fileMeta" meta_encoding []) |> conv of_v v
 
