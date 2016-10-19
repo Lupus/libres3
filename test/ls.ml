@@ -37,7 +37,15 @@ let sx_service ((),req,(body:Body.t)) =
   Logs.debug (fun m -> m "SX req: %a" Request.pp_hum req);
   Http_client.service (req, (body :> Cohttp_lwt_body.t))
 
-let main uri recurse =
+open Astring
+let add_file_set (file,attr) set =
+  let open Sx_volume.ListFiles in
+  let f = match attr with
+  | Directory -> file
+  | File f -> file ^ "?" ^ f.file_revision in
+  String.Set.add f set
+
+let main uri recurse diff =
   load_sx uri >>= fun sx ->
   let open Sx_config in
   resolve_opt sx.hostname >>= fun nodes ->
@@ -63,25 +71,58 @@ let main uri recurse =
   Jsonio.to_json >>= fun json ->
   let volnodes,_ = Json_encoding.destruct Sx_volume.Locate.encoding json in
 
-  let host = List.hd volnodes |> Ipaddr.to_string in
-  let base_uri = Uri.make ~scheme:"https" ~host () in
+  if diff then
+    let get_volnode_files volnode =
+      let host = Ipaddr.to_string volnode in
+      let base_uri = Uri.make ~scheme:"https" ~host () in
 
-  let uri' = Sx_volume.ListFiles.get ~filter ~recursive:recurse vol in
-  let uri' = Uri.resolve "" base_uri uri' in
+      let uri' = Sx_volume.ListFiles.get ~filter ~recursive:recurse vol in
+      let uri' = Uri.resolve "" base_uri uri' in
 
-  let req = { (Request.make_for_client `GET uri') with
-              resource = Uri.to_string uri' } in
-  Logs.debug (fun m -> m "request: %a" Request.pp_hum req);
-  Sky.filter sx_service (sx.token,req,Body.empty) >>= fun (resp, body) ->
-  Logs.debug (fun m -> m "Response: %a" Response.pp_hum resp);
-  body |> Cohttp_lwt_body.to_stream |> Jsonio.of_strings |>
-  Jsonio.expect_object >>= fun s ->
-  Jsonio.to_string s >>= fun str ->
-  print_endline str;
-  return_unit
+      let req = { (Request.make_for_client `GET uri') with
+                  resource = Uri.to_string uri' } in
+      Logs.debug (fun m -> m "request: %a" Request.pp_hum req);
+      Sky.filter sx_service (sx.token,req,Body.empty) >>= fun (resp, body) ->
+      Logs.debug (fun m -> m "Response: %a" Response.pp_hum resp);
+      let status = Response.status resp in
+      if status <> `OK then
+        fail (Failure (Code.string_of_status status))
+      else
+        body |> Cohttp_lwt_body.to_stream |> Jsonio.of_strings |>
+        Jsonenc.decode Sx_volume.ListFiles.streaming >>= fun (_header, s) ->
+        Lwt_stream.fold add_file_set s String.Set.empty
+    in
+    Lwt_list.map_p get_volnode_files volnodes >>= fun file_sets ->
+    let hd :: tl = file_sets in
+    let diffs = List.fold_left (fun accum set ->
+        String.Set.(union (diff set hd) (diff hd set) |>
+                    union accum)
+      ) String.Set.empty tl in
+    if not (String.Set.is_empty diffs) then
+      Logs.warn (fun m -> m "Difference for files:@,%a"
+                    (String.Set.pp Fmt.string) diffs);
+    exit (if Logs.warn_count () > 0 then 1 else 0)
+  else begin
+    let host = List.hd volnodes |> Ipaddr.to_string in
+    let base_uri = Uri.make ~scheme:"https" ~host () in
 
-let run uri recurse () =
-  try Lwt_main.run (main uri recurse)
+    let uri' = Sx_volume.ListFiles.get ~filter ~recursive:recurse vol in
+    let uri' = Uri.resolve "" base_uri uri' in
+
+    let req = { (Request.make_for_client `GET uri') with
+                resource = Uri.to_string uri' } in
+    Logs.debug (fun m -> m "request: %a" Request.pp_hum req);
+    Sky.filter sx_service (sx.token,req,Body.empty) >>= fun (resp, body) ->
+    Logs.debug (fun m -> m "Response: %a" Response.pp_hum resp);
+    body |> Cohttp_lwt_body.to_stream |> Jsonio.of_strings |>
+    Jsonio.expect_object >>= fun s ->
+    Jsonio.to_string s >>= fun str ->
+    print_endline str;
+    return_unit
+ end
+
+let run uri recurse diff () =
+  try Lwt_main.run (main uri recurse diff)
   with
   | Invalid_argument s ->
       Logs.err (fun m -> m "Invalid argument: %s" s)
@@ -108,7 +149,8 @@ let required_pos ?docv ?doc n conv = Arg.(required & pos n (some conv) None & in
 let app =
   let doc = "ls test" in
   let recursive = Arg.(value & flag & info ["r";"recursive"]) in
-  Term.(const run $ required_pos 0 uri ~docv:"URI" $ recursive $ init ()),
+  let diff = Arg.(value & flag & info ["diff"]) in
+  Term.(const run $ required_pos 0 uri ~docv:"URI" $ recursive $ diff $ init ()),
   Term.info "ls" ~version:"%%VERSION%%" ~doc
 
 let () =
