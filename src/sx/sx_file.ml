@@ -181,3 +181,33 @@ module Delete = struct
   let delete vol path = uri vol path
   let target = Volume
 end
+
+module ListRevisions = struct
+  type attr = {
+    block_size: int;
+    file_size: Int53.t;
+    created_at: Http_date.t;
+  }
+
+  let of_v a = a.block_size, a.file_size, a.created_at
+  let v (block_size, file_size, created_at) =
+    {block_size; file_size; created_at}
+
+
+  let attr_encoding = obj3 (req "blockSize" int)
+      (req "fileSize" Int53.encoding)
+      (req "createdAt" http_date) |> obj_opt |> conv of_v v
+
+  type t = (Revision.t * attr) list
+
+  let encoding = obj1 (req "fileRevisions" (assoc attr_encoding))
+
+  let pp _ = failwith "TODO"
+
+  let target = Volume
+
+  let example = "{\"fileRevisions\":{\"2015-05-01 10:30:00.009:ba3c495ebf9e10cd62489bbf6806ee62\":{\"blockSize\":4096,\"fileSize\":83755,\"createdAt\":1430476200},\"2015-05-15 10:30:00.183:b12a9e5b5b68920fc183d849911a28ec\":{\"blockSize\":4096,\"fileSize\":75423,\"createdAt\":1431685800},\"2015-06-01 10:30:00.210:1135f377f172633ef8bf3bc83639bc85\":{\"blockSize\":16384,\"fileSize\":1316830,\"createdAt\":1433154600}}}"
+
+  let get vol path =
+    Uri.with_query (uri vol path) ["fileRevisions",[]]
+end

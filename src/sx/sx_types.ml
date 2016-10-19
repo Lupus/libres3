@@ -185,3 +185,30 @@ let query_opt_bool v param q =
   if v then
     (param,[]) :: q
   else q
+
+module Pattern = struct
+  open Astring
+  type t = string
+
+  let is_wildcard c = c = '*' || c = '?' || c = '['
+
+  let of_literal pattern =
+    if String.exists is_wildcard pattern then
+      let b = Buffer.create (String.length pattern) in
+      String.iter (function
+        | ('*' | '?' | '[') as c ->
+            Buffer.add_char b '\\';
+            Buffer.add_char b c;
+        | c -> Buffer.add_char b c
+        ) pattern;
+      Buffer.contents b
+    else pattern
+
+  let of_glob pattern = pattern
+  let add_query_opt p q = match p with
+  | None -> q
+  | Some pattern ->
+      ("filter",[pattern]) :: q
+
+  let pp = Fmt.string
+end

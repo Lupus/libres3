@@ -63,8 +63,6 @@ module Get = struct
 end
 
 module Create = struct
-  let put ~blocksize token =
-    let path = String.concat "/" ["/.data"; string_of_int blocksize; token] in
-    Uri.make ~path ()
+  let put = UploadToken.block_uri
   let target = Block
 end

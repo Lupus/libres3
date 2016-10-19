@@ -171,8 +171,18 @@ module ListFiles : sig
 
   val streaming : (header, element) Jsonenc.streaming
 
-  val get : ?filter:string -> ?recursive:bool -> ?limit:int -> ?after:string -> T.t
+  val get : ?filter:Pattern.t -> ?recursive:bool -> ?limit:int -> ?after:string -> T.t
     -> Uri.t
 
   val example : string
+end
+
+module Mass : sig
+  module Delete : sig
+    val delete : T.t -> Pattern.t -> Uri.t
+    val target : target
+  end
+  module Rename : sig
+    val rename : T.t -> ?recursive:bool -> source:string -> dest:string -> Uri.t
+  end
 end

@@ -12,7 +12,7 @@ true : bin_annot, safe_string, strict_sequence, package(bytes logs), warn_A, war
 <src/sx/sx_services.*>: package(cohttp.lwt)
 <src/sx/sx_config.*>: package(uuidm astring rresult base64 ipaddr re uri)
 <src/sx/sx_{cluster,volume,file}.*>: package(ipaddr)
-<src/sx/sx_types.*>: package(hex fmt ocplib-json-typed)
+<src/sx/sx_types.*>: package(hex fmt ocplib-json-typed astring)
 <src/sx/*>: package(fmt ocplib-json-typed hex)
 <src/io/*>: package(lwt)
 <src/io/jsonio.*>: package(jsonm lwt ezjsonm fmt astring)

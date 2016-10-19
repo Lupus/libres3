@@ -380,10 +380,26 @@ module ListFiles = struct
 
   let get ?filter ?(recursive=false)  ?limit ?after volume =
     ["o", ["list"]] |>
-    query_opt filter (fun f -> ["filter",[f]]) |>
+    Pattern.add_query_opt filter |>
     query_opt_bool recursive "recursive" |>
     query_opt limit (fun limit -> ["limit",[string_of_int limit]]) |>
     query_opt after (fun start -> ["after",[start]]) |>
     Uri.with_query (T.uri volume)
 
+end
+
+module Mass = struct
+  module Delete = struct
+    let delete vol pattern =
+      Pattern.add_query_opt (Some pattern) [] |>
+      Uri.with_query (T.uri vol)
+    let target = Volume
+  end
+  module Rename = struct
+    let rename vol ?(recursive=false) ~source ~dest =
+      ["source", [source]; "dest", [dest]] |>
+      query_opt_bool recursive "recursive" |>
+      Uri.with_query (T.uri vol)
+    let target = Volume
+  end
 end

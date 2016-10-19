@@ -138,6 +138,7 @@ module Json = struct
       "initialize file put", `Quick, test_example (module Sx_file.Initialize.Request);
       "initialize file reply", `Quick, test_example (module Sx_file.Initialize.Reply);
       "initialize add chunk", `Quick, test_simple_example (module Sx_file.Initialize.AddChunk);
+      "list revisions", `Quick, test_simple_example (module Sx_file.ListRevisions)
     ]
 
 end

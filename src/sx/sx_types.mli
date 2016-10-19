@@ -109,3 +109,10 @@ end
 type query = (string * string list) list
 val query_opt : 'a option -> ('a -> query) -> query -> query
 val query_opt_bool : bool -> string -> query -> query
+
+module Pattern : sig
+  type t = private string
+  val of_literal : string -> t
+  val of_glob : string -> t
+  val add_query_opt : t option -> query -> query
+end

@@ -51,7 +51,7 @@ let main uri recurse =
 
   let vol = Sx_volume.T.v vol in
 
-  let filter = Astring.String.concat ~sep:"/" filter in
+  let filter = Sx_types.Pattern.of_literal (Astring.String.concat ~sep:"/" filter) in
 
   let uri' = Uri.resolve "" base_uri (Sx_volume.Locate.get vol) in
   let req = { (Request.make_for_client `GET uri') with

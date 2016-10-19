@@ -100,3 +100,14 @@ module Delete : sig
   val delete : Sx_volume.T.t -> string -> Uri.t
   val target : target
 end
+
+module ListRevisions: sig
+  type attr = {
+    block_size: int;
+    file_size: Int53.t;
+    created_at: Http_date.t;
+  }
+  type t = (Revision.t * attr) list
+  include JsonQuery with type t := t
+  val get : Sx_volume.T.t -> string -> Uri.t
+end

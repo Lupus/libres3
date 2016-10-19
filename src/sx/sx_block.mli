@@ -54,3 +54,8 @@ module Get : sig
   val get : blocksize:int -> t -> t list -> Uri.t
   val target : target
 end
+
+module Create : sig
+  val put : blocksize:int -> UploadToken.t -> Uri.t
+  val target : target
+end
