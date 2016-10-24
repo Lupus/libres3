@@ -30,3 +30,30 @@
 (* DELETE Bucket policy
    GET Bucket policy
    PUT Bucket policy *)
+
+type obj
+type bucket
+type subresource
+
+module Permission = struct
+  type 'a t = unit (* TODO *)
+
+
+  let obj perm = ()
+  let bucket perm = ()
+  let subresource perm = ()
+
+  let all = ()
+end
+
+module GetBucket = struct
+  let policy = Permission.subresource "s3:GetBucketPolicy"
+end
+
+module DeleteBucket = struct
+  let policy = Permission.subresource "s3:DeleteBucketPolicy"
+end
+
+module PutBucket = struct
+  let policy = Permission.subresource "s3:PutBucketPolicy"
+end

@@ -62,11 +62,13 @@ module T : sig
   include Convertible with type t := t
   val uri : t -> Uri.t
   val v : string -> t
+   
 end
 
 module ListVolumes : sig
   type t = (T.t * Attr.t) list
   include JsonQuery with type t := t
+  val get : ?volume_meta:bool -> ?custom_volume_meta:bool -> unit -> Uri.t
 end
 
 module Locate : sig

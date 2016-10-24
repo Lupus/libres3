@@ -27,3 +27,39 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
+open Rresult
+
+module Id : sig
+  type t = string
+end
+
+module CanonicalUser : sig
+  type t = {
+    id : Id.t;
+    display_name: string;
+  }
+  val to_xml : t -> Xmlio.xml list
+end
+
+module Groups : sig
+  type t = [`AuthenticatedUsers | `AllUsers | `LogDelivery]
+  val of_uri : Uri.t -> (t, R.msg) result
+end
+
+module Grantee : sig
+  type t =
+    | Owner | ObjectOwner
+    | EmailAddress of string
+    | ID of Id.t
+    | Uri of Groups.t
+end
+
+type t = {
+  grant_read : Grantee.t list;
+  grant_write : Grantee.t list;
+  grant_read_acp : Grantee.t list;
+  grant_write_acp : Grantee.t list;
+}
+
+val of_canned : string -> t
+val of_header : Cohttp.Header.t -> (t, R.msg) result

@@ -37,3 +37,43 @@
    Initiate multipart upload
    Abort multipart upload
    List parts *)
+
+module Head = struct
+  let policy = Policy.Permission.obj "s3:GetObject"
+end
+
+module Get = struct
+  let policy = Head.policy
+end
+
+module HeadVersion = struct
+  let policy = Policy.Permission.obj "s3:GetObjectVersion"
+end
+
+module GetVersion = struct
+  let policy = HeadVersion.policy
+end
+
+module Put = struct
+  let policy = Policy.Permission.obj "s3:PutObject"
+end
+
+module PutCopy = struct
+  let policy = Put.policy
+end
+
+module Post = struct
+  let policy = Put.policy
+end
+
+module InitiateMultipart = struct
+  let policy = Put.policy
+end
+
+module UploadPart = struct
+  let policy = Put.policy
+end
+
+module CompleteMultipart = struct
+  let policy = Put.policy
+end

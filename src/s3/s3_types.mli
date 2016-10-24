@@ -27,23 +27,9 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
-(* {GET, PUT} Bucket notification
-   GET Object torrent
-   POST Object restore
-   x-amz-security-token
-   server-side encryption
-*)
-
-module GetObjectTorrent = struct
-  let policy = Object.Get.policy
-  let policy = Policy.Permission.obj "s3:GetObjectTorrent"
-end
-
-module GetObjectVersionTorrent = struct
-  let policy = Object.Get.policy
-  let policy = Policy.Permission.obj "s3:GetObjectVersionTorrent"
-end
-
-module PostObjectRestore = struct
-  let policy = Policy.Permission.obj "s3:RestoreObject"
+module type S = sig
+  type t
+  type kind
+  val policy : kind Policy.Permission.t
+  val to_reply : t -> Cohttp.Header.t * Xmlio.xml option
 end

@@ -32,3 +32,51 @@
  * {GET,PUT} Bucket accelerate
  * {GET, PUT} Bucket tagging
  * {GET, PUT} Bucket requestPayment *)
+
+module GetBucketAccelerate = struct
+  let policy = Policy.Permission.subresource "s3:GetAccelerateConfiguration"
+end
+
+module PutBucketAccelerate = struct
+  let policy = Policy.Permission.subresource "s3:PutAccelerateConfiguration"
+end
+
+module GetBucketRequestPayment = struct
+  let policy = Policy.Permission.subresource "s3:GetRequestPayment"
+end
+
+module PutBucketRequestPayment = struct
+  let policy = Policy.Permission.subresource "s3:PutRequestPayment"
+end
+
+module GetBucketLocation = struct
+  let policy = Policy.Permission.subresource "s3:GetBucketLocation"
+end
+
+module GetBucketNotification = struct
+  let policy = Policy.Permission.subresource "s3:GetBucketNotification"
+end
+
+module PutBucketNotification = struct
+  let policy = Policy.Permission.subresource "s3:PutBucketNotification"
+end
+
+module GetBucketTagging = struct
+  let policy = Policy.Permission.subresource "s3:GetBucketTagging"
+end
+
+module PutBucketTagging = struct
+  let policy = Policy.Permission.subresource "s3:PutBucketTagging"
+end
+
+module GetReplicationConfiguration = struct
+  let policy = Policy.Permission.subresource "s3:GetReplicationConfiguration"
+end
+
+module PutReplicationConfiguration = struct
+  let policy = Policy.Permission.subresource "s3:PutReplicationConfiguration"
+end
+
+module DeleteReplicationConfiguration = struct
+  let policy = Policy.Permission.subresource "s3:DeleteReplicationConfiguration"
+end

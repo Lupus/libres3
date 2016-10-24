@@ -27,3 +27,8 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
+module GetObjectTorrent : sig
+  val policy : Object.Get.policy
+end
+
+

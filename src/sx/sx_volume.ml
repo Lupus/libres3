@@ -117,6 +117,13 @@ module ListVolumes = struct
   let target = Cluster
 
   let example = "{\"volumeList\":{\"MyOtherVolume\":{\"owner\":\"user\",\"replicaCount\":2,\"maxRevisions\":6,\"privs\":\"rw\",\"usedSize\":142685712,\"sizeBytes\":102005473280,\"filesSize\":102001213000,\"filesCount\":2345},\"volume\":{\"owner\":\"admin\",\"replicaCount\":1,\"maxRevisions\":3,\"privs\":\"r-\",\"usedSize\":2871431,\"sizeBytes\":10737418240,\"filesSize\":10735131100,\"filesCount\":1311}}}"
+
+  let get ?(volume_meta=false) ?(custom_volume_meta=false) () =
+    let query =  ["volumeList",[]] |>
+                 query_opt_bool volume_meta "volumeMeta" |>
+                 query_opt_bool custom_volume_meta "customVolumeMeta"
+    in
+    Uri.make ~path:"/" ~query ()
 end
 
 

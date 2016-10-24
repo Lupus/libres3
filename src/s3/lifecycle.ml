@@ -30,3 +30,11 @@
 (* just stubs:
  {DELETE,GET,PUT} Bucket lifecycle
    {DELETE,GET,PUT} Bucket replication *)
+
+module GetBucketLifecycleConfiguration = struct
+  let policy = Policy.Permission.subresource "s3:GetBucketLifecycleConfiguration"
+end
+
+module PutBucketLifecycleConfiguration = struct
+  let policy = Policy.Permission.subresource "s3:PutBucketLifecycleConfiguration"
+end

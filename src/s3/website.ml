@@ -31,3 +31,15 @@
    GET Bucket website
    PUT Bucket website
    public buckets *)
+
+module GetBucketWebsite = struct
+  let policy = Policy.Permission.subresource "s3:GetBucketWebsite"
+end
+
+module PutBucketWebsite = struct
+  let policy = Policy.Permission.subresource "s3:PutBucketWebsite"
+end
+
+module DeleteBucketWebsite = struct
+  let policy = Policy.Permission.subresource "s3:DeleteBucketWebsite"
+end

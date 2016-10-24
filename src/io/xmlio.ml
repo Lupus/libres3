@@ -16,4 +16,58 @@
 (*  PERFORMANCE OF THIS SOFTWARE.                                         *)
 (**************************************************************************)
 
-(* use markup.ml for streaming parse/generation *)
+open Markup
+open Rresult
+
+type xml = 'a Markup.node as 'a
+let api_ns = "http://s3.amazonaws.com/doc/2006-03-01"
+
+let element ?ns name ?(attrs=[]) children =
+  let ns, attrs = match ns with
+  | None -> api_ns, attrs
+  | Some ns ->
+      ns, ((Ns.xmlns, "xmlns"), ns) :: attrs
+  in
+  `Element ((ns,name), attrs, children)
+
+let text str = `Text str
+
+let text_of_int i = text (string_of_int i)
+    
+let opt f = function
+| None -> []
+| Some v -> [ f v ]
+
+let root name ?attrs children =
+  element ~ns:api_ns name ?attrs children
+
+let id x = x
+
+let report =
+  let count = ref 0 in
+  fun location error ->
+    error |> Error.to_string |> prerr_endline;
+    count := !count + 1;
+    if !count >= 10 then raise_notrace Exit
+
+let prefix accum v = match accum with
+| false -> [v], Some false
+| true -> [`Xml { version="1.0"; encoding=Some "UTF-8"; standalone=None }; v], Some false
+
+let to_string (t:xml) =
+  from_tree id t |>
+  transform prefix true |>
+  pretty_print |>
+  write_xml ~report |>
+  to_string
+
+let expect_root tag : xml option -> (xml list, Rresult.R.msg) result  = function
+| Some (`Element ((_, actual_tag), _, children)) when tag = actual_tag -> Ok children
+| Some (`Element ((_,actual_tag),_,_)) ->
+    R.error_msgf "Bad xml root tag, expected '%s', but got '%s'" tag actual_tag
+| Some (#Markup.node) -> R.error_msg "Bad xml: no root element"
+| None -> Ok []
+
+let is_tag ~tag = function
+| `Element ((_, actual_tag),_,_) -> actual_tag = tag
+| #Markup.node -> false

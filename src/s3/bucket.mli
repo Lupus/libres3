@@ -27,3 +27,36 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
+open S3_types
+open Rresult
+
+module Region: sig
+  type t = private string
+  val pp : t Fmt.t
+end
+
+module Service : sig
+  module Bucket : sig
+    type t = {
+      name: string;
+      creation_date: CalendarLib.Calendar.t;
+    }
+  end
+  type t = {
+    owner : Acl.CanonicalUser.t;
+    buckets: Bucket.t list;
+  }
+
+  include S with type t := t and type kind := Policy.bucket
+end
+
+module Create : sig
+  type t = {
+    bucket : string;
+    acl : Acl.t;
+    location_constraint: Region.t option;
+  }
+
+  val of_request : Cohttp.Header.t * string * Xmlio.xml option -> (t, R.msg) result
+  include S with type t := t and type kind := Policy.bucket
+end

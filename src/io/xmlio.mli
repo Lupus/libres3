@@ -16,3 +16,21 @@
 (*  PERFORMANCE OF THIS SOFTWARE.                                         *)
 (**************************************************************************)
 
+type xml = 'a Markup.node as 'a
+
+val element : ?ns:string -> string -> ?attrs:(Markup.name * string) list ->
+  xml list -> xml
+
+val opt: ('a -> xml) -> 'a option -> xml list
+
+val text : string -> xml
+
+val text_of_int : int -> xml
+
+val root : string -> ?attrs:(Markup.name * string) list -> xml list -> xml
+
+val to_string : xml -> string
+
+val expect_root : string -> xml option -> (xml list, Rresult.R.msg) result
+
+val is_tag : tag:string -> xml -> bool

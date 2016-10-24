@@ -29,3 +29,11 @@
 
 (* GET Bucket logging
    PUT Bucket logging *)
+
+module GetBucketLogging = struct
+  let policy = Policy.Permission.subresource "s3:GetBucketLogging"
+end
+
+module PutBucketLogging = struct
+  let policy = Policy.Permission.subresource "s3:PutBucketLogging"
+end

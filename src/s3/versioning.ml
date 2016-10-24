@@ -36,3 +36,15 @@
    PUT Object versioning
    PUT Object - Copy versioning
 *)
+
+module GetObjectVersions = struct
+  let policy = Policy.Permission.bucket "s3:ListBucketVersions"
+end
+
+module GetBucket = struct
+  let policy = Policy.Permission.subresource "s3:GetBucketVersioning"
+end
+
+module PutBucket = struct
+  let policy = Policy.Permission.subresource "s3:PutBucketVersioning"
+end

@@ -45,18 +45,8 @@ let add_file_set (file,attr) set =
   | File f -> file ^ "?" ^ f.file_revision in
   String.Set.add f set
 
-let main uri recurse diff =
-  load_sx uri >>= fun sx ->
+let test_list_files sx base_uri vol filter recurse diff =
   let open Sx_config in
-  resolve_opt sx.hostname >>= fun nodes ->
-  let nodes = List.rev_append sx.nodes nodes in
-  let host = List.hd nodes |> Ipaddr.to_string in
-  let base_uri = Uri.make ~scheme:"https" ~host () in
-
-  let vol, filter = match Astring.String.cuts ~empty:false ~sep:"/" (Uri.path uri) with
-  | vol :: filter -> vol, filter
-  | [] -> invalid_arg "No volume specified" in
-
   let vol = Sx_volume.T.v vol in
 
   let filter = Sx_types.Pattern.of_literal (Astring.String.concat ~sep:"/" filter) in
@@ -120,6 +110,68 @@ let main uri recurse diff =
     print_endline str;
     return_unit
  end
+
+let reply_to_string (_header, xml) = match xml with
+| Some xml -> Xmlio.to_string xml
+| None -> ""
+
+let test_volume_list sx base_uri =
+  let open Sx_config in
+  let uri' = Sx_volume.ListVolumes.get ~custom_volume_meta:true () in
+  let uri' = Uri.resolve "" base_uri uri' in
+
+  let req = { (Request.make_for_client `GET uri') with
+              resource = Uri.to_string uri' } in
+  Logs.debug (fun m -> m "request: %a" Request.pp_hum req);
+  Sky.filter sx_service (sx.token,req,Body.empty) >>= fun (resp, body) ->
+  Logs.debug (fun m -> m "Response: %a" Response.pp_hum resp);
+  body |> Cohttp_lwt_body.to_stream |> Jsonio.of_strings |>
+  Jsonio.to_json >>= fun json ->
+  let volumes = Json_encoding.destruct Sx_volume.ListVolumes.encoding json in
+  let open Markup in
+  let attr_creation = "libres3-creation_date" in
+  let get_custom_meta attrs field conv default =
+    let open Sx_volume in
+    match attrs.Attr.custom_volume_meta with
+    | None -> default
+    | Some (Meta.VolumeMeta meta) ->
+        try List.assoc field meta |> Hex.to_string |> conv
+        with Not_found -> default
+  in
+  (* TODO: strict : list only my own buckets or all that have access to *)
+  let open Bucket in
+  let bucket_of_volume (Sx_volume.T.Volume name, attr) =
+    let creation_date =
+      get_custom_meta attr attr_creation float_of_string 0. |>
+      CalendarLib.Calendar.from_unixfloat in
+    {
+      Service.Bucket.name = name;
+      creation_date
+    }
+  in
+  let owner = {
+      Acl.CanonicalUser.id = "00";
+      display_name = "test";
+    }
+  in
+  Service.{
+    owner;
+    buckets = List.rev_map bucket_of_volume volumes
+  } |> Service.to_reply |> reply_to_string |> print_endline;
+  return_unit
+
+
+let main uri recurse diff =
+  load_sx uri >>= fun sx ->
+  let open Sx_config in
+  resolve_opt sx.hostname >>= fun nodes ->
+  let nodes = List.rev_append sx.nodes nodes in
+  let host = List.hd nodes |> Ipaddr.to_string in
+  let base_uri = Uri.make ~scheme:"https" ~host () in
+
+  match Astring.String.cuts ~empty:false ~sep:"/" (Uri.path uri) with
+  | [] -> test_volume_list sx base_uri 
+  | vol :: filter -> test_list_files sx base_uri vol filter recurse diff
 
 let run uri recurse diff () =
   try Lwt_main.run (main uri recurse diff)

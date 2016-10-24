@@ -27,3 +27,17 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
+
+type obj
+type bucket
+type subresource
+
+module Permission : sig
+  type 'a t
+
+  val obj : string -> obj t
+  val bucket : string -> bucket t
+  val subresource : string -> subresource t
+
+  val all : 'a t
+end

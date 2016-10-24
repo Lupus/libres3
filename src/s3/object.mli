@@ -27,3 +27,10 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
+module Get : sig
+  val policy : obj Permission.t
+end
+
+module Head : sig
+  val policy : obj Permission.t
+end
