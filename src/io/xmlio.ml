@@ -30,13 +30,19 @@ let element ?ns name ?(attrs=[]) children =
   in
   `Element ((ns,name), attrs, children)
 
-let text str = `Text str
+let add_opt_element ?ns name ?attrs f v lst =
+  match v with
+  | None -> lst
+  | Some v ->
+      element ?ns name ?attrs (f v) :: lst
+
+let text str = [ `Text str ]
 
 let text_of_int i = text (string_of_int i)
     
 let opt f = function
 | None -> []
-| Some v -> [ f v ]
+| Some v -> f v
 
 let root name ?attrs children =
   element ~ns:api_ns name ?attrs children
@@ -57,7 +63,6 @@ let prefix accum v = match accum with
 let to_string (t:xml) =
   from_tree id t |>
   transform prefix true |>
-  pretty_print |>
   write_xml ~report |>
   to_string
 

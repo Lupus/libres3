@@ -32,4 +32,5 @@ module type S = sig
   type kind
   val policy : kind Policy.Permission.t
   val to_reply : t -> Cohttp.Header.t * Xmlio.xml option
+  val examples : (t * string) list
 end

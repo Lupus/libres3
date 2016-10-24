@@ -140,12 +140,27 @@ module Json = struct
       "initialize add chunk", `Quick, test_simple_example (module Sx_file.Initialize.AddChunk);
       "list revisions", `Quick, test_simple_example (module Sx_file.ListRevisions)
     ]
+end
 
+module Xml = struct
+  let test_xml (module M : S3_types.S) () =
+    List.iter (fun (input, expected_output) ->
+        match M.to_reply input with
+        | _, None -> failwith "Expected XML reply, got none"
+        | _, Some xml ->
+            check string "xml reply" expected_output (Xmlio.to_string xml)
+      ) M.examples
+
+  let tests = "xmlio", [
+      "GET Service", `Quick, test_xml (module Bucket.Service);
+      "List Objects V2", `Quick, test_xml (module Bucket.ListObjects.Reply);
+    ]
 end
 
 let () =
   Logs.set_level (Some Logs.Debug);
   Logs.set_reporter (Logs_fmt.reporter ());
   Alcotest.run "LibreS3" [
-    Json.tests
+    Json.tests;
+    Xml.tests;
   ]

@@ -47,7 +47,7 @@ module Service : sig
     buckets: Bucket.t list;
   }
 
-  include S with type t := t and type kind := Policy.bucket
+  include S with type t := t and type kind = Policy.bucket
 end
 
 module Create : sig
@@ -58,5 +58,55 @@ module Create : sig
   }
 
   val of_request : Cohttp.Header.t * string * Xmlio.xml option -> (t, R.msg) result
-  include S with type t := t and type kind := Policy.bucket
+  (*  include S with type t := t and type kind := Policy.bucket*)
+end
+
+module StorageClass : sig
+  type t = private string
+  val to_string : t -> string
+end
+
+module ListObjects : sig
+  type version = [`V1 | `V2]
+  module Req : sig
+    type t = {
+      delimiter : string;
+      encoding_type: Uri.t option;
+      marker: string option;
+      max_keys: int;
+      prefix: string;
+      list_type : version;
+      continuation_token : string option;(* V2 *)
+      fetch_owner: bool;(* V2 *)
+      start_after: string option; (* V2 *)
+    }
+  end
+  module Reply : sig
+    type contents = {
+      owner: Acl.CanonicalUser.t option;(* V2: optional *)
+      etag: string;
+      key: string;
+      last_modified: CalendarLib.Calendar.t;
+      size: Int64.t;
+      storage_class: StorageClass.t;
+    }
+    type t = {
+      contents: contents list;
+      common_prefixes : string list; (* counts as 1 towards max_keys *)
+      delimiter: string option;
+      encoding_type: string option;
+      is_truncated: bool;
+      marker: string option; (* V1 *)
+      max_keys: int;
+      name: string;
+      next_marker: string option; (* V1 *)
+      owner: Acl.CanonicalUser.t option; (* V2: optional *)
+      prefix: string option;
+      continuation_token: string option;(* V2 *)
+      key_count: int option; (* V2 *)
+      next_continuation_token: string option;(* V2 *)
+      start_after: string option; (* V2 *)
+    }
+    include S with type t := t and type kind = Policy.bucket
+  end
 end

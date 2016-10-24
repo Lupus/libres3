@@ -21,11 +21,14 @@ type xml = 'a Markup.node as 'a
 val element : ?ns:string -> string -> ?attrs:(Markup.name * string) list ->
   xml list -> xml
 
-val opt: ('a -> xml) -> 'a option -> xml list
+val add_opt_element : ?ns:string -> string -> ?attrs:(Markup.name * string) list ->
+  ('a -> xml list) -> 'a option -> xml list -> xml list
 
-val text : string -> xml
+val opt: ('a -> xml list) -> 'a option -> xml list
 
-val text_of_int : int -> xml
+val text : string -> xml list
+
+val text_of_int : int -> xml list
 
 val root : string -> ?attrs:(Markup.name * string) list -> xml list -> xml
 

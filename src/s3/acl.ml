@@ -47,8 +47,8 @@ module CanonicalUser = struct
     display_name: string;
   }
   let to_xml t = [
-        element "ID" [text t.id];
-        element "DisplayName" [text t.display_name];
+        element "ID" (text t.id);
+        element "DisplayName" (text t.display_name);
   ]
 end
 
