@@ -391,9 +391,14 @@ module Mass = struct
     let target = Volume
   end
   module Rename = struct
-    let rename vol ?(recursive=false) ~source ~dest =
-      ["source", [source]; "dest", [dest]] |>
-      query_opt_bool recursive "recursive" |>
+    type t = {
+      source: string;
+      dest: string;
+      recursive: bool;
+    }
+    let rename vol t =
+      ["source", [t.source]; "dest", [t.dest]] |>
+      query_opt_bool t.recursive "recursive" |>
       Uri.with_query (T.uri vol)
     let target = Volume
   end

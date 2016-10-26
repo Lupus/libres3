@@ -110,3 +110,7 @@ module ListObjects : sig
     include S with type t := t and type kind = Policy.bucket
   end
 end
+
+module ListMultipartUploads : sig
+  type t
+end

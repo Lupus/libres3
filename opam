@@ -37,6 +37,7 @@ depends: [
   "tyre" {>= "0.2" }
   "uuidm" { >= "0.9.6" }
   "markup" { >= "0.7.2" }
+  "xmlm" { test & >= "1.2.0" & < "2.0" }
 ]
 build: [ "ocaml" "pkg/pkg.ml" "build" "--pinned" pinned "--tests" "false"]
 build-test: [

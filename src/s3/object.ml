@@ -38,12 +38,20 @@
    Abort multipart upload
    List parts *)
 
+module Delete = struct
+  let policy = Policy.Permission.obj "s3:DeleteObject"
+end
+
 module Head = struct
   let policy = Policy.Permission.obj "s3:GetObject"
 end
 
 module Get = struct
   let policy = Head.policy
+end
+
+module DeleteVersion = struct
+  let policy = Policy.Permission.obj "s3:DeleteObjectVersion"
 end
 
 module HeadVersion = struct

@@ -31,53 +31,7 @@
 (*  reasons why the executable file might be covered by the GNU Library   *)
 (*  General Public License.                                               *)
 (**************************************************************************)
+open Sx_services
 
-open Services
-open Sx_types
-open Jsonenc
-open Cohttp
+let service _ = failwith "TODO"
 
-
-module SX : sig
-  type 'a req = 'a * Request.t * Body.t
-  type resp = Http.resp
-  type 'a t = ('a req, resp) Generic.t
-  type ('a, 'b) filter = 'a t -> 'b t
-end
-
-type ('header, 'element) streaming = 'header * 'element list
-
-type stream
-
-type 'reply req =
-  | ListNodes : unit -> Sx_cluster.ListNodes.t req
-  | GetClusterMeta : unit -> Sx_cluster.Meta.Get.t req
-  | SetClusterMeta : Sx_cluster.Meta.Set.t -> Job.t req
-  | ListUsers : unit -> Sx_cluster.Users.List.t req
-  | CreateUser : Sx_cluster.Users.Create.t -> Job.t req
-  | Self : unit -> Sx_cluster.Users.Self.t req
-  | ModifyUser : Sx_cluster.Users.Modify.t -> Job.t req
-  | RemoveUser : Sx_types.User.t -> Job.t req
-  | RemoveUserClones : Sx_types.User.t -> Job.t req
-  | ListVolumes : unit -> Sx_volume.ListVolumes.t req
-  | Locate : Sx_volume.T.t -> Sx_volume.Locate.t req
-  | LocateUpload : (Int53.t * Sx_volume.T.t) -> Sx_volume.Locate.t req
-  | CreateVolume : Sx_volume.T.t -> Job.t req
-  | ModifyVolume : Sx_volume.T.t * Sx_volume.Modify.t -> Job.t req
-  | ModifyReplica : Sx_volume.T.t * Sx_volume.ModifyReplica.t -> Job.t req
-  | DeleteVolume : Sx_volume.T.t -> Job.t req
-  | GetVolumeAcl : Sx_volume.T.t -> Sx_volume.Acl.Get.t req
-  | UpdateVolumeAcl : Sx_volume.T.t -> Sx_volume.Acl.Update.t req
-  | ListFiles : Sx_volume.T.t -> (Sx_volume.ListFiles.header,Sx_volume.ListFiles.element) streaming req
-  | MassDelete : Sx_volume.T.t * Pattern.t -> Job.t req
-  | MassRename : Sx_volume.T.t * Sx_volume.Mass.Rename.t -> Job.t req
-  | GetFile : Sx_volume.T.t * string -> stream req
-  | InititializeFile : Sx_volume.T.t *
-                       (Sx_file.Initialize.Request.header, Sx_file.Initialize.Request.element) streaming ->
-    (Sx_file.Initialize.Reply.header, Sx_file.Initialize.Reply.element) streaming req
-  | AddChunk : Sx_file.Initialize.AddChunk.t -> (Sx_file.Initialize.Reply.header, Sx_file.Initialize.Reply.element) streaming req
-  | FlushFile : UploadToken.t -> Job.t req
-  | DeleteFile : Sx_volume.T.t * string -> Job.t req
-  | ListRevisions: Sx_volume.T.t * string -> Sx_file.ListRevisions.t req
-  | GetBlock : (int * Sx_block.t * Sx_block.t list) -> stream req
-  | CreateBlock : (int * UploadToken.t) -> unit req

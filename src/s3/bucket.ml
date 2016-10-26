@@ -291,5 +291,9 @@ module GetObjectVersions = struct
 end
 
 module ListMultipartUploads = struct
+  type t
+  type kind = Policy.bucket
   let policy = Policy.Permission.bucket "s3:ListBucketMultipartUploads"
+
+  let to_reply _ = failwith "TODO"
 end

@@ -176,6 +176,11 @@ module Mass : sig
     val target : target
   end
   module Rename : sig
-    val rename : T.t -> ?recursive:bool -> source:string -> dest:string -> Uri.t
+    type t = {
+      source: string;
+      dest: string;
+      recursive: bool;
+    }
+    val rename : T.t -> t -> Uri.t
   end
 end

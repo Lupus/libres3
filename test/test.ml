@@ -22,6 +22,8 @@ open Boundedio
 open Sx_types
 open Astring
 
+open Sx_service
+
 let lwt_run = Lwt_main.run
 
 module Json = struct

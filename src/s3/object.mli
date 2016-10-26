@@ -27,10 +27,53 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
+open Policy
+open S3_types
+
+module Acl : sig
+  type t
+end
+
 module Get : sig
   val policy : obj Permission.t
 end
 
 module Head : sig
   val policy : obj Permission.t
+end
+
+module Delete : sig
+  val policy : obj Permission.t
+end
+
+module DeleteMulti : sig
+  type t
+end
+
+module Copy : sig
+  type t
+end
+
+module InitiateMultipart : sig
+  type t
+end
+
+module UploadPart : sig
+  type t
+end
+
+module UploadPartCopy : sig
+  type t
+end
+
+module CompleteMultipart : sig
+  type t
+end
+
+module AbortMultipart : sig
+  type t
+end
+
+module ListParts: sig
+  type t
 end
