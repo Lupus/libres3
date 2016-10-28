@@ -16,26 +16,20 @@
 (*  PERFORMANCE OF THIS SOFTWARE.                                         *)
 (**************************************************************************)
 
-type +'a t = 'a Lwt.t
+open Cohttp_lwt_unix
+open Cohttp
+open Lwt
 
-val return : 'a -> 'a t
+let setup style_renderer level =
+  Fmt_tty.setup_std_outputs ?style_renderer ();
+  Logs.set_level level;
+  Logs.set_reporter (Logs_fmt.reporter ())
 
-val return_unit : unit t
-val return_some : 'a -> 'a option t
-val return_none : 'a option t
+let server =
+  setup None (Some Logs.Debug);
+  Conduit_lwt_unix.init ~src:"127.0.0.1" () >>= fun ctx ->
+  let ctx = Cohttp_lwt_unix_net.init ~ctx () in
+  Server.create ~ctx ~mode:(`TCP (`Port 8080)) (Server.make ~callback:Libres3.handle ())
 
-val (>>=) : 'a t -> ('a -> 'b t) -> 'b t
-
-val (>>>) : 'a t -> (('a, exn) result -> 'b t) -> 'b t
-
-val ignore : _ t -> unit t
-val fail : exn -> _ t
-val try_with : (unit -> 'a t) -> 'a t
-
-val raise : [> `Use_fail_instead]
-
-val yield : unit -> unit t
-
-val run : 'a t -> 'a
-
-val delay : float -> unit t
+let () =
+  Lwt_main.run server

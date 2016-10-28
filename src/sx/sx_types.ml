@@ -81,6 +81,17 @@ module Meta = struct
   let pp = Fmt.(pair string pp_hex |> list)
 end
 
+module Error = struct
+  type t = { error_message: string }
+
+  let v error_message = { error_message }
+  let of_v t = t.error_message
+
+  let encoding = obj1 (req "ErrorMessage" string) |> obj_opt |> conv of_v v
+
+  let pp = Fmt.(using of_v string)
+end
+
 module Job = struct
   module RequestId = struct
     type t = string
@@ -147,6 +158,8 @@ module Job = struct
 
   let example = "{\"requestId\":\"4\",\"minPollInterval\":100,\"maxPollInterval\":6000}"
 end
+
+type job = Uri.t * Job.t
 
 module User = struct
   type t = User of string

@@ -27,7 +27,7 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
-type context
+type context = unit
 type bucket = string
 type subresource = string
 type key = string
@@ -64,4 +64,6 @@ type 'a req =
   | AbortMultipart : (context * bucket * key * Object.AbortMultipart.t) -> unit req
   | ListParts: (context * bucket * key) -> Object.ListParts.t req
 
-val service : 'a req -> 'a Boundedio.t
+module type S = sig
+  val service : 'a req -> 'a Boundedio.t
+end

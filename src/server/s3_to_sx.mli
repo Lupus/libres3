@@ -27,46 +27,4 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
-open Astring
-open Rresult
-type bucket_name = string
-
-let is_dns_compliant name =
-  failwith "TODO"
-
-let expect_range ?(min=min_int) ?(max=max_int) msg actual =
-  if actual < min then R.error_msgf "%s invalid: %d < %d" msg actual min
-  else if actual > max then R.error_msgf "%s invalid: %d > %d" msg actual max
-  else Ok ()
-
-let is_bad_classic = function
-| 'A' .. 'Z' | 'a' .. 'z' | '0'..'9' | '.' | '-' | '_' -> false
-| _ -> true
-
-let validate_string ~msg is_bad str =
-  match String.find is_bad str with
-  | None -> Ok ()
-  | Some i -> R.error_msgf "%s contains invalid character %c" msg str.[i]
-
-let is_classic_compliant name = R.(
-    expect_range ~max:255 "Bucket name length" (String.length name) >>= fun () ->
-    validate_string ~msg:"Bucket name" is_bad_classic name >>= fun () ->
-    Ok name)
-
-let is_bad_dns = function
-| 'a' .. 'z' | '0' .. '9' | '-' -> false
-| _ -> true
-
-let validate_label accum label =
-  R.(accum >>= fun () ->
-     validate_string ~msg:"Bucket name" is_bad_dns label >>= fun () ->
-     if String.length label = 0 then R.error_msgf ".. not allowed in bucket name"
-     else match label.[0], label.[String.length label-1] with
-     | ('a'..'z'|'0'..'9'), ('a'..'z'|'0'..'9') -> Ok () 
-     | _ -> R.error_msgf "Bucket name label %S invalid start/end character" label)
-
-let is_dns_compliant name =
-  expect_range ~min:3 ~max:63 "Bucket name length" (String.length name) >>= fun () ->
-  String.cuts ~sep:"." name |>
-  List.fold_left validate_label (Ok ()) >>= fun () ->
-  Ok name
+include S3_service.S

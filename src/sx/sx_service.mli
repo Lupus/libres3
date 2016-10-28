@@ -32,4 +32,9 @@
 (*  General Public License.                                               *)
 (**************************************************************************)
 
+exception JobError of string
+exception SxError of Sx_types.Error.t
+exception RetryFailed of exn list
+
+val sx_retry : ('a Sx_services.req -> 'a Boundedio.t) -> 'a Sx_services.req -> 'a Boundedio.t
 val service : 'a Sx_services.req -> 'a Boundedio.t

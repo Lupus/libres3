@@ -75,13 +75,40 @@ module Post = struct
 end
 
 module InitiateMultipart = struct
+  type t
   let policy = Put.policy
 end
 
 module UploadPart = struct
+  type t
   let policy = Put.policy
 end
 
 module CompleteMultipart = struct
+  type t
   let policy = Put.policy
+end
+
+module DeleteMulti = struct
+  type t
+end
+
+module Copy = struct
+  type t
+end
+
+module UploadPartCopy = struct
+  type t
+end
+
+module AbortMultipart = struct
+  type t
+end
+
+module ListParts= struct
+  type t
+end
+
+module Acl = struct
+  type t
 end

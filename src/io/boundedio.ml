@@ -50,3 +50,5 @@ let try_with f = try f () with exn -> Lwt.fail exn
 
 let always_unit _ = Lwt.return_unit
 let ignore t = t >>= always_unit
+
+let delay seconds = Lwt_unix.sleep seconds

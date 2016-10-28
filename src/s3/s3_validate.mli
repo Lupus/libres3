@@ -27,3 +27,8 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
+open Rresult
+type bucket_name = string
+
+val is_dns_compliant : string -> (bucket_name, R.msg) result
+val is_classic_compliant: string -> (bucket_name, R.msg) result

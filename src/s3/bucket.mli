@@ -33,6 +33,7 @@ open Rresult
 module Region: sig
   type t = private string
   val pp : t Fmt.t
+  val is_classic : t option -> bool
 end
 
 module Service : sig

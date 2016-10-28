@@ -22,4 +22,5 @@ let () =
     test "test/test";
     test ~run:false "test/ls";
     test ~cond:bench ~run:false "test/json_bench";
+    test ~run:false "test/minserv";
   ]

@@ -50,6 +50,11 @@ module Region = struct
   (* TODO: validate region *)
   | [ `Element (_,_,[`Text loc])] -> Ok (Some loc)
   | _ -> Ok None
+
+  let is_classic = function
+  | None -> true
+  | Some "us-east-1" -> true
+  | Some _ -> false
 end
 
 module StorageClass = struct

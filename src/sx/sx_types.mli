@@ -81,6 +81,11 @@ module User : sig
   include Convertible with type t := t
 end
 
+module Error : sig
+  type t = { error_message: string }
+  include Convertible with type t := t
+end
+
 module Job : sig
   module RequestId : Convertible with type t = private string
   module Poll : sig
@@ -94,11 +99,13 @@ module Job : sig
   end
   type t = {
     request_id: RequestId.t;
-    min_poll_interval: float;
-    max_poll_interval: float;
+    min_poll_interval: float; (* ms *)
+    max_poll_interval: float; (* ms *)
   }
   include JsonQuery with type t := t
 end
+
+type job = Uri.t * Job.t
 
 module UploadToken : sig
   include Convertible

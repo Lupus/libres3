@@ -35,8 +35,10 @@ depends: [
   "rresult" {>= "0.5.0" }
   "ssl" {>= "0.5.2" }
   "tyre" {>= "0.2" }
+  "re.posix" {>= "1.7.1" & < "2.0" }
   "uuidm" { >= "0.9.6" }
   "markup" { >= "0.7.2" }
+  "ezjsonm"  { >= "0.4.3" }
   "xmlm" { test & >= "1.2.0" & < "2.0" }
 ]
 build: [ "ocaml" "pkg/pkg.ml" "build" "--pinned" pinned "--tests" "false"]
