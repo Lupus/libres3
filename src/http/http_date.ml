@@ -36,10 +36,10 @@ let to_string d =
 let of_unix_timestamp f = Calendar.from_unixfloat f
 let to_unix_timestamp d = floor (Calendar.to_unixfloat d +. 0.5)
 
-let add_header h v = Header.add h "Date" (to_string v)
+let add_header v h = Header.add h "Date" (to_string v)
 
-let of_header h = match Header.get h "Date" with
-| Some v -> Some (of_string v)
+let of_header ?(field="Date") h = match Header.get h field with
 | None -> None
+| Some v -> try Some (of_string v) with Invalid_argument _ -> None
 
 let pp ppf v = Printer.Calendar.fprint "%FT%TZ" ppf v

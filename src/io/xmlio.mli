@@ -37,3 +37,5 @@ val to_string : xml -> string
 val expect_root : string -> xml option -> (xml list, Rresult.R.msg) result
 
 val is_tag : tag:string -> xml -> bool
+
+val of_string : string -> xml option

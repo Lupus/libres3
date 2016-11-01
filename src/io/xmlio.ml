@@ -49,18 +49,18 @@ let root name ?attrs children =
 
 let id x = x
 
-let report =
-  let count = ref 0 in
-  fun location error ->
-    error |> Error.to_string |> prerr_endline;
-    count := !count + 1;
-    if !count >= 10 then raise_notrace Exit
-
 let prefix accum v = match accum with
 | false -> [v], Some false
 | true -> [`Xml { version="1.0"; encoding=Some "UTF-8"; standalone=None }; v], Some false
 
 let to_string (t:xml) =
+  let report =
+    let count = ref 0 in
+    fun location error ->
+      error |> Error.to_string |> prerr_endline;
+      count := !count + 1;
+      if !count >= 10 then raise_notrace Exit
+  in
   from_tree id t |>
   transform prefix true |>
   write_xml ~report |>
@@ -76,3 +76,21 @@ let expect_root tag : xml option -> (xml list, Rresult.R.msg) result  = function
 let is_tag ~tag = function
 | `Element ((_, actual_tag),_,_) -> actual_tag = tag
 | #Markup.node -> false
+
+let of_string str =
+  let report =
+    let count = ref 0 in
+    fun location error ->
+      error |> Error.to_string |> prerr_endline;
+      count := !count + 1;
+      if !count >= 10 then raise_notrace Exit
+  in
+  prerr_endline str;
+  str |> string |> parse_xml ~report |> signals |>
+  trees ~text:(fun ss -> `Text (String.concat "" ss))
+    ~element:(fun tag attrs children -> `Element (tag, attrs, children)) |>
+  to_list |> function
+  | [] ->
+      Logs.debug (fun m -> m "parsed to none!");
+      None
+  | hd :: tl -> Some hd

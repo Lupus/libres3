@@ -40,6 +40,11 @@ let of_xml (headers, xml) =
   | None -> `No_content, "" in
   Server.respond_string ~status ~headers ~body ()
 
+let subresources = ["accelerate"; "acl"; "cors"; "lifecycle"; "policy"; "logging"; "notification"; "replication"; "tagging"; "website"]
+
+let get_subresource = function
+| [res, []] when List.mem res subresources -> Some res
+| _ -> None
 
 let handle _conn req body =
   let uri = Request.uri req in
@@ -50,13 +55,32 @@ let handle _conn req body =
     service (GetService ()) >|= Bucket.Service.to_reply
   in
   let handle_bucket bucket =
-    begin match meth with
-    | `PUT ->
-        let attr = R.get_ok (Bucket.Create.of_request (headers, bucket, None)) in
-        service (CreateBucket ((),bucket,attr))
-    | `DELETE ->
-        service (DeleteBucket ((), bucket))
-    end >>= Server.respond_string ~status:`OK ~body:""
+    match get_subresource (Uri.query uri) with
+    | None -> begin match meth with
+      | `PUT ->
+          let attr = R.get_ok (Bucket.Create.of_request (headers, bucket, None)) in
+          service (CreateBucket ((),bucket,attr))
+      | `DELETE ->
+          service (DeleteBucket ((), bucket))
+      end >>= Server.respond_string ~status:`OK ~body:""
+    | Some sub -> begin match meth with
+      | `PUT ->
+          Cohttp_lwt_body.to_string body >>= fun body ->
+          Logs.debug (fun m -> m "got body: %s" body);
+          begin match Xmlio.of_string body with
+          | Some xml ->
+              service (PutBucketSubresource ((), bucket, sub, xml)) >>=
+              Server.respond_string ~status:`OK ~body:""
+          | None -> invalid_arg "xml"
+          end
+      | `DELETE ->
+          service (DeleteBucketSubresource ((), bucket, sub)) >>=
+          Server.respond_string ~status:`OK ~body:""
+      | `GET ->
+          service (GetBucketSubresource ((), bucket, sub)) >>= fun xml ->
+          let body = Xmlio.to_string xml in
+          Server.respond_string ~status:`OK ~body ()
+      end
   in
   let handle_object bucket key =
     Server.respond_string ~status:`Not_implemented ~body:"" ()

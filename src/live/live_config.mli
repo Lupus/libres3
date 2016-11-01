@@ -17,3 +17,5 @@
 (**************************************************************************)
 
 val load_sx : ?dir:string -> Uri.t -> Sx_config.t Boundedio.t
+
+val base_hostname: string ref

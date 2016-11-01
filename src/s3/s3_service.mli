@@ -44,7 +44,7 @@ type 'a req =
   | HeadBucket : (context * bucket) -> unit req
   | ListMultipartUploads : (context * bucket) -> Bucket.ListMultipartUploads.t req
   | CreateBucket : (context * bucket * Bucket.Create.t) -> unit req
-  | PutBucketSubresource : (context * bucket * Xmlio.xml) -> unit req
+  | PutBucketSubresource : (context * bucket * subresource * Xmlio.xml) -> unit req
   | DeleteObject: (context * bucket * key) -> unit req
   | DeleteMultipleObjects: (context * bucket * Object.DeleteMulti.t) -> unit req
   | GetObject : (context * bucket * key * version option) -> stream req

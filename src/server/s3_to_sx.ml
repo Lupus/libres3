@@ -44,7 +44,12 @@ let get_custom_meta attrs field conv default =
 let attr_creation = "libres3-creation-date"
 
 let wait_job job =
-  SX.sx_retry SX.service (WaitJob job)
+  SX.sx_retry SX.service (Sx_services.WaitJob job)
+
+(* TODO: no GADT, use first class modules or functors *)
+
+let libres3_hidden_prefix = ".libres3-dontmodify-"
+let libres3_hidden_key = "libres3-xml"
 
 let service : type a. a req -> a Boundedio.t = function
 | GetService _ ->
@@ -96,4 +101,29 @@ let service : type a. a req -> a Boundedio.t = function
     | Error e -> fail e)
 | DeleteBucket (_, bucket) ->
     SX.sx_retry SX.service (DeleteVolume (Sx_volume.T.v bucket)) >>= wait_job
+| PutBucketSubresource (_, bucket, subresource, xml) ->
+    let open Sx_file in
+    let vol = Sx_volume.T.v bucket in
+    let str = Xmlio.to_string xml in
+    let hidden = libres3_hidden_prefix ^ subresource in
+    let meta = { Meta.file_meta = [libres3_hidden_key, Hex.of_string str] } in
+    SX.service (InitializeFile (vol, hidden, ((Jsonenc.Int53.of_int64_exn 0L, meta), []))) >>= fun (token, _) ->
+    SX.service (FlushFile token) >>= wait_job
+
+| DeleteBucketSubresource (_, bucket, subresource) ->
+    let open Sx_file in
+    let vol = Sx_volume.T.v bucket in
+    let hidden = libres3_hidden_prefix ^ subresource in
+    SX.service (DeleteFile (vol, hidden)) >>= wait_job
+
+| GetBucketSubresource (_, bucket, subresource) ->
+    let open Sx_file in
+    let vol = Sx_volume.T.v bucket in
+    let hidden = libres3_hidden_prefix ^ subresource in
+    SX.service (GetFileMeta (vol, hidden)) >>= fun meta ->
+    begin match List.hd meta.file_meta |> snd |> Hex.to_string |> Xmlio.of_string with
+    | Some s -> return (s:Xmlio.xml)
+    | None -> fail (Failure "no xml")
+      end
+
 | _ -> fail (Failure "not implemented")

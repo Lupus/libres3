@@ -20,6 +20,6 @@ type t
 open Cohttp
 val of_unix_timestamp : float -> t
 val to_unix_timestamp : t -> float
-val add_header : Header.t -> t -> Header.t
-val of_header : Header.t -> t option
+val add_header : t -> Header.t -> Header.t
+val of_header : ?field:string -> Header.t -> t option
 val pp : Format.formatter -> t -> unit

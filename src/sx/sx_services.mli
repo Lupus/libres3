@@ -73,7 +73,8 @@ type 'reply req =
   | MassDelete : Sx_volume.T.t * Pattern.t -> job req
   | MassRename : Sx_volume.T.t * Sx_volume.Mass.Rename.t -> job req
   | GetFile : Sx_volume.T.t * string -> stream req
-  | InititializeFile : Sx_volume.T.t *
+  | GetFileMeta : Sx_volume.T.t * string -> Sx_file.Meta.t req
+  | InitializeFile : Sx_volume.T.t * string *
                        (Sx_file.Initialize.Request.header, Sx_file.Initialize.Request.element) streaming ->
     (Sx_file.Initialize.Reply.header, Sx_file.Initialize.Reply.element) streaming req
   | AddChunk : Sx_file.Initialize.AddChunk.t -> (Sx_file.Initialize.Reply.header, Sx_file.Initialize.Reply.element) streaming req

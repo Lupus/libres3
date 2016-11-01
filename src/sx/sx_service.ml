@@ -189,5 +189,12 @@ let rec service : type a. a req -> a Boundedio.t = function
     sx_make_request `GET uri' encoding cluster_nodes >>= fun ((l, _) as r) ->
     Logs.debug (fun m -> m "got locate %d nodes" (List.length l));
     return r
+| GetFileMeta (vol, key) ->
+    service (Locate vol) >>= fun (volnodes, _) ->
+    Logs.debug (fun m -> m "deleting volume from %d volnodes" (List.length volnodes));
+    let open Sx_file.Meta in
+    let uri = get vol key in
+    sx_make_request `GET uri encoding (List.rev_map uri_of_node volnodes)
+(*| InitializeFile (vol, key, lst) ->*)
 | _ -> failwith "TODO"
 

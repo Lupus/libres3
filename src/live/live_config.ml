@@ -46,3 +46,5 @@ let load_sx ?dir uri =
   Lwt_io.with_file ~mode:Lwt_io.input loc.auth Lwt_io.read >>= fun auth ->
   Lwt_unix.files_of_directory loc.nodes |> Lwt_stream.filter dotdot |> Lwt_stream.to_list >>= fun nodes ->
   of_config ~config ~auth ~nodes |> of_result
+
+let base_hostname = ref ""

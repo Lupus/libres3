@@ -38,7 +38,7 @@ let drop1 s =
 
 let filter next (token, req, body) =
   let now = Http_date.of_unix_timestamp (Unix.gettimeofday ()) in
-  let headers = Http_date.add_header (Request.headers req) now in
+  let headers = Http_date.add_header now (Request.headers req) in
   let d = Sx_config.Token.binary token in
   let i = String.sub d 0 20
   and k = String.sub d 20 20 in

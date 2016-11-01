@@ -1,6 +1,6 @@
 ".git": -traverse
 ".git": not_hygienic
-true : bin_annot, safe_string, strict_sequence, package(bytes logs), warn_A, warn(-44), warn_error_S, warn_error_U, thread
+true : bin_annot, safe_string, strict_sequence, package(bytes logs), warn_A, warn(-44), warn_error_S, warn_error_U, thread, principal
 
 <src/*>: include
 <src/auth/*>: package(cohttp cryptokit logs)
@@ -19,8 +19,8 @@ true : bin_annot, safe_string, strict_sequence, package(bytes logs), warn_A, war
 <src/io/*>: package(lwt)
 <src/io/xmlio.*>: package(markup rresult)
 <src/io/jsonio.*>: package(jsonm lwt ezjsonm fmt astring)
-<src/server/*>: package(astring base64 calendar cohttp conduit cryptokit hex ipaddr logs lwt lwt_named_threads ocplib-json-typed rresult ssl tyre uuidm xmlm)
+<src/server/*>: package(astring base64 calendar cohttp conduit cryptokit hex ipaddr logs lwt lwt_named_threads ocplib-json-typed rresult ssl tyre uuidm xmlm markup cohttp.lwt fmt jsonm)
 <src/cli/*>: package(cmdliner fmt.cli logs.cli logs.fmt fmt.tty)
-<test/test.*>: package(alcotest lwt.unix uutf jsonm logs.fmt ocplib-json-typed calendar cohttp ipaddr hex ezjsonm rresult markup)
+<test/test.*>: package(alcotest lwt.unix uutf jsonm logs.fmt ocplib-json-typed calendar cohttp ipaddr hex ezjsonm rresult markup uuidm ipaddr.unix cryptokit cohttp.lwt)
 <test/{ls,minserv}.*>: package(cmdliner logs logs.cli fmt.cli fmt.tty logs.fmt ocplib-json-typed cohttp.lwt jsonm astring calendar uuidm rresult cryptokit hex markup)
 <test/*bench.*>: package(core core_bench ezjsonm lwt.unix uutf jsonm fmt astring cryptokit ocplib-json-typed cohttp calendar cohttp.lwt hex)

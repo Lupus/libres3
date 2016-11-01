@@ -57,6 +57,7 @@ end
 module Meta : sig
   type t = { file_meta: Meta.t }
   include JsonQuery with type t := t
+  val get : Sx_volume.T.t -> string -> Uri.t
 end
 
 module Initialize : sig
