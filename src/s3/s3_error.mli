@@ -113,4 +113,6 @@ type t =
   | RemoteServiceUnavailable
   | RemoteServiceTimeout
 
+type detail = (string * string) list
+exception S3Error of t * detail
 val info : t -> string * string * Cohttp.Code.status

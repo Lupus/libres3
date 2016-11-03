@@ -113,6 +113,9 @@ type t =
   | RemoteServiceUnavailable
   | RemoteServiceTimeout
 
+type detail = (string * string) list
+exception S3Error of t * detail
+
 let sig_error () =
   "The request's signature doesn't match what we calculated. \
    Please check that your S3 secret key matches your SX key, \

@@ -31,10 +31,13 @@ open Cohttp
 open Astring
 open Rresult
 
+include (val Logs.(Src.create "S3 request" |> src_log))
+
 type t = {
   meth : Code.meth;
   uri : Uri.t;
   version : Code.version;
+  headers: Cohttp.Header.t;
   authorization: string option;
   content_length : int64 option;
   content_type: string option;
@@ -45,10 +48,10 @@ type t = {
   x_amz_content_sha256: string option;
   x_amz_date : Http_date.t option;
   x_amz_security_token : string option;
-  id: string;
-  id2: string;
   bucket: string option;
   key: string option;
+  id: string;
+  id2: string;
 }
 
 let get_other_auth expected h =
@@ -98,10 +101,11 @@ let of_request req =
   | Some (bucket, key), _ -> Some bucket, Some key
   in
   let authorization = get_other_auth "AWS" h in
-  validate {
+  {
     meth = Request.meth req;
     uri = uri;
     version = Request.version req;
+    headers = h;
     authorization;
     content_length = Header.get_content_range h;
     content_type = Header.get_media_type h;
@@ -114,9 +118,8 @@ let of_request req =
     x_amz_security_token = Header.get h "x-amz-security-token";
     bucket; key;
     id = generate_request_id ();
-    id2 =
-      [digest_opt bucket; digest_opt key; digest_opt authorization] |>
-      String.concat ~sep:"" |> B64.encode
+    id2 = [digest_opt bucket; digest_opt key; digest_opt authorization] |>
+          String.concat ~sep:"" |> B64.encode
   }
 
 module ETag = struct
@@ -137,7 +140,7 @@ let add_header_opt field v lst = match v with
 
 let server_name = "LibreS3-%%VERSION%%"
 
-let respond req ?x_amz_delete_marker ?x_amz_version_id ?etag ?content_type
+let respond ?x_amz_delete_marker ?x_amz_version_id ?etag ?content_type
     ~content_length (status:[< Cohttp.Code.status_code]) =
   (* keepalive only on well-behaved clients *)
   let connection = match status with
@@ -150,11 +153,7 @@ let respond req ?x_amz_delete_marker ?x_amz_version_id ?etag ?content_type
   | Some b -> Some (string_of_bool b)
   | None -> None in
   let headers =
-    ["Connection", connection;
-     "Server", server_name;
-     "x-amz-id-2", req.id2;
-     "x-amz-request-id", req.id;
-    ] |>
+    ["Connection", connection;] |>
     add_header_opt "x-amz-delete-marker" delete_marker |>
     add_header_opt "x-amz-version-id" x_amz_version_id |>
     add_header_opt "Content-Type" content_type |>
@@ -165,18 +164,87 @@ let respond req ?x_amz_delete_marker ?x_amz_version_id ?etag ?content_type
   let encoding = Transfer.Fixed content_length in
   Response.make ~encoding ~headers ~status:(status :> Cohttp.Code.status_code) ()
 
-let respond_xml req status xml =
+let respond_xml status xml =
   let body = xml |> Xmlio.to_string in
   let content_length = body |> String.length |> Int64.of_int in
-  respond req ~content_type:"application/xml" ~content_length status,
-  Body.of_string body
+  respond ~content_type:"application/xml" ~content_length status,
+  `String body
 
-let respond_error req err =
+let to_xml (k, v) =
+  let open Xmlio in
+  element k (text v)
+
+let respond_error req err detail =
   let code, message, status = S3_error.info err in
   let open Xmlio in
-  element "Error" [
+  let xml = [
     element "Code" (text code);
     element "Message" (text message);
     element "Resource" (text (Uri.path req.uri));
     element "RequestId" (text req.id)
-  ] |> respond_xml req status
+  ] in
+  element "Error" (
+    if detail = [] then xml
+    else (element "Details" (List.rev_map to_xml detail)) :: xml) |>
+  respond_xml status
+
+open Boundedio
+open S3_error
+
+let wrapper next req (body: [> Body.t]) =
+  let parsed = of_request req in
+  Logs.debug (fun m -> m "S3 request:@[<v>@[%s %a@]@,%a@,Bucket: %a@,Key: %a@]"
+                 (Code.string_of_method parsed.meth)
+                 Uri.pp_hum parsed.uri
+                 Header.pp_hum parsed.headers
+                 Fmt.(option string) parsed.bucket
+                 Fmt.(option string) parsed.key);
+  let call_next = function
+  | Error (`Msg msg) ->
+      let lst = Request.headers req |> Header.to_list in
+      S3Error (InvalidRequest msg, lst) |> fail
+  | Ok t -> next t body
+  in
+  let postprocess (response, body) =
+    let open Response in
+    debug (fun m -> m "S3 response: %a" Response.pp_hum response);
+    begin match Response.status response, body with
+    | #Code.client_error_status, (#Body.t as b) ->
+        debug (fun m -> m "Client error: %s" (Body.to_string b))
+    | #Code.server_error_status, (#Body.t as b) ->
+        warn (fun m -> m "Server error: %s" (Body.to_string b))
+    | _ -> ()
+    end;
+    let response = {
+      response with headers = Header.add_list response.headers [
+        "Server", server_name;
+        "x-amz-request-id", parsed.id;
+        "x-amz-id-2", parsed.id2;
+      ]
+    }
+    in
+    return (response, body)
+  in
+  let handle_error = function
+  | Ok r -> postprocess r
+  | Error (S3Error (err, detail)) ->
+      respond_error parsed err detail |> postprocess
+  in
+  try
+    validate parsed |> call_next >>> handle_error
+  with e ->
+    warn (fun m -> m "Exception escaped: %a" Fmt.exn e);
+    respond_error parsed InternalError [] |> postprocess
+
+let fallback_reply =
+  let r = Request.make Uri.empty |> of_request in
+  respond_error r InternalError []
+
+let fallback_handler next req body =
+  try next req body
+  with e ->
+    (* If we reached this place we raised an exception while parsing the request,
+       formatting a (possibly errormessage) reply, or ran out of memory.
+       Use a static reply as last resort. *)
+    err (fun m -> m "Fallback handler reached with error: %a" Fmt.exn e);
+    return fallback_reply

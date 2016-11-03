@@ -33,6 +33,7 @@ type t = {
   meth : Cohttp.Code.meth;
   uri : Uri.t;
   version : Cohttp.Code.version;
+  headers: Cohttp.Header.t;
   authorization: string option;
   content_length : int64 option;
   content_type: string option;
@@ -43,10 +44,10 @@ type t = {
   x_amz_content_sha256: string option;
   x_amz_date : Http_date.t option;
   x_amz_security_token : string option;
-  id: string;
-  id2: string;
   bucket: string option;
   key: string option;
+  id: string;
+  id2: string;
 }
 
 module ETag : sig
@@ -57,11 +58,12 @@ module ETag : sig
 end
 
 open Cohttp
-val of_request : Request.t -> (t, R.msg) result
-
-val respond : t -> ?x_amz_delete_marker:bool -> ?x_amz_version_id:string ->
+val respond : ?x_amz_delete_marker:bool -> ?x_amz_version_id:string ->
   ?etag:ETag.t -> ?content_type:string -> content_length:int64 ->
   [< Code.status_code] -> Response.t
-val respond_xml : t -> [< Code.status_code] -> Xmlio.xml -> Response.t * Body.t
-val respond_error : t -> S3_error.t -> Response.t * Body.t
+val respond_xml : [< Code.status_code] -> Xmlio.xml -> Response.t * [> Body.t]
 
+val wrapper : (t -> ([> Body.t] as 'a) -> (Response.t * 'a) Boundedio.t) ->
+  Request.t -> 'a -> (Response.t * 'a) Boundedio.t
+
+val fallback_handler : ('a -> ([> Body.t ] as 'b) -> (Response.t * 'b) Boundedio.t) ->  'a -> 'b -> (Response.t * 'b) Boundedio.t

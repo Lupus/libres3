@@ -33,6 +33,7 @@ open Cohttp
 open Astring
 open Lwt
 open S3_to_sx
+open S3_headers
 
 let of_xml (headers, xml) =
   let status, body = match xml with
@@ -46,27 +47,22 @@ let get_subresource = function
 | [res, []] when List.mem res subresources -> Some res
 | _ -> None
 
-let handle _conn req body =
-  let uri = Request.uri req in
-  let meth = Request.meth req in
-  let headers = Request.headers req in
-
+let dispatch r body =
   let handle_service () =
     service (GetService ()) >|= Bucket.Service.to_reply
   in
   let handle_bucket bucket =
-    match get_subresource (Uri.query uri) with
-    | None -> begin match meth with
+    match get_subresource (Uri.query r.uri) with
+    | None -> begin match r.meth with
       | `PUT ->
-          let attr = R.get_ok (Bucket.Create.of_request (headers, bucket, None)) in
+          let attr = R.get_ok (Bucket.Create.of_request (r.headers, bucket, None)) in
           service (CreateBucket ((),bucket,attr))
       | `DELETE ->
           service (DeleteBucket ((), bucket))
       end >>= Server.respond_string ~status:`OK ~body:""
-    | Some sub -> begin match meth with
+    | Some sub -> begin match r.meth with
       | `PUT ->
           Cohttp_lwt_body.to_string body >>= fun body ->
-          Logs.debug (fun m -> m "got body: %s" body);
           begin match Xmlio.of_string body with
           | Some xml ->
               service (PutBucketSubresource ((), bucket, sub, xml)) >>=
@@ -85,18 +81,11 @@ let handle _conn req body =
   let handle_object bucket key =
     Server.respond_string ~status:`Not_implemented ~body:"" ()
   in
-  let path = Uri.path uri in
-  let rpath = String.drop ~max:1 path in
-
-  Logs.debug (fun m -> m "@[<v>@[%s %a@]@,Path: %s@,@[%a@]@]"
-                 (Code.string_of_method meth) Uri.pp_hum uri
-                 path
-                 Header.pp_hum headers);
-
-  begin match String.cut ~sep:"/" rpath, rpath with
-  | None, "" -> handle_service () >>= of_xml
-  | None, bucket -> handle_bucket bucket
-  | Some (bucket, key), _ -> handle_object bucket key
+  begin match r.bucket, r.key with
+  | None, None -> handle_service () >>= of_xml
+  | Some bucket, None -> handle_bucket bucket
+  | Some bucket, Some key -> handle_object bucket key
+  | None, Some _ -> assert false
   end >>= fun (resp, body) ->
   begin if Logs.level () = Some Logs.Debug &&
            Response.status resp = `Not_implemented then
@@ -106,3 +95,6 @@ let handle _conn req body =
     else return ()
   end >>= fun () ->
   return (resp, body)
+
+let handle _conn =
+  dispatch |> wrapper |> fallback_handler
