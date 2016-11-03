@@ -228,7 +228,10 @@ let wrapper next req (body: [> Body.t]) =
   let handle_error = function
   | Ok r -> postprocess r
   | Error (S3Error (err, detail)) ->
-      respond_error parsed err detail |> postprocess
+        respond_error parsed err detail |> postprocess
+  | Error e ->
+      Logs.warn (fun m -> m "Internal error: %a" Fmt.exn e);
+      respond_error parsed InternalError [] |> postprocess
   in
   try
     validate parsed |> call_next >>> handle_error

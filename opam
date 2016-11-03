@@ -6,7 +6,7 @@ homepage: "http://www.skylable.com/products/features"
 bug-reports: "https://bugzilla.skylable.com/"
 dev-repo: "https://git.skylable.com/libres3.git"
 tags: []
-available: [ ocaml-version >= "4.03.0"]
+available: [ ocaml-version >= "4.02.3"]
 depends: [
   "ocamlbuild" {build}
   "ocamlfind" {build}
@@ -35,7 +35,7 @@ depends: [
   "rresult" {>= "0.5.0" }
   "ssl" {>= "0.5.2" }
   "tyre" {>= "0.2" }
-  "re.posix" {>= "1.7.1" & < "2.0" }
+  "re" {>= "1.7.1" & < "2.0" }
   "uuidm" { >= "0.9.6" }
   "markup" { >= "0.7.2" }
   "ezjsonm"  { >= "0.4.3" }
