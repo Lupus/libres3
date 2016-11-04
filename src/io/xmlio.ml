@@ -30,6 +30,9 @@ let element ?ns name ?(attrs=[]) children =
   in
   `Element ((ns,name), attrs, children)
 
+let element_nons name ?(attrs=[]) children =
+  `Element (("",name),attrs,children)
+
 let add_opt_element ?ns name ?attrs f v lst =
   match v with
   | None -> lst
@@ -53,17 +56,19 @@ let prefix accum v = match accum with
 | false -> [v], Some false
 | true -> [`Xml { version="1.0"; encoding=Some "UTF-8"; standalone=None }; v], Some false
 
+let namespace ns = Some ns
+
 let to_string (t:xml) =
   let report =
     let count = ref 0 in
     fun location error ->
-      error |> Error.to_string |> prerr_endline;
+      Printf.eprintf "Xmlio.to_string: %s\n%!" (Error.to_string error);
       count := !count + 1;
       if !count >= 10 then raise_notrace Exit
   in
   from_tree id t |>
   transform prefix true |>
-  write_xml ~report |>
+  write_xml ~report ~prefix:namespace |>
   to_string
 
 let expect_root tag : xml option -> (xml list, Rresult.R.msg) result  = function
@@ -81,11 +86,11 @@ let of_string str =
   let report =
     let count = ref 0 in
     fun location error ->
-      error |> Error.to_string |> prerr_endline;
+      Logs.warn (fun m -> m "Xmlio.of_string: %s" (Error.to_string error));
       count := !count + 1;
       if !count >= 10 then raise_notrace Exit
   in
-  prerr_endline str;
+  Logs.debug (fun m -> m "Xmlio.of_string: %s" str);
   str |> string |> parse_xml ~report |> signals |>
   trees ~text:(fun ss -> `Text (String.concat "" ss))
     ~element:(fun tag attrs children -> `Element (tag, attrs, children)) |>

@@ -33,11 +33,15 @@ open S3_service
 
 module SX = Sx_service
 
-let get_custom_meta attrs field conv default =
+let get_meta attrs field conv default =
   let open Sx_volume in
-  match attrs.Attr.custom_volume_meta with
-  | None -> default
+  match attrs.Attr.volume_meta with
+  | None ->
+      Logs.debug (fun m -> m "no volume meta");
+      default
   | Some (Meta.VolumeMeta meta) ->
+      Logs.debug (fun m -> m "volume meta: %a"
+                     Fmt.(pair string (using Hex.to_string string) |> list) meta);
       try List.assoc field meta |> Hex.to_string |> conv
       with Not_found -> default
 
@@ -58,7 +62,7 @@ let service : type a. a req -> a Boundedio.t = function
     let open Bucket in
     let bucket_of_volume (Sx_volume.T.Volume name, attr) =
       let creation_date =
-        get_custom_meta attr attr_creation float_of_string 0. |>
+        get_meta attr attr_creation float_of_string 0. |>
         CalendarLib.Calendar.from_unixfloat in
       {
         Service.Bucket.name = name;
@@ -89,7 +93,7 @@ let service : type a. a req -> a Boundedio.t = function
         owner;
         replica_count = 1 (* get_cluster_meta "libres3-replica-count" cm *);
         max_revisions = 1; (* not versioning enabled by default *)
-        volume_meta = Some (Sx_volume.Meta.VolumeMeta ["libres3-creation-date", d])
+        volume_meta = Some (Sx_volume.Meta.VolumeMeta [attr_creation, d])
       } in
     let vol = Sx_volume.T.v bucket in
     SX.service (CreateVolume (Sx_volume.T.v bucket, attr)) >>= wait_job >>> (function

@@ -134,6 +134,7 @@ let sx_make_job_request meth relative_uri ?input reply_encoding targets =
       Jsonio.expect_object >>=
       Jsonio.to_string >|= Body.of_string
   end >>= fun body ->
+  Logs.debug (fun m -> m "Making SX request: %s" (Body.to_string body));
   let rec loop errors = function
   | [] -> fail (RetryFailed errors)
   | node :: tl ->
@@ -144,6 +145,7 @@ let sx_make_job_request meth relative_uri ?input reply_encoding targets =
       Sky.filter sx_service (sx.token, req, body) >>= fun (resp, body) ->
       Logs.debug (fun m -> m "response: %a" Response.pp_hum resp);
       body |> Cohttp_lwt_body.to_stream |> Jsonio.of_strings |>
+      (*Jsonio.observe ~prefix:"reply" |> *)
       Jsonio.to_json >>= fun json ->
       match Json_encoding.destruct encoding json with
       | Ok result ->
@@ -171,7 +173,7 @@ let rec service : type a. a req -> a Boundedio.t = function
     end
 | ListVolumes () ->
     let open Sx_volume.ListVolumes in
-    let uri' = get ~custom_volume_meta:true () in
+    let uri' = get ~volume_meta:true ~custom_volume_meta:true () in
     sx_make_request `GET uri' encoding cluster_nodes
 | CreateVolume (vol, attr) ->
     let open Sx_volume.Create in

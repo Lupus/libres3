@@ -26,6 +26,7 @@
   *  - fairness for queues
   * *)
 
+open Result
 type 'a t = 'a Lwt.t
 
 let return = Lwt.return

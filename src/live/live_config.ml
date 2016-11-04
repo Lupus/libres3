@@ -21,6 +21,7 @@
  * cache remote configuration locally
  * *)
 
+open Result
 open Boundedio
 open Sx_config
 

@@ -16,6 +16,7 @@
 (*  PERFORMANCE OF THIS SOFTWARE.                                         *)
 (**************************************************************************)
 
+open Result
 type +'a t = 'a Lwt.t
 
 val return : 'a -> 'a t

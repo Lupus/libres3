@@ -16,9 +16,13 @@
 (*  PERFORMANCE OF THIS SOFTWARE.                                         *)
 (**************************************************************************)
 
+open Result
 type xml = 'a Markup.node as 'a
 
 val element : ?ns:string -> string -> ?attrs:(Markup.name * string) list ->
+  xml list -> xml
+
+val element_nons : string -> ?attrs:(Markup.name * string) list ->
   xml list -> xml
 
 val add_opt_element : ?ns:string -> string -> ?attrs:(Markup.name * string) list ->

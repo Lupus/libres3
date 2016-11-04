@@ -172,20 +172,20 @@ let respond_xml status xml =
 
 let to_xml (k, v) =
   let open Xmlio in
-  element k (text v)
+  element_nons k (text v)
 
 let respond_error req err detail =
   let code, message, status = S3_error.info err in
   let open Xmlio in
   let xml = [
-    element "Code" (text code);
-    element "Message" (text message);
-    element "Resource" (text (Uri.path req.uri));
-    element "RequestId" (text req.id)
+    element_nons "Code" (text code);
+    element_nons "Message" (text message);
+    element_nons "Resource" (text (Uri.path req.uri));
+    element_nons "RequestId" (text req.id)
   ] in
-  element "Error" (
+  element_nons "Error" (
     if detail = [] then xml
-    else (element "Details" (List.rev_map to_xml detail)) :: xml) |>
+    else (element_nons "Details" (List.rev_map to_xml detail)) :: xml) |>
   respond_xml status
 
 open Boundedio
@@ -193,7 +193,7 @@ open S3_error
 
 let wrapper next req (body: [> Body.t]) =
   let parsed = of_request req in
-  Logs.debug (fun m -> m "S3 request:@[<v>@[%s %a@]@,%a@,Bucket: %a@,Key: %a@]"
+  Logs.debug (fun m -> m "@[<v>S3 request:@[%s %a@]@,%a@,Bucket: %a@,Key: %a@]"
                  (Code.string_of_method parsed.meth)
                  Uri.pp_hum parsed.uri
                  Header.pp_hum parsed.headers
