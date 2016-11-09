@@ -36,14 +36,14 @@ type bucket
 type subresource
 
 module Permission = struct
-  type 'a t = unit (* TODO *)
+  type 'a t = string (* TODO *)
 
 
-  let obj perm = ()
-  let bucket perm = ()
-  let subresource perm = ()
+  let obj perm = perm
+  let bucket perm = perm
+  let subresource perm = perm
 
-  let all = ()
+  let all = "*"
 end
 
 module GetBucket = struct
@@ -57,3 +57,31 @@ end
 module PutBucket = struct
   let policy = Permission.subresource "s3:PutBucketPolicy"
 end
+
+module ObjSet = Set.Make(struct type t = obj Permission.t let compare = compare end)
+module BucketSet = Set.Make(struct type t = bucket Permission.t let compare = compare end)
+module SubresourceSet = Set.Make(struct type t = subresource Permission.t let compare = compare end)
+
+(*
+   READ: Get*
+   WRITE: Put*
+   MANAGER: Put*Acl
+
+   store in customVolumeMeta (requires manager)
+
+   check if you have it -> escalate to volume owner
+   add libres3-policy-<user> user user to all S3 buckets,
+   and escalate to that
+
+   SX ACL mapped to S3 ACL mapped to S3 policy
+   flag to specify which one is in effect in customVolumeMeta
+
+   SX ACL needs to be conservative: if you don't grant all s3:list* policies for e.g.
+    then user is not granted access at SX level
+
+   try regular op, fetch/cache policy/ apply policy
+
+   bucket owner vs object owner
+
+   already existing volumes
+*)

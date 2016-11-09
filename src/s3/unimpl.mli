@@ -27,8 +27,14 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
+open Policy
+
 module GetObjectTorrent : sig
-  val policy : Object.Get.policy
+  val policy : obj Permission.t
+end
+
+module GetObjectVersionTorrent : sig
+  val policy : obj Permission.t
 end
 
 

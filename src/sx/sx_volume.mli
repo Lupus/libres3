@@ -134,8 +134,10 @@ module Acl : sig
     type t = {
       grant_read : User.t list;
       grant_write: User.t list;
+      grant_manager: User.t list;
       revoke_read : User.t list;
       revoke_write: User.t list;
+      revoke_manager: User.t list;
     }
     include JobQuery with type t := t
     val put : T.t -> Uri.t

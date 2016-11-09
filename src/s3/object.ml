@@ -39,7 +39,7 @@
    List parts *)
 
 module Delete = struct
-  let policy = Policy.Permission.obj "s3:DeleteObject"
+  let policy = Policy.Permission.bucket "s3:DeleteObject"
 end
 
 module Head = struct
@@ -63,7 +63,7 @@ module GetVersion = struct
 end
 
 module Put = struct
-  let policy = Policy.Permission.obj "s3:PutObject"
+  let policy = Policy.Permission.bucket "s3:PutObject"
 end
 
 module PutCopy = struct
@@ -111,4 +111,16 @@ end
 
 module Acl = struct
   type t
+  module Get = struct
+    let policy = Policy.Permission.obj "s3:GetObjectAcl"
+  end
+  module GetVersion = struct
+    let policy = Policy.Permission.obj "s3:GetObjectVersionAcl"
+  end
+  module Put = struct
+    let policy = Policy.Permission.obj "s3:PutObjectAcl"
+  end
+  module PutVersion = struct
+    let policy = Policy.Permission.obj "s3:PutObjectVersionAcl"
+  end
 end

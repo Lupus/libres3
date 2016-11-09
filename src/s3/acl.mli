@@ -54,12 +54,24 @@ module Grantee : sig
     | Uri of Groups.t
 end
 
-type t = {
-  grant_read : Grantee.t list;
-  grant_write : Grantee.t list;
-  grant_read_acp : Grantee.t list;
-  grant_write_acp : Grantee.t list;
-}
+module T : sig
+  type t = Read | Write | Read_acp | Write_acp
+  val compare : t -> t -> int
+end
+
+module AclSet : Set.S with type elt = T.t
+module GrantMap : Map.S with type key = Grantee.t
+type t = AclSet.t GrantMap.t
+
+val is_full_control : AclSet.t -> bool
 
 val of_canned : string -> t
 val of_header : Cohttp.Header.t -> (t, R.msg) result
+
+module GetBucket : sig
+  val policy : Policy.bucket Policy.Permission.t
+end
+
+module PutBucket : sig
+  val policy : Policy.bucket Policy.Permission.t
+end

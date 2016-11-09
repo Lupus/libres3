@@ -114,4 +114,9 @@ end
 
 module ListMultipartUploads : sig
   type t
+  val policy : Policy.bucket Policy.Permission.t
+end
+
+module GetObjectVersions : sig
+  val policy : Policy.bucket Policy.Permission.t
 end

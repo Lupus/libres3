@@ -32,6 +32,18 @@ open S3_types
 
 module Acl : sig
   type t
+  module Get : sig
+    val policy : obj Permission.t
+  end
+  module GetVersion : sig
+    val policy : obj Permission.t
+  end
+  module Put : sig
+    val policy : obj Permission.t
+  end
+  module PutVersion : sig
+    val policy : obj Permission.t
+  end
 end
 
 module Get : sig
@@ -42,8 +54,16 @@ module Head : sig
   val policy : obj Permission.t
 end
 
-module Delete : sig
+module GetVersion : sig
   val policy : obj Permission.t
+end
+
+module HeadVersion : sig
+  val policy : obj Permission.t
+end
+
+module Delete : sig
+  val policy : bucket Permission.t
 end
 
 module DeleteMulti : sig
@@ -76,4 +96,8 @@ end
 
 module ListParts: sig
   type t
+end
+
+module Put : sig
+  val policy : Policy.bucket Policy.Permission.t
 end

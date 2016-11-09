@@ -290,21 +290,26 @@ module Acl = struct
     type t = {
       grant_read : User.t list;
       grant_write: User.t list;
+      grant_manager: User.t list;
       revoke_read : User.t list;
       revoke_write: User.t list;
+      revoke_manager: User.t list;
     }
 
-    let of_v v = v.grant_read,v.grant_write,v.revoke_read,v.revoke_write
-    let v (grant_read,grant_write,revoke_read,revoke_write) =
-      {grant_read;grant_write;revoke_read;revoke_write}
+    let of_v v = v.grant_read,v.grant_write,v.grant_manager,v.revoke_read,v.revoke_write,v.revoke_manager
+    let v (grant_read,grant_write,grant_manager,revoke_read,revoke_write,revoke_manager) =
+      {grant_read;grant_write;grant_manager;revoke_read;revoke_write;revoke_manager}
 
     let users = list User.encoding
 
-    let encoding = obj4
+    let encoding = obj6
         (dft "grant-read" users [])
         (dft "grant-write" users [])
+        (dft "grant-manager" users [])
         (dft "revoke-read" users [])
-        (dft "revoke-write" users []) |> conv of_v v
+        (dft "revoke-write" users [])
+        (dft "revoke-manager" users [])
+                   |> conv of_v v
 
     let pp _ = failwith "TODO"
     let target = Cluster

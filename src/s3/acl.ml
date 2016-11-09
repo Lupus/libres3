@@ -85,58 +85,50 @@ module Grantee = struct
     | Some ("uri", v) ->
         R.map (fun u -> Uri u) (v |> unquote |> Uri.of_string |> Groups.of_uri)
     | Some _ | None -> R.error_msgf "Unknown grantee type in %s" str
+
+  let compare = compare
 end
 
-type t = {
-  grant_read : Grantee.t list;
-  grant_write : Grantee.t list;
-  grant_read_acp : Grantee.t list;
-  grant_write_acp : Grantee.t list;
-}
+module T = struct
+  type t = Read | Write | Read_acp | Write_acp
+  let compare = compare
+end
 
-let empty = {
-  grant_read = [];
-  grant_write = [];
-  grant_read_acp = [];
-  grant_write_acp = [];
-}
+module AclSet = Set.Make(T)
+module GrantMap = Map.Make(Grantee)
 
-let full_control grantee = {
-  grant_read = [grantee];
-  grant_write = [grantee];
-  grant_read_acp = [grantee];
-  grant_write_acp = [grantee];
-}
+type t = AclSet.t GrantMap.t
 
-let (@+) a b = {
-  grant_read = List.rev_append a.grant_read b.grant_read;
-  grant_write = List.rev_append a.grant_write b.grant_write;
-  grant_read_acp = List.rev_append a.grant_read_acp b.grant_read_acp;
-  grant_write_acp = List.rev_append a.grant_write_acp b.grant_write_acp;
-}
+let empty = GrantMap.empty
+
+let acl_full_control = AclSet.of_list [Read;Write;Read_acp;Write_acp]
+
+let full_control grantee =
+  GrantMap.singleton grantee acl_full_control
+
+let is_full_control acl = AclSet.equal acl acl_full_control
+
+let merge_grants _ a b = match a, b with
+| None, (Some _ as b) -> b
+| Some _ as a, None -> a
+| None, None -> None
+| Some a, Some b -> Some (AclSet.union a b)
+
+let (@+) a b = GrantMap.merge merge_grants a b
 
 let of_canned = function
 | "private" -> full_control Owner
-| "public-read" -> full_control Owner @+ {
-    empty with
-    grant_read = [Grantee.Uri `AllUsers]
-  }
-| "public-read-write" -> full_control Owner @+ {
-    empty with
-    grant_read = [Grantee.Uri `AllUsers];
-    grant_write = [Grantee.Uri `AllUsers]
-  }
+| "public-read" -> full_control Owner @+
+                   GrantMap.singleton (Grantee.Uri `AllUsers) (AclSet.singleton Read)
+| "public-read-write" -> full_control Owner @+
+                         GrantMap.singleton (Grantee.Uri `AllUsers) (AclSet.of_list [Read;Write])
 | "aws-exec-read" -> full_control Owner (* @+ EC2 *)
-| "authenticated-read" -> full_control Owner @+ {
-    empty with grant_read = [Grantee.Uri `AuthenticatedUsers]
-  }
+| "authenticated-read" -> full_control Owner @+
+                          GrantMap.singleton (Grantee.Uri `AuthenticatedUsers) (AclSet.singleton Read)
 | "bucket-owner-read" -> full_control ObjectOwner @+
-                         {empty with grant_read=[Owner]}
+                         GrantMap.singleton Owner (AclSet.singleton Read)
 | "bucket-owner-full-control" -> full_control ObjectOwner @+ full_control Owner
-| "log-delivery-write" -> {
-    empty with grant_write = [Grantee.Uri `LogDelivery];
-    grant_read_acp = [Grantee.Uri `LogDelivery]
-}
+| "log-delivery-write" -> GrantMap.singleton  (Grantee.Uri `LogDelivery) (AclSet.of_list [Write;Read_acp])
 | _ -> failwith "TODO"
 
 let values_of_header field h =
@@ -146,38 +138,31 @@ let values_of_header field h =
   Header.get_multi h field |>
   List.fold_left fold_split []
 
-let get_grants field h =
+let get_grants acl field h =
   values_of_header field h |>
   List.fold_left (fun accum v ->
       R.(
-        accum >>= fun lst ->
+        accum >>= fun map ->
         Grantee.of_header_field v >>= fun r ->
-        return (r :: lst)
+        return (GrantMap.singleton r acl @+ map)
       )
-    ) (Ok [])
+    ) (Ok GrantMap.empty)
 
 let of_header h =
   R.(
-    get_grants "x-amz-grant-read" h >>= fun grant_read ->
-    get_grants "x-amz-grant-write" h >>= fun grant_write ->
-    get_grants "x-amz-grant-read-acp" h >>= fun grant_read_acp ->
-    get_grants "x-amz-grant-write-acp" h >>= fun grant_write_acp ->
-    get_grants "x-amz-grant-full-control" h >>= fun grant_full_control ->
-    return {
-      grant_read = List.rev_append grant_full_control grant_read;
-      grant_write = List.rev_append grant_full_control grant_write;
-      grant_read_acp = List.rev_append grant_full_control grant_read_acp;
-      grant_write_acp = List.rev_append grant_full_control grant_write_acp;
-    })
-
-let to_bucket_policy grants = failwith "TODO"
-let to_obj_policy grants = failwith "TODO"
-let to_subresource_policy grants = failwith "TODO"
+    get_grants (AclSet.singleton Read) "x-amz-grant-read" h >>= fun grant_read ->
+    get_grants (AclSet.singleton Write) "x-amz-grant-write" h >>= fun grant_write ->
+    get_grants (AclSet.singleton Read_acp) "x-amz-grant-read-acp" h >>= fun grant_read_acp ->
+    get_grants (AclSet.singleton Write_acp) "x-amz-grant-write-acp" h >>= fun grant_write_acp ->
+    get_grants (AclSet.of_list [Read;Write;Read_acp;Write_acp]) "x-amz-grant-full-control" h >>= fun grant_full_control ->
+    return (grant_read @+ grant_write @+ grant_read_acp @+ grant_write_acp @+ grant_full_control)
+  )
 
 module GetBucket = struct
-  let policy = Policy.Permission.subresource "s3:GetBucketAcl"
+  let policy = Policy.Permission.bucket "s3:GetBucketAcl"
 end
 
 module PutBucket = struct
-  let policy = Policy.Permission.subresource "s3:PutBucketAcl"
+  let policy = Policy.Permission.bucket "s3:PutBucketAcl"
 end
+

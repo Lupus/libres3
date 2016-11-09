@@ -27,21 +27,71 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
+open Acl
+open Policy
 
-type obj
-type bucket
-type subresource
+module AclMap = Map.Make(T)
 
-module Permission : sig
-  type 'a t
+module BuildMap(S : Set.S) = struct
+  let of_acl of_acl_map grants =
+    GrantMap.map (fun set ->
+        AclSet.fold (fun e accum ->
+            AclMap.find e of_acl_map |> S.union accum) set S.empty
+    ) grants
 
-  val obj : string -> obj t
-  val bucket : string -> bucket t
-  val subresource : string -> subresource t
+  let to_acl to_acl_map grants =
+    GrantMap.map (fun set ->
+        List.fold_left (fun accum (acl, subset) ->
+            if S.subset subset set then AclSet.add acl accum
+            else accum
+        ) AclSet.empty to_acl_map
+    ) grants
 
-  val all : 'a t
+  let build lst =
+    let of_acl_map =
+      List.fold_left (fun accum (k, v) -> AclMap.add k v accum) AclMap.empty lst in
+    let to_acl_map = lst in
+    of_acl of_acl_map, to_acl to_acl_map
 end
 
-module ObjSet : Set.S with type elt = obj Permission.t
-module BucketSet : Set.S with type elt = bucket Permission.t
-module SubresourceSet : Set.S with type elt = subresource Permission.t
+module BS = BuildMap(BucketSet)
+module OS = BuildMap(ObjSet)
+
+let bucket_of_acl, acl_of_bucket =
+  let open T in
+  BS.build [
+    Read, BucketSet.of_list [Bucket.ListObjects.Reply.policy;
+                             Bucket.GetObjectVersions.policy;
+                             Bucket.ListMultipartUploads.policy];
+    Write, BucketSet.of_list [Object.Put.policy; Object.Delete.policy];
+    Read_acp, BucketSet.singleton GetBucket.policy;
+    Write_acp, BucketSet.singleton PutBucket.policy
+  ]
+
+let obj_of_acl, acl_of_obj =
+  let open T in
+  OS.build [
+    Read, ObjSet.of_list [Object.Get.policy;
+                          Object.GetVersion.policy;
+                          Unimpl.GetObjectTorrent.policy];
+    Write, ObjSet.empty;
+    Read_acp, ObjSet.of_list [Object.Acl.Get.policy; Object.Acl.GetVersion.policy];
+    Write_acp, ObjSet.of_list [Object.Acl.Put.policy; Object.Acl.PutVersion.policy]
+  ]
+
+module VolAcl = struct
+  type t = [`Read | `Write | `Manager]
+  let compare = compare
+end
+
+module VolSet = Set.Make(VolAcl)
+module VS = BuildMap(VolSet)
+
+let vol_of_acl, acl_of_vol =
+  let open T in
+  VS.build [
+    Read, VolSet.singleton `Read;
+    Write, VolSet.singleton `Write;
+    Read_acp, VolSet.singleton `Manager;
+    Write_acp, VolSet.singleton `Manager;
+  ]

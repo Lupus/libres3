@@ -35,12 +35,10 @@
 *)
 
 module GetObjectTorrent = struct
-  let policy = Object.Get.policy
   let policy = Policy.Permission.obj "s3:GetObjectTorrent"
 end
 
 module GetObjectVersionTorrent = struct
-  let policy = Object.Get.policy
   let policy = Policy.Permission.obj "s3:GetObjectVersionTorrent"
 end
 

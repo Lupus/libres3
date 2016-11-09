@@ -27,21 +27,14 @@
 (*  wish to do so, delete this exception statement from your version.     *)
 (**************************************************************************)
 
+open Acl
 
-type obj
-type bucket
-type subresource
+val bucket_of_acl : t -> Policy.BucketSet.t GrantMap.t
+val acl_of_bucket : Policy.BucketSet.t GrantMap.t -> t
 
-module Permission : sig
-  type 'a t
+val obj_of_acl : t -> Policy.ObjSet.t GrantMap.t
+val acl_of_obj : Policy.ObjSet.t GrantMap.t -> t
 
-  val obj : string -> obj t
-  val bucket : string -> bucket t
-  val subresource : string -> subresource t
-
-  val all : 'a t
-end
-
-module ObjSet : Set.S with type elt = obj Permission.t
-module BucketSet : Set.S with type elt = bucket Permission.t
-module SubresourceSet : Set.S with type elt = subresource Permission.t
+module VolSet : Set.S with type elt = [`Read | `Write | `Manager]
+val vol_of_acl : t -> VolSet.t GrantMap.t
+val acl_of_vol : VolSet.t GrantMap.t -> t
