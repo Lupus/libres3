@@ -40,6 +40,7 @@ module Revision = struct
   type t = string
   let encoding = string
   let pp = Fmt.string
+  let example = "\"2014-08-12 17:22:44.192:18681b2989a2aaa51bffad12555fdb23\""
 end
 
 let uri (Sx_volume.T.Volume vol) path =

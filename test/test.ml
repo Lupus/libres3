@@ -99,7 +99,7 @@ module Json = struct
       return_unit
     )
 
-  let test_simple_example (module M:JsonQuery) () =
+  let test_simple_example (module M:Convertible) () =
     (* TODO: also test inserting unknown field *)
     (* TODO: order of fields in object doesn't matter, allow for that *)
     lwt_run (
@@ -140,8 +140,9 @@ module Json = struct
       "initialize file put", `Quick, test_example (module Sx_file.Initialize.Request);
       "initialize file reply", `Quick, test_example (module Sx_file.Initialize.Reply);
       "initialize add chunk", `Quick, test_simple_example (module Sx_file.Initialize.AddChunk);
-      "list revisions", `Quick, test_simple_example (module Sx_file.ListRevisions)
-    ]
+      "list revisions", `Quick, test_simple_example (module Sx_file.ListRevisions);
+      "policy", `Quick, test_simple_example (module Policy)
+    ];
 end
 
 module Xml = struct
@@ -166,3 +167,15 @@ let () =
     Json.tests;
     Xml.tests;
   ]
+
+(* TODO: acl tests
+ *
+ * some simple policies (read/write/manager/anonymous access static test)
+ *
+ * policy generated with QCheck
+ * all S3 ops with an S3 policy converted to SX
+ * then repeat ops with S3 policy off and check that it cannot bypass the
+ * operations based on pure SX ACLs against a live SX server, or saved offline
+ * responses
+ *
+ *)

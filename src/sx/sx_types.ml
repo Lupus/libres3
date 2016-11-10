@@ -41,12 +41,12 @@ module type Convertible = sig
   type t
   val encoding : t encoding
   val pp : t Fmt.t
+  val example : string
 end
 
 module type JsonQuery = sig
   include Convertible
   val target : target
-  val example : string
 end
 
 module type JsonGetQuery = sig
@@ -90,6 +90,8 @@ module Error = struct
   let encoding = obj1 (req "ErrorMessage" string) |> obj_opt |> conv of_v v
 
   let pp = Fmt.(using of_v string)
+
+  let example = "\"ErrorMessage\": \"X failed\""
 end
 
 module Job = struct
@@ -97,6 +99,7 @@ module Job = struct
     type t = string
     let encoding = string
     let pp = Fmt.string
+    let example = "a-5"           
   end
   module Poll = struct
     type status = [`Pending | `Ok | `Error of string]
@@ -174,6 +177,8 @@ module User = struct
   let uri u =
     let path = "/.users/" ^ (of_v u) in
     Uri.make ~path ()
+
+  let example = "john"
 end
 
 module UploadToken = struct
@@ -187,6 +192,8 @@ module UploadToken = struct
 
   let file_uri token =
     Uri.make ~path:("/.upload/" ^ token) ()
+
+  let example = "e4c09c7e-48ec-4940-92d9-518ed88d6d3f:7a9bb44da0e6ec17a4716ac8c50b80be:00000002:0000000053721bb7:e7e0916a90d4500bc1b6c98628fb9f950a748b2e"
 end
 
 type query = (string * string list) list

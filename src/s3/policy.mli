@@ -45,3 +45,8 @@ end
 module ObjSet : Set.S with type elt = obj Permission.t
 module BucketSet : Set.S with type elt = bucket Permission.t
 module SubresourceSet : Set.S with type elt = subresource Permission.t
+
+type t
+val encoding : t Json_encoding.encoding
+val example: string
+val pp: t Fmt.t

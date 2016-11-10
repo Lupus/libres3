@@ -10,6 +10,7 @@ true : bin_annot, safe_string, strict_sequence, package(bytes logs), warn_A, war
 <src/http/http_date.*>: package(calendar)
 <src/io/jsonenc.*>: package(ocplib-json-typed fmt jsonm ipaddr)
 <src/s3/*>: package(calendar uri cohttp rresult astring fmt markup)
+<src/s3/policy.*>: package(ocplib-json-typed)
 <src/sx/sx_service.*>: package(cohttp.lwt rresult)
 <src/sx/sx_services.*>: package(cohttp.lwt)
 <src/sx/sx_config.*>: package(uuidm astring rresult base64 ipaddr re uri)

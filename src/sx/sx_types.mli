@@ -40,12 +40,12 @@ module type Convertible = sig
   type t
   val encoding : t encoding
   val pp : t Fmt.t
+  val example : string
 end
 
 module type JsonQuery = sig
   include Convertible
   val target : target
-  val example : string
 end
 
 module type JsonGetQuery = sig

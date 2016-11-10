@@ -45,6 +45,8 @@ module Priv = struct
   let compare (a:t) (b:t) = Pervasives.compare a b
 
   let pp _ = failwith "TODO"
+
+  let example = "manager"
 end
 
 module RW = struct
@@ -64,6 +66,8 @@ module RW = struct
   let encoding = conv to_string of_string_exn string
 
   let pp = Fmt.(using to_string string)
+
+  let example = "r-"
 end
 
 include Set.Make(Priv)
@@ -82,5 +86,7 @@ let to_rw set =
 
 let rev_elements s = elements s |> List.rev
 let encoding = list Priv.encoding |> conv rev_elements of_list
+
+let example = "[\"manager\",\"read\"]"
 
 let pp _ = failwith "TODO"

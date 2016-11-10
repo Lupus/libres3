@@ -100,6 +100,8 @@ module Users = struct
     let pp ppf (Key h) =
       (* TODO: base64 instead? *)
       Fmt.string ppf (Hex.hexdump_s h)
+
+    let example = "\"2507e0c3edcfd4280800db97023b57093c4eac4b\""
   end
   type attr = {
     admin: bool;

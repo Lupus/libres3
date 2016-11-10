@@ -43,6 +43,8 @@ module Meta = struct
   let encoding = conv of_v v Sx_types.Meta.encoding
   let pp = Fmt.(always "volume meta" |> prefix)
              Fmt.(using of_v Sx_types.Meta.pp |> braces)
+
+  let example = "{\"a\":\"bb00cc\"}"
 end
 
 module Attr = struct
@@ -85,6 +87,8 @@ module Attr = struct
 
   let encoding = obj |> obj_opt |> conv of_v v
 
+  let example = "{\"owner\":\"user\",\"replicaCount\":2,\"maxRevisions\":6,\"privs\":\"rw\",\"usedSize\":142685712,\"sizeBytes\":102005473280,\"filesSize\":102001213000,\"filesCount\":2345}"
+
   let pp _ = failwith "TODO"
 end
 
@@ -96,6 +100,7 @@ module T = struct
     Volume s
   let of_v (Volume v) = v
   let encoding = conv of_v v string
+  let example = "vol1"
   let pp = Fmt.(using of_v string)
 
   let uri (Volume v) =
