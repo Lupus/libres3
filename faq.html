@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags-->
+    <title>LibreS3 - Support</title>
+    <!-- Bootstrap-->
+    <script src="assets/js/jquery.js"></script>
+    <script src="assets/js/jquery-form.js"></script>
+    <script src="assets/js/contact-us.js"></script>
+    <script src="assets/js/bootstrap.js"></script>
+    <script src="assets/js/spin.js"></script>
+    <script src="assets/js/ladda.js"></script>
+    <script src="assets/js/highlight.js"></script>
+    <script src="assets/js/lightbox.js"></script>
+    <script src="assets/js/custom.js"></script>
+    <link href="assets/css/style.css" rel="stylesheet">
+    <link href="assets/css/font-awesome.css" rel="stylesheet">
+    <link href="assets/css/animate.css" rel="stylesheet">
+    <link href="assets/css/tomorrow.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries-->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file://-->
+    <!--if lt IE 9
+    script(src='https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js')
+    script(src='https://oss.maxcdn.com/respond/1.4.2/respond.min.js')
+    -->
+  </head>
+  <body>
+    <div class="header">
+      <section class="home-main-section">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-12 page-header">
+              <h1>LibreS3 - Support</h1>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <section class="section-cloud section-last">
+      <div class="container">
+        <div class="col-md-12 support">
+          <div class="col-md-3 support__menu">
+            <ul class="nav support__tabs">
+              <li class="support__menu-item active text-center"><a data-toggle="tab" href="#faq" class="support__menu-item-link"><img src="assets/img/faq-icon.svg" class="support__menu-item-icon"><span class="support__menu-item-description">FAQ</span></a></li>
+            </ul>
+          </div>
+          <div class="col-md-9 support__content">
+            <div class="tab-content">
+              <div id="faq" class="tab-pane fade in text-left active">
+                <h2>FAQ</h2>
+                <h3>Installation</h3>
+                <ol>
+                  <li><a href="#how-do-i-build-libres3-on-debian" class="scroll">How do I build LibreS3 on Debian?</a></li>
+                  <li><a href="#how-do-i-build-libreS3-on-fedora" class="scroll">How do I build LibreS3 on Fedora?</a></li>
+                  <li><a href="#my-centos-rhel-fedora-system-cannot-join-a-cluster-and-i-cannot-connect-to-sx-libres3-on-it-why" class="scroll">My CentOS/RHEL/Fedora system cannot join a cluster and I cannot connect to SX/LibreS3 on it. Why?</a></li>
+                </ol>
+                <h3>Error messages interpretation</h3>
+                <ol class="faq-questions-last">
+                  <li><a href="#libres3-server-your-libres3-node-is-up-and-running" class="scroll">LibreS3 Server: Your LibreS3 node is up and running</a></li>
+                  <li><a href="#libres3-s3cmd-warning-retrying-failed-request-pathfile-errno-2-name-or-service-not-known" class="scroll">LibreS3 / s3cmd: WARNING: Retrying failed request: /path/file Errno -2 Name or service not known</a></li>
+                </ol>
+                <h4 class="faq-content-header">Installation</h4>
+                <ol class="faq-answers">
+                  <li id="how-do-i-build-libres3-on-debian">
+                    <p>If you want to build from source you can use:</p>
+                    <pre><code>apt-get install ocaml-native-compilers camlp4 camlp4-extra libssl-dev libpcre3-dev git make m4
+git clone https://github.com/enospc/libres3.git
+cd libres3/
+./configure && make && make install
+libres3_setup</code></pre>
+                  </li>
+                  <li id="how-do-i-build-libreS3-on-fedora">
+                    <p>If you want to build from source you can use:</p>
+                    <pre><code>yum install ocaml ocaml-camlp4-devel ocaml-camlp4 ocaml-compiler-libs ocaml-runtime pcre-devel openssl-devel make m4 ncurses-devel git
+git clone https://github.com/enospc/libres3.git
+cd libres3/
+./configure && make && make install
+libres3_setup</code></pre>
+                  </li>
+                  <li id="my-centos-rhel-fedora-system-cannot-join-a-cluster-and-i-cannot-connect-to-sx-libres3-on-it-why">
+                    <p>By default CentOS/RHEL blocks incoming traffic to all ports except for 22. You need to allow traffic to the ports used by Sx and LibreS3.</p>
+                    <pre><code>iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+iptables -I INPUT -p tcp --dport 8443 -j ACCEPT
+service iptables save</code></pre>
+                    <p>If you want to also allow access over plaintext HTTP (not recommended), you need to open the following ports:</p>
+                    <pre><code>iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+iptables -I INPUT -p tcp --dport 8008 -j ACCEPT
+service iptables save</code></pre>
+                  </li>
+                </ol>
+                <div class="support__divider"></div>
+                <h4 class="faq-content-header">Error messages interpretation</h4>
+                <ol class="faq-answers">
+                  <li id="libres3-server-your-libres3-node-is-up-and-running">
+                    <p>LibreS3 provides an S3 REST interface to access your data.</p>
+                    <p>The server will detect attempts to access the root of the cluster from a browser and serve you the “Your LibreS3 node is up and running” page instead.</p>
+                    <p>If you want to access your LibreS3 cluster from a browser, you need to enable public buckets, and access the public bucket URL, not the cluster root.</p>
+                  </li>
+                  <li id="libres3-s3cmd-warning-retrying-failed-request-pathfile-errno-2-name-or-service-not-known">
+                    <p>The S3 protocol requires you to create an A record and a wildcard record for your LibreS3 host. Assuming your /etc/libres3/libres3.conf has s3_host=s3.mydomain.com and the IP address of your LibreS3 node is 1.2.3.4, you need to add these two entries to your DNS zone:</p>
+                    <pre><code>s3.mydomain.com. A 1.2.3.4
+*.s3.mydomain.com. A 1.2.3.4</code></pre>
+                    <p>As an example, if you run:</p>
+                    <pre><code>s3cmd ls</code></pre>
+                    <p>s3cmd will resolve s3.mydomain.com and ask 1.2.3.4 to provide the list of available buckets.</p>
+                    <p>If you run:</p>
+                    <pre><code>s3cmd ls s3://mybucket</code></pre>
+                    <p>s3cmd will resolve mybucket.s3.mydomain.com and ask 1.2.3.4 to list the content of that bucket.</p>
+                    <p>The same applies to other S3 clients.</p>
+                    <p>If you need to do a quick test and you don’t want to change your DNS zone, you can add multiple entries to the /etc/hosts file of the client machine where you are running s3cmd:</p>
+                    <pre><code>1.2.3.4 mybucket.s3.mydomain.com mybucket2.s3.mydomain.com s3.mydomain.com</code></pre>
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>
